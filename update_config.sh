@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义源文件夹路径
-SOURCE_DIR="/users/xue/UniLRC/project/config"
+SOURCE_DIR="/users/xue/xue/project/config"
 
 # 定义 hosts 文件路径
 HOSTS_FILE="hosts"
@@ -25,7 +25,7 @@ while read -r REMOTE_HOST; do
   echo "Copying contents of $SOURCE_DIR to $REMOTE_HOST..."
 
   # 使用 scp 递归复制文件夹内容
-  sudo scp -r "$SOURCE_DIR"/* "$REMOTE_HOST:/users/xue/UniLRC/project/config/"
+  sudo scp -r "$SOURCE_DIR"/* "$REMOTE_HOST:/users/xue/xue/project/config/"
 
   # 检查 scp 是否成功
   if [ $? -eq 0 ]; then

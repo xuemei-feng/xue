@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <chrono>
+#include <iomanip>
 namespace ECProject
 {
     grpc::Status DatanodeImpl::checkalive(
@@ -40,23 +41,40 @@ namespace ECProject
         std::ifstream inFile(filename, std::ios::in | std::ios::binary);
         if (inFile.is_open())
         {
-            // Read until end of file
-            while (inFile.peek() != EOF)
+            // Read parity slices in a robust way: stop on short/corrupted records.
+            while (true)
             {
                 ParitySlice slice;
 
-                // Read basic data types
-                inFile.read(reinterpret_cast<char *>(&slice.offset), sizeof(slice.offset));
-                inFile.read(reinterpret_cast<char *>(&slice.size), sizeof(slice.size));
+                if (!inFile.read(reinterpret_cast<char *>(&slice.offset), sizeof(slice.offset)))
+                {
+                    break;
+                }
+                if (!inFile.read(reinterpret_cast<char *>(&slice.size), sizeof(slice.size)))
+                {
+                    std::cerr << "[Datanode" << m_port << "][Deserialize] truncated parity slice header in file: " << filename << std::endl;
+                    break;
+                }
+                if (slice.offset < 0 || slice.size < 0 ||
+                    slice.offset >= static_cast<int>(m_sys_config->BlockSize) ||
+                    slice.size > static_cast<int>(m_sys_config->BlockSize) ||
+                    slice.offset + slice.size > static_cast<int>(m_sys_config->BlockSize))
+                {
+                    std::cerr << "[Datanode" << m_port << "][Deserialize] invalid parity slice header in file: " << filename
+                              << " offset=" << slice.offset << " size=" << slice.size
+                              << " block_size=" << m_sys_config->BlockSize << std::endl;
+                    break;
+                }
 
-                // for output, append a \0 at the end
-                // slice.slice_ptr = new char[slice.size + 1];
-                // inFile.read(slice.slice_ptr, slice.size);
-                // slice.slice_ptr[slice.size] = '\0';
-
-                // for no output
                 slice.slice_ptr = new char[slice.size];
-                inFile.read(slice.slice_ptr, slice.size);
+                if (!inFile.read(slice.slice_ptr, slice.size))
+                {
+                    std::cerr << "[Datanode" << m_port << "][Deserialize] truncated parity slice payload in file: " << filename
+                              << " offset=" << slice.offset << " size=" << slice.size << std::endl;
+                    delete[] slice.slice_ptr;
+                    slice.slice_ptr = nullptr;
+                    break;
+                }
 
                 slices.push_back(std::move(slice));
             }
@@ -204,6 +222,7 @@ namespace ECProject
 
                 std::string targetdir = "./storage/" + std::to_string(m_port) + "/";
                 std::string writepath = targetdir + block_key;
+                std::string delta_log_path = writepath + ".delta";
 
                 // std::cout << "[Datanode" << m_port << "][Append101] writepath: " << writepath << " append_offset: " << append_offset << " append_size: " << append_size << std::endl;
 
@@ -223,7 +242,9 @@ namespace ECProject
                 // serialize and append to file
                 if (is_serialized)
                 {
-                    serialize(writepath, ParitySlice(append_offset, append_size, buf));
+                    // For parity merge, keep serialized deltas in a dedicated temp log.
+                    // The base parity block file (writepath) stores raw block bytes.
+                    serialize(delta_log_path, ParitySlice(append_offset, append_size, buf));
                 }
                 else
                 {
@@ -420,31 +441,64 @@ namespace ECProject
             try
             {
                 std::string targetdir = "./storage/" + std::to_string(m_port) + "/";
-                std::string readpath = targetdir + block_key;
-
-                // std::cout << "[Datanode" << m_port << "][Merge Parity Slices] readpath: " << readpath << std::endl;
-
-                if (access(readpath.c_str(), 0) == -1)
-                {
-                    std::cerr << "[Datanode" << m_port << "][Merge Parity Slices] file does not exist!" << readpath << std::endl;
-                    exit(-1);
-                }
-                std::vector<ParitySlice> slices = deserialize(readpath);
                 std::string writepath = targetdir + block_key;
-                std::ofstream ofs(writepath, std::ios::binary | std::ios::out | std::ios::trunc);
+                std::string delta_log_path = writepath + ".delta";
                 std::unique_ptr<char[]> mergedBuf(new char[m_sys_config->BlockSize]);
                 memset(mergedBuf.get(), 0, m_sys_config->BlockSize);
+
+                // Load old parity block as base; if missing, treat as zero block.
+                if (access(writepath.c_str(), 0) != -1)
+                {
+                    std::ifstream base_in(writepath, std::ios::in | std::ios::binary);
+                    if (base_in.is_open())
+                    {
+                        base_in.read(mergedBuf.get(), m_sys_config->BlockSize);
+                        base_in.close();
+                    }
+                }
+
+                if (access(delta_log_path.c_str(), 0) == -1)
+                {
+                    std::cout << "[Datanode" << m_port << "][MergeParity] no delta log for block_key=" << block_key << std::endl;
+                    return;
+                }
+                std::vector<ParitySlice> slices = deserialize(delta_log_path);
                 for (const auto &slice : slices)
                 {
+                    if (slice.offset < 0 || slice.size < 0 ||
+                        slice.offset + slice.size > static_cast<int>(m_sys_config->BlockSize))
+                    {
+                        std::cerr << "[Datanode" << m_port << "][MergeParity] skip invalid slice"
+                                  << " offset=" << slice.offset
+                                  << " size=" << slice.size
+                                  << " block_size=" << m_sys_config->BlockSize << std::endl;
+                        continue;
+                    }
                     for (int i = 0; i < slice.size; i++)
                     {
-                        assert(slice.offset + i < m_sys_config->BlockSize && "Parity slice.offset + i >= m_sys_config->BlockSize!");
                         mergedBuf[slice.offset + i] ^= slice.slice_ptr[i];
                     }
                 }
+                {
+                    constexpr int kPrev = 16;
+                    const int n = std::min(kPrev, static_cast<int>(m_sys_config->BlockSize));
+                    std::cout << "[Datanode" << m_port << "][MergeParity] block_key=" << block_key
+                              << " block_id=" << block_id << " merged_block first " << n << " byte(s) hex:";
+                    for (int i = 0; i < n; i++)
+                    {
+                        std::cout << ' ' << std::hex << std::setfill('0') << std::setw(2)
+                                  << static_cast<unsigned>(static_cast<unsigned char>(mergedBuf[i]));
+                    }
+                    std::cout << std::dec << std::endl;
+                }
+                std::ofstream ofs(writepath, std::ios::binary | std::ios::out | std::ios::trunc);
                 ofs.write(mergedBuf.get(), m_sys_config->BlockSize);
                 ofs.flush();
                 ofs.close();
+                if (std::remove(delta_log_path.c_str()) != 0)
+                {
+                    std::cerr << "[Datanode" << m_port << "][MergeParity] failed to remove delta log: " << delta_log_path << std::endl;
+                }
             }
             catch (const std::exception &e)
             {

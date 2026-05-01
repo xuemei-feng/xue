@@ -1308,6 +1308,7 @@ class CommitAbortKey final :
 
   enum : int {
     kKeyFieldNumber = 1,
+    kRackcuHomeDeltaBlobFieldNumber = 5,
     kIfcommitmetadataFieldNumber = 2,
     kOppFieldNumber = 3,
     kStripeIdFieldNumber = 4,
@@ -1324,6 +1325,20 @@ class CommitAbortKey final :
   const std::string& _internal_key() const;
   inline PROTOBUF_ALWAYS_INLINE void _internal_set_key(const std::string& value);
   std::string* _internal_mutable_key();
+  public:
+
+  // bytes rackcu_home_delta_blob = 5;
+  void clear_rackcu_home_delta_blob();
+  const std::string& rackcu_home_delta_blob() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_rackcu_home_delta_blob(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_rackcu_home_delta_blob();
+  PROTOBUF_NODISCARD std::string* release_rackcu_home_delta_blob();
+  void set_allocated_rackcu_home_delta_blob(std::string* rackcu_home_delta_blob);
+  private:
+  const std::string& _internal_rackcu_home_delta_blob() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_rackcu_home_delta_blob(const std::string& value);
+  std::string* _internal_mutable_rackcu_home_delta_blob();
   public:
 
   // bool ifcommitmetadata = 2;
@@ -1362,6 +1377,7 @@ class CommitAbortKey final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr rackcu_home_delta_blob_;
     bool ifcommitmetadata_;
     int32_t opp_;
     int32_t stripe_id_;
@@ -1969,8 +1985,23 @@ class RepIfSuccess final :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kRackcuHomeDeltaBlobFieldNumber = 2,
     kIfcommitFieldNumber = 1,
   };
+  // bytes rackcu_home_delta_blob = 2;
+  void clear_rackcu_home_delta_blob();
+  const std::string& rackcu_home_delta_blob() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_rackcu_home_delta_blob(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_rackcu_home_delta_blob();
+  PROTOBUF_NODISCARD std::string* release_rackcu_home_delta_blob();
+  void set_allocated_rackcu_home_delta_blob(std::string* rackcu_home_delta_blob);
+  private:
+  const std::string& _internal_rackcu_home_delta_blob() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_rackcu_home_delta_blob(const std::string& value);
+  std::string* _internal_mutable_rackcu_home_delta_blob();
+  public:
+
   // bool ifcommit = 1;
   void clear_ifcommit();
   bool ifcommit() const;
@@ -1988,6 +2019,7 @@ class RepIfSuccess final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr rackcu_home_delta_blob_;
     bool ifcommit_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -5145,6 +5177,56 @@ inline void CommitAbortKey::set_stripe_id(int32_t value) {
   // @@protoc_insertion_point(field_set:coordinator_proto.CommitAbortKey.stripe_id)
 }
 
+// bytes rackcu_home_delta_blob = 5;
+inline void CommitAbortKey::clear_rackcu_home_delta_blob() {
+  _impl_.rackcu_home_delta_blob_.ClearToEmpty();
+}
+inline const std::string& CommitAbortKey::rackcu_home_delta_blob() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.CommitAbortKey.rackcu_home_delta_blob)
+  return _internal_rackcu_home_delta_blob();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void CommitAbortKey::set_rackcu_home_delta_blob(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.rackcu_home_delta_blob_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:coordinator_proto.CommitAbortKey.rackcu_home_delta_blob)
+}
+inline std::string* CommitAbortKey::mutable_rackcu_home_delta_blob() {
+  std::string* _s = _internal_mutable_rackcu_home_delta_blob();
+  // @@protoc_insertion_point(field_mutable:coordinator_proto.CommitAbortKey.rackcu_home_delta_blob)
+  return _s;
+}
+inline const std::string& CommitAbortKey::_internal_rackcu_home_delta_blob() const {
+  return _impl_.rackcu_home_delta_blob_.Get();
+}
+inline void CommitAbortKey::_internal_set_rackcu_home_delta_blob(const std::string& value) {
+  
+  _impl_.rackcu_home_delta_blob_.Set(value, GetArenaForAllocation());
+}
+inline std::string* CommitAbortKey::_internal_mutable_rackcu_home_delta_blob() {
+  
+  return _impl_.rackcu_home_delta_blob_.Mutable(GetArenaForAllocation());
+}
+inline std::string* CommitAbortKey::release_rackcu_home_delta_blob() {
+  // @@protoc_insertion_point(field_release:coordinator_proto.CommitAbortKey.rackcu_home_delta_blob)
+  return _impl_.rackcu_home_delta_blob_.Release();
+}
+inline void CommitAbortKey::set_allocated_rackcu_home_delta_blob(std::string* rackcu_home_delta_blob) {
+  if (rackcu_home_delta_blob != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.rackcu_home_delta_blob_.SetAllocated(rackcu_home_delta_blob, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.rackcu_home_delta_blob_.IsDefault()) {
+    _impl_.rackcu_home_delta_blob_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:coordinator_proto.CommitAbortKey.rackcu_home_delta_blob)
+}
+
 // -------------------------------------------------------------------
 
 // ReplyProxyIPsPorts
@@ -5651,6 +5733,56 @@ inline void RepIfSuccess::_internal_set_ifcommit(bool value) {
 inline void RepIfSuccess::set_ifcommit(bool value) {
   _internal_set_ifcommit(value);
   // @@protoc_insertion_point(field_set:coordinator_proto.RepIfSuccess.ifcommit)
+}
+
+// bytes rackcu_home_delta_blob = 2;
+inline void RepIfSuccess::clear_rackcu_home_delta_blob() {
+  _impl_.rackcu_home_delta_blob_.ClearToEmpty();
+}
+inline const std::string& RepIfSuccess::rackcu_home_delta_blob() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.RepIfSuccess.rackcu_home_delta_blob)
+  return _internal_rackcu_home_delta_blob();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void RepIfSuccess::set_rackcu_home_delta_blob(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.rackcu_home_delta_blob_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:coordinator_proto.RepIfSuccess.rackcu_home_delta_blob)
+}
+inline std::string* RepIfSuccess::mutable_rackcu_home_delta_blob() {
+  std::string* _s = _internal_mutable_rackcu_home_delta_blob();
+  // @@protoc_insertion_point(field_mutable:coordinator_proto.RepIfSuccess.rackcu_home_delta_blob)
+  return _s;
+}
+inline const std::string& RepIfSuccess::_internal_rackcu_home_delta_blob() const {
+  return _impl_.rackcu_home_delta_blob_.Get();
+}
+inline void RepIfSuccess::_internal_set_rackcu_home_delta_blob(const std::string& value) {
+  
+  _impl_.rackcu_home_delta_blob_.Set(value, GetArenaForAllocation());
+}
+inline std::string* RepIfSuccess::_internal_mutable_rackcu_home_delta_blob() {
+  
+  return _impl_.rackcu_home_delta_blob_.Mutable(GetArenaForAllocation());
+}
+inline std::string* RepIfSuccess::release_rackcu_home_delta_blob() {
+  // @@protoc_insertion_point(field_release:coordinator_proto.RepIfSuccess.rackcu_home_delta_blob)
+  return _impl_.rackcu_home_delta_blob_.Release();
+}
+inline void RepIfSuccess::set_allocated_rackcu_home_delta_blob(std::string* rackcu_home_delta_blob) {
+  if (rackcu_home_delta_blob != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.rackcu_home_delta_blob_.SetAllocated(rackcu_home_delta_blob, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.rackcu_home_delta_blob_.IsDefault()) {
+    _impl_.rackcu_home_delta_blob_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:coordinator_proto.RepIfSuccess.rackcu_home_delta_blob)
 }
 
 // -------------------------------------------------------------------

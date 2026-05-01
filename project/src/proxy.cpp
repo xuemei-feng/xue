@@ -12,6 +12,8 @@
 #include <sys/mman.h>
 #include "unilrc_encoder.h"
 #include <chrono>
+#include <iomanip>
+#include <map>
 template <typename T>
 inline T ceil(T const &A, T const &B)
 {
@@ -24,6 +26,32 @@ namespace ECProject
     inline bool is_azure_like_code(const std::string &code_type)
     {
       return code_type == "AzureLRC" || code_type == "RandomLRC";
+    }
+
+    constexpr int kRackcuParityHexPreview = 16;
+
+    inline void log_rackcu_parity_range_hex(
+        int proxy_cluster,
+        int stripe_id,
+        const char *phase,
+        int parity_block_id,
+        int range_off,
+        int range_len,
+        const unsigned char *bytes,
+        int nbytes_available)
+    {
+      const int n = std::min(kRackcuParityHexPreview,
+                             std::min(range_len, nbytes_available));
+      std::cout << "[Proxy" << proxy_cluster << "][RACKCU][Parity] " << phase
+                << " stripe=" << stripe_id << " parity_block_id=" << parity_block_id
+                << " range=[" << range_off << "," << (range_off + range_len)
+                << ") first " << n << " byte(s) hex:";
+      for (int i = 0; i < n; i++)
+      {
+        std::cout << ' ' << std::hex << std::setfill('0') << std::setw(2)
+                  << static_cast<unsigned>(bytes[i]);
+      }
+      std::cout << std::dec << std::endl;
     }
   }
 
@@ -572,8 +600,9 @@ namespace ECProject
     bool is_serialized = append_stripe_data_placement->is_serialized();
 
     auto placement_copy = std::make_shared<proxy_proto::AppendStripeDataPlacement>(*append_stripe_data_placement);
+    auto rackcu_home_delta_out = std::make_shared<std::string>();
 
-    auto append_and_save = [this, stripe_id, cluster_append_size, slice_num, placement_copy, is_serialized]() mutable
+    auto append_and_save = [this, stripe_id, cluster_append_size, slice_num, placement_copy, is_serialized, rackcu_home_delta_out]() mutable
     {
       try
       {
@@ -610,9 +639,109 @@ namespace ECProject
 
         std::vector<char *> slices = m_toolbox->splitCharPointer(append_buf.data(), placement_copy);
 
-        if (placement_copy->append_mode() == "RACKCU_GLOBAL_FROM_DATA" ||
-            placement_copy->append_mode() == "RACKCU_PARITY_GLOBAL_BY_COLLECTOR" ||
-            placement_copy->append_mode() == "RACKCU_LOCAL_FROM_DATA")
+        // RackCU DATA_HOME：写回 new 之前在本 cluster 读盘 old，计算 ΔD=new⊕old，序列化后经 coordinator
+        // 交给 client；校验步仅带 delta，不再读数据块旧值。
+        if (placement_copy->append_mode() == "RACKCU_DATA_HOME_XOR_FIRST")
+        {
+          const int k_bs = static_cast<int>(m_sys_config->k);
+          const int bsz = static_cast<int>(m_sys_config->BlockSize);
+          std::map<int, std::vector<unsigned char>> old_blk_cache;
+          auto load_old_home = [&](int j) -> std::vector<unsigned char> & {
+            const int bid = placement_copy->blockids(j);
+            auto it = old_blk_cache.find(bid);
+            if (it != old_blk_cache.end())
+            {
+              return it->second;
+            }
+            std::vector<unsigned char> ov(static_cast<size_t>(bsz), 0);
+            const bool ok = GetFromDatanode(
+                placement_copy->blockkeys(j),
+                reinterpret_cast<char *>(ov.data()),
+                static_cast<size_t>(bsz),
+                placement_copy->datanodeip(j).c_str(),
+                placement_copy->datanodeport(j));
+            if (!ok)
+            {
+              throw std::runtime_error("RACKCU_DATA_HOME_XOR_FIRST: failed to read old data block before home write");
+            }
+            auto ins = old_blk_cache.emplace(bid, std::move(ov));
+            return ins.first->second;
+          };
+          constexpr int k_preview = 16;
+          constexpr uint32_t k_rackcu_delta_magic = 0x52434448u;
+          std::vector<char> payload;
+          auto append_u32 = [](std::vector<char> &b, uint32_t v) {
+            b.push_back(static_cast<char>(v & 0xffu));
+            b.push_back(static_cast<char>((v >> 8) & 0xffu));
+            b.push_back(static_cast<char>((v >> 16) & 0xffu));
+            b.push_back(static_cast<char>((v >> 24) & 0xffu));
+          };
+          auto append_i32 = [&append_u32](std::vector<char> &b, int32_t v) {
+            append_u32(b, static_cast<uint32_t>(v));
+          };
+          uint32_t nseg = 0;
+          for (int j = 0; j < slice_num; j++)
+          {
+            const int bid = placement_copy->blockids(j);
+            if (bid < 0 || bid >= k_bs)
+            {
+              continue;
+            }
+            const int off = static_cast<int>(placement_copy->offsets(j));
+            const int len = static_cast<int>(placement_copy->sizes(j));
+            if (len <= 0 || off < 0 || off + len > bsz)
+            {
+              throw std::runtime_error("RACKCU_DATA_HOME_XOR_FIRST: invalid data slice bounds");
+            }
+            std::vector<unsigned char> &oldv = load_old_home(j);
+            int nz = 0;
+            const int pv = std::min(k_preview, len);
+            std::cout << "[Proxy" << m_self_cluster_id << "][RACKCU][HOME] pre_write stripe=" << stripe_id
+                      << " block_id=" << bid << " range=[" << off << "," << (off + len) << ") ";
+            std::cout << "old_fp" << pv << ":";
+            for (int t = 0; t < pv; t++)
+            {
+              std::cout << ' ' << std::hex << std::setfill('0') << std::setw(2)
+                        << static_cast<unsigned>(oldv[static_cast<size_t>(off + t)]);
+            }
+            std::cout << " new_fp" << pv << ":";
+            for (int t = 0; t < pv; t++)
+            {
+              std::cout << ' ' << std::hex << std::setfill('0') << std::setw(2)
+                        << static_cast<unsigned>(static_cast<unsigned char>(slices[static_cast<size_t>(j)][t]));
+            }
+            std::cout << " delta_fp" << pv << ":";
+            append_i32(payload, static_cast<int32_t>(bid));
+            append_i32(payload, static_cast<int32_t>(off));
+            append_i32(payload, static_cast<int32_t>(len));
+            for (int t = 0; t < len; t++)
+            {
+              const unsigned char d = static_cast<unsigned char>(
+                  static_cast<unsigned char>(slices[static_cast<size_t>(j)][t]) ^
+                  oldv[static_cast<size_t>(off + t)]);
+              if (t < pv)
+              {
+                std::cout << ' ' << std::hex << std::setfill('0') << std::setw(2) << static_cast<unsigned>(d);
+              }
+              if (d != 0)
+              {
+                nz++;
+              }
+              payload.push_back(static_cast<char>(d));
+            }
+            std::cout << std::dec << " nonzero_delta_bytes=" << nz << "/" << len << std::endl;
+            nseg++;
+          }
+          std::vector<char> full;
+          append_u32(full, k_rackcu_delta_magic);
+          append_u32(full, nseg);
+          full.insert(full.end(), payload.begin(), payload.end());
+          *rackcu_home_delta_out = std::string(full.begin(), full.end());
+        }
+
+        if (placement_copy->append_mode() == "RACKCU_GLOBAL_FROM_DATA_HOME_DELTA" ||
+            placement_copy->append_mode() == "RACKCU_PARITY_GLOBAL_BY_COLLECTOR_HOME_DELTA" ||
+            placement_copy->append_mode() == "RACKCU_LOCAL_FROM_DATA_HOME_DELTA")
         {
           const int k = m_sys_config->k;
           const int r = m_sys_config->r;
@@ -634,16 +763,86 @@ namespace ECProject
             throw std::runtime_error("RACKCU_GLOBAL_FROM_DATA: invalid parity tail range");
           }
 
+          // RackCU：*_HOME_DELTA 模式下 TCP 载荷已是各 home 算好的 ΔD，不再读数据块旧盘。
+          // 否则 ΔD = D_new XOR D_old（在 proxy 上读旧块）。
+          const bool from_home_delta_tcp =
+              (placement_copy->append_mode() == "RACKCU_GLOBAL_FROM_DATA_HOME_DELTA" ||
+               placement_copy->append_mode() == "RACKCU_PARITY_GLOBAL_BY_COLLECTOR_HOME_DELTA" ||
+               placement_copy->append_mode() == "RACKCU_LOCAL_FROM_DATA_HOME_DELTA");
+          std::map<int, std::vector<unsigned char>> old_data_cache;
+          auto load_old_block = [&](int j) -> std::vector<unsigned char> &
+          {
+            const int bid = placement_copy->blockids(j);
+            auto it = old_data_cache.find(bid);
+            if (it != old_data_cache.end())
+            {
+              return it->second;
+            }
+            std::vector<unsigned char> old_block(static_cast<size_t>(block_size), 0);
+            const bool ok = GetFromDatanode(
+                placement_copy->blockkeys(j),
+                reinterpret_cast<char *>(old_block.data()),
+                static_cast<size_t>(block_size),
+                placement_copy->datanodeip(j).c_str(),
+                placement_copy->datanodeport(j));
+            if (!ok)
+            {
+              throw std::runtime_error("RACKCU: failed to read old data block from datanode");
+            }
+            auto inserted = old_data_cache.emplace(bid, std::move(old_block));
+            return inserted.first->second;
+          };
+
+          std::vector<std::vector<unsigned char>> delta_slices(static_cast<size_t>(tail_idx));
+          for (int j = 0; j < tail_idx; j++)
+          {
+            const int bid = placement_copy->blockids(j);
+            if (bid < 0 || bid >= k)
+            {
+              throw std::runtime_error("RACKCU: non-data block appears before parity tail");
+            }
+            const int off = static_cast<int>(placement_copy->offsets(j));
+            const int len = static_cast<int>(placement_copy->sizes(j));
+            if (off < 0 || len < 0 || off + len > block_size)
+            {
+              throw std::runtime_error("RACKCU: invalid data slice range");
+            }
+            std::vector<unsigned char> delta(static_cast<size_t>(len), 0);
+            if (from_home_delta_tcp)
+            {
+              std::memcpy(delta.data(), slices[static_cast<size_t>(j)], static_cast<size_t>(len));
+            }
+            else
+            {
+              std::vector<unsigned char> &old_block = load_old_block(j);
+              for (int t = 0; t < len; t++)
+              {
+                const unsigned char new_v = static_cast<unsigned char>(slices[j][t]);
+                const unsigned char old_v = old_block[static_cast<size_t>(off + t)];
+                delta[static_cast<size_t>(t)] = static_cast<unsigned char>(new_v ^ old_v);
+              }
+            }
+            delta_slices[static_cast<size_t>(j)] = std::move(delta);
+            if (IF_DEBUG)
+            {
+              std::cout << "[Proxy" << m_self_cluster_id << "][RACKCU][DeltaTag] stripe=" << stripe_id
+                        << " block=" << bid << " offset=" << off << " size=" << len
+                        << (from_home_delta_tcp ? " (home_delta_tcp)" : "") << std::endl;
+            }
+          }
+
           std::vector<std::vector<unsigned char>> parity_rows(static_cast<size_t>(r + z), std::vector<unsigned char>(static_cast<size_t>(block_size), 0));
-          if (placement_copy->append_mode() == "RACKCU_LOCAL_FROM_DATA")
+          if (placement_copy->append_mode() == "RACKCU_LOCAL_FROM_DATA" ||
+              placement_copy->append_mode() == "RACKCU_LOCAL_FROM_DATA_HOME_DELTA")
           {
             if (parity_block_id < k + r || parity_block_id >= k + r + z)
             {
               throw std::runtime_error("RACKCU_LOCAL_FROM_DATA: invalid local parity block id");
             }
-            const int local_group = parity_block_id - k - r;
-            const int group_data_num = k / z;
-            std::map<int, std::vector<std::pair<int, int>>> data_segs;
+            // Build sparse k-row delta matrix with original block IDs preserved.
+            // Do not collapse touched rows to [0..n), otherwise block-id positions
+            // are lost and local parity row can be computed incorrectly.
+            std::vector<std::vector<unsigned char>> delta_rows(static_cast<size_t>(k), std::vector<unsigned char>(static_cast<size_t>(block_size), 0));
             for (int j = 0; j < tail_idx; j++)
             {
               const int bid = placement_copy->blockids(j);
@@ -651,52 +850,28 @@ namespace ECProject
               {
                 throw std::runtime_error("RACKCU_LOCAL_FROM_DATA: non-data block appears before parity tail");
               }
-              if (group_data_num > 0 && (bid / group_data_num) != local_group)
-              {
-                throw std::runtime_error("RACKCU_LOCAL_FROM_DATA: data block group mismatch");
-              }
               const int off = static_cast<int>(placement_copy->offsets(j));
               const int len = static_cast<int>(placement_copy->sizes(j));
               if (off < 0 || len < 0 || off + len > block_size)
               {
                 throw std::runtime_error("RACKCU_LOCAL_FROM_DATA: invalid data slice range");
               }
-              data_segs[bid].push_back(std::make_pair(off, j));
+              std::memcpy(delta_rows[static_cast<size_t>(bid)].data() + off, delta_slices[static_cast<size_t>(j)].data(), static_cast<size_t>(len));
             }
 
-            std::vector<int> touched_ids;
-            touched_ids.reserve(data_segs.size());
-            for (const auto &it : data_segs)
+            std::vector<unsigned char *> data_ptrs;
+            data_ptrs.reserve(static_cast<size_t>(k));
+            for (int bid = 0; bid < k; bid++)
             {
-              touched_ids.push_back(it.first);
+              data_ptrs.push_back(delta_rows[static_cast<size_t>(bid)].data());
             }
-            std::sort(touched_ids.begin(), touched_ids.end());
-
-            std::vector<std::vector<unsigned char>> touched_rows(static_cast<size_t>(touched_ids.size()),
-                                                                 std::vector<unsigned char>(static_cast<size_t>(block_size), 0));
-            std::vector<unsigned char *> dptrs;
-            dptrs.reserve(touched_ids.size());
-            for (size_t ti = 0; ti < touched_ids.size(); ti++)
-            {
-              const int bid = touched_ids[ti];
-              unsigned char *row = touched_rows[ti].data();
-              for (const auto &off_j : data_segs[bid])
-              {
-                const int off = off_j.first;
-                const int j = off_j.second;
-                const int len = static_cast<int>(placement_copy->sizes(j));
-                std::memcpy(row + off, slices[j], static_cast<size_t>(len));
-              }
-              dptrs.push_back(row);
-            }
-
             std::vector<unsigned char *> parity_ptrs;
             parity_ptrs.reserve(static_cast<size_t>(r + z));
             for (int pid = 0; pid < r + z; pid++)
             {
               parity_ptrs.push_back(parity_rows[static_cast<size_t>(pid)].data());
             }
-            ECProject::partial_encode_azure_lrc(k, r, z, static_cast<int>(dptrs.size()), dptrs.data(), parity_ptrs.data(), block_size);
+            ECProject::encode_azure_lrc(k, r, z, data_ptrs.data(), parity_ptrs.data(), block_size);
           }
           else
           {
@@ -719,7 +894,7 @@ namespace ECProject
               {
                 throw std::runtime_error("RACKCU_GLOBAL_FROM_DATA: invalid data slice range");
               }
-              std::memcpy(delta_rows[static_cast<size_t>(bid)].data() + off, slices[j], static_cast<size_t>(len));
+              std::memcpy(delta_rows[static_cast<size_t>(bid)].data() + off, delta_slices[static_cast<size_t>(j)].data(), static_cast<size_t>(len));
             }
             std::vector<unsigned char *> data_ptrs;
             data_ptrs.reserve(static_cast<size_t>(k));
@@ -736,19 +911,97 @@ namespace ECProject
             ECProject::encode_azure_lrc(k, r, z, data_ptrs.data(), parity_ptrs.data(), block_size);
           }
 
-          AppendToDatanode(placement_copy->blockkeys(tail_idx).c_str(),
-                           parity_block_id,
-                           static_cast<size_t>(plen),
-                           reinterpret_cast<const char *>(parity_rows[static_cast<size_t>(gidx)].data() + poff),
-                           poff,
-                           placement_copy->datanodeip(tail_idx).c_str(),
-                           placement_copy->datanodeport(tail_idx),
-                           true);
-          MergeParityOnDatanode(placement_copy->blockkeys(tail_idx).c_str(),
-                                parity_block_id,
-                                placement_copy->datanodeip(tail_idx).c_str(),
-                                placement_copy->datanodeport(tail_idx),
-                                "UNILRC_MODE");
+          const unsigned char *delta_at_poff = parity_rows[static_cast<size_t>(gidx)].data() + static_cast<size_t>(poff);
+          log_rackcu_parity_range_hex(
+              m_self_cluster_id, stripe_id, "xor_delta_encoded", parity_block_id,
+              poff, plen, delta_at_poff, plen);
+          auto apply_delta_locally = [&]() {
+            AppendToDatanode(placement_copy->blockkeys(tail_idx).c_str(),
+                             parity_block_id,
+                             static_cast<size_t>(plen),
+                             reinterpret_cast<const char *>(delta_at_poff),
+                             poff,
+                             placement_copy->datanodeip(tail_idx).c_str(),
+                             placement_copy->datanodeport(tail_idx),
+                             true);
+            MergeParityOnDatanode(placement_copy->blockkeys(tail_idx).c_str(),
+                                  parity_block_id,
+                                  placement_copy->datanodeip(tail_idx).c_str(),
+                                  placement_copy->datanodeport(tail_idx),
+                                  "UNILRC_MODE");
+          };
+          auto forward_delta_to_target_proxy = [&]() -> bool {
+            if (placement_copy->target_proxy_ip().empty() || placement_copy->target_proxy_port() <= 0)
+            {
+              return false;
+            }
+            proxy_proto::AppendStripeDataPlacement forward_plan;
+            forward_plan.set_key(placement_copy->key());
+            forward_plan.set_cluster_id(placement_copy->cluster_id());
+            forward_plan.set_stripe_id(stripe_id);
+            forward_plan.set_append_size(static_cast<uint64_t>(plen));
+            forward_plan.add_datanodeip(placement_copy->datanodeip(tail_idx));
+            forward_plan.add_datanodeport(placement_copy->datanodeport(tail_idx));
+            forward_plan.add_blockkeys(placement_copy->blockkeys(tail_idx));
+            forward_plan.add_blockids(parity_block_id);
+            forward_plan.add_offsets(static_cast<uint64_t>(poff));
+            forward_plan.add_sizes(static_cast<uint64_t>(plen));
+            forward_plan.set_is_merge_parity(true);
+            forward_plan.set_append_mode("RACKCU_PARITY_APPLY_ONLY");
+            forward_plan.set_is_serialized(true);
+
+            const std::string rpc_target = placement_copy->target_proxy_ip() + ":" + std::to_string(placement_copy->target_proxy_port());
+            auto target_stub = proxy_proto::proxyService::NewStub(
+                grpc::CreateChannel(rpc_target, grpc::InsecureChannelCredentials()));
+            grpc::ClientContext fctx;
+            proxy_proto::SetReply freply;
+            grpc::Status st = target_stub->scheduleAppend2Datanode(&fctx, forward_plan, &freply);
+            if (!st.ok())
+            {
+              std::cout << "[Proxy" << m_self_cluster_id << "][RACKCU][Forward] schedule failed to "
+                        << rpc_target << " err=" << st.error_message() << std::endl;
+              return false;
+            }
+
+            asio::io_context fwd_io;
+            asio::error_code ec;
+            asio::ip::tcp::resolver resolver(fwd_io);
+            const int target_data_port = placement_copy->target_proxy_port() + ECProject::PROXY_PORT_SHIFT;
+            auto endpoints = resolver.resolve(placement_copy->target_proxy_ip(), std::to_string(target_data_port), ec);
+            if (ec)
+            {
+              std::cout << "[Proxy" << m_self_cluster_id << "][RACKCU][Forward] resolve failed ip="
+                        << placement_copy->target_proxy_ip() << " port=" << target_data_port
+                        << " err=" << ec.message() << std::endl;
+              return false;
+            }
+            asio::ip::tcp::socket sock(fwd_io);
+            asio::connect(sock, endpoints, ec);
+            if (ec)
+            {
+              std::cout << "[Proxy" << m_self_cluster_id << "][RACKCU][Forward] connect failed ip="
+                        << placement_copy->target_proxy_ip() << " port=" << target_data_port
+                        << " err=" << ec.message() << std::endl;
+              return false;
+            }
+            asio::write(sock, asio::buffer(reinterpret_cast<const char *>(delta_at_poff), static_cast<size_t>(plen)), ec);
+            if (ec)
+            {
+              std::cout << "[Proxy" << m_self_cluster_id << "][RACKCU][Forward] send failed ip="
+                        << placement_copy->target_proxy_ip() << " port=" << target_data_port
+                        << " err=" << ec.message() << std::endl;
+              return false;
+            }
+            asio::error_code ignore_ec;
+            sock.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
+            sock.close(ignore_ec);
+            return true;
+          };
+
+          if (!forward_delta_to_target_proxy())
+          {
+            apply_delta_locally();
+          }
 
           coordinator_proto::CommitAbortKey commit_abort_key;
           coordinator_proto::ReplyFromCoordinator result;
@@ -758,10 +1011,39 @@ namespace ECProject
           commit_abort_key.set_key(placement_copy->key());
           commit_abort_key.set_stripe_id(stripe_id);
           commit_abort_key.set_ifcommitmetadata(true);
+          if (rackcu_home_delta_out != nullptr && !rackcu_home_delta_out->empty())
+          {
+            commit_abort_key.set_rackcu_home_delta_blob(*rackcu_home_delta_out);
+          }
           grpc::Status status = m_coordinator_ptr->reportCommitAbort(&context2, commit_abort_key, &result);
           if (!status.ok() && IF_DEBUG)
           {
             std::cout << "[Proxy][RACKCU] report commit failed!" << std::endl;
+          }
+          return;
+        }
+
+        if (placement_copy->append_mode() == "RACKCU_PARITY_APPLY_ONLY")
+        {
+          auto append_to_datanode = [this](const char *block_key, int block_id, size_t slice_size, const char *slice_buf, int slice_offset, const char *ip, int port, bool is_serialized)
+          {
+            AppendToDatanode(block_key, block_id, slice_size, slice_buf, slice_offset, ip, port, is_serialized);
+          };
+          std::vector<std::thread> senders;
+          for (int j = 0; j < slice_num; j++)
+          {
+            senders.push_back(std::thread(append_to_datanode, placement_copy->blockkeys(j).c_str(), placement_copy->blockids(j), placement_copy->sizes(j), slices[j], placement_copy->offsets(j), placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j), true));
+          }
+          for (int j = 0; j < int(senders.size()); j++)
+          {
+            senders[j].join();
+          }
+          for (int j = 0; j < slice_num; j++)
+          {
+            if (placement_copy->blockids(j) >= m_sys_config->k)
+            {
+              MergeParityOnDatanode(placement_copy->blockkeys(j).c_str(), placement_copy->blockids(j), placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j), "UNILRC_MODE");
+            }
           }
           return;
         }
@@ -818,6 +1100,10 @@ namespace ECProject
         commit_abort_key.set_key(placement_copy->key());
         commit_abort_key.set_stripe_id(stripe_id);
         commit_abort_key.set_ifcommitmetadata(true);
+        if (rackcu_home_delta_out != nullptr && !rackcu_home_delta_out->empty())
+        {
+          commit_abort_key.set_rackcu_home_delta_blob(*rackcu_home_delta_out);
+        }
         grpc::Status status;
         status = m_coordinator_ptr->reportCommitAbort(&context, commit_abort_key, &result);
         if (status.ok() && IF_DEBUG)

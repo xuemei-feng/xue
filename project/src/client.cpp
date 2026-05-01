@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <cstring>
 #include <map>
+#include <random>
+#include <iomanip>
 #include "unilrc_encoder.h"
 namespace ECProject
 {
@@ -51,6 +53,64 @@ namespace ECProject
         }
       }
       vec.swap(merged);
+    }
+
+    constexpr uint32_t k_rackcu_home_delta_magic = 0x52434448u;
+    inline uint32_t rackcu_rd_u32_le(const unsigned char *p)
+    {
+      return static_cast<uint32_t>(p[0]) | (static_cast<uint32_t>(p[1]) << 8) | (static_cast<uint32_t>(p[2]) << 16) |
+             (static_cast<uint32_t>(p[3]) << 24);
+    }
+    inline int32_t rackcu_rd_i32_le(const unsigned char *p)
+    {
+      return static_cast<int32_t>(rackcu_rd_u32_le(p));
+    }
+    bool merge_rackcu_home_delta_blob_into(const std::string &blob, int k, int block_size,
+                                           std::vector<std::vector<unsigned char>> *rows)
+    {
+      if (rows == nullptr || static_cast<int>(rows->size()) < k)
+      {
+        return false;
+      }
+      if (blob.size() < 8u)
+      {
+        return false;
+      }
+      const auto *base = reinterpret_cast<const unsigned char *>(blob.data());
+      if (rackcu_rd_u32_le(base) != k_rackcu_home_delta_magic)
+      {
+        return false;
+      }
+      const uint32_t nseg = rackcu_rd_u32_le(base + 4);
+      size_t pos = 8u;
+      for (uint32_t si = 0; si < nseg; si++)
+      {
+        if (pos + 12u > blob.size())
+        {
+          return false;
+        }
+        const int32_t bid = rackcu_rd_i32_le(base + pos);
+        pos += 4u;
+        const int32_t off = rackcu_rd_i32_le(base + pos);
+        pos += 4u;
+        const int32_t len = rackcu_rd_i32_le(base + pos);
+        pos += 4u;
+        if (bid < 0 || bid >= k || off < 0 || len < 0 || off + len > block_size)
+        {
+          return false;
+        }
+        if (pos + static_cast<size_t>(len) > blob.size())
+        {
+          return false;
+        }
+        if ((*rows)[static_cast<size_t>(bid)].size() != static_cast<size_t>(block_size))
+        {
+          (*rows)[static_cast<size_t>(bid)].assign(static_cast<size_t>(block_size), 0);
+        }
+        std::memcpy((*rows)[static_cast<size_t>(bid)].data() + off, base + pos, static_cast<size_t>(len));
+        pos += static_cast<size_t>(len);
+      }
+      return pos == blob.size();
     }
 
   }
@@ -368,7 +428,7 @@ namespace ECProject
     return true;
   }*/
 
-  void Client::async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr)
+  void Client::async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr, int stripe_id, std::vector<std::vector<unsigned char>> *rackcu_delta_by_block)
   {
     // std::cout << "[Append174] Appending size " << cluster_slice_size << " to proxy_address:" << proxy_ip << ":" << proxy_port << std::endl;
     asio::io_context io_context;
@@ -390,6 +450,10 @@ namespace ECProject
     request.set_key(append_key);
     OpperateType opp = APPEND;
     request.set_opp(opp);
+    if (stripe_id >= 0)
+    {
+      request.set_stripe_id(stripe_id);
+    }
     coordinator_proto::RepIfSuccess reply;
     grpc::Status status;
     status = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply);
@@ -398,6 +462,14 @@ namespace ECProject
       if (reply.ifcommit())
       {
         if_commit_arr[index] = true;
+        if (rackcu_delta_by_block != nullptr && reply.rackcu_home_delta_blob().size() > 0)
+        {
+          if (!merge_rackcu_home_delta_blob_into(reply.rackcu_home_delta_blob(), static_cast<int>(m_sys_config->k),
+                                                 static_cast<int>(m_sys_config->BlockSize), rackcu_delta_by_block))
+          {
+            std::cout << "[RACKCU] merge home delta blob failed append_key=" << append_key << std::endl;
+          }
+        }
       }
       else
       {
@@ -708,7 +780,7 @@ namespace ECProject
       for (int i = 0; i < reply.append_keys_size(); i++)
       {
         threads.push_back(std::thread(&Client::async_append_to_proxies,
-                                      this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get()));
+                                      this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get(), -1, nullptr));
       }
       for (auto &thread : threads)
       {
@@ -798,7 +870,7 @@ namespace ECProject
       for (int i = 0; i < reply.append_keys_size(); i++)
       {
         threads.push_back(std::thread(&Client::async_append_to_proxies,
-                                      this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get()));
+                                      this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get(), -1, nullptr));
       }
       for (auto &thread : threads)
       {
@@ -863,7 +935,7 @@ namespace ECProject
     for (int i = 0; i < reply.append_keys_size(); i++)
     {
       threads.push_back(std::thread(&Client::async_append_to_proxies,
-                                    this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get()));
+                                    this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get(), -1, nullptr));
     }
     for (auto &thread : threads)
     {
@@ -984,8 +1056,71 @@ namespace ECProject
       return w;
     };
 
+    std::vector<std::vector<unsigned char>> rackcu_delta_by_block(
+        static_cast<size_t>(k), std::vector<unsigned char>(static_cast<size_t>(block_size), 0));
+
+    auto pack_merge_plan_use_delta = [&](const proxy_proto::AppendStripeDataPlacement &plan, char *dst, size_t expect_total) -> bool {
+      const int pn = plan.blockids_size();
+      if (pn < 2)
+      {
+        return false;
+      }
+      size_t w = 0;
+      for (int j = 0; j + 1 < pn; j++)
+      {
+        const int bid = plan.blockids(j);
+        const int off = static_cast<int>(plan.offsets(j));
+        const int len = static_cast<int>(plan.sizes(j));
+        if (bid < 0 || bid >= k || off < 0 || len < 0 || off + len > block_size)
+        {
+          return false;
+        }
+        std::memcpy(dst + w, rackcu_delta_by_block[static_cast<size_t>(bid)].data() + off, static_cast<size_t>(len));
+        w += static_cast<size_t>(len);
+      }
+      const int off_last = static_cast<int>(plan.offsets(pn - 1));
+      const int len_last = static_cast<int>(plan.sizes(pn - 1));
+      if (off_last < 0 || len_last < 0 || off_last + len_last > block_size)
+      {
+        return false;
+      }
+      std::memset(dst + w, 0, static_cast<size_t>(len_last));
+      w += static_cast<size_t>(len_last);
+      return w == expect_total;
+    };
+
+    std::vector<int> dispatch_order;
+    dispatch_order.reserve(static_cast<size_t>(nsteps));
     for (int i = 0; i < nsteps; i++)
     {
+      dispatch_order.push_back(i);
+    }
+    // 先执行所有 DATA_HOME（home 读旧、写新、经 coordinator 回传 ΔD），再 COLLECTOR（仍发 new），最后 parity（TCP 仅带 ΔD）。
+    auto rackcu_step_bucket = [](int32_t s) -> int {
+      if (s == RACKCU_STEP_DATA_HOME)
+      {
+        return 0;
+      }
+      if (s == RACKCU_STEP_DATA_TO_COLLECTOR)
+      {
+        return 1;
+      }
+      return 2;
+    };
+    std::stable_sort(dispatch_order.begin(), dispatch_order.end(),
+                     [&](int lhs, int rhs) {
+                       const int bl = rackcu_step_bucket(reply.group_ids(lhs));
+                       const int br = rackcu_step_bucket(reply.group_ids(rhs));
+                       if (bl != br)
+                       {
+                         return bl < br;
+                       }
+                       return lhs < rhs;
+                     });
+
+    for (int oi = 0; oi < nsteps; oi++)
+    {
+      const int i = dispatch_order[static_cast<size_t>(oi)];
       proxy_proto::AppendStripeDataPlacement plan;
       if (!plan.ParseFromString(reply.append_plans(i)))
       {
@@ -1017,32 +1152,9 @@ namespace ECProject
       }
       case RACKCU_STEP_PARITY_GLOBAL_FROM_DATA:
       {
-        if (plan.blockids_size() < 2)
+        if (!pack_merge_plan_use_delta(plan, p, slice_size))
         {
-          std::cout << "[RACKCU] invalid PARITY_GLOBAL_FROM_DATA plan" << std::endl;
-          return false;
-        }
-        size_t w = 0;
-        for (int j = 0; j + 1 < plan.blockids_size(); j++)
-        {
-          const int bid = plan.blockids(j);
-          const int off = static_cast<int>(plan.offsets(j));
-          const int len = static_cast<int>(plan.sizes(j));
-          std::memcpy(p + w, ptr_for_block(bid) + off, static_cast<size_t>(len));
-          w += static_cast<size_t>(len);
-        }
-        const int off_last = static_cast<int>(plan.offsets(plan.blockids_size() - 1));
-        const int len_last = static_cast<int>(plan.sizes(plan.blockids_size() - 1));
-        if (off_last < 0 || len_last < 0 || off_last + len_last > block_size)
-        {
-          std::cout << "[RACKCU] invalid tail parity slice in PARITY_GLOBAL_FROM_DATA plan" << std::endl;
-          return false;
-        }
-        std::memset(p + w, 0, static_cast<size_t>(len_last));
-        w += static_cast<size_t>(len_last);
-        if (w != slice_size)
-        {
-          std::cout << "[RACKCU] packed size mismatch for PARITY_GLOBAL_FROM_DATA step" << std::endl;
+          std::cout << "[RACKCU] pack PARITY_GLOBAL_FROM_DATA (home delta) failed" << std::endl;
           return false;
         }
         break;
@@ -1060,27 +1172,9 @@ namespace ECProject
           std::cout << "[RACKCU] PARITY_GLOBAL plan block id invalid" << std::endl;
           return false;
         }
-        size_t w = 0;
-        for (int j = 0; j + 1 < plan.blockids_size(); j++)
+        if (!pack_merge_plan_use_delta(plan, p, slice_size))
         {
-          const int bid = plan.blockids(j);
-          const int off = static_cast<int>(plan.offsets(j));
-          const int len = static_cast<int>(plan.sizes(j));
-          std::memcpy(p + w, ptr_for_block(bid) + off, static_cast<size_t>(len));
-          w += static_cast<size_t>(len);
-        }
-        const int off_last = static_cast<int>(plan.offsets(plan.blockids_size() - 1));
-        const int len_last = static_cast<int>(plan.sizes(plan.blockids_size() - 1));
-        if (off_last < 0 || len_last < 0 || off_last + len_last > block_size)
-        {
-          std::cout << "[RACKCU] invalid tail parity slice in PARITY_GLOBAL plan" << std::endl;
-          return false;
-        }
-        std::memset(p + w, 0, static_cast<size_t>(len_last));
-        w += static_cast<size_t>(len_last);
-        if (w != slice_size)
-        {
-          std::cout << "[RACKCU] PARITY_GLOBAL packed size mismatch" << std::endl;
+          std::cout << "[RACKCU] pack PARITY_GLOBAL (home delta) failed" << std::endl;
           return false;
         }
         break;
@@ -1105,27 +1199,11 @@ namespace ECProject
           std::cout << "[RACKCU] LOCAL_PARITY tail slice bounds invalid" << std::endl;
           return false;
         }
-        if (plan.append_mode() == "RACKCU_LOCAL_FROM_DATA")
+        if (plan.append_mode().find("RACKCU_LOCAL_FROM_DATA") != std::string::npos)
         {
-          size_t w = 0;
-          for (int j = 0; j + 1 < plan.blockids_size(); j++)
+          if (!pack_merge_plan_use_delta(plan, p, slice_size))
           {
-            const int bid = plan.blockids(j);
-            const int off = static_cast<int>(plan.offsets(j));
-            const int len = static_cast<int>(plan.sizes(j));
-            if (len < 0 || off < 0 || off + len > block_size)
-            {
-              std::cout << "[RACKCU] invalid local data slice in LOCAL_FROM_DATA plan" << std::endl;
-              return false;
-            }
-            std::memcpy(p + w, ptr_for_block(bid) + off, static_cast<size_t>(len));
-            w += static_cast<size_t>(len);
-          }
-          std::memset(p + w, 0, static_cast<size_t>(plen));
-          w += static_cast<size_t>(plen);
-          if (w != slice_size)
-          {
-            std::cout << "[RACKCU] LOCAL_FROM_DATA packed size mismatch" << std::endl;
+            std::cout << "[RACKCU] pack LOCAL_FROM_DATA (home delta) failed" << std::endl;
             return false;
           }
           break;
@@ -1177,13 +1255,80 @@ namespace ECProject
       }
 
       bool ok = true;
-      async_append_to_proxies(p, reply.append_keys(i), static_cast<int>(slice_size), reply.proxyips(i), reply.proxyports(i), i, &ok);
+      async_append_to_proxies(p, reply.append_keys(i), static_cast<int>(slice_size), reply.proxyips(i), reply.proxyports(i), i, &ok, stripe_id,
+                              (step == RACKCU_STEP_DATA_HOME) ? &rackcu_delta_by_block : nullptr);
       if (!ok)
       {
         return false;
       }
     }
 
+    return true;
+  }
+
+  bool Client::randomize_preallocated_ranges(const std::vector<std::pair<int, int>> &logical_ranges)
+  {
+    if (logical_ranges.empty() || m_pre_allocated_buffer == nullptr)
+    {
+      std::cout << "[RACKCU] randomize_preallocated_ranges: empty ranges or no buffer" << std::endl;
+      return false;
+    }
+    if (!is_azure_like_code(m_sys_config->CodeType))
+    {
+      std::cout << "[RACKCU] randomize_preallocated_ranges: unsupported CodeType" << std::endl;
+      return false;
+    }
+    const int k = m_sys_config->k;
+    const int block_size = static_cast<int>(m_sys_config->BlockSize);
+    const int stripe_data_bytes = k * block_size;
+    for (const auto &r : logical_ranges)
+    {
+      if (r.second <= r.first)
+      {
+        std::cout << "[RACKCU] randomize_preallocated_ranges: invalid range [" << r.first << ", " << r.second << ")" << std::endl;
+        return false;
+      }
+      if (r.first < 0 || r.second > stripe_data_bytes)
+      {
+        std::cout << "[RACKCU] randomize_preallocated_ranges: range out of data stripe" << std::endl;
+        return false;
+      }
+    }
+    constexpr int k_preview_bytes = 16;
+    auto print_range_preview = [this](const char *label, int range_idx, const std::pair<int, int> &r, int nbytes) {
+      std::cout << "[RACKCU][buffer] range#" << range_idx << " logical [" << r.first << ", " << r.second << ") "
+                << label << ", first " << nbytes << " byte(s) hex: ";
+      std::ios::fmtflags old_flags = std::cout.flags();
+      char old_fill = std::cout.fill();
+      for (int i = 0; i < nbytes; i++)
+      {
+        unsigned char c = static_cast<unsigned char>(m_pre_allocated_buffer[r.first + i]);
+        std::cout << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << static_cast<int>(c);
+        if (i + 1 < nbytes)
+        {
+          std::cout << ' ';
+        }
+      }
+      std::cout.flags(old_flags);
+      std::cout.fill(old_fill);
+      std::cout << std::dec << std::endl;
+    };
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dist(0, 255);
+    for (size_t ri = 0; ri < logical_ranges.size(); ri++)
+    {
+      const auto &r = logical_ranges[ri];
+      const int len = r.second - r.first;
+      const int preview = std::min(k_preview_bytes, len);
+      print_range_preview("before randomize", static_cast<int>(ri), r, preview);
+      for (int pos = r.first; pos < r.second; pos++)
+      {
+        m_pre_allocated_buffer[pos] = static_cast<char>(dist(gen));
+      }
+      print_range_preview("after randomize ", static_cast<int>(ri), r, preview);
+    }
     return true;
   }
 

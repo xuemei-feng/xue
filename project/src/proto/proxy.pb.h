@@ -4889,11 +4889,13 @@ class AppendStripeDataPlacement final :
     kSizesFieldNumber = 10,
     kKeyFieldNumber = 1,
     kAppendModeFieldNumber = 12,
+    kTargetProxyIpFieldNumber = 14,
     kClusterIdFieldNumber = 2,
     kStripeIdFieldNumber = 3,
     kAppendSizeFieldNumber = 4,
     kIsMergeParityFieldNumber = 11,
     kIsSerializedFieldNumber = 13,
+    kTargetProxyPortFieldNumber = 15,
   };
   // repeated string datanodeip = 5;
   int datanodeip_size() const;
@@ -5059,6 +5061,20 @@ class AppendStripeDataPlacement final :
   std::string* _internal_mutable_append_mode();
   public:
 
+  // string target_proxy_ip = 14;
+  void clear_target_proxy_ip();
+  const std::string& target_proxy_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_target_proxy_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_target_proxy_ip();
+  PROTOBUF_NODISCARD std::string* release_target_proxy_ip();
+  void set_allocated_target_proxy_ip(std::string* target_proxy_ip);
+  private:
+  const std::string& _internal_target_proxy_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_target_proxy_ip(const std::string& value);
+  std::string* _internal_mutable_target_proxy_ip();
+  public:
+
   // int32 cluster_id = 2;
   void clear_cluster_id();
   int32_t cluster_id() const;
@@ -5104,6 +5120,15 @@ class AppendStripeDataPlacement final :
   void _internal_set_is_serialized(bool value);
   public:
 
+  // int32 target_proxy_port = 15;
+  void clear_target_proxy_port();
+  int32_t target_proxy_port() const;
+  void set_target_proxy_port(int32_t value);
+  private:
+  int32_t _internal_target_proxy_port() const;
+  void _internal_set_target_proxy_port(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:proxy_proto.AppendStripeDataPlacement)
  private:
   class _Internal;
@@ -5124,11 +5149,13 @@ class AppendStripeDataPlacement final :
     mutable std::atomic<int> _sizes_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr append_mode_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr target_proxy_ip_;
     int32_t cluster_id_;
     int32_t stripe_id_;
     uint64_t append_size_;
     bool is_merge_parity_;
     bool is_serialized_;
+    int32_t target_proxy_port_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -10909,6 +10936,76 @@ inline void AppendStripeDataPlacement::_internal_set_is_serialized(bool value) {
 inline void AppendStripeDataPlacement::set_is_serialized(bool value) {
   _internal_set_is_serialized(value);
   // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.is_serialized)
+}
+
+// string target_proxy_ip = 14;
+inline void AppendStripeDataPlacement::clear_target_proxy_ip() {
+  _impl_.target_proxy_ip_.ClearToEmpty();
+}
+inline const std::string& AppendStripeDataPlacement::target_proxy_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.target_proxy_ip)
+  return _internal_target_proxy_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void AppendStripeDataPlacement::set_target_proxy_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.target_proxy_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.target_proxy_ip)
+}
+inline std::string* AppendStripeDataPlacement::mutable_target_proxy_ip() {
+  std::string* _s = _internal_mutable_target_proxy_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.AppendStripeDataPlacement.target_proxy_ip)
+  return _s;
+}
+inline const std::string& AppendStripeDataPlacement::_internal_target_proxy_ip() const {
+  return _impl_.target_proxy_ip_.Get();
+}
+inline void AppendStripeDataPlacement::_internal_set_target_proxy_ip(const std::string& value) {
+  
+  _impl_.target_proxy_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* AppendStripeDataPlacement::_internal_mutable_target_proxy_ip() {
+  
+  return _impl_.target_proxy_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* AppendStripeDataPlacement::release_target_proxy_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.AppendStripeDataPlacement.target_proxy_ip)
+  return _impl_.target_proxy_ip_.Release();
+}
+inline void AppendStripeDataPlacement::set_allocated_target_proxy_ip(std::string* target_proxy_ip) {
+  if (target_proxy_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.target_proxy_ip_.SetAllocated(target_proxy_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.target_proxy_ip_.IsDefault()) {
+    _impl_.target_proxy_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.AppendStripeDataPlacement.target_proxy_ip)
+}
+
+// int32 target_proxy_port = 15;
+inline void AppendStripeDataPlacement::clear_target_proxy_port() {
+  _impl_.target_proxy_port_ = 0;
+}
+inline int32_t AppendStripeDataPlacement::_internal_target_proxy_port() const {
+  return _impl_.target_proxy_port_;
+}
+inline int32_t AppendStripeDataPlacement::target_proxy_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.target_proxy_port)
+  return _internal_target_proxy_port();
+}
+inline void AppendStripeDataPlacement::_internal_set_target_proxy_port(int32_t value) {
+  
+  _impl_.target_proxy_port_ = value;
+}
+inline void AppendStripeDataPlacement::set_target_proxy_port(int32_t value) {
+  _internal_set_target_proxy_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.target_proxy_port)
 }
 
 // -------------------------------------------------------------------

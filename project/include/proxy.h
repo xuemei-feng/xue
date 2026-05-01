@@ -6,6 +6,7 @@
 #include "devcommon.h"
 #include "meta_definition.h"
 #include "lrc.h"
+#include "bw_limit.h"
 #include <asio.hpp>
 #include <grpc++/health_check_service_interface.h>
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
@@ -15,6 +16,7 @@
 #include <config.h>
 #include <toolbox.h>
 #include <queue>
+#include <unordered_map>
 // #define IF_DEBUG true
 #define IF_DEBUG false
 namespace ECProject
@@ -139,6 +141,8 @@ namespace ECProject
     asio::ip::tcp::acceptor acceptor;
     sem_t sem;
     std::string m_coordinator_address;
+    BWLimit m_bw_limit;
+    std::unordered_map<std::string, int> m_proxy_cluster_by_endpoint;
   };
 
   class Proxy

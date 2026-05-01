@@ -405,11 +405,13 @@ PROTOBUF_CONSTEXPR AppendStripeDataPlacement::AppendStripeDataPlacement(
   , /*decltype(_impl_._sizes_cached_byte_size_)*/{0}
   , /*decltype(_impl_.key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.append_mode_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.target_proxy_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.cluster_id_)*/0
   , /*decltype(_impl_.stripe_id_)*/0
   , /*decltype(_impl_.append_size_)*/uint64_t{0u}
   , /*decltype(_impl_.is_merge_parity_)*/false
   , /*decltype(_impl_.is_serialized_)*/false
+  , /*decltype(_impl_.target_proxy_port_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct AppendStripeDataPlacementDefaultTypeInternal {
   PROTOBUF_CONSTEXPR AppendStripeDataPlacementDefaultTypeInternal()
@@ -730,6 +732,8 @@ const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.is_merge_parity_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.append_mode_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.is_serialized_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.target_proxy_ip_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.target_proxy_port_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::SetReply, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -780,9 +784,9 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 207, -1, -1, sizeof(::proxy_proto::MultipleRecoveryRequest)},
   { 218, -1, -1, sizeof(::proxy_proto::RecoveryReply)},
   { 237, -1, -1, sizeof(::proxy_proto::AppendStripeDataPlacement)},
-  { 256, -1, -1, sizeof(::proxy_proto::SetReply)},
-  { 263, -1, -1, sizeof(::proxy_proto::GetReply)},
-  { 270, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
+  { 258, -1, -1, sizeof(::proxy_proto::SetReply)},
+  { 265, -1, -1, sizeof(::proxy_proto::GetReply)},
+  { 272, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -890,55 +894,56 @@ const char descriptor_table_protodef_proxy_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "ta_node_grpc_notify_time\030\n \001(\001\022!\n\031data_n"
   "ode_grpc_start_time\030\013 \001(\001\022#\n\033dest_data_n"
   "ode_network_time\030\014 \001(\001\022#\n\033dest_data_node"
-  "_disk_io_time\030\r \001(\001\"\230\002\n\031AppendStripeData"
+  "_disk_io_time\030\r \001(\001\"\314\002\n\031AppendStripeData"
   "Placement\022\013\n\003key\030\001 \001(\t\022\022\n\ncluster_id\030\002 \001"
   "(\005\022\021\n\tstripe_id\030\003 \001(\005\022\023\n\013append_size\030\004 \001"
   "(\004\022\022\n\ndatanodeip\030\005 \003(\t\022\024\n\014datanodeport\030\006"
   " \003(\005\022\021\n\tblockkeys\030\007 \003(\t\022\020\n\010blockids\030\010 \003("
   "\005\022\017\n\007offsets\030\t \003(\004\022\r\n\005sizes\030\n \003(\004\022\027\n\017is_"
   "merge_parity\030\013 \001(\010\022\023\n\013append_mode\030\014 \001(\t\022"
-  "\025\n\ris_serialized\030\r \001(\010\"\034\n\010SetReply\022\020\n\010if"
-  "commit\030\001 \001(\010\"\036\n\010GetReply\022\022\n\ngetsuccess\030\001"
-  " \001(\010\"\261\001\n\021StripeAndBlockIDs\022\021\n\tstripe_id\030"
-  "\001 \001(\005\022\020\n\010group_id\030\002 \001(\005\022\020\n\010clientip\030\003 \001("
-  "\t\022\022\n\nclientport\030\004 \001(\005\022\021\n\tblock_ids\030\005 \003(\005"
-  "\022\022\n\nblock_keys\030\006 \003(\t\022\023\n\013datanodeips\030\007 \003("
-  "\t\022\025\n\rdatanodeports\030\010 \003(\0052\307\t\n\014proxyServic"
-  "e\022D\n\ncheckalive\022\032.proxy_proto.Checkalive"
-  "CMD\032\032.proxy_proto.RequestResult\022L\n\022encod"
-  "eAndSetObject\022\037.proxy_proto.ObjectAndPla"
-  "cement\032\025.proxy_proto.SetReply\022L\n\022decodeA"
-  "ndGetObject\022\037.proxy_proto.ObjectAndPlace"
-  "ment\032\025.proxy_proto.GetReply\022P\n\014degradedR"
-  "ead\022 .proxy_proto.DegradedReadRequest\032\036."
-  "proxy_proto.DegradedReadReply\022S\n\023degrade"
-  "dRead2Client\022\034.proxy_proto.RecoveryReque"
-  "st\032\036.proxy_proto.DegradedReadReply\022Y\n\025de"
-  "gradedReadBreakdown\022 .proxy_proto.Degrad"
-  "edReadRequest\032\036.proxy_proto.DegradedRead"
-  "Reply\022\\\n\034degradedRead2ClientBreakdown\022\034."
-  "proxy_proto.RecoveryRequest\032\036.proxy_prot"
-  "o.DegradedReadReply\022X\n\035degradedReadWithB"
-  "lockStripeID\022 .proxy_proto.DegradedReadR"
-  "equest\032\025.proxy_proto.GetReply\022V\n\017partial"
-  "Decoding\022#.proxy_proto.PartialDecodingRe"
-  "quest\032\036.proxy_proto.DegradedReadReply\022D\n"
-  "\010recovery\022\034.proxy_proto.RecoveryRequest\032"
-  "\032.proxy_proto.RecoveryReply\022M\n\021recoveryB"
-  "reakdown\022\034.proxy_proto.RecoveryRequest\032\032"
-  ".proxy_proto.RecoveryReply\022O\n\020multipleRe"
-  "covery\022$.proxy_proto.MultipleRecoveryReq"
-  "uest\032\025.proxy_proto.GetReply\022\?\n\013deleteBlo"
-  "ck\022\031.proxy_proto.NodeAndBlock\032\025.proxy_pr"
-  "oto.DelReply\022X\n\027scheduleAppend2Datanode\022"
-  "&.proxy_proto.AppendStripeDataPlacement\032"
-  "\025.proxy_proto.SetReply\022B\n\tgetBlocks\022\036.pr"
-  "oxy_proto.StripeAndBlockIDs\032\025.proxy_prot"
-  "o.GetReplyb\006proto3"
+  "\025\n\ris_serialized\030\r \001(\010\022\027\n\017target_proxy_i"
+  "p\030\016 \001(\t\022\031\n\021target_proxy_port\030\017 \001(\005\"\034\n\010Se"
+  "tReply\022\020\n\010ifcommit\030\001 \001(\010\"\036\n\010GetReply\022\022\n\n"
+  "getsuccess\030\001 \001(\010\"\261\001\n\021StripeAndBlockIDs\022\021"
+  "\n\tstripe_id\030\001 \001(\005\022\020\n\010group_id\030\002 \001(\005\022\020\n\010c"
+  "lientip\030\003 \001(\t\022\022\n\nclientport\030\004 \001(\005\022\021\n\tblo"
+  "ck_ids\030\005 \003(\005\022\022\n\nblock_keys\030\006 \003(\t\022\023\n\013data"
+  "nodeips\030\007 \003(\t\022\025\n\rdatanodeports\030\010 \003(\0052\307\t\n"
+  "\014proxyService\022D\n\ncheckalive\022\032.proxy_prot"
+  "o.CheckaliveCMD\032\032.proxy_proto.RequestRes"
+  "ult\022L\n\022encodeAndSetObject\022\037.proxy_proto."
+  "ObjectAndPlacement\032\025.proxy_proto.SetRepl"
+  "y\022L\n\022decodeAndGetObject\022\037.proxy_proto.Ob"
+  "jectAndPlacement\032\025.proxy_proto.GetReply\022"
+  "P\n\014degradedRead\022 .proxy_proto.DegradedRe"
+  "adRequest\032\036.proxy_proto.DegradedReadRepl"
+  "y\022S\n\023degradedRead2Client\022\034.proxy_proto.R"
+  "ecoveryRequest\032\036.proxy_proto.DegradedRea"
+  "dReply\022Y\n\025degradedReadBreakdown\022 .proxy_"
+  "proto.DegradedReadRequest\032\036.proxy_proto."
+  "DegradedReadReply\022\\\n\034degradedRead2Client"
+  "Breakdown\022\034.proxy_proto.RecoveryRequest\032"
+  "\036.proxy_proto.DegradedReadReply\022X\n\035degra"
+  "dedReadWithBlockStripeID\022 .proxy_proto.D"
+  "egradedReadRequest\032\025.proxy_proto.GetRepl"
+  "y\022V\n\017partialDecoding\022#.proxy_proto.Parti"
+  "alDecodingRequest\032\036.proxy_proto.Degraded"
+  "ReadReply\022D\n\010recovery\022\034.proxy_proto.Reco"
+  "veryRequest\032\032.proxy_proto.RecoveryReply\022"
+  "M\n\021recoveryBreakdown\022\034.proxy_proto.Recov"
+  "eryRequest\032\032.proxy_proto.RecoveryReply\022O"
+  "\n\020multipleRecovery\022$.proxy_proto.Multipl"
+  "eRecoveryRequest\032\025.proxy_proto.GetReply\022"
+  "\?\n\013deleteBlock\022\031.proxy_proto.NodeAndBloc"
+  "k\032\025.proxy_proto.DelReply\022X\n\027scheduleAppe"
+  "nd2Datanode\022&.proxy_proto.AppendStripeDa"
+  "taPlacement\032\025.proxy_proto.SetReply\022B\n\tge"
+  "tBlocks\022\036.proxy_proto.StripeAndBlockIDs\032"
+  "\025.proxy_proto.GetReplyb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_proxy_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_proxy_2eproto = {
-    false, false, 4898, descriptor_table_protodef_proxy_2eproto,
+    false, false, 4950, descriptor_table_protodef_proxy_2eproto,
     "proxy.proto",
     &descriptor_table_proxy_2eproto_once, nullptr, 0, 23,
     schemas, file_default_instances, TableStruct_proxy_2eproto::offsets,
@@ -8281,11 +8286,13 @@ AppendStripeDataPlacement::AppendStripeDataPlacement(const AppendStripeDataPlace
     , /*decltype(_impl_._sizes_cached_byte_size_)*/{0}
     , decltype(_impl_.key_){}
     , decltype(_impl_.append_mode_){}
+    , decltype(_impl_.target_proxy_ip_){}
     , decltype(_impl_.cluster_id_){}
     , decltype(_impl_.stripe_id_){}
     , decltype(_impl_.append_size_){}
     , decltype(_impl_.is_merge_parity_){}
     , decltype(_impl_.is_serialized_){}
+    , decltype(_impl_.target_proxy_port_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -8305,9 +8312,17 @@ AppendStripeDataPlacement::AppendStripeDataPlacement(const AppendStripeDataPlace
     _this->_impl_.append_mode_.Set(from._internal_append_mode(), 
       _this->GetArenaForAllocation());
   }
+  _impl_.target_proxy_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.target_proxy_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_target_proxy_ip().empty()) {
+    _this->_impl_.target_proxy_ip_.Set(from._internal_target_proxy_ip(), 
+      _this->GetArenaForAllocation());
+  }
   ::memcpy(&_impl_.cluster_id_, &from._impl_.cluster_id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.is_serialized_) -
-    reinterpret_cast<char*>(&_impl_.cluster_id_)) + sizeof(_impl_.is_serialized_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.target_proxy_port_) -
+    reinterpret_cast<char*>(&_impl_.cluster_id_)) + sizeof(_impl_.target_proxy_port_));
   // @@protoc_insertion_point(copy_constructor:proxy_proto.AppendStripeDataPlacement)
 }
 
@@ -8328,11 +8343,13 @@ inline void AppendStripeDataPlacement::SharedCtor(
     , /*decltype(_impl_._sizes_cached_byte_size_)*/{0}
     , decltype(_impl_.key_){}
     , decltype(_impl_.append_mode_){}
+    , decltype(_impl_.target_proxy_ip_){}
     , decltype(_impl_.cluster_id_){0}
     , decltype(_impl_.stripe_id_){0}
     , decltype(_impl_.append_size_){uint64_t{0u}}
     , decltype(_impl_.is_merge_parity_){false}
     , decltype(_impl_.is_serialized_){false}
+    , decltype(_impl_.target_proxy_port_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.key_.InitDefault();
@@ -8342,6 +8359,10 @@ inline void AppendStripeDataPlacement::SharedCtor(
   _impl_.append_mode_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.append_mode_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.target_proxy_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.target_proxy_ip_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
@@ -8364,6 +8385,7 @@ inline void AppendStripeDataPlacement::SharedDtor() {
   _impl_.sizes_.~RepeatedField();
   _impl_.key_.Destroy();
   _impl_.append_mode_.Destroy();
+  _impl_.target_proxy_ip_.Destroy();
 }
 
 void AppendStripeDataPlacement::SetCachedSize(int size) const {
@@ -8384,9 +8406,10 @@ void AppendStripeDataPlacement::Clear() {
   _impl_.sizes_.Clear();
   _impl_.key_.ClearToEmpty();
   _impl_.append_mode_.ClearToEmpty();
+  _impl_.target_proxy_ip_.ClearToEmpty();
   ::memset(&_impl_.cluster_id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.is_serialized_) -
-      reinterpret_cast<char*>(&_impl_.cluster_id_)) + sizeof(_impl_.is_serialized_));
+      reinterpret_cast<char*>(&_impl_.target_proxy_port_) -
+      reinterpret_cast<char*>(&_impl_.cluster_id_)) + sizeof(_impl_.target_proxy_port_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -8530,6 +8553,24 @@ const char* AppendStripeDataPlacement::_InternalParse(const char* ptr, ::_pbi::P
         } else
           goto handle_unusual;
         continue;
+      // string target_proxy_ip = 14;
+      case 14:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 114)) {
+          auto str = _internal_mutable_target_proxy_ip();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.AppendStripeDataPlacement.target_proxy_ip"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 target_proxy_port = 15;
+      case 15:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 120)) {
+          _impl_.target_proxy_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
       default:
         goto handle_unusual;
     }  // switch
@@ -8665,6 +8706,22 @@ uint8_t* AppendStripeDataPlacement::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteBoolToArray(13, this->_internal_is_serialized(), target);
   }
 
+  // string target_proxy_ip = 14;
+  if (!this->_internal_target_proxy_ip().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_target_proxy_ip().data(), static_cast<int>(this->_internal_target_proxy_ip().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.AppendStripeDataPlacement.target_proxy_ip");
+    target = stream->WriteStringMaybeAliased(
+        14, this->_internal_target_proxy_ip(), target);
+  }
+
+  // int32 target_proxy_port = 15;
+  if (this->_internal_target_proxy_port() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(15, this->_internal_target_proxy_port(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -8767,6 +8824,13 @@ size_t AppendStripeDataPlacement::ByteSizeLong() const {
         this->_internal_append_mode());
   }
 
+  // string target_proxy_ip = 14;
+  if (!this->_internal_target_proxy_ip().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_target_proxy_ip());
+  }
+
   // int32 cluster_id = 2;
   if (this->_internal_cluster_id() != 0) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_cluster_id());
@@ -8790,6 +8854,11 @@ size_t AppendStripeDataPlacement::ByteSizeLong() const {
   // bool is_serialized = 13;
   if (this->_internal_is_serialized() != 0) {
     total_size += 1 + 1;
+  }
+
+  // int32 target_proxy_port = 15;
+  if (this->_internal_target_proxy_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_target_proxy_port());
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
@@ -8822,6 +8891,9 @@ void AppendStripeDataPlacement::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_m
   if (!from._internal_append_mode().empty()) {
     _this->_internal_set_append_mode(from._internal_append_mode());
   }
+  if (!from._internal_target_proxy_ip().empty()) {
+    _this->_internal_set_target_proxy_ip(from._internal_target_proxy_ip());
+  }
   if (from._internal_cluster_id() != 0) {
     _this->_internal_set_cluster_id(from._internal_cluster_id());
   }
@@ -8836,6 +8908,9 @@ void AppendStripeDataPlacement::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_m
   }
   if (from._internal_is_serialized() != 0) {
     _this->_internal_set_is_serialized(from._internal_is_serialized());
+  }
+  if (from._internal_target_proxy_port() != 0) {
+    _this->_internal_set_target_proxy_port(from._internal_target_proxy_port());
   }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -8870,9 +8945,13 @@ void AppendStripeDataPlacement::InternalSwap(AppendStripeDataPlacement* other) {
       &_impl_.append_mode_, lhs_arena,
       &other->_impl_.append_mode_, rhs_arena
   );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.target_proxy_ip_, lhs_arena,
+      &other->_impl_.target_proxy_ip_, rhs_arena
+  );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(AppendStripeDataPlacement, _impl_.is_serialized_)
-      + sizeof(AppendStripeDataPlacement::_impl_.is_serialized_)
+      PROTOBUF_FIELD_OFFSET(AppendStripeDataPlacement, _impl_.target_proxy_port_)
+      + sizeof(AppendStripeDataPlacement::_impl_.target_proxy_port_)
       - PROTOBUF_FIELD_OFFSET(AppendStripeDataPlacement, _impl_.cluster_id_)>(
           reinterpret_cast<char*>(&_impl_.cluster_id_),
           reinterpret_cast<char*>(&other->_impl_.cluster_id_));

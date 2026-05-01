@@ -1077,6 +1077,23 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       return cnt;
     };
+    auto count_global_parity_blocks_for_cluster = [&](int cluster_id) -> int
+    {
+      int cnt = 0;
+      for (int pj = 0; pj < r; pj++)
+      {
+        const Block *pb = find_block_const(*stripe, k + pj);
+        if (pb != nullptr && pb->map2cluster == cluster_id)
+        {
+          cnt++;
+        }
+      }
+      return cnt;
+    };
+    auto collector_score_for_cluster = [&](int cluster_id) -> int
+    {
+      return count_updated_data_blocks_for_cluster(cluster_id) + count_global_parity_blocks_for_cluster(cluster_id);
+    };
 
     std::unordered_set<int> local_parity_clusters;
     for (int g = 0; g < stripe->num_groups; g++)
@@ -1120,7 +1137,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     int best_cnt = -1;
     for (int cid : collector_candidates)
     {
-      const int c = count_updated_data_blocks_for_cluster(cid);
+      const int c = collector_score_for_cluster(cid);
       if (c > best_cnt)
       {
         best_cnt = c;
@@ -1241,6 +1258,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
       }
       plan.set_append_size(append_size);
+      // home Proxy：写新数据前读盘 old 并记录 ΔD=new⊕old（见 proxy RACKCU_DATA_HOME_XOR_FIRST）
+      plan.set_append_mode("RACKCU_DATA_HOME_XOR_FIRST");
       emit_plan(std::move(plan), RACKCU_STEP_DATA_HOME);
     }
 
@@ -1329,7 +1348,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           plan.set_cluster_id(best_cluster);
           plan.set_is_merge_parity(true);
           plan.set_is_serialized(true);
-          plan.set_append_mode("RACKCU_PARITY_GLOBAL_BY_COLLECTOR");
+          plan.set_append_mode("RACKCU_PARITY_GLOBAL_BY_COLLECTOR_HOME_DELTA");
+          plan.set_target_proxy_ip(m_cluster_table[g_cluster].proxy_ip);
+          plan.set_target_proxy_port(m_cluster_table[g_cluster].proxy_port);
           size_t append_size = 0;
           for (int dbid : touched_data_blocks)
           {
@@ -1367,7 +1388,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           // 发送数据增量到全局校验块所在 cluster，由目标 proxy 完成全局校验增量合并。
           plan.set_is_merge_parity(true);
           plan.set_is_serialized(true);
-          plan.set_append_mode("RACKCU_GLOBAL_FROM_DATA");
+          plan.set_append_mode("RACKCU_GLOBAL_FROM_DATA_HOME_DELTA");
+          plan.set_target_proxy_ip(m_cluster_table[g_cluster].proxy_ip);
+          plan.set_target_proxy_port(m_cluster_table[g_cluster].proxy_port);
           size_t append_size = 0;
           const Node &pnode = m_node_table[pb->map2node];
           for (int dbid : touched_data_blocks)
@@ -1418,12 +1441,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         continue;
       }
       std::sort(group_data_blocks.begin(), group_data_blocks.end());
-      const std::vector<std::pair<int, int>> group_parity_slices = build_rackcu_parity_slices(group_block_intervals, unit_size, block_size);
-      if (group_parity_slices.empty())
-      {
-        return grpc::Status(grpc::StatusCode::INTERNAL, "invalid local parity slice derived from group ranges");
-      }
-
       const int lbid = k + r + g;
       const Block *lp = find_block_const(*stripe, lbid);
       if (lp == nullptr)
@@ -1446,19 +1463,31 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         std::sort(kv.second.begin(), kv.second.end());
       }
 
-      for (size_t gsi = 0; gsi < group_parity_slices.size(); gsi++)
+      for (const auto &kv : group_data_blocks_by_cluster)
       {
-        const int parity_slice_offset = group_parity_slices[gsi].first;
-        const int parity_slice_size = group_parity_slices[gsi].second;
-        for (const auto &kv : group_data_blocks_by_cluster)
+        const int source_cluster = kv.first;
+        const std::vector<int> &src_group_blocks = kv.second;
+        std::map<int, std::vector<std::pair<int, int>>> src_block_intervals;
+        for (int dbid : src_group_blocks)
         {
-          const int source_cluster = kv.first;
-          const std::vector<int> &src_group_blocks = kv.second;
+          src_block_intervals[dbid] = block_intervals[dbid];
+        }
+        const std::vector<std::pair<int, int>> src_parity_slices =
+            build_rackcu_parity_slices(src_block_intervals, unit_size, block_size);
+        if (src_parity_slices.empty())
+        {
+          return grpc::Status(grpc::StatusCode::INTERNAL, "invalid local parity slice derived from source-cluster ranges");
+        }
+
+        for (size_t gsi = 0; gsi < src_parity_slices.size(); gsi++)
+        {
+          const int parity_slice_offset = src_parity_slices[gsi].first;
+          const int parity_slice_size = src_parity_slices[gsi].second;
           std::cout << "[RackCU][Transfer] local-group " << g << " source-cluster c" << source_cluster
                     << " -> local-parity-cluster c" << target_cluster
                     << " content=local_data_deltas(+parity_target_meta)"
                     << " target_block=l" << g
-                    << " group_parity_comp=" << gsi << "/" << group_parity_slices.size()
+                    << " group_parity_comp=" << gsi << "/" << src_parity_slices.size()
                     << " slice=[" << parity_slice_offset << "," << (parity_slice_offset + parity_slice_size) << ")"
                     << " data_detail=" << describe_data_slices(src_group_blocks)
                     << " parity_meta_bytes=" << parity_slice_size
@@ -1470,7 +1499,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           plan.set_cluster_id(source_cluster);
           plan.set_is_merge_parity(true);
           plan.set_is_serialized(true);
-          plan.set_append_mode("RACKCU_LOCAL_FROM_DATA");
+          plan.set_append_mode("RACKCU_LOCAL_FROM_DATA_HOME_DELTA");
+          plan.set_target_proxy_ip(m_cluster_table[target_cluster].proxy_ip);
+          plan.set_target_proxy_port(m_cluster_table[target_cluster].proxy_port);
           size_t append_size = 0;
           const Node &pnode = m_node_table[lp->map2node];
 
@@ -3589,6 +3620,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::unique_lock<std::mutex> lck(m_mutex);
     try
     {
+      if (commit_abortkey->rackcu_home_delta_blob().size() > 0)
+      {
+        m_rackcu_home_delta_by_append_key[key] = commit_abortkey->rackcu_home_delta_blob();
+      }
       if (commit_abortkey->ifcommitmetadata())
       {
         if (opp == SET || opp == APPEND)
@@ -3766,6 +3801,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           it = std::find(m_stripe_deleting_table.begin(), m_stripe_deleting_table.end(), stripe_id);
         }
       }
+    }
+    auto rd_it = m_rackcu_home_delta_by_append_key.find(key);
+    if (rd_it != m_rackcu_home_delta_by_append_key.end())
+    {
+      reply->set_rackcu_home_delta_blob(rd_it->second);
+      m_rackcu_home_delta_by_append_key.erase(rd_it);
     }
     reply->set_ifcommit(true);
     return grpc::Status::OK;

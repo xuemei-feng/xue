@@ -10,7 +10,67 @@
 #include <chrono>
 #include <algorithm>
 #include <random>
+#include <ifaddrs.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include "unilrc_encoder.h"
+
+namespace
+{
+    std::string detect_client_ip()
+    {
+        struct ifaddrs *ifaddr = nullptr;
+        if (getifaddrs(&ifaddr) != 0 || ifaddr == nullptr)
+        {
+            return "127.0.0.1";
+        }
+
+        std::string preferred_10_net;
+        std::string first_non_loopback;
+
+        for (struct ifaddrs *ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next)
+        {
+            if (ifa->ifa_addr == nullptr || ifa->ifa_addr->sa_family != AF_INET)
+            {
+                continue;
+            }
+
+            char ipbuf[INET_ADDRSTRLEN] = {0};
+            const void *addr_ptr = &reinterpret_cast<struct sockaddr_in *>(ifa->ifa_addr)->sin_addr;
+            if (inet_ntop(AF_INET, addr_ptr, ipbuf, sizeof(ipbuf)) == nullptr)
+            {
+                continue;
+            }
+
+            std::string ip(ipbuf);
+            if (ip.rfind("127.", 0) == 0)
+            {
+                continue;
+            }
+
+            if (first_non_loopback.empty())
+            {
+                first_non_loopback = ip;
+            }
+            if (ip.rfind("10.10.", 0) == 0)
+            {
+                preferred_10_net = ip;
+                break;
+            }
+        }
+
+        freeifaddrs(ifaddr);
+        if (!preferred_10_net.empty())
+        {
+            return preferred_10_net;
+        }
+        if (!first_non_loopback.empty())
+        {
+            return first_non_loopback;
+        }
+        return "127.0.0.1";
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -22,8 +82,9 @@ int main(int argc, char **argv)
     std::cout << "Current working directory: " << sys_config_path << std::endl;
 
     const ECProject::Config *config = ECProject::Config::getInstance(sys_config_path);
-    std::string client_ip = "127.0.0.1";
-    int client_port = 77777;
+    std::string client_ip = detect_client_ip();
+    int client_port = 17777;
+    std::cout << "Detected client_ip: " << client_ip << std::endl;
     ECProject::Client client(client_ip, client_port, config->CoordinatorIP + ":" + std::to_string(config->CoordinatorPort), sys_config_path);
     std::cout << client.sayHelloToCoordinatorByGrpc("Client ID: " + client_ip + ":" + std::to_string(client_port)) << std::endl;
 
@@ -96,8 +157,12 @@ int main(int argc, char **argv)
                 logical_ranges.emplace_back(logical_offset_start, logical_offset_end);
             }
             std::cout << "Calling xue's update function..." << std::endl;
+            const auto req_start = std::chrono::high_resolution_clock::now();
             const bool ok = client.xue_update(stripe_id, logical_ranges);
+            const auto req_end = std::chrono::high_resolution_clock::now();
+            const double req_s = std::chrono::duration_cast<std::chrono::duration<double>>(req_end - req_start).count();
             std::cout << "xue_update result: " << (ok ? "success" : "failed") << std::endl;
+            std::cout << "xue_update latency: " << req_s << " s" << std::endl;
         }
         else if (method == "rackcu")
         {
@@ -120,9 +185,19 @@ int main(int argc, char **argv)
                 std::cin >> logical_offset_start >> logical_offset_end;
                 logical_ranges.emplace_back(logical_offset_start, logical_offset_end);
             }
+            if (!client.randomize_preallocated_ranges(logical_ranges))
+            {
+                std::cout << "randomize_preallocated_ranges failed (check CodeType and ranges)." << std::endl;
+                return 1;
+            }
+            std::cout << "Client buffer: logical ranges filled with random bytes before RackCU (Δ vs last set() on disk should be non-zero)." << std::endl;
             std::cout << "Calling rackcu_update..." << std::endl;
+            const auto req_start = std::chrono::high_resolution_clock::now();
             const bool ok = client.rackcu_update(stripe_id, logical_ranges);
+            const auto req_end = std::chrono::high_resolution_clock::now();
+            const double req_s = std::chrono::duration_cast<std::chrono::duration<double>>(req_end - req_start).count();
             std::cout << "rackcu_update result: " << (ok ? "success" : "failed") << std::endl;
+            std::cout << "rackcu_update latency: " << req_s << " s" << std::endl;
         }
         else 
         {

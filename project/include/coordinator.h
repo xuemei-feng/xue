@@ -8,6 +8,7 @@
 #include <grpcpp/health_check_service_interface.h>
 #include <meta_definition.h>
 #include <map>
+#include <unordered_map>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -210,6 +211,7 @@ namespace ECProject
     std::vector<std::vector<int>> m_merge_groups;
     std::vector<int> m_free_clusters;
     int m_agg_start_cid = 0;
+    std::unordered_map<std::string, std::string> m_rackcu_home_delta_by_append_key;
   };
 
   class Coordinator

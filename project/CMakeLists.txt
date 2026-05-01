@@ -144,6 +144,7 @@ foreach (_target
             ${CMAKE_CURRENT_SOURCE_DIR}/src/datanode.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/lrc.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/config.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/bw_limit.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/unilrc_encoder.cpp
             #${_target}.cpp
             )

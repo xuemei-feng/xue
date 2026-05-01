@@ -250,6 +250,10 @@ message AppendStripeDataPlacement{
   bool is_merge_parity = 11;
   string append_mode = 12;
   bool is_serialized = 13;
+  // For RackCU parity forwarding: source proxy computes parity delta and
+  // forwards it to this target proxy, which is responsible for writing/merging.
+  string target_proxy_ip = 14;
+  int32 target_proxy_port = 15;
 }
 
 message SetReply {

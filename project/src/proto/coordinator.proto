@@ -106,6 +106,8 @@ message CommitAbortKey {
   bool ifcommitmetadata = 2;
   int32 opp = 3;
   int32 stripe_id = 4;
+  // RackCU DATA_HOME：各数据块 ΔD=new⊕old 的序列化（见 proxy / client 约定格式）
+  bytes rackcu_home_delta_blob = 5;
 }
 
 // append
@@ -129,6 +131,8 @@ message AskIfSuccess {
 
 message RepIfSuccess {
   bool ifcommit = 1;
+  // 与 CommitAbortKey.rackcu_home_delta_blob 同内容，供 client 合并后再发 parity 步
+  bytes rackcu_home_delta_blob = 2;
 }
 
 // get

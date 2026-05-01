@@ -8,7 +8,7 @@
     <!--67108864-->
     <DatanodeNumPerCluster>8</DatanodeNumPerCluster>
     <ClusterNum>6</ClusterNum>
-    <CoordinatorIP>127.0.0.1</CoordinatorIP>
+    <CoordinatorIP>10.10.1.2</CoordinatorIP>
     <CoordinatorPort>55555</CoordinatorPort>
     <!-- AppendMode: REP_MODE; UNILRC_MODE; CACHED_MODE -->
     <AppendMode>UNILRC_MODE</AppendMode>
