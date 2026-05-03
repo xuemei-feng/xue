@@ -2,7 +2,8 @@
 
 USER="root"
 
-REMOTE_COMMAND="cd /users/xue/UniLRC && sh run_coordinator.sh"
+REPO_ROOT="/users/xue/xue"
+REMOTE_COMMAND="cd $REPO_ROOT && sh run_coordinator.sh"
 
 PARALLEL=5
 

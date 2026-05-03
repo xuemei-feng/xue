@@ -1,18 +1,19 @@
 #!/bin/bash
 
+REPO_ROOT="/users/xue/xue"
 RUN_ENV=${UNILRC_ENV:-half-sim}
 
 if [ "$RUN_ENV" = "local" ]; then
   echo "Local mode detected, running run_proxy_datanode.sh on localhost..."
-  bash run_proxy_datanode.sh
+  cd "$REPO_ROOT" && bash run_proxy_datanode.sh
   exit $?
 fi
 
-HOSTS_FILE="proxy_hosts"
+HOSTS_FILE="$REPO_ROOT/proxy_hosts"
 
 USER="root"
 
-REMOTE_COMMAND="cd /users/xue/UniLRC && sh run_proxy_datanode.sh"
+REMOTE_COMMAND="cd $REPO_ROOT && sh run_proxy_datanode.sh"
 
 PARALLEL=50
 

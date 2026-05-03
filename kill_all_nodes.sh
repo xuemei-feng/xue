@@ -1,10 +1,11 @@
 #!/bin/bash
 
-HOSTS_FILE="hosts"
+REPO_ROOT="/users/xue/xue"
+HOSTS_FILE="$REPO_ROOT/hosts"
 
 USER="root"
 
-REMOTE_COMMAND="cd /users/xue/UniLRC && sh kill_all.sh"
+REMOTE_COMMAND="cd $REPO_ROOT && sh kill_all.sh"
 
 PARALLEL=5
 
@@ -17,5 +18,4 @@ else
 	echo "Failed to execute command on some nodes."
 fi
 
-cd /users/xue/UniLRC
-sh kill_all.sh
+cd "$REPO_ROOT" && sh kill_all.sh

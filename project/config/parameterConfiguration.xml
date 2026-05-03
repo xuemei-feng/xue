@@ -8,16 +8,18 @@
     <!--67108864-->
     <DatanodeNumPerCluster>8</DatanodeNumPerCluster>
     <ClusterNum>6</ClusterNum>
-    <CoordinatorIP>127.0.0.1</CoordinatorIP>
+    <CoordinatorIP>10.10.1.2</CoordinatorIP>
     <CoordinatorPort>55555</CoordinatorPort>
     <!-- AppendMode: REP_MODE; UNILRC_MODE; CACHED_MODE -->
     <AppendMode>UNILRC_MODE</AppendMode>
     <alpha>2</alpha>
     <!-- LRC: UniLRC; AzureLRC; OptimalLRC; UniformLRC; XueLRC -->
     <CodeType>RandomLRC</CodeType>
-    <k>12</k>
-    <r>4</r>  //是全局校验块数量
+    <k>10</k>
+    <r>2</r>  //是全局校验块数量
     <z>2</z>  //是本地校验块数量
+    <!-- main_client: how many stripes to write (Client::set loop); change here or override in config.h default -->
+    <ClientStripeNum>3</ClientStripeNum>
     <!-- <CodeType>UniformLRC</CodeType>
     <k>30</k>
     <r>6</r>

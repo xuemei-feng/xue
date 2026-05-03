@@ -20,6 +20,7 @@ namespace ECProject
     assert((CodeType == "UniLRC" || CodeType == "AzureLRC" || CodeType == "RandomLRC" || CodeType == "OptimalLRC" || CodeType == "UniformLRC" || CodeType == "XueLRC") && "Error: CodeType must be UniLRC, AzureLRC, RandomLRC, OptimalLRC, UniformLRC, or XueLRC");
     assert(DatanodeNumPerCluster > 0 && "Error: DatanodeNumPerCluster must be greater than 0");
     assert(ClusterNum > 0 && "Error: ClusterNum must be greater than 0");
+    assert(ClientStripeNum > 0 && "Error: ClientStripeNum must be greater than 0");
     if (CodeType == "UniLRC")
     {
       assert(DatanodeNumPerCluster > n / z && "Error: DatanodeNumPerCluster must be greater than n / z");
@@ -110,6 +111,8 @@ namespace ECProject
       CoordinatorPort = std::stoi(elem->GetText());
     if (auto elem = root->FirstChildElement("AppendMode"))
       AppendMode = std::string(elem->GetText());
+    if (auto elem = root->FirstChildElement("ClientStripeNum"))
+      ClientStripeNum = std::stoi(elem->GetText());
   }
 
   void Config::printConfigs() const
@@ -130,5 +133,6 @@ namespace ECProject
     std::cout << "  CoordinatorPort: " << CoordinatorPort << std::endl;
     std::cout << "  AppendMode: " << AppendMode << std::endl;
     std::cout << "  CodeType: " << CodeType << std::endl;
+    std::cout << "  ClientStripeNum: " << ClientStripeNum << std::endl;
   }
 }

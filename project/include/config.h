@@ -35,6 +35,8 @@ namespace ECProject
     int CoordinatorPort = 55555;
     std::string AppendMode = "UNILRC_MODE";
     std::string CodeType = "UniLRC";
+    /** main_client / bench: number of stripes to create via Client::set() (see parameterConfiguration.xml). */
+    int ClientStripeNum = 3;
   };
 }
 

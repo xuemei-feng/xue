@@ -51,11 +51,10 @@ int main(int argc, char **argv)
     double block_size = static_cast<double> (parameters[3]) / 1024 / 1024; //MB
     int n = k + r + z;
 
-
-    
-    size_t total_write_size = 3000; //MB
-    int stripe_num = total_write_size / (block_size * n);
-    std::cout << "Starting set stripe operation" << std::endl;
+    const int stripe_num = config->ClientStripeNum;
+    const double total_write_size_mb =
+        static_cast<double>(stripe_num) * block_size * static_cast<double>(n);
+    std::cout << "Starting set stripe operation (" << stripe_num << " stripes)" << std::endl;
     std::chrono::high_resolution_clock::time_point set_start = std::chrono::high_resolution_clock::now();
     for(int i = 0; i < stripe_num; i++){
         client.set();
@@ -64,7 +63,7 @@ int main(int argc, char **argv)
     std::cout << "Set stripe operation finished" << std::endl;
     std::cout << "Conducting experiments, please wait..." << std::endl;
     std::chrono::duration<double> set_time = std::chrono::duration_cast<std::chrono::duration<double>>(set_end - set_start);
-    std::cout << "write throughput: " << (static_cast<double> (total_write_size) / set_time.count() / 1024) << "MB/s" << std::endl;
+    std::cout << "write throughput: " << (total_write_size_mb / set_time.count()) << "MB/s" << std::endl;
     char input;
     std::cout << "Start update? (type 'y' to proceed): " << std::endl;
     std::cin >> input;
