@@ -858,7 +858,7 @@ namespace ECProject
     grpc::Status status = m_coordinator_ptr->uploadXueUpdate(&get_proxy_ip_port, request, &reply);
     if (!status.ok())
     {
-      std::cout << "[XUE_UPDATE] upload failed: " << status.error_message() << std::endl;
+      std::cout << "[XUE_UPDATE] upload failed: code=" << static_cast<int>(status.error_code()) << " " << status.error_message() << std::endl;
       return false;
     }
 
@@ -959,7 +959,7 @@ namespace ECProject
     grpc::Status status = m_coordinator_ptr->uploadRackCuUpdate(&ctx, request, &reply);
     if (!status.ok())
     {
-      std::cout << "[RACKCU] upload failed: " << status.error_message() << std::endl;
+      std::cout << "[RACKCU] upload failed: code=" << static_cast<int>(status.error_code()) << " " << status.error_message() << std::endl;
       return false;
     }
     const int nsteps = reply.append_keys_size();
@@ -1155,8 +1155,13 @@ namespace ECProject
       }
 
       bool ok = true;
+      std::cout << "[RACKCU][Dispatch] wait_commit begin step=" << step << " c" << plan.cluster_id()
+                << " proxy=" << reply.proxyips(i) << ":" << reply.proxyports(i)
+                << " append_key=" << reply.append_keys(i) << std::endl;
       async_append_to_proxies(p, reply.append_keys(i), static_cast<int>(slice_size), reply.proxyips(i), reply.proxyports(i), 0, &ok, stripe_id,
                               nullptr);
+      std::cout << "[RACKCU][Dispatch] wait_commit end step=" << step << " c" << plan.cluster_id() << " ok=" << ok
+                << std::endl;
       if (!ok)
       {
         return false;

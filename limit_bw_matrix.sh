@@ -5,7 +5,8 @@ fi
 set -euo pipefail
 
 # Real bandwidth shaping by tc/htb (egress).
-# Matrix source: /users/xue/xue/project/config/BW_limit (MB/s, symmetric).
+# Matrix: /users/xue/xue/project/config/BW_limit (get_bw_mbps, Mbps).
+# 输出：默认一行摘要；BW_MATRIX_VERBOSE=1 打印每条 dst；=2 再 dump tc。
 
 BW_FILE="/users/xue/xue/project/config/BW_limit"
 if [[ ! -f "$BW_FILE" ]]; then
@@ -14,7 +15,6 @@ if [[ ! -f "$BW_FILE" ]]; then
 fi
 source "$BW_FILE"
 
-# 不参与矩阵限速的节点（管理/协调等；不挂 HTB）
 SKIP_BW_LIMIT_IPS=(
   "10.10.1.1"
   "10.10.1.2"
@@ -31,7 +31,6 @@ skip_bw_limit_this_host() {
   return 1
 }
 
-# cluster id -> host ip (from clusterInformation.xml)
 CLUSTER_IPS=(
   "10.10.1.3"  # 0: TYO
   "10.10.1.4"  # 1: MEL
@@ -46,7 +45,6 @@ detect_iface() {
     echo "$1"
     return 0
   fi
-  # 优先：发往集群对端的出口（与 ip route get <peer> 一致），避免默认路由块网卡与业务路由不一致
   local ip dev my_ips
   my_ips="$(hostname -I 2>/dev/null || true)"
   for ip in "${CLUSTER_IPS[@]}"; do
@@ -64,7 +62,7 @@ detect_iface() {
     echo "$dev"
     return 0
   fi
-  for cand in enp6s0f0 enp6s0f1 enp1s0f0 enp1s0f1 eth0; do
+  for cand in enp129s0f0 enp6s0f0 enp6s0f1 enp1s0f0 enp1s0f1 eth0; do
     if ip link show "$cand" &>/dev/null && ip link show "$cand" | grep -q "state UP"; then
       echo "$cand"
       return 0
@@ -87,14 +85,13 @@ detect_local_cluster() {
   return 1
 }
 
-mbps_to_mbit() {
-  # MB/s -> Mbit/s
-  awk -v mb="$1" 'BEGIN { printf "%.3f", mb * 8.0 }'
+mbps_to_tc_mbit() {
+  awk -v m="$1" 'BEGIN { printf "%.3f", m + 0.0 }'
 }
 
 main() {
   if skip_bw_limit_this_host; then
-    echo "Skip bandwidth matrix: this host is in SKIP_BW_LIMIT_IPS (${SKIP_BW_LIMIT_IPS[*]})."
+    echo "Skip bandwidth matrix (SKIP_BW_LIMIT_IPS: ${SKIP_BW_LIMIT_IPS[*]})."
     exit 0
   fi
 
@@ -110,37 +107,48 @@ main() {
     exit 1
   }
 
-  echo "Applying bandwidth matrix on iface=$iface, local_cluster=$src_cluster (${CLUSTER_IPS[$src_cluster]})"
+  local v="${BW_MATRIX_VERBOSE:-0}"
+  [[ "$v" =~ ^[0-9]+$ ]] || v=0
+
+  if ((v >= 1)); then
+    echo "Applying bandwidth matrix on iface=$iface, local_cluster=$src_cluster (${CLUSTER_IPS[$src_cluster]})"
+  fi
 
   tc qdisc del dev "$iface" root 2>/dev/null || true
   tc qdisc add dev "$iface" root handle 1: htb default 999
   tc class add dev "$iface" parent 1: classid 1:1 htb rate 10000mbit ceil 10000mbit
-  tc class add dev "$iface" parent 1:1 classid 1:999 htb rate 10000mbit ceil 10000mbit
+  tc class add dev "$iface" parent 1: classid 1:999 htb rate 10000mbit ceil 10000mbit
 
-  local idx dst_ip bw_mb bw_mbit class_minor classid
+  local idx dst_ip bw_mbps bw_mbit class_minor classid rules=0
   for idx in "${!CLUSTER_IPS[@]}"; do
     if [[ "$idx" == "$src_cluster" ]]; then
       continue
     fi
     dst_ip="${CLUSTER_IPS[$idx]}"
-    bw_mb="$(get_bw_mb "$src_cluster" "$idx")"
-    if [[ -z "$bw_mb" || "$bw_mb" == "0" ]]; then
-      echo "Skip $src_cluster->$idx (no bandwidth entry)"
+    bw_mbps="$(get_bw_mbps "$src_cluster" "$idx")"
+    if [[ -z "$bw_mbps" || "$bw_mbps" == "0" ]]; then
+      ((v >= 1)) && echo "Skip $src_cluster->$idx (no bandwidth entry)"
       continue
     fi
-    bw_mbit="$(mbps_to_mbit "$bw_mb")"
+    bw_mbit="$(mbps_to_tc_mbit "$bw_mbps")"
     class_minor=$((100 + idx))
     classid="1:${class_minor}"
-    tc class add dev "$iface" parent 1:1 classid "$classid" htb rate "${bw_mbit}mbit" ceil "${bw_mbit}mbit"
+    tc class add dev "$iface" parent 1: classid "$classid" htb rate "${bw_mbit}mbit" ceil "${bw_mbit}mbit"
     tc filter add dev "$iface" protocol ip parent 1:0 prio 1 u32 match ip dst "${dst_ip}/32" flowid "$classid"
-    echo "Limit dst=${dst_ip} cluster=${idx} bw=${bw_mb}MB/s (${bw_mbit}mbit)"
+    ((rules++)) || true
+    ((v >= 1)) && echo "Limit dst=${dst_ip} cluster=${idx} bw=${bw_mbps}Mbps (${bw_mbit}mbit)"
   done
 
-  echo "Done. Current qdisc/class/filter:"
-  tc qdisc show dev "$iface"
-  tc class show dev "$iface"
-  tc filter show dev "$iface"
+  echo "OK bw-matrix dev=${iface} host=${CLUSTER_IPS[$src_cluster]} cluster_id=${src_cluster} dst_rules=${rules}"
+
+  if ((v >= 2)); then
+    echo "--- tc qdisc show dev $iface ---"
+    tc qdisc show dev "$iface"
+    echo "--- tc class show dev $iface ---"
+    tc class show dev "$iface"
+    echo "--- tc filter show dev $iface ---"
+    tc filter show dev "$iface"
+  fi
 }
 
 main "$@"
-

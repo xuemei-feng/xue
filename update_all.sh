@@ -1,44 +1,47 @@
 #!/bin/bash
+set -euo pipefail
 
-cd /users/xue
-sudo chmod 777 -R UniLRC
-cd UniLRC
+# 必须用 bash 执行（不要用 `sh`）：脚本用了 [[ 等 bash 语法。
+#   bash /users/xue/xue/update_all.sh
+#   或: chmod +x update_all.sh && ./update_all.sh
 
-
-# 定义源文件夹路径
 SOURCE_DIR="/users/xue/xue"
+HOSTS_FILE="${SOURCE_DIR}/hosts"
 
-# 定义 hosts 文件路径
-HOSTS_FILE="hosts"
-
-# 定义远程目标文件夹路径
-REMOTE_DIR="/users/xue/xue"
-
-# 检查 hosts 文件是否存在
-if [[ ! -f "$HOSTS_FILE" ]]; then
-    echo "Error: hosts file not found!"
-    exit 1
+# 旧环境曾用 /users/xue/UniLRC；当前仓库在 SOURCE_DIR，仅当目录存在时才处理
+if [[ -d /users/xue/UniLRC ]]; then
+  cd /users/xue
+  sudo chmod 777 -R UniLRC
+  cd UniLRC
 fi
 
-# 遍历 hosts 文件中的每个 IP 地址
+if [[ ! -f "$HOSTS_FILE" ]]; then
+  echo "Error: hosts file not found: $HOSTS_FILE" >&2
+  exit 1
+fi
+
+REMOTE_DIR="/users/xue/xue"
+
 while read -r ip; do
+  [[ -z "${ip// }" ]] && continue
+  [[ "$ip" =~ ^# ]] && continue
 
-    echo "Copying to host: $ip..."
+  echo "Copying to host: $ip..."
 
-    # 使用 rsync 复制文件夹
-    sudo rsync -avz  --exclude='project/cmake/build/CMakeFiles' --exclude='project/cmake/build/run_client' --exclude='project/cmake/build/main_test' --exclude='project/cmake/build/main_client' --exclude='storage/*' -e ssh "$SOURCE_DIR/" "$ip:$REMOTE_DIR/"
-    #rsync -avz -e ssh "$SOURCE_DIR/" "$ip:$REMOTE_DIR/"
+  if sudo rsync -avz \
+    --exclude='project/cmake/build/CMakeFiles' \
+    --exclude='project/cmake/build/run_client' \
+    --exclude='project/cmake/build/main_test' \
+    --exclude='project/cmake/build/main_client' \
+    --exclude='storage/*' \
+    -e ssh "${SOURCE_DIR}/" "${ip}:${REMOTE_DIR}/"; then
+    echo "Successfully copied to $ip!"
+  else
+    echo "Failed to copy to $ip!" >&2
+  fi
+done <"$HOSTS_FILE"
 
-    # 检查 rsync 是否成功
-    if [ $? -eq 0 ]; then
-        echo "Successfully copied to $ip!"
-    else
-        echo "Failed to copy to $ip!"
-    fi
-
-done < "$HOSTS_FILE"
-
-cd /users/xue/xue
+cd "$SOURCE_DIR"
 sh generate_run_proxy.sh
 
 echo "All done!"

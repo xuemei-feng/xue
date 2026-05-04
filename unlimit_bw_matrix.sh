@@ -4,7 +4,13 @@ if [ -z "${BASH_VERSION:-}" ]; then
 fi
 set -euo pipefail
 
-# 与 limit_bw_matrix.sh 一致：用于解析「发往集群 IP」的真实 egress（避免默认路由落在另一块网卡上）
+# Remove tc/htb root from limit_bw_matrix.sh. BW_MATRIX_VERBOSE=1 prints tc qdisc after.
+
+SKIP_BW_LIMIT_IPS=(
+  "10.10.1.1"
+  "10.10.1.2"
+)
+
 CLUSTER_IPS=(
   "10.10.1.3"
   "10.10.1.4"
@@ -12,11 +18,6 @@ CLUSTER_IPS=(
   "10.10.1.6"
   "10.10.1.7"
   "10.10.1.8"
-)
-
-SKIP_BW_LIMIT_IPS=(
-  "10.10.1.1"
-  "10.10.1.2"
 )
 
 skip_bw_limit_this_host() {
@@ -62,42 +63,23 @@ detect_iface() {
 }
 
 main() {
+  if skip_bw_limit_this_host; then
+    echo "Skip unlimit (SKIP_BW_LIMIT_IPS: ${SKIP_BW_LIMIT_IPS[*]})."
+    exit 0
+  fi
+
   local iface
   iface="$(detect_iface "${1:-}")" || {
-    echo "Error: cannot detect active interface" >&2
+    echo "Error: cannot detect interface (optional arg1: iface name)" >&2
     exit 1
   }
 
-  echo "=== verify_bw_limit ==="
-  echo "host: $(hostname)"
-  echo "iface: $iface"
-  if skip_bw_limit_this_host; then
-    echo "note: this host is SKIP_BW_LIMIT_IPS (${SKIP_BW_LIMIT_IPS[*]}) — matrix shaping is not applied here."
-  fi
-  echo
+  tc qdisc del dev "$iface" root 2>/dev/null || true
+  echo "OK bw-matrix removed dev=${iface}"
 
-  echo "[1] qdisc:"
-  tc qdisc show dev "$iface" || true
-  echo
-
-  echo "[2] class:"
-  tc class show dev "$iface" || true
-  echo
-
-  echo "[3] filter:"
-  tc filter show dev "$iface" || true
-  echo
-
-  echo "[4] class stats (-s):"
-  tc -s class show dev "$iface" || true
-  echo
-
-  if tc qdisc show dev "$iface" | grep -q "htb"; then
-    echo "Result: HTB qdisc detected. Bandwidth limit rules are likely loaded."
-  else
-    echo "Result: No HTB qdisc detected. Limit may NOT be applied."
+  if [[ "${BW_MATRIX_VERBOSE:-0}" == "1" ]] || [[ "${BW_MATRIX_VERBOSE:-0}" == "2" ]]; then
+    tc qdisc show dev "$iface" 2>/dev/null || true
   fi
 }
 
 main "$@"
-
