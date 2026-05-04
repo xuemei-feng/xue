@@ -896,3 +896,24 @@ ECProject::get_multi_decode_plan(int k, int r, int z, std::string code_type, con
     // done
     return true;
 }
+
+void ECProject::pbs_parity_add_scaled_data_delta(int k, int parity_block_id, int data_block_id,
+                                                 const unsigned char *encode_matrix,
+                                                 const unsigned char *old_data, const unsigned char *new_data,
+                                                 unsigned char *parity_block, int ro, int len)
+{
+  if (k <= 0 || len <= 0 || data_block_id < 0 || data_block_id >= k || parity_block_id < k || ro < 0)
+  {
+    return;
+  }
+  const unsigned char a_ij = encode_matrix[parity_block_id * k + data_block_id];
+  for (int j = 0; j < len; ++j)
+  {
+    const unsigned char dlt = static_cast<unsigned char>(old_data[j] ^ new_data[j]);
+    if (a_ij != 0 && dlt != 0)
+    {
+      const size_t p = static_cast<size_t>(ro) + static_cast<size_t>(j);
+      parity_block[p] = static_cast<unsigned char>(static_cast<unsigned char>(parity_block[p]) ^ gf_mul(a_ij, dlt));
+    }
+  }
+}

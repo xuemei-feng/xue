@@ -72,6 +72,12 @@ extern NodeIdFromClientDefaultTypeInternal _NodeIdFromClient_default_instance_;
 class Parameter;
 struct ParameterDefaultTypeInternal;
 extern ParameterDefaultTypeInternal _Parameter_default_instance_;
+class PbsFinalizeRequest;
+struct PbsFinalizeRequestDefaultTypeInternal;
+extern PbsFinalizeRequestDefaultTypeInternal _PbsFinalizeRequest_default_instance_;
+class PbsUpdateRequest;
+struct PbsUpdateRequestDefaultTypeInternal;
+extern PbsUpdateRequestDefaultTypeInternal _PbsUpdateRequest_default_instance_;
 class RecoveryReply;
 struct RecoveryReplyDefaultTypeInternal;
 extern RecoveryReplyDefaultTypeInternal _RecoveryReply_default_instance_;
@@ -114,9 +120,6 @@ extern StripeIdAndBlockIDsFromClientDefaultTypeInternal _StripeIdAndBlockIDsFrom
 class StripeIdFromClient;
 struct StripeIdFromClientDefaultTypeInternal;
 extern StripeIdFromClientDefaultTypeInternal _StripeIdFromClient_default_instance_;
-class XueUpdateRequest;
-struct XueUpdateRequestDefaultTypeInternal;
-extern XueUpdateRequestDefaultTypeInternal _XueUpdateRequest_default_instance_;
 }  // namespace coordinator_proto
 PROTOBUF_NAMESPACE_OPEN
 template<> ::coordinator_proto::AskIfSuccess* Arena::CreateMaybeMessage<::coordinator_proto::AskIfSuccess>(Arena*);
@@ -128,6 +131,8 @@ template<> ::coordinator_proto::KeyFromClient* Arena::CreateMaybeMessage<::coord
 template<> ::coordinator_proto::LogicalRange* Arena::CreateMaybeMessage<::coordinator_proto::LogicalRange>(Arena*);
 template<> ::coordinator_proto::NodeIdFromClient* Arena::CreateMaybeMessage<::coordinator_proto::NodeIdFromClient>(Arena*);
 template<> ::coordinator_proto::Parameter* Arena::CreateMaybeMessage<::coordinator_proto::Parameter>(Arena*);
+template<> ::coordinator_proto::PbsFinalizeRequest* Arena::CreateMaybeMessage<::coordinator_proto::PbsFinalizeRequest>(Arena*);
+template<> ::coordinator_proto::PbsUpdateRequest* Arena::CreateMaybeMessage<::coordinator_proto::PbsUpdateRequest>(Arena*);
 template<> ::coordinator_proto::RecoveryReply* Arena::CreateMaybeMessage<::coordinator_proto::RecoveryReply>(Arena*);
 template<> ::coordinator_proto::RepBlockNum* Arena::CreateMaybeMessage<::coordinator_proto::RepBlockNum>(Arena*);
 template<> ::coordinator_proto::RepIfDeling* Arena::CreateMaybeMessage<::coordinator_proto::RepIfDeling>(Arena*);
@@ -142,7 +147,6 @@ template<> ::coordinator_proto::RequestProxyIPPort* Arena::CreateMaybeMessage<::
 template<> ::coordinator_proto::RequestToCoordinator* Arena::CreateMaybeMessage<::coordinator_proto::RequestToCoordinator>(Arena*);
 template<> ::coordinator_proto::StripeIdAndBlockIDsFromClient* Arena::CreateMaybeMessage<::coordinator_proto::StripeIdAndBlockIDsFromClient>(Arena*);
 template<> ::coordinator_proto::StripeIdFromClient* Arena::CreateMaybeMessage<::coordinator_proto::StripeIdFromClient>(Arena*);
-template<> ::coordinator_proto::XueUpdateRequest* Arena::CreateMaybeMessage<::coordinator_proto::XueUpdateRequest>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace coordinator_proto {
 
@@ -1494,6 +1498,7 @@ class ReplyProxyIPsPorts final :
     kProxyportsFieldNumber = 4,
     kClusterSliceSizesFieldNumber = 5,
     kGroupIdsFieldNumber = 6,
+    kPbsRangeOffsFieldNumber = 7,
     kSumAppendSizeFieldNumber = 1,
   };
   // repeated string append_keys = 2;
@@ -1610,6 +1615,28 @@ class ReplyProxyIPsPorts final :
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
       mutable_group_ids();
 
+  // repeated int32 pbs_range_offs = 7;
+  int pbs_range_offs_size() const;
+  private:
+  int _internal_pbs_range_offs_size() const;
+  public:
+  void clear_pbs_range_offs();
+  private:
+  int32_t _internal_pbs_range_offs(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_pbs_range_offs() const;
+  void _internal_add_pbs_range_offs(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_pbs_range_offs();
+  public:
+  int32_t pbs_range_offs(int index) const;
+  void set_pbs_range_offs(int index, int32_t value);
+  void add_pbs_range_offs(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      pbs_range_offs() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_pbs_range_offs();
+
   // uint64 sum_append_size = 1;
   void clear_sum_append_size();
   uint64_t sum_append_size() const;
@@ -1635,6 +1662,8 @@ class ReplyProxyIPsPorts final :
     mutable std::atomic<int> _cluster_slice_sizes_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > group_ids_;
     mutable std::atomic<int> _group_ids_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > pbs_range_offs_;
+    mutable std::atomic<int> _pbs_range_offs_cached_byte_size_;
     uint64_t sum_append_size_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -2661,24 +2690,24 @@ class LogicalRange final :
 };
 // -------------------------------------------------------------------
 
-class XueUpdateRequest final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coordinator_proto.XueUpdateRequest) */ {
+class PbsUpdateRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coordinator_proto.PbsUpdateRequest) */ {
  public:
-  inline XueUpdateRequest() : XueUpdateRequest(nullptr) {}
-  ~XueUpdateRequest() override;
-  explicit PROTOBUF_CONSTEXPR XueUpdateRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  inline PbsUpdateRequest() : PbsUpdateRequest(nullptr) {}
+  ~PbsUpdateRequest() override;
+  explicit PROTOBUF_CONSTEXPR PbsUpdateRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  XueUpdateRequest(const XueUpdateRequest& from);
-  XueUpdateRequest(XueUpdateRequest&& from) noexcept
-    : XueUpdateRequest() {
+  PbsUpdateRequest(const PbsUpdateRequest& from);
+  PbsUpdateRequest(PbsUpdateRequest&& from) noexcept
+    : PbsUpdateRequest() {
     *this = ::std::move(from);
   }
 
-  inline XueUpdateRequest& operator=(const XueUpdateRequest& from) {
+  inline PbsUpdateRequest& operator=(const PbsUpdateRequest& from) {
     CopyFrom(from);
     return *this;
   }
-  inline XueUpdateRequest& operator=(XueUpdateRequest&& from) noexcept {
+  inline PbsUpdateRequest& operator=(PbsUpdateRequest&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()
   #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
@@ -2701,20 +2730,20 @@ class XueUpdateRequest final :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const XueUpdateRequest& default_instance() {
+  static const PbsUpdateRequest& default_instance() {
     return *internal_default_instance();
   }
-  static inline const XueUpdateRequest* internal_default_instance() {
-    return reinterpret_cast<const XueUpdateRequest*>(
-               &_XueUpdateRequest_default_instance_);
+  static inline const PbsUpdateRequest* internal_default_instance() {
+    return reinterpret_cast<const PbsUpdateRequest*>(
+               &_PbsUpdateRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
     14;
 
-  friend void swap(XueUpdateRequest& a, XueUpdateRequest& b) {
+  friend void swap(PbsUpdateRequest& a, PbsUpdateRequest& b) {
     a.Swap(&b);
   }
-  inline void Swap(XueUpdateRequest* other) {
+  inline void Swap(PbsUpdateRequest* other) {
     if (other == this) return;
   #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
     if (GetOwningArena() != nullptr &&
@@ -2727,7 +2756,7 @@ class XueUpdateRequest final :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(XueUpdateRequest* other) {
+  void UnsafeArenaSwap(PbsUpdateRequest* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -2735,14 +2764,14 @@ class XueUpdateRequest final :
 
   // implements Message ----------------------------------------------
 
-  XueUpdateRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<XueUpdateRequest>(arena);
+  PbsUpdateRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<PbsUpdateRequest>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const XueUpdateRequest& from);
+  void CopyFrom(const PbsUpdateRequest& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const XueUpdateRequest& from) {
-    XueUpdateRequest::MergeImpl(*this, from);
+  void MergeFrom( const PbsUpdateRequest& from) {
+    PbsUpdateRequest::MergeImpl(*this, from);
   }
   private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
@@ -2760,15 +2789,15 @@ class XueUpdateRequest final :
   void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(XueUpdateRequest* other);
+  void InternalSwap(PbsUpdateRequest* other);
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "coordinator_proto.XueUpdateRequest";
+    return "coordinator_proto.PbsUpdateRequest";
   }
   protected:
-  explicit XueUpdateRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit PbsUpdateRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
   public:
 
@@ -2827,7 +2856,7 @@ class XueUpdateRequest final :
   void _internal_set_stripe_id(int32_t value);
   public:
 
-  // @@protoc_insertion_point(class_scope:coordinator_proto.XueUpdateRequest)
+  // @@protoc_insertion_point(class_scope:coordinator_proto.PbsUpdateRequest)
  private:
   class _Internal;
 
@@ -2837,6 +2866,154 @@ class XueUpdateRequest final :
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::LogicalRange > ranges_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr client_id_;
+    int32_t stripe_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coordinator_2eproto;
+};
+// -------------------------------------------------------------------
+
+class PbsFinalizeRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coordinator_proto.PbsFinalizeRequest) */ {
+ public:
+  inline PbsFinalizeRequest() : PbsFinalizeRequest(nullptr) {}
+  ~PbsFinalizeRequest() override;
+  explicit PROTOBUF_CONSTEXPR PbsFinalizeRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  PbsFinalizeRequest(const PbsFinalizeRequest& from);
+  PbsFinalizeRequest(PbsFinalizeRequest&& from) noexcept
+    : PbsFinalizeRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline PbsFinalizeRequest& operator=(const PbsFinalizeRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PbsFinalizeRequest& operator=(PbsFinalizeRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PbsFinalizeRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const PbsFinalizeRequest* internal_default_instance() {
+    return reinterpret_cast<const PbsFinalizeRequest*>(
+               &_PbsFinalizeRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    15;
+
+  friend void swap(PbsFinalizeRequest& a, PbsFinalizeRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(PbsFinalizeRequest* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PbsFinalizeRequest* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PbsFinalizeRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<PbsFinalizeRequest>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const PbsFinalizeRequest& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const PbsFinalizeRequest& from) {
+    PbsFinalizeRequest::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(PbsFinalizeRequest* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coordinator_proto.PbsFinalizeRequest";
+  }
+  protected:
+  explicit PbsFinalizeRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kStripeIdFieldNumber = 1,
+  };
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:coordinator_proto.PbsFinalizeRequest)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
     int32_t stripe_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -2893,7 +3070,7 @@ class KeyFromClient final :
                &_KeyFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    15;
+    16;
 
   friend void swap(KeyFromClient& a, KeyFromClient& b) {
     a.Swap(&b);
@@ -3046,7 +3223,7 @@ class StripeIdFromClient final :
                &_StripeIdFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    16;
+    17;
 
   friend void swap(StripeIdFromClient& a, StripeIdFromClient& b) {
     a.Swap(&b);
@@ -3194,7 +3371,7 @@ class StripeIdAndBlockIDsFromClient final :
                &_StripeIdAndBlockIDsFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    17;
+    18;
 
   friend void swap(StripeIdAndBlockIDsFromClient& a, StripeIdAndBlockIDsFromClient& b) {
     a.Swap(&b);
@@ -3367,7 +3544,7 @@ class NodeIdFromClient final :
                &_NodeIdFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    19;
 
   friend void swap(NodeIdFromClient& a, NodeIdFromClient& b) {
     a.Swap(&b);
@@ -3515,7 +3692,7 @@ class RepIfDeling final :
                &_RepIfDeling_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    20;
 
   friend void swap(RepIfDeling& a, RepIfDeling& b) {
     a.Swap(&b);
@@ -3663,7 +3840,7 @@ class RepStripeIds final :
                &_RepStripeIds_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    21;
 
   friend void swap(RepStripeIds& a, RepStripeIds& b) {
     a.Swap(&b);
@@ -3825,7 +4002,7 @@ class RepBlockNum final :
                &_RepBlockNum_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    22;
 
   friend void swap(RepBlockNum& a, RepBlockNum& b) {
     a.Swap(&b);
@@ -3973,7 +4150,7 @@ class DegradedReadReply final :
                &_DegradedReadReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    23;
 
   friend void swap(DegradedReadReply& a, DegradedReadReply& b) {
     a.Swap(&b);
@@ -4154,7 +4331,7 @@ class RecoveryReply final :
                &_RecoveryReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    24;
 
   friend void swap(RecoveryReply& a, RecoveryReply& b) {
     a.Swap(&b);
@@ -5246,6 +5423,53 @@ ReplyProxyIPsPorts::mutable_group_ids() {
   return _internal_mutable_group_ids();
 }
 
+// repeated int32 pbs_range_offs = 7;
+inline int ReplyProxyIPsPorts::_internal_pbs_range_offs_size() const {
+  return _impl_.pbs_range_offs_.size();
+}
+inline int ReplyProxyIPsPorts::pbs_range_offs_size() const {
+  return _internal_pbs_range_offs_size();
+}
+inline void ReplyProxyIPsPorts::clear_pbs_range_offs() {
+  _impl_.pbs_range_offs_.Clear();
+}
+inline int32_t ReplyProxyIPsPorts::_internal_pbs_range_offs(int index) const {
+  return _impl_.pbs_range_offs_.Get(index);
+}
+inline int32_t ReplyProxyIPsPorts::pbs_range_offs(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.ReplyProxyIPsPorts.pbs_range_offs)
+  return _internal_pbs_range_offs(index);
+}
+inline void ReplyProxyIPsPorts::set_pbs_range_offs(int index, int32_t value) {
+  _impl_.pbs_range_offs_.Set(index, value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.ReplyProxyIPsPorts.pbs_range_offs)
+}
+inline void ReplyProxyIPsPorts::_internal_add_pbs_range_offs(int32_t value) {
+  _impl_.pbs_range_offs_.Add(value);
+}
+inline void ReplyProxyIPsPorts::add_pbs_range_offs(int32_t value) {
+  _internal_add_pbs_range_offs(value);
+  // @@protoc_insertion_point(field_add:coordinator_proto.ReplyProxyIPsPorts.pbs_range_offs)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+ReplyProxyIPsPorts::_internal_pbs_range_offs() const {
+  return _impl_.pbs_range_offs_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+ReplyProxyIPsPorts::pbs_range_offs() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.ReplyProxyIPsPorts.pbs_range_offs)
+  return _internal_pbs_range_offs();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+ReplyProxyIPsPorts::_internal_mutable_pbs_range_offs() {
+  return &_impl_.pbs_range_offs_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+ReplyProxyIPsPorts::mutable_pbs_range_offs() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.ReplyProxyIPsPorts.pbs_range_offs)
+  return _internal_mutable_pbs_range_offs();
+}
+
 // -------------------------------------------------------------------
 
 // AskIfSuccess
@@ -5712,44 +5936,44 @@ inline void LogicalRange::set_logical_offset_end(int32_t value) {
 
 // -------------------------------------------------------------------
 
-// XueUpdateRequest
+// PbsUpdateRequest
 
 // string client_id = 1;
-inline void XueUpdateRequest::clear_client_id() {
+inline void PbsUpdateRequest::clear_client_id() {
   _impl_.client_id_.ClearToEmpty();
 }
-inline const std::string& XueUpdateRequest::client_id() const {
-  // @@protoc_insertion_point(field_get:coordinator_proto.XueUpdateRequest.client_id)
+inline const std::string& PbsUpdateRequest::client_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.PbsUpdateRequest.client_id)
   return _internal_client_id();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void XueUpdateRequest::set_client_id(ArgT0&& arg0, ArgT... args) {
+void PbsUpdateRequest::set_client_id(ArgT0&& arg0, ArgT... args) {
  
  _impl_.client_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:coordinator_proto.XueUpdateRequest.client_id)
+  // @@protoc_insertion_point(field_set:coordinator_proto.PbsUpdateRequest.client_id)
 }
-inline std::string* XueUpdateRequest::mutable_client_id() {
+inline std::string* PbsUpdateRequest::mutable_client_id() {
   std::string* _s = _internal_mutable_client_id();
-  // @@protoc_insertion_point(field_mutable:coordinator_proto.XueUpdateRequest.client_id)
+  // @@protoc_insertion_point(field_mutable:coordinator_proto.PbsUpdateRequest.client_id)
   return _s;
 }
-inline const std::string& XueUpdateRequest::_internal_client_id() const {
+inline const std::string& PbsUpdateRequest::_internal_client_id() const {
   return _impl_.client_id_.Get();
 }
-inline void XueUpdateRequest::_internal_set_client_id(const std::string& value) {
+inline void PbsUpdateRequest::_internal_set_client_id(const std::string& value) {
   
   _impl_.client_id_.Set(value, GetArenaForAllocation());
 }
-inline std::string* XueUpdateRequest::_internal_mutable_client_id() {
+inline std::string* PbsUpdateRequest::_internal_mutable_client_id() {
   
   return _impl_.client_id_.Mutable(GetArenaForAllocation());
 }
-inline std::string* XueUpdateRequest::release_client_id() {
-  // @@protoc_insertion_point(field_release:coordinator_proto.XueUpdateRequest.client_id)
+inline std::string* PbsUpdateRequest::release_client_id() {
+  // @@protoc_insertion_point(field_release:coordinator_proto.PbsUpdateRequest.client_id)
   return _impl_.client_id_.Release();
 }
-inline void XueUpdateRequest::set_allocated_client_id(std::string* client_id) {
+inline void PbsUpdateRequest::set_allocated_client_id(std::string* client_id) {
   if (client_id != nullptr) {
     
   } else {
@@ -5761,67 +5985,91 @@ inline void XueUpdateRequest::set_allocated_client_id(std::string* client_id) {
     _impl_.client_id_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:coordinator_proto.XueUpdateRequest.client_id)
+  // @@protoc_insertion_point(field_set_allocated:coordinator_proto.PbsUpdateRequest.client_id)
 }
 
 // int32 stripe_id = 2;
-inline void XueUpdateRequest::clear_stripe_id() {
+inline void PbsUpdateRequest::clear_stripe_id() {
   _impl_.stripe_id_ = 0;
 }
-inline int32_t XueUpdateRequest::_internal_stripe_id() const {
+inline int32_t PbsUpdateRequest::_internal_stripe_id() const {
   return _impl_.stripe_id_;
 }
-inline int32_t XueUpdateRequest::stripe_id() const {
-  // @@protoc_insertion_point(field_get:coordinator_proto.XueUpdateRequest.stripe_id)
+inline int32_t PbsUpdateRequest::stripe_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.PbsUpdateRequest.stripe_id)
   return _internal_stripe_id();
 }
-inline void XueUpdateRequest::_internal_set_stripe_id(int32_t value) {
+inline void PbsUpdateRequest::_internal_set_stripe_id(int32_t value) {
   
   _impl_.stripe_id_ = value;
 }
-inline void XueUpdateRequest::set_stripe_id(int32_t value) {
+inline void PbsUpdateRequest::set_stripe_id(int32_t value) {
   _internal_set_stripe_id(value);
-  // @@protoc_insertion_point(field_set:coordinator_proto.XueUpdateRequest.stripe_id)
+  // @@protoc_insertion_point(field_set:coordinator_proto.PbsUpdateRequest.stripe_id)
 }
 
 // repeated .coordinator_proto.LogicalRange ranges = 3;
-inline int XueUpdateRequest::_internal_ranges_size() const {
+inline int PbsUpdateRequest::_internal_ranges_size() const {
   return _impl_.ranges_.size();
 }
-inline int XueUpdateRequest::ranges_size() const {
+inline int PbsUpdateRequest::ranges_size() const {
   return _internal_ranges_size();
 }
-inline void XueUpdateRequest::clear_ranges() {
+inline void PbsUpdateRequest::clear_ranges() {
   _impl_.ranges_.Clear();
 }
-inline ::coordinator_proto::LogicalRange* XueUpdateRequest::mutable_ranges(int index) {
-  // @@protoc_insertion_point(field_mutable:coordinator_proto.XueUpdateRequest.ranges)
+inline ::coordinator_proto::LogicalRange* PbsUpdateRequest::mutable_ranges(int index) {
+  // @@protoc_insertion_point(field_mutable:coordinator_proto.PbsUpdateRequest.ranges)
   return _impl_.ranges_.Mutable(index);
 }
 inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::LogicalRange >*
-XueUpdateRequest::mutable_ranges() {
-  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.XueUpdateRequest.ranges)
+PbsUpdateRequest::mutable_ranges() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.PbsUpdateRequest.ranges)
   return &_impl_.ranges_;
 }
-inline const ::coordinator_proto::LogicalRange& XueUpdateRequest::_internal_ranges(int index) const {
+inline const ::coordinator_proto::LogicalRange& PbsUpdateRequest::_internal_ranges(int index) const {
   return _impl_.ranges_.Get(index);
 }
-inline const ::coordinator_proto::LogicalRange& XueUpdateRequest::ranges(int index) const {
-  // @@protoc_insertion_point(field_get:coordinator_proto.XueUpdateRequest.ranges)
+inline const ::coordinator_proto::LogicalRange& PbsUpdateRequest::ranges(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.PbsUpdateRequest.ranges)
   return _internal_ranges(index);
 }
-inline ::coordinator_proto::LogicalRange* XueUpdateRequest::_internal_add_ranges() {
+inline ::coordinator_proto::LogicalRange* PbsUpdateRequest::_internal_add_ranges() {
   return _impl_.ranges_.Add();
 }
-inline ::coordinator_proto::LogicalRange* XueUpdateRequest::add_ranges() {
+inline ::coordinator_proto::LogicalRange* PbsUpdateRequest::add_ranges() {
   ::coordinator_proto::LogicalRange* _add = _internal_add_ranges();
-  // @@protoc_insertion_point(field_add:coordinator_proto.XueUpdateRequest.ranges)
+  // @@protoc_insertion_point(field_add:coordinator_proto.PbsUpdateRequest.ranges)
   return _add;
 }
 inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::LogicalRange >&
-XueUpdateRequest::ranges() const {
-  // @@protoc_insertion_point(field_list:coordinator_proto.XueUpdateRequest.ranges)
+PbsUpdateRequest::ranges() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.PbsUpdateRequest.ranges)
   return _impl_.ranges_;
+}
+
+// -------------------------------------------------------------------
+
+// PbsFinalizeRequest
+
+// int32 stripe_id = 1;
+inline void PbsFinalizeRequest::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t PbsFinalizeRequest::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t PbsFinalizeRequest::stripe_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.PbsFinalizeRequest.stripe_id)
+  return _internal_stripe_id();
+}
+inline void PbsFinalizeRequest::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void PbsFinalizeRequest::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.PbsFinalizeRequest.stripe_id)
 }
 
 // -------------------------------------------------------------------
@@ -6287,6 +6535,8 @@ inline void RecoveryReply::set_grpc_start_time(double value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

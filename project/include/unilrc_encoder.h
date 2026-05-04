@@ -67,6 +67,11 @@ namespace ECProject
      */
     void gen_unilrc_matrix(unsigned char *encode_matrix, int k, int r, int z);
     void gen_azure_lrc_matrix(unsigned char *encode_matrix, int k, int r, int z);
+    /** PBS: p_j <- p_j + a_ij * (d_i^(r) - d_i^(0)) 按字节在 GF(2^8)；a_ij 来自 gen_azure_lrc_matrix 行 parity_block_id、列 data_block_id（与 encode_azure_lrc 一致） */
+    void pbs_parity_add_scaled_data_delta(int k, int parity_block_id, int data_block_id,
+                                          const unsigned char *encode_matrix,
+                                          const unsigned char *old_data, const unsigned char *new_data,
+                                          unsigned char *parity_block, int ro, int len);
     void gen_optimal_lrc_matrix(unsigned char *encode_matrix, int k, int r, int z);
     void gen_uniform_lrc_matrix(unsigned char *encode_matrix, int k, int r, int z);
 

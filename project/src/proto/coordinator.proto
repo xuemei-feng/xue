@@ -33,8 +33,9 @@ service coordinatorService {
   rpc uploadSubsetValue (RequestProxyIPPort) returns (ReplyProxyIPsPorts) {};
   // append
   rpc uploadAppendValue (RequestProxyIPPort) returns (ReplyProxyIPsPorts) {};
-  // xue update
-  rpc uploadXueUpdate (XueUpdateRequest) returns (ReplyProxyIPsPorts) {};
+  // PBS update: phase-1 plans data-block range writes; call uploadPbsFinalize afterwards for parity refresh
+  rpc uploadPbsUpdate (PbsUpdateRequest) returns (ReplyProxyIPsPorts) {};
+  rpc uploadPbsFinalize (PbsFinalizeRequest) returns (ReplyProxyIPsPorts) {};
   // get
   rpc getValue(KeyAndClientIP) returns (RepIfGetSuccess) {};
 
@@ -114,6 +115,8 @@ message ReplyProxyIPsPorts {
   repeated int32 proxyports = 4;
   repeated uint64 cluster_slice_sizes = 5;
   repeated int32 group_ids = 6;
+  // PBS data phase: byte offset inside the data block for each slice (same order as append_keys)
+  repeated int32 pbs_range_offs = 7;
 }
 
 // set, del, merge
@@ -150,11 +153,15 @@ message LogicalRange {
   int32 logical_offset_end = 2;
 }
 
-message XueUpdateRequest {
+message PbsUpdateRequest {
   string client_id = 1;
   int32 stripe_id = 2;
-  // 多个不连续逻辑区间，均在同一条带内
+  // 多个不连续逻辑区间，均在同一条带逻辑地址 [0, k*BlockSize) 内
   repeated LogicalRange ranges = 3;
+}
+
+message PbsFinalizeRequest {
+  int32 stripe_id = 1;
 }
 
 // delete

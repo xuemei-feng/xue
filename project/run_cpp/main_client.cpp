@@ -73,7 +73,7 @@ int main(int argc, char **argv)
         std::cout << "Select update method: " << std::endl;
         std::cin >> method;
 
-        if (method == "xue") 
+        if (method == "pbs") 
         {
             int stripe_id = 0;
             int range_cnt = 0;
@@ -94,9 +94,9 @@ int main(int argc, char **argv)
                 std::cin >> logical_offset_start >> logical_offset_end;
                 logical_ranges.emplace_back(logical_offset_start, logical_offset_end);
             }
-            std::cout << "Calling xue's update function..." << std::endl;
-            const bool ok = client.xue_update(stripe_id, logical_ranges);
-            std::cout << "xue_update result: " << (ok ? "success" : "failed") << std::endl;
+            std::cout << "Calling PBS update..." << std::endl;
+            const bool ok = client.pbs_update(stripe_id, logical_ranges);
+            std::cout << "pbs_update result: " << (ok ? "success" : "failed") << std::endl;
         } 
         else 
         {

@@ -5,6 +5,7 @@
 #include <thread>
 #include <assert.h>
 #include <chrono>
+#include <random>
 #include "unilrc_encoder.h"
 namespace ECProject
 {
@@ -784,15 +785,15 @@ namespace ECProject
     return false;
   }
 
-  bool Client::xue_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges)
+  bool Client::pbs_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges)
   {
     if (logical_ranges.empty())
     {
-      std::cout << "[XUE_UPDATE] Empty logical ranges." << std::endl;
+      std::cout << "[PBS_UPDATE] Empty logical ranges." << std::endl;
       return false;
     }
     grpc::ClientContext get_proxy_ip_port;
-    coordinator_proto::XueUpdateRequest request;
+    coordinator_proto::PbsUpdateRequest request;
     coordinator_proto::ReplyProxyIPsPorts reply;
     request.set_client_id(m_clientID);
     request.set_stripe_id(stripe_id);
@@ -800,8 +801,7 @@ namespace ECProject
     {
       if (r.second <= r.first)
       {
-        std::cout << "[XUE_UPDATE] Invalid logical range: [" << r.first
-                  << ", " << r.second << ") (require start < end)" << std::endl;
+        std::cout << "[PBS_UPDATE] Invalid logical range: [" << r.first << ", " << r.second << ")" << std::endl;
         return false;
       }
       auto *range = request.add_ranges();
@@ -809,35 +809,59 @@ namespace ECProject
       range->set_logical_offset_end(r.second);
     }
 
-    grpc::Status status = m_coordinator_ptr->uploadXueUpdate(&get_proxy_ip_port, request, &reply);
+    grpc::Status status = m_coordinator_ptr->uploadPbsUpdate(&get_proxy_ip_port, request, &reply);
     if (!status.ok())
     {
-      std::cout << "[XUE_UPDATE] upload failed: " << status.error_message() << std::endl;
+      std::cout << "[PBS_UPDATE] uploadPbsUpdate failed: " << status.error_message() << std::endl;
       return false;
     }
 
+    const int bs = static_cast<int>(m_sys_config->BlockSize);
+    std::vector<std::vector<char>> send_bufs(static_cast<size_t>(reply.append_keys_size()));
+    std::random_device rd;
+    std::mt19937 rng(rd());
+    std::uniform_int_distribution<int> byte_dist(0, 255);
+    for (int i = 0; i < reply.append_keys_size(); ++i)
+    {
+      const size_t slen = static_cast<size_t>(reply.cluster_slice_sizes(i));
+      send_bufs[static_cast<size_t>(i)].resize(slen);
+      const int bid = reply.group_ids(i);
+      const int in_off = (i < reply.pbs_range_offs_size()) ? reply.pbs_range_offs(i) : 0;
+      const int64_t base = static_cast<int64_t>(bid) * static_cast<int64_t>(bs) + static_cast<int64_t>(in_off);
+      char *stripe_buf = m_pre_allocated_buffer + base;
+      for (size_t b = 0; b < slen; ++b)
+      {
+        const char v = static_cast<char>(static_cast<unsigned char>(static_cast<unsigned>(byte_dist(rng))));
+        send_bufs[static_cast<size_t>(i)][b] = v;
+        stripe_buf[b] = v;
+      }
+    }
+
     std::vector<std::thread> threads;
-    std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
     std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
     std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
 
     for (int i = 0; i < reply.append_keys_size(); i++)
     {
-      threads.push_back(std::thread(&Client::async_append_to_proxies,
-                                    this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get()));
+      threads.push_back(std::thread(
+          &Client::async_append_to_proxies, this, send_bufs[static_cast<size_t>(i)].data(), reply.append_keys(i),
+          static_cast<int>(reply.cluster_slice_sizes(i)), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get()));
     }
     for (auto &thread : threads)
     {
       thread.join();
     }
 
-    bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + reply.append_keys_size(), [](bool val)
-                                { return val == true; });
-    if (!all_true)
+    bool phase1_ok = std::all_of(if_commit_arr.get(), if_commit_arr.get() + reply.append_keys_size(),
+                                 [](bool v) { return v; });
+    if (!phase1_ok)
     {
-      std::cout << "[XUE_UPDATE] commit check failed for at least one cluster slice." << std::endl;
+      std::cout << "[PBS_UPDATE] data phase commit failed." << std::endl;
+      return false;
     }
-    return all_true;
+
+    // Parity is updated by data proxies: XOR Δ and forward to deduped parity proxies (no client-side full re-encode).
+    return true;
   }
 
   std::shared_ptr<char[]> Client::get_degraded_read_block_breakdown(int stripe_id, int failed_block_id, double &total_time,double &disk_io_time, double &network_time, double &decode_time)

@@ -71,8 +71,8 @@ namespace ECProject
     bool sub_append_in_rep_mode(int append_size);
     bool set();
     bool sub_set(int block_num);
-    /** 同一条带内多个不连续逻辑区间 [start, end] */
-    bool xue_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges);
+    /** PBS：同一条带内多个不连续逻辑区间 [start, end)；先增量写数据块，再拉取 k 块并重算校验后写回 */
+    bool pbs_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges);
     std::shared_ptr<char[]> get_degraded_read_block(int stripe_id, int failed_block_id);
     std::shared_ptr<char[]> get_degraded_read_block_breakdown(int stripe_id, int failed_block_id, double &total_time, double &disk_io_time, double &network_time, double &encode_time);
     bool recovery_breakdown(int stripe_id, int failed_block_id, double &disk_read_time, double &network_time, double &decode_time, double &disk_write_time);

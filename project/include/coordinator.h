@@ -10,6 +10,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <unordered_set>
 #include <thread>
 #include <condition_variable>
 #include <config.h>
@@ -67,9 +68,13 @@ namespace ECProject
         grpc::ServerContext *context,
         const coordinator_proto::RequestProxyIPPort *keyValueSize,
         coordinator_proto::ReplyProxyIPsPorts *proxyIPPort) override;
-    grpc::Status uploadXueUpdate(
+    grpc::Status uploadPbsUpdate(
         grpc::ServerContext *context,
-        const coordinator_proto::XueUpdateRequest *request,
+        const coordinator_proto::PbsUpdateRequest *request,
+        coordinator_proto::ReplyProxyIPsPorts *proxyIPPort) override;
+    grpc::Status uploadPbsFinalize(
+        grpc::ServerContext *context,
+        const coordinator_proto::PbsFinalizeRequest *request,
         coordinator_proto::ReplyProxyIPsPorts *proxyIPPort) override;
     // get
     grpc::Status getValue(
@@ -163,6 +168,9 @@ namespace ECProject
     void update_stripe_info_in_node(int t_node_id, int stripe_id, int index);
     int getClusterAppendSize(Stripe *stripe, const std::map<int, std::pair<int, int>> &block_to_slice_sizes, int curr_group_id, int parity_slice_size);
     void notify_proxies_ready(const proxy_proto::AppendStripeDataPlacement &plan);
+    void notify_pbs_proxies_ready(const proxy_proto::PbsDataUpdatePlacement &placement);
+    /** 为一次数据块更新填充：所有全局校验 + 该数据块所在组的本地校验；按 proxy 去重 */
+    void fill_pbs_parity_forward(Stripe &stripe, const Block &data_blk, proxy_proto::PbsDataUpdatePlacement *pl);
     std::vector<int> get_recovery_group_ids(std::string code_type, int k, int r, int z, int failed_block_id);
     void init_recovery_group_lookup_table();
     void print_stripe_data_placement(Stripe &stripe);
@@ -186,6 +194,8 @@ namespace ECProject
     int m_cur_stripe_id = 0;
     std::unordered_map<std::string, ObjectInfo> m_object_commit_table;
     std::unordered_map<std::string, ObjectInfo> m_object_updating_table;
+    /** SET/APPEND 等不到 commit 时的失败唤醒（避免 checkCommitAbort 永久阻塞） */
+    std::unordered_set<std::string> m_commit_wait_failed_keys;
     std::map<int, Cluster> m_cluster_table;
     std::map<int, Node> m_node_table;
     std::map<int, Stripe> m_stripe_table;
@@ -236,6 +246,7 @@ namespace ECProject
       m_coordinatorImpl.m_cur_stripe_id = 0;
       m_coordinatorImpl.m_object_commit_table.clear();
       m_coordinatorImpl.m_object_updating_table.clear();
+      m_coordinatorImpl.m_commit_wait_failed_keys.clear();
       for (auto it = m_coordinatorImpl.m_cluster_table.begin(); it != m_coordinatorImpl.m_cluster_table.end(); it++)
       {
         Cluster &t_cluster = it->second;

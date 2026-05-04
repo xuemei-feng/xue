@@ -78,6 +78,18 @@ extern ObjectAndPlacementDefaultTypeInternal _ObjectAndPlacement_default_instanc
 class PartialDecodingRequest;
 struct PartialDecodingRequestDefaultTypeInternal;
 extern PartialDecodingRequestDefaultTypeInternal _PartialDecodingRequest_default_instance_;
+class PbsApplyParityDeltaRequest;
+struct PbsApplyParityDeltaRequestDefaultTypeInternal;
+extern PbsApplyParityDeltaRequestDefaultTypeInternal _PbsApplyParityDeltaRequest_default_instance_;
+class PbsDataUpdatePlacement;
+struct PbsDataUpdatePlacementDefaultTypeInternal;
+extern PbsDataUpdatePlacementDefaultTypeInternal _PbsDataUpdatePlacement_default_instance_;
+class PbsParityDeltaTarget;
+struct PbsParityDeltaTargetDefaultTypeInternal;
+extern PbsParityDeltaTargetDefaultTypeInternal _PbsParityDeltaTarget_default_instance_;
+class PbsParityForwardPlan;
+struct PbsParityForwardPlanDefaultTypeInternal;
+extern PbsParityForwardPlanDefaultTypeInternal _PbsParityForwardPlan_default_instance_;
 class RecalReply;
 struct RecalReplyDefaultTypeInternal;
 extern RecalReplyDefaultTypeInternal _RecalReply_default_instance_;
@@ -127,6 +139,10 @@ template<> ::proxy_proto::MultipleRecoveryRequest* Arena::CreateMaybeMessage<::p
 template<> ::proxy_proto::NodeAndBlock* Arena::CreateMaybeMessage<::proxy_proto::NodeAndBlock>(Arena*);
 template<> ::proxy_proto::ObjectAndPlacement* Arena::CreateMaybeMessage<::proxy_proto::ObjectAndPlacement>(Arena*);
 template<> ::proxy_proto::PartialDecodingRequest* Arena::CreateMaybeMessage<::proxy_proto::PartialDecodingRequest>(Arena*);
+template<> ::proxy_proto::PbsApplyParityDeltaRequest* Arena::CreateMaybeMessage<::proxy_proto::PbsApplyParityDeltaRequest>(Arena*);
+template<> ::proxy_proto::PbsDataUpdatePlacement* Arena::CreateMaybeMessage<::proxy_proto::PbsDataUpdatePlacement>(Arena*);
+template<> ::proxy_proto::PbsParityDeltaTarget* Arena::CreateMaybeMessage<::proxy_proto::PbsParityDeltaTarget>(Arena*);
+template<> ::proxy_proto::PbsParityForwardPlan* Arena::CreateMaybeMessage<::proxy_proto::PbsParityForwardPlan>(Arena*);
 template<> ::proxy_proto::RecalReply* Arena::CreateMaybeMessage<::proxy_proto::RecalReply>(Arena*);
 template<> ::proxy_proto::RecoveryReply* Arena::CreateMaybeMessage<::proxy_proto::RecoveryReply>(Arena*);
 template<> ::proxy_proto::RecoveryRequest* Arena::CreateMaybeMessage<::proxy_proto::RecoveryRequest>(Arena*);
@@ -4760,6 +4776,1021 @@ class RecoveryReply final :
 };
 // -------------------------------------------------------------------
 
+class PbsParityDeltaTarget final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.PbsParityDeltaTarget) */ {
+ public:
+  inline PbsParityDeltaTarget() : PbsParityDeltaTarget(nullptr) {}
+  ~PbsParityDeltaTarget() override;
+  explicit PROTOBUF_CONSTEXPR PbsParityDeltaTarget(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  PbsParityDeltaTarget(const PbsParityDeltaTarget& from);
+  PbsParityDeltaTarget(PbsParityDeltaTarget&& from) noexcept
+    : PbsParityDeltaTarget() {
+    *this = ::std::move(from);
+  }
+
+  inline PbsParityDeltaTarget& operator=(const PbsParityDeltaTarget& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PbsParityDeltaTarget& operator=(PbsParityDeltaTarget&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PbsParityDeltaTarget& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const PbsParityDeltaTarget* internal_default_instance() {
+    return reinterpret_cast<const PbsParityDeltaTarget*>(
+               &_PbsParityDeltaTarget_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    19;
+
+  friend void swap(PbsParityDeltaTarget& a, PbsParityDeltaTarget& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(PbsParityDeltaTarget* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PbsParityDeltaTarget* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PbsParityDeltaTarget* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<PbsParityDeltaTarget>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const PbsParityDeltaTarget& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const PbsParityDeltaTarget& from) {
+    PbsParityDeltaTarget::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(PbsParityDeltaTarget* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.PbsParityDeltaTarget";
+  }
+  protected:
+  explicit PbsParityDeltaTarget(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kParityBlockKeyFieldNumber = 1,
+    kDatanodeIpFieldNumber = 3,
+    kParityBlockIdFieldNumber = 2,
+    kDatanodePortFieldNumber = 4,
+  };
+  // string parity_block_key = 1;
+  void clear_parity_block_key();
+  const std::string& parity_block_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_parity_block_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_parity_block_key();
+  PROTOBUF_NODISCARD std::string* release_parity_block_key();
+  void set_allocated_parity_block_key(std::string* parity_block_key);
+  private:
+  const std::string& _internal_parity_block_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_parity_block_key(const std::string& value);
+  std::string* _internal_mutable_parity_block_key();
+  public:
+
+  // string datanode_ip = 3;
+  void clear_datanode_ip();
+  const std::string& datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_datanode_ip();
+  void set_allocated_datanode_ip(std::string* datanode_ip);
+  private:
+  const std::string& _internal_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_datanode_ip();
+  public:
+
+  // int32 parity_block_id = 2;
+  void clear_parity_block_id();
+  int32_t parity_block_id() const;
+  void set_parity_block_id(int32_t value);
+  private:
+  int32_t _internal_parity_block_id() const;
+  void _internal_set_parity_block_id(int32_t value);
+  public:
+
+  // int32 datanode_port = 4;
+  void clear_datanode_port();
+  int32_t datanode_port() const;
+  void set_datanode_port(int32_t value);
+  private:
+  int32_t _internal_datanode_port() const;
+  void _internal_set_datanode_port(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.PbsParityDeltaTarget)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parity_block_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr datanode_ip_;
+    int32_t parity_block_id_;
+    int32_t datanode_port_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class PbsParityForwardPlan final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.PbsParityForwardPlan) */ {
+ public:
+  inline PbsParityForwardPlan() : PbsParityForwardPlan(nullptr) {}
+  ~PbsParityForwardPlan() override;
+  explicit PROTOBUF_CONSTEXPR PbsParityForwardPlan(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  PbsParityForwardPlan(const PbsParityForwardPlan& from);
+  PbsParityForwardPlan(PbsParityForwardPlan&& from) noexcept
+    : PbsParityForwardPlan() {
+    *this = ::std::move(from);
+  }
+
+  inline PbsParityForwardPlan& operator=(const PbsParityForwardPlan& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PbsParityForwardPlan& operator=(PbsParityForwardPlan&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PbsParityForwardPlan& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const PbsParityForwardPlan* internal_default_instance() {
+    return reinterpret_cast<const PbsParityForwardPlan*>(
+               &_PbsParityForwardPlan_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    20;
+
+  friend void swap(PbsParityForwardPlan& a, PbsParityForwardPlan& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(PbsParityForwardPlan* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PbsParityForwardPlan* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PbsParityForwardPlan* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<PbsParityForwardPlan>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const PbsParityForwardPlan& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const PbsParityForwardPlan& from) {
+    PbsParityForwardPlan::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(PbsParityForwardPlan* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.PbsParityForwardPlan";
+  }
+  protected:
+  explicit PbsParityForwardPlan(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kParitiesFieldNumber = 3,
+    kDestProxyIpFieldNumber = 1,
+    kDestProxyBasePortFieldNumber = 2,
+  };
+  // repeated .proxy_proto.PbsParityDeltaTarget parities = 3;
+  int parities_size() const;
+  private:
+  int _internal_parities_size() const;
+  public:
+  void clear_parities();
+  ::proxy_proto::PbsParityDeltaTarget* mutable_parities(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >*
+      mutable_parities();
+  private:
+  const ::proxy_proto::PbsParityDeltaTarget& _internal_parities(int index) const;
+  ::proxy_proto::PbsParityDeltaTarget* _internal_add_parities();
+  public:
+  const ::proxy_proto::PbsParityDeltaTarget& parities(int index) const;
+  ::proxy_proto::PbsParityDeltaTarget* add_parities();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >&
+      parities() const;
+
+  // string dest_proxy_ip = 1;
+  void clear_dest_proxy_ip();
+  const std::string& dest_proxy_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_dest_proxy_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_dest_proxy_ip();
+  PROTOBUF_NODISCARD std::string* release_dest_proxy_ip();
+  void set_allocated_dest_proxy_ip(std::string* dest_proxy_ip);
+  private:
+  const std::string& _internal_dest_proxy_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_dest_proxy_ip(const std::string& value);
+  std::string* _internal_mutable_dest_proxy_ip();
+  public:
+
+  // int32 dest_proxy_base_port = 2;
+  void clear_dest_proxy_base_port();
+  int32_t dest_proxy_base_port() const;
+  void set_dest_proxy_base_port(int32_t value);
+  private:
+  int32_t _internal_dest_proxy_base_port() const;
+  void _internal_set_dest_proxy_base_port(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.PbsParityForwardPlan)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget > parities_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr dest_proxy_ip_;
+    int32_t dest_proxy_base_port_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class PbsDataUpdatePlacement final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.PbsDataUpdatePlacement) */ {
+ public:
+  inline PbsDataUpdatePlacement() : PbsDataUpdatePlacement(nullptr) {}
+  ~PbsDataUpdatePlacement() override;
+  explicit PROTOBUF_CONSTEXPR PbsDataUpdatePlacement(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  PbsDataUpdatePlacement(const PbsDataUpdatePlacement& from);
+  PbsDataUpdatePlacement(PbsDataUpdatePlacement&& from) noexcept
+    : PbsDataUpdatePlacement() {
+    *this = ::std::move(from);
+  }
+
+  inline PbsDataUpdatePlacement& operator=(const PbsDataUpdatePlacement& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PbsDataUpdatePlacement& operator=(PbsDataUpdatePlacement&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PbsDataUpdatePlacement& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const PbsDataUpdatePlacement* internal_default_instance() {
+    return reinterpret_cast<const PbsDataUpdatePlacement*>(
+               &_PbsDataUpdatePlacement_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    21;
+
+  friend void swap(PbsDataUpdatePlacement& a, PbsDataUpdatePlacement& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(PbsDataUpdatePlacement* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PbsDataUpdatePlacement* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PbsDataUpdatePlacement* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<PbsDataUpdatePlacement>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const PbsDataUpdatePlacement& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const PbsDataUpdatePlacement& from) {
+    PbsDataUpdatePlacement::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(PbsDataUpdatePlacement* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.PbsDataUpdatePlacement";
+  }
+  protected:
+  explicit PbsDataUpdatePlacement(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kParityForwardFieldNumber = 10,
+    kKeyFieldNumber = 1,
+    kBlockKeyFieldNumber = 4,
+    kDatanodeIpFieldNumber = 8,
+    kStripeIdFieldNumber = 2,
+    kClusterIdFieldNumber = 3,
+    kBlockIdFieldNumber = 5,
+    kRangeOffsetFieldNumber = 6,
+    kRangeLengthFieldNumber = 7,
+    kDatanodePortFieldNumber = 9,
+    kPbsBatchIndexFieldNumber = 12,
+    kPbsBatchIdFieldNumber = 11,
+    kPbsBatchTotalFieldNumber = 13,
+  };
+  // repeated .proxy_proto.PbsParityForwardPlan parity_forward = 10;
+  int parity_forward_size() const;
+  private:
+  int _internal_parity_forward_size() const;
+  public:
+  void clear_parity_forward();
+  ::proxy_proto::PbsParityForwardPlan* mutable_parity_forward(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityForwardPlan >*
+      mutable_parity_forward();
+  private:
+  const ::proxy_proto::PbsParityForwardPlan& _internal_parity_forward(int index) const;
+  ::proxy_proto::PbsParityForwardPlan* _internal_add_parity_forward();
+  public:
+  const ::proxy_proto::PbsParityForwardPlan& parity_forward(int index) const;
+  ::proxy_proto::PbsParityForwardPlan* add_parity_forward();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityForwardPlan >&
+      parity_forward() const;
+
+  // string key = 1;
+  void clear_key();
+  const std::string& key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_key();
+  PROTOBUF_NODISCARD std::string* release_key();
+  void set_allocated_key(std::string* key);
+  private:
+  const std::string& _internal_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_key(const std::string& value);
+  std::string* _internal_mutable_key();
+  public:
+
+  // string block_key = 4;
+  void clear_block_key();
+  const std::string& block_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_block_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_block_key();
+  PROTOBUF_NODISCARD std::string* release_block_key();
+  void set_allocated_block_key(std::string* block_key);
+  private:
+  const std::string& _internal_block_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_block_key(const std::string& value);
+  std::string* _internal_mutable_block_key();
+  public:
+
+  // string datanode_ip = 8;
+  void clear_datanode_ip();
+  const std::string& datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_datanode_ip();
+  void set_allocated_datanode_ip(std::string* datanode_ip);
+  private:
+  const std::string& _internal_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_datanode_ip();
+  public:
+
+  // int32 stripe_id = 2;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // int32 cluster_id = 3;
+  void clear_cluster_id();
+  int32_t cluster_id() const;
+  void set_cluster_id(int32_t value);
+  private:
+  int32_t _internal_cluster_id() const;
+  void _internal_set_cluster_id(int32_t value);
+  public:
+
+  // int32 block_id = 5;
+  void clear_block_id();
+  int32_t block_id() const;
+  void set_block_id(int32_t value);
+  private:
+  int32_t _internal_block_id() const;
+  void _internal_set_block_id(int32_t value);
+  public:
+
+  // int32 range_offset = 6;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // uint64 range_length = 7;
+  void clear_range_length();
+  uint64_t range_length() const;
+  void set_range_length(uint64_t value);
+  private:
+  uint64_t _internal_range_length() const;
+  void _internal_set_range_length(uint64_t value);
+  public:
+
+  // int32 datanode_port = 9;
+  void clear_datanode_port();
+  int32_t datanode_port() const;
+  void set_datanode_port(int32_t value);
+  private:
+  int32_t _internal_datanode_port() const;
+  void _internal_set_datanode_port(int32_t value);
+  public:
+
+  // uint32 pbs_batch_index = 12;
+  void clear_pbs_batch_index();
+  uint32_t pbs_batch_index() const;
+  void set_pbs_batch_index(uint32_t value);
+  private:
+  uint32_t _internal_pbs_batch_index() const;
+  void _internal_set_pbs_batch_index(uint32_t value);
+  public:
+
+  // uint64 pbs_batch_id = 11;
+  void clear_pbs_batch_id();
+  uint64_t pbs_batch_id() const;
+  void set_pbs_batch_id(uint64_t value);
+  private:
+  uint64_t _internal_pbs_batch_id() const;
+  void _internal_set_pbs_batch_id(uint64_t value);
+  public:
+
+  // uint32 pbs_batch_total = 13;
+  void clear_pbs_batch_total();
+  uint32_t pbs_batch_total() const;
+  void set_pbs_batch_total(uint32_t value);
+  private:
+  uint32_t _internal_pbs_batch_total() const;
+  void _internal_set_pbs_batch_total(uint32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.PbsDataUpdatePlacement)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityForwardPlan > parity_forward_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr block_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr datanode_ip_;
+    int32_t stripe_id_;
+    int32_t cluster_id_;
+    int32_t block_id_;
+    int32_t range_offset_;
+    uint64_t range_length_;
+    int32_t datanode_port_;
+    uint32_t pbs_batch_index_;
+    uint64_t pbs_batch_id_;
+    uint32_t pbs_batch_total_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class PbsApplyParityDeltaRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.PbsApplyParityDeltaRequest) */ {
+ public:
+  inline PbsApplyParityDeltaRequest() : PbsApplyParityDeltaRequest(nullptr) {}
+  ~PbsApplyParityDeltaRequest() override;
+  explicit PROTOBUF_CONSTEXPR PbsApplyParityDeltaRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  PbsApplyParityDeltaRequest(const PbsApplyParityDeltaRequest& from);
+  PbsApplyParityDeltaRequest(PbsApplyParityDeltaRequest&& from) noexcept
+    : PbsApplyParityDeltaRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline PbsApplyParityDeltaRequest& operator=(const PbsApplyParityDeltaRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PbsApplyParityDeltaRequest& operator=(PbsApplyParityDeltaRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PbsApplyParityDeltaRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const PbsApplyParityDeltaRequest* internal_default_instance() {
+    return reinterpret_cast<const PbsApplyParityDeltaRequest*>(
+               &_PbsApplyParityDeltaRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    22;
+
+  friend void swap(PbsApplyParityDeltaRequest& a, PbsApplyParityDeltaRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(PbsApplyParityDeltaRequest* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PbsApplyParityDeltaRequest* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PbsApplyParityDeltaRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<PbsApplyParityDeltaRequest>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const PbsApplyParityDeltaRequest& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const PbsApplyParityDeltaRequest& from) {
+    PbsApplyParityDeltaRequest::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(PbsApplyParityDeltaRequest* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.PbsApplyParityDeltaRequest";
+  }
+  protected:
+  explicit PbsApplyParityDeltaRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kParitiesFieldNumber = 6,
+    kDeltaFieldNumber = 5,
+    kNewRangePayloadFieldNumber = 8,
+    kSrcDataBlockKeyFieldNumber = 9,
+    kSrcDataDatanodeIpFieldNumber = 10,
+    kDataRangeOldSnapshotFieldNumber = 15,
+    kStripeIdFieldNumber = 1,
+    kDataBlockIdFieldNumber = 2,
+    kRangeLengthFieldNumber = 4,
+    kRangeOffsetFieldNumber = 3,
+    kUseNewPayloadFieldNumber = 7,
+    kPbsBatchIdFieldNumber = 12,
+    kSrcDataDatanodePortFieldNumber = 11,
+    kPbsBatchIndexFieldNumber = 13,
+    kPbsBatchTotalFieldNumber = 14,
+  };
+  // repeated .proxy_proto.PbsParityDeltaTarget parities = 6;
+  int parities_size() const;
+  private:
+  int _internal_parities_size() const;
+  public:
+  void clear_parities();
+  ::proxy_proto::PbsParityDeltaTarget* mutable_parities(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >*
+      mutable_parities();
+  private:
+  const ::proxy_proto::PbsParityDeltaTarget& _internal_parities(int index) const;
+  ::proxy_proto::PbsParityDeltaTarget* _internal_add_parities();
+  public:
+  const ::proxy_proto::PbsParityDeltaTarget& parities(int index) const;
+  ::proxy_proto::PbsParityDeltaTarget* add_parities();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >&
+      parities() const;
+
+  // bytes delta = 5;
+  void clear_delta();
+  const std::string& delta() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_delta(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_delta();
+  PROTOBUF_NODISCARD std::string* release_delta();
+  void set_allocated_delta(std::string* delta);
+  private:
+  const std::string& _internal_delta() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_delta(const std::string& value);
+  std::string* _internal_mutable_delta();
+  public:
+
+  // bytes new_range_payload = 8;
+  void clear_new_range_payload();
+  const std::string& new_range_payload() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_new_range_payload(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_new_range_payload();
+  PROTOBUF_NODISCARD std::string* release_new_range_payload();
+  void set_allocated_new_range_payload(std::string* new_range_payload);
+  private:
+  const std::string& _internal_new_range_payload() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_new_range_payload(const std::string& value);
+  std::string* _internal_mutable_new_range_payload();
+  public:
+
+  // string src_data_block_key = 9;
+  void clear_src_data_block_key();
+  const std::string& src_data_block_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_src_data_block_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_src_data_block_key();
+  PROTOBUF_NODISCARD std::string* release_src_data_block_key();
+  void set_allocated_src_data_block_key(std::string* src_data_block_key);
+  private:
+  const std::string& _internal_src_data_block_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_src_data_block_key(const std::string& value);
+  std::string* _internal_mutable_src_data_block_key();
+  public:
+
+  // string src_data_datanode_ip = 10;
+  void clear_src_data_datanode_ip();
+  const std::string& src_data_datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_src_data_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_src_data_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_src_data_datanode_ip();
+  void set_allocated_src_data_datanode_ip(std::string* src_data_datanode_ip);
+  private:
+  const std::string& _internal_src_data_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_src_data_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_src_data_datanode_ip();
+  public:
+
+  // bytes data_range_old_snapshot = 15;
+  void clear_data_range_old_snapshot();
+  const std::string& data_range_old_snapshot() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_data_range_old_snapshot(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_data_range_old_snapshot();
+  PROTOBUF_NODISCARD std::string* release_data_range_old_snapshot();
+  void set_allocated_data_range_old_snapshot(std::string* data_range_old_snapshot);
+  private:
+  const std::string& _internal_data_range_old_snapshot() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_data_range_old_snapshot(const std::string& value);
+  std::string* _internal_mutable_data_range_old_snapshot();
+  public:
+
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // int32 data_block_id = 2;
+  void clear_data_block_id();
+  int32_t data_block_id() const;
+  void set_data_block_id(int32_t value);
+  private:
+  int32_t _internal_data_block_id() const;
+  void _internal_set_data_block_id(int32_t value);
+  public:
+
+  // uint64 range_length = 4;
+  void clear_range_length();
+  uint64_t range_length() const;
+  void set_range_length(uint64_t value);
+  private:
+  uint64_t _internal_range_length() const;
+  void _internal_set_range_length(uint64_t value);
+  public:
+
+  // int32 range_offset = 3;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // bool use_new_payload = 7;
+  void clear_use_new_payload();
+  bool use_new_payload() const;
+  void set_use_new_payload(bool value);
+  private:
+  bool _internal_use_new_payload() const;
+  void _internal_set_use_new_payload(bool value);
+  public:
+
+  // uint64 pbs_batch_id = 12;
+  void clear_pbs_batch_id();
+  uint64_t pbs_batch_id() const;
+  void set_pbs_batch_id(uint64_t value);
+  private:
+  uint64_t _internal_pbs_batch_id() const;
+  void _internal_set_pbs_batch_id(uint64_t value);
+  public:
+
+  // int32 src_data_datanode_port = 11;
+  void clear_src_data_datanode_port();
+  int32_t src_data_datanode_port() const;
+  void set_src_data_datanode_port(int32_t value);
+  private:
+  int32_t _internal_src_data_datanode_port() const;
+  void _internal_set_src_data_datanode_port(int32_t value);
+  public:
+
+  // uint32 pbs_batch_index = 13;
+  void clear_pbs_batch_index();
+  uint32_t pbs_batch_index() const;
+  void set_pbs_batch_index(uint32_t value);
+  private:
+  uint32_t _internal_pbs_batch_index() const;
+  void _internal_set_pbs_batch_index(uint32_t value);
+  public:
+
+  // uint32 pbs_batch_total = 14;
+  void clear_pbs_batch_total();
+  uint32_t pbs_batch_total() const;
+  void set_pbs_batch_total(uint32_t value);
+  private:
+  uint32_t _internal_pbs_batch_total() const;
+  void _internal_set_pbs_batch_total(uint32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.PbsApplyParityDeltaRequest)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget > parities_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr delta_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr new_range_payload_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr src_data_block_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr src_data_datanode_ip_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_range_old_snapshot_;
+    int32_t stripe_id_;
+    int32_t data_block_id_;
+    uint64_t range_length_;
+    int32_t range_offset_;
+    bool use_new_payload_;
+    uint64_t pbs_batch_id_;
+    int32_t src_data_datanode_port_;
+    uint32_t pbs_batch_index_;
+    uint32_t pbs_batch_total_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
 class AppendStripeDataPlacement final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.AppendStripeDataPlacement) */ {
  public:
@@ -4808,7 +5839,7 @@ class AppendStripeDataPlacement final :
                &_AppendStripeDataPlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    23;
 
   friend void swap(AppendStripeDataPlacement& a, AppendStripeDataPlacement& b) {
     a.Swap(&b);
@@ -5184,7 +6215,7 @@ class SetReply final :
                &_SetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    24;
 
   friend void swap(SetReply& a, SetReply& b) {
     a.Swap(&b);
@@ -5332,7 +6363,7 @@ class GetReply final :
                &_GetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    25;
 
   friend void swap(GetReply& a, GetReply& b) {
     a.Swap(&b);
@@ -5480,7 +6511,7 @@ class StripeAndBlockIDs final :
                &_StripeAndBlockIDs_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    26;
 
   friend void swap(StripeAndBlockIDs& a, StripeAndBlockIDs& b) {
     a.Swap(&b);
@@ -10371,6 +11402,1112 @@ inline void RecoveryReply::set_dest_data_node_disk_io_time(double value) {
 
 // -------------------------------------------------------------------
 
+// PbsParityDeltaTarget
+
+// string parity_block_key = 1;
+inline void PbsParityDeltaTarget::clear_parity_block_key() {
+  _impl_.parity_block_key_.ClearToEmpty();
+}
+inline const std::string& PbsParityDeltaTarget::parity_block_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsParityDeltaTarget.parity_block_key)
+  return _internal_parity_block_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PbsParityDeltaTarget::set_parity_block_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.parity_block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsParityDeltaTarget.parity_block_key)
+}
+inline std::string* PbsParityDeltaTarget::mutable_parity_block_key() {
+  std::string* _s = _internal_mutable_parity_block_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsParityDeltaTarget.parity_block_key)
+  return _s;
+}
+inline const std::string& PbsParityDeltaTarget::_internal_parity_block_key() const {
+  return _impl_.parity_block_key_.Get();
+}
+inline void PbsParityDeltaTarget::_internal_set_parity_block_key(const std::string& value) {
+  
+  _impl_.parity_block_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PbsParityDeltaTarget::_internal_mutable_parity_block_key() {
+  
+  return _impl_.parity_block_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PbsParityDeltaTarget::release_parity_block_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.PbsParityDeltaTarget.parity_block_key)
+  return _impl_.parity_block_key_.Release();
+}
+inline void PbsParityDeltaTarget::set_allocated_parity_block_key(std::string* parity_block_key) {
+  if (parity_block_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.parity_block_key_.SetAllocated(parity_block_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.parity_block_key_.IsDefault()) {
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsParityDeltaTarget.parity_block_key)
+}
+
+// int32 parity_block_id = 2;
+inline void PbsParityDeltaTarget::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
+}
+inline int32_t PbsParityDeltaTarget::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
+}
+inline int32_t PbsParityDeltaTarget::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsParityDeltaTarget.parity_block_id)
+  return _internal_parity_block_id();
+}
+inline void PbsParityDeltaTarget::_internal_set_parity_block_id(int32_t value) {
+  
+  _impl_.parity_block_id_ = value;
+}
+inline void PbsParityDeltaTarget::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsParityDeltaTarget.parity_block_id)
+}
+
+// string datanode_ip = 3;
+inline void PbsParityDeltaTarget::clear_datanode_ip() {
+  _impl_.datanode_ip_.ClearToEmpty();
+}
+inline const std::string& PbsParityDeltaTarget::datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsParityDeltaTarget.datanode_ip)
+  return _internal_datanode_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PbsParityDeltaTarget::set_datanode_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsParityDeltaTarget.datanode_ip)
+}
+inline std::string* PbsParityDeltaTarget::mutable_datanode_ip() {
+  std::string* _s = _internal_mutable_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsParityDeltaTarget.datanode_ip)
+  return _s;
+}
+inline const std::string& PbsParityDeltaTarget::_internal_datanode_ip() const {
+  return _impl_.datanode_ip_.Get();
+}
+inline void PbsParityDeltaTarget::_internal_set_datanode_ip(const std::string& value) {
+  
+  _impl_.datanode_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PbsParityDeltaTarget::_internal_mutable_datanode_ip() {
+  
+  return _impl_.datanode_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PbsParityDeltaTarget::release_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.PbsParityDeltaTarget.datanode_ip)
+  return _impl_.datanode_ip_.Release();
+}
+inline void PbsParityDeltaTarget::set_allocated_datanode_ip(std::string* datanode_ip) {
+  if (datanode_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.datanode_ip_.SetAllocated(datanode_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.datanode_ip_.IsDefault()) {
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsParityDeltaTarget.datanode_ip)
+}
+
+// int32 datanode_port = 4;
+inline void PbsParityDeltaTarget::clear_datanode_port() {
+  _impl_.datanode_port_ = 0;
+}
+inline int32_t PbsParityDeltaTarget::_internal_datanode_port() const {
+  return _impl_.datanode_port_;
+}
+inline int32_t PbsParityDeltaTarget::datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsParityDeltaTarget.datanode_port)
+  return _internal_datanode_port();
+}
+inline void PbsParityDeltaTarget::_internal_set_datanode_port(int32_t value) {
+  
+  _impl_.datanode_port_ = value;
+}
+inline void PbsParityDeltaTarget::set_datanode_port(int32_t value) {
+  _internal_set_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsParityDeltaTarget.datanode_port)
+}
+
+// -------------------------------------------------------------------
+
+// PbsParityForwardPlan
+
+// string dest_proxy_ip = 1;
+inline void PbsParityForwardPlan::clear_dest_proxy_ip() {
+  _impl_.dest_proxy_ip_.ClearToEmpty();
+}
+inline const std::string& PbsParityForwardPlan::dest_proxy_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsParityForwardPlan.dest_proxy_ip)
+  return _internal_dest_proxy_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PbsParityForwardPlan::set_dest_proxy_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.dest_proxy_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsParityForwardPlan.dest_proxy_ip)
+}
+inline std::string* PbsParityForwardPlan::mutable_dest_proxy_ip() {
+  std::string* _s = _internal_mutable_dest_proxy_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsParityForwardPlan.dest_proxy_ip)
+  return _s;
+}
+inline const std::string& PbsParityForwardPlan::_internal_dest_proxy_ip() const {
+  return _impl_.dest_proxy_ip_.Get();
+}
+inline void PbsParityForwardPlan::_internal_set_dest_proxy_ip(const std::string& value) {
+  
+  _impl_.dest_proxy_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PbsParityForwardPlan::_internal_mutable_dest_proxy_ip() {
+  
+  return _impl_.dest_proxy_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PbsParityForwardPlan::release_dest_proxy_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.PbsParityForwardPlan.dest_proxy_ip)
+  return _impl_.dest_proxy_ip_.Release();
+}
+inline void PbsParityForwardPlan::set_allocated_dest_proxy_ip(std::string* dest_proxy_ip) {
+  if (dest_proxy_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.dest_proxy_ip_.SetAllocated(dest_proxy_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.dest_proxy_ip_.IsDefault()) {
+    _impl_.dest_proxy_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsParityForwardPlan.dest_proxy_ip)
+}
+
+// int32 dest_proxy_base_port = 2;
+inline void PbsParityForwardPlan::clear_dest_proxy_base_port() {
+  _impl_.dest_proxy_base_port_ = 0;
+}
+inline int32_t PbsParityForwardPlan::_internal_dest_proxy_base_port() const {
+  return _impl_.dest_proxy_base_port_;
+}
+inline int32_t PbsParityForwardPlan::dest_proxy_base_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsParityForwardPlan.dest_proxy_base_port)
+  return _internal_dest_proxy_base_port();
+}
+inline void PbsParityForwardPlan::_internal_set_dest_proxy_base_port(int32_t value) {
+  
+  _impl_.dest_proxy_base_port_ = value;
+}
+inline void PbsParityForwardPlan::set_dest_proxy_base_port(int32_t value) {
+  _internal_set_dest_proxy_base_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsParityForwardPlan.dest_proxy_base_port)
+}
+
+// repeated .proxy_proto.PbsParityDeltaTarget parities = 3;
+inline int PbsParityForwardPlan::_internal_parities_size() const {
+  return _impl_.parities_.size();
+}
+inline int PbsParityForwardPlan::parities_size() const {
+  return _internal_parities_size();
+}
+inline void PbsParityForwardPlan::clear_parities() {
+  _impl_.parities_.Clear();
+}
+inline ::proxy_proto::PbsParityDeltaTarget* PbsParityForwardPlan::mutable_parities(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsParityForwardPlan.parities)
+  return _impl_.parities_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >*
+PbsParityForwardPlan::mutable_parities() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.PbsParityForwardPlan.parities)
+  return &_impl_.parities_;
+}
+inline const ::proxy_proto::PbsParityDeltaTarget& PbsParityForwardPlan::_internal_parities(int index) const {
+  return _impl_.parities_.Get(index);
+}
+inline const ::proxy_proto::PbsParityDeltaTarget& PbsParityForwardPlan::parities(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsParityForwardPlan.parities)
+  return _internal_parities(index);
+}
+inline ::proxy_proto::PbsParityDeltaTarget* PbsParityForwardPlan::_internal_add_parities() {
+  return _impl_.parities_.Add();
+}
+inline ::proxy_proto::PbsParityDeltaTarget* PbsParityForwardPlan::add_parities() {
+  ::proxy_proto::PbsParityDeltaTarget* _add = _internal_add_parities();
+  // @@protoc_insertion_point(field_add:proxy_proto.PbsParityForwardPlan.parities)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >&
+PbsParityForwardPlan::parities() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.PbsParityForwardPlan.parities)
+  return _impl_.parities_;
+}
+
+// -------------------------------------------------------------------
+
+// PbsDataUpdatePlacement
+
+// string key = 1;
+inline void PbsDataUpdatePlacement::clear_key() {
+  _impl_.key_.ClearToEmpty();
+}
+inline const std::string& PbsDataUpdatePlacement::key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.key)
+  return _internal_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PbsDataUpdatePlacement::set_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.key)
+}
+inline std::string* PbsDataUpdatePlacement::mutable_key() {
+  std::string* _s = _internal_mutable_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsDataUpdatePlacement.key)
+  return _s;
+}
+inline const std::string& PbsDataUpdatePlacement::_internal_key() const {
+  return _impl_.key_.Get();
+}
+inline void PbsDataUpdatePlacement::_internal_set_key(const std::string& value) {
+  
+  _impl_.key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PbsDataUpdatePlacement::_internal_mutable_key() {
+  
+  return _impl_.key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PbsDataUpdatePlacement::release_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.PbsDataUpdatePlacement.key)
+  return _impl_.key_.Release();
+}
+inline void PbsDataUpdatePlacement::set_allocated_key(std::string* key) {
+  if (key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.key_.SetAllocated(key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.key_.IsDefault()) {
+    _impl_.key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsDataUpdatePlacement.key)
+}
+
+// int32 stripe_id = 2;
+inline void PbsDataUpdatePlacement::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t PbsDataUpdatePlacement::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t PbsDataUpdatePlacement::stripe_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.stripe_id)
+  return _internal_stripe_id();
+}
+inline void PbsDataUpdatePlacement::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void PbsDataUpdatePlacement::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.stripe_id)
+}
+
+// int32 cluster_id = 3;
+inline void PbsDataUpdatePlacement::clear_cluster_id() {
+  _impl_.cluster_id_ = 0;
+}
+inline int32_t PbsDataUpdatePlacement::_internal_cluster_id() const {
+  return _impl_.cluster_id_;
+}
+inline int32_t PbsDataUpdatePlacement::cluster_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.cluster_id)
+  return _internal_cluster_id();
+}
+inline void PbsDataUpdatePlacement::_internal_set_cluster_id(int32_t value) {
+  
+  _impl_.cluster_id_ = value;
+}
+inline void PbsDataUpdatePlacement::set_cluster_id(int32_t value) {
+  _internal_set_cluster_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.cluster_id)
+}
+
+// string block_key = 4;
+inline void PbsDataUpdatePlacement::clear_block_key() {
+  _impl_.block_key_.ClearToEmpty();
+}
+inline const std::string& PbsDataUpdatePlacement::block_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.block_key)
+  return _internal_block_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PbsDataUpdatePlacement::set_block_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.block_key)
+}
+inline std::string* PbsDataUpdatePlacement::mutable_block_key() {
+  std::string* _s = _internal_mutable_block_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsDataUpdatePlacement.block_key)
+  return _s;
+}
+inline const std::string& PbsDataUpdatePlacement::_internal_block_key() const {
+  return _impl_.block_key_.Get();
+}
+inline void PbsDataUpdatePlacement::_internal_set_block_key(const std::string& value) {
+  
+  _impl_.block_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PbsDataUpdatePlacement::_internal_mutable_block_key() {
+  
+  return _impl_.block_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PbsDataUpdatePlacement::release_block_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.PbsDataUpdatePlacement.block_key)
+  return _impl_.block_key_.Release();
+}
+inline void PbsDataUpdatePlacement::set_allocated_block_key(std::string* block_key) {
+  if (block_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.block_key_.SetAllocated(block_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.block_key_.IsDefault()) {
+    _impl_.block_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsDataUpdatePlacement.block_key)
+}
+
+// int32 block_id = 5;
+inline void PbsDataUpdatePlacement::clear_block_id() {
+  _impl_.block_id_ = 0;
+}
+inline int32_t PbsDataUpdatePlacement::_internal_block_id() const {
+  return _impl_.block_id_;
+}
+inline int32_t PbsDataUpdatePlacement::block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.block_id)
+  return _internal_block_id();
+}
+inline void PbsDataUpdatePlacement::_internal_set_block_id(int32_t value) {
+  
+  _impl_.block_id_ = value;
+}
+inline void PbsDataUpdatePlacement::set_block_id(int32_t value) {
+  _internal_set_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.block_id)
+}
+
+// int32 range_offset = 6;
+inline void PbsDataUpdatePlacement::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t PbsDataUpdatePlacement::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t PbsDataUpdatePlacement::range_offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.range_offset)
+  return _internal_range_offset();
+}
+inline void PbsDataUpdatePlacement::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void PbsDataUpdatePlacement::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.range_offset)
+}
+
+// uint64 range_length = 7;
+inline void PbsDataUpdatePlacement::clear_range_length() {
+  _impl_.range_length_ = uint64_t{0u};
+}
+inline uint64_t PbsDataUpdatePlacement::_internal_range_length() const {
+  return _impl_.range_length_;
+}
+inline uint64_t PbsDataUpdatePlacement::range_length() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.range_length)
+  return _internal_range_length();
+}
+inline void PbsDataUpdatePlacement::_internal_set_range_length(uint64_t value) {
+  
+  _impl_.range_length_ = value;
+}
+inline void PbsDataUpdatePlacement::set_range_length(uint64_t value) {
+  _internal_set_range_length(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.range_length)
+}
+
+// string datanode_ip = 8;
+inline void PbsDataUpdatePlacement::clear_datanode_ip() {
+  _impl_.datanode_ip_.ClearToEmpty();
+}
+inline const std::string& PbsDataUpdatePlacement::datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.datanode_ip)
+  return _internal_datanode_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PbsDataUpdatePlacement::set_datanode_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.datanode_ip)
+}
+inline std::string* PbsDataUpdatePlacement::mutable_datanode_ip() {
+  std::string* _s = _internal_mutable_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsDataUpdatePlacement.datanode_ip)
+  return _s;
+}
+inline const std::string& PbsDataUpdatePlacement::_internal_datanode_ip() const {
+  return _impl_.datanode_ip_.Get();
+}
+inline void PbsDataUpdatePlacement::_internal_set_datanode_ip(const std::string& value) {
+  
+  _impl_.datanode_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PbsDataUpdatePlacement::_internal_mutable_datanode_ip() {
+  
+  return _impl_.datanode_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PbsDataUpdatePlacement::release_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.PbsDataUpdatePlacement.datanode_ip)
+  return _impl_.datanode_ip_.Release();
+}
+inline void PbsDataUpdatePlacement::set_allocated_datanode_ip(std::string* datanode_ip) {
+  if (datanode_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.datanode_ip_.SetAllocated(datanode_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.datanode_ip_.IsDefault()) {
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsDataUpdatePlacement.datanode_ip)
+}
+
+// int32 datanode_port = 9;
+inline void PbsDataUpdatePlacement::clear_datanode_port() {
+  _impl_.datanode_port_ = 0;
+}
+inline int32_t PbsDataUpdatePlacement::_internal_datanode_port() const {
+  return _impl_.datanode_port_;
+}
+inline int32_t PbsDataUpdatePlacement::datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.datanode_port)
+  return _internal_datanode_port();
+}
+inline void PbsDataUpdatePlacement::_internal_set_datanode_port(int32_t value) {
+  
+  _impl_.datanode_port_ = value;
+}
+inline void PbsDataUpdatePlacement::set_datanode_port(int32_t value) {
+  _internal_set_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.datanode_port)
+}
+
+// repeated .proxy_proto.PbsParityForwardPlan parity_forward = 10;
+inline int PbsDataUpdatePlacement::_internal_parity_forward_size() const {
+  return _impl_.parity_forward_.size();
+}
+inline int PbsDataUpdatePlacement::parity_forward_size() const {
+  return _internal_parity_forward_size();
+}
+inline void PbsDataUpdatePlacement::clear_parity_forward() {
+  _impl_.parity_forward_.Clear();
+}
+inline ::proxy_proto::PbsParityForwardPlan* PbsDataUpdatePlacement::mutable_parity_forward(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsDataUpdatePlacement.parity_forward)
+  return _impl_.parity_forward_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityForwardPlan >*
+PbsDataUpdatePlacement::mutable_parity_forward() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.PbsDataUpdatePlacement.parity_forward)
+  return &_impl_.parity_forward_;
+}
+inline const ::proxy_proto::PbsParityForwardPlan& PbsDataUpdatePlacement::_internal_parity_forward(int index) const {
+  return _impl_.parity_forward_.Get(index);
+}
+inline const ::proxy_proto::PbsParityForwardPlan& PbsDataUpdatePlacement::parity_forward(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.parity_forward)
+  return _internal_parity_forward(index);
+}
+inline ::proxy_proto::PbsParityForwardPlan* PbsDataUpdatePlacement::_internal_add_parity_forward() {
+  return _impl_.parity_forward_.Add();
+}
+inline ::proxy_proto::PbsParityForwardPlan* PbsDataUpdatePlacement::add_parity_forward() {
+  ::proxy_proto::PbsParityForwardPlan* _add = _internal_add_parity_forward();
+  // @@protoc_insertion_point(field_add:proxy_proto.PbsDataUpdatePlacement.parity_forward)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityForwardPlan >&
+PbsDataUpdatePlacement::parity_forward() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.PbsDataUpdatePlacement.parity_forward)
+  return _impl_.parity_forward_;
+}
+
+// uint64 pbs_batch_id = 11;
+inline void PbsDataUpdatePlacement::clear_pbs_batch_id() {
+  _impl_.pbs_batch_id_ = uint64_t{0u};
+}
+inline uint64_t PbsDataUpdatePlacement::_internal_pbs_batch_id() const {
+  return _impl_.pbs_batch_id_;
+}
+inline uint64_t PbsDataUpdatePlacement::pbs_batch_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.pbs_batch_id)
+  return _internal_pbs_batch_id();
+}
+inline void PbsDataUpdatePlacement::_internal_set_pbs_batch_id(uint64_t value) {
+  
+  _impl_.pbs_batch_id_ = value;
+}
+inline void PbsDataUpdatePlacement::set_pbs_batch_id(uint64_t value) {
+  _internal_set_pbs_batch_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.pbs_batch_id)
+}
+
+// uint32 pbs_batch_index = 12;
+inline void PbsDataUpdatePlacement::clear_pbs_batch_index() {
+  _impl_.pbs_batch_index_ = 0u;
+}
+inline uint32_t PbsDataUpdatePlacement::_internal_pbs_batch_index() const {
+  return _impl_.pbs_batch_index_;
+}
+inline uint32_t PbsDataUpdatePlacement::pbs_batch_index() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.pbs_batch_index)
+  return _internal_pbs_batch_index();
+}
+inline void PbsDataUpdatePlacement::_internal_set_pbs_batch_index(uint32_t value) {
+  
+  _impl_.pbs_batch_index_ = value;
+}
+inline void PbsDataUpdatePlacement::set_pbs_batch_index(uint32_t value) {
+  _internal_set_pbs_batch_index(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.pbs_batch_index)
+}
+
+// uint32 pbs_batch_total = 13;
+inline void PbsDataUpdatePlacement::clear_pbs_batch_total() {
+  _impl_.pbs_batch_total_ = 0u;
+}
+inline uint32_t PbsDataUpdatePlacement::_internal_pbs_batch_total() const {
+  return _impl_.pbs_batch_total_;
+}
+inline uint32_t PbsDataUpdatePlacement::pbs_batch_total() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.pbs_batch_total)
+  return _internal_pbs_batch_total();
+}
+inline void PbsDataUpdatePlacement::_internal_set_pbs_batch_total(uint32_t value) {
+  
+  _impl_.pbs_batch_total_ = value;
+}
+inline void PbsDataUpdatePlacement::set_pbs_batch_total(uint32_t value) {
+  _internal_set_pbs_batch_total(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.pbs_batch_total)
+}
+
+// -------------------------------------------------------------------
+
+// PbsApplyParityDeltaRequest
+
+// int32 stripe_id = 1;
+inline void PbsApplyParityDeltaRequest::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t PbsApplyParityDeltaRequest::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t PbsApplyParityDeltaRequest::stripe_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.stripe_id)
+  return _internal_stripe_id();
+}
+inline void PbsApplyParityDeltaRequest::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void PbsApplyParityDeltaRequest::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.stripe_id)
+}
+
+// int32 data_block_id = 2;
+inline void PbsApplyParityDeltaRequest::clear_data_block_id() {
+  _impl_.data_block_id_ = 0;
+}
+inline int32_t PbsApplyParityDeltaRequest::_internal_data_block_id() const {
+  return _impl_.data_block_id_;
+}
+inline int32_t PbsApplyParityDeltaRequest::data_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.data_block_id)
+  return _internal_data_block_id();
+}
+inline void PbsApplyParityDeltaRequest::_internal_set_data_block_id(int32_t value) {
+  
+  _impl_.data_block_id_ = value;
+}
+inline void PbsApplyParityDeltaRequest::set_data_block_id(int32_t value) {
+  _internal_set_data_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.data_block_id)
+}
+
+// int32 range_offset = 3;
+inline void PbsApplyParityDeltaRequest::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t PbsApplyParityDeltaRequest::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t PbsApplyParityDeltaRequest::range_offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.range_offset)
+  return _internal_range_offset();
+}
+inline void PbsApplyParityDeltaRequest::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void PbsApplyParityDeltaRequest::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.range_offset)
+}
+
+// uint64 range_length = 4;
+inline void PbsApplyParityDeltaRequest::clear_range_length() {
+  _impl_.range_length_ = uint64_t{0u};
+}
+inline uint64_t PbsApplyParityDeltaRequest::_internal_range_length() const {
+  return _impl_.range_length_;
+}
+inline uint64_t PbsApplyParityDeltaRequest::range_length() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.range_length)
+  return _internal_range_length();
+}
+inline void PbsApplyParityDeltaRequest::_internal_set_range_length(uint64_t value) {
+  
+  _impl_.range_length_ = value;
+}
+inline void PbsApplyParityDeltaRequest::set_range_length(uint64_t value) {
+  _internal_set_range_length(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.range_length)
+}
+
+// bytes delta = 5;
+inline void PbsApplyParityDeltaRequest::clear_delta() {
+  _impl_.delta_.ClearToEmpty();
+}
+inline const std::string& PbsApplyParityDeltaRequest::delta() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.delta)
+  return _internal_delta();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PbsApplyParityDeltaRequest::set_delta(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.delta_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.delta)
+}
+inline std::string* PbsApplyParityDeltaRequest::mutable_delta() {
+  std::string* _s = _internal_mutable_delta();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsApplyParityDeltaRequest.delta)
+  return _s;
+}
+inline const std::string& PbsApplyParityDeltaRequest::_internal_delta() const {
+  return _impl_.delta_.Get();
+}
+inline void PbsApplyParityDeltaRequest::_internal_set_delta(const std::string& value) {
+  
+  _impl_.delta_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PbsApplyParityDeltaRequest::_internal_mutable_delta() {
+  
+  return _impl_.delta_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PbsApplyParityDeltaRequest::release_delta() {
+  // @@protoc_insertion_point(field_release:proxy_proto.PbsApplyParityDeltaRequest.delta)
+  return _impl_.delta_.Release();
+}
+inline void PbsApplyParityDeltaRequest::set_allocated_delta(std::string* delta) {
+  if (delta != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.delta_.SetAllocated(delta, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.delta_.IsDefault()) {
+    _impl_.delta_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsApplyParityDeltaRequest.delta)
+}
+
+// repeated .proxy_proto.PbsParityDeltaTarget parities = 6;
+inline int PbsApplyParityDeltaRequest::_internal_parities_size() const {
+  return _impl_.parities_.size();
+}
+inline int PbsApplyParityDeltaRequest::parities_size() const {
+  return _internal_parities_size();
+}
+inline void PbsApplyParityDeltaRequest::clear_parities() {
+  _impl_.parities_.Clear();
+}
+inline ::proxy_proto::PbsParityDeltaTarget* PbsApplyParityDeltaRequest::mutable_parities(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsApplyParityDeltaRequest.parities)
+  return _impl_.parities_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >*
+PbsApplyParityDeltaRequest::mutable_parities() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.PbsApplyParityDeltaRequest.parities)
+  return &_impl_.parities_;
+}
+inline const ::proxy_proto::PbsParityDeltaTarget& PbsApplyParityDeltaRequest::_internal_parities(int index) const {
+  return _impl_.parities_.Get(index);
+}
+inline const ::proxy_proto::PbsParityDeltaTarget& PbsApplyParityDeltaRequest::parities(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.parities)
+  return _internal_parities(index);
+}
+inline ::proxy_proto::PbsParityDeltaTarget* PbsApplyParityDeltaRequest::_internal_add_parities() {
+  return _impl_.parities_.Add();
+}
+inline ::proxy_proto::PbsParityDeltaTarget* PbsApplyParityDeltaRequest::add_parities() {
+  ::proxy_proto::PbsParityDeltaTarget* _add = _internal_add_parities();
+  // @@protoc_insertion_point(field_add:proxy_proto.PbsApplyParityDeltaRequest.parities)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >&
+PbsApplyParityDeltaRequest::parities() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.PbsApplyParityDeltaRequest.parities)
+  return _impl_.parities_;
+}
+
+// bool use_new_payload = 7;
+inline void PbsApplyParityDeltaRequest::clear_use_new_payload() {
+  _impl_.use_new_payload_ = false;
+}
+inline bool PbsApplyParityDeltaRequest::_internal_use_new_payload() const {
+  return _impl_.use_new_payload_;
+}
+inline bool PbsApplyParityDeltaRequest::use_new_payload() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.use_new_payload)
+  return _internal_use_new_payload();
+}
+inline void PbsApplyParityDeltaRequest::_internal_set_use_new_payload(bool value) {
+  
+  _impl_.use_new_payload_ = value;
+}
+inline void PbsApplyParityDeltaRequest::set_use_new_payload(bool value) {
+  _internal_set_use_new_payload(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.use_new_payload)
+}
+
+// bytes new_range_payload = 8;
+inline void PbsApplyParityDeltaRequest::clear_new_range_payload() {
+  _impl_.new_range_payload_.ClearToEmpty();
+}
+inline const std::string& PbsApplyParityDeltaRequest::new_range_payload() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.new_range_payload)
+  return _internal_new_range_payload();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PbsApplyParityDeltaRequest::set_new_range_payload(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.new_range_payload_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.new_range_payload)
+}
+inline std::string* PbsApplyParityDeltaRequest::mutable_new_range_payload() {
+  std::string* _s = _internal_mutable_new_range_payload();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsApplyParityDeltaRequest.new_range_payload)
+  return _s;
+}
+inline const std::string& PbsApplyParityDeltaRequest::_internal_new_range_payload() const {
+  return _impl_.new_range_payload_.Get();
+}
+inline void PbsApplyParityDeltaRequest::_internal_set_new_range_payload(const std::string& value) {
+  
+  _impl_.new_range_payload_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PbsApplyParityDeltaRequest::_internal_mutable_new_range_payload() {
+  
+  return _impl_.new_range_payload_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PbsApplyParityDeltaRequest::release_new_range_payload() {
+  // @@protoc_insertion_point(field_release:proxy_proto.PbsApplyParityDeltaRequest.new_range_payload)
+  return _impl_.new_range_payload_.Release();
+}
+inline void PbsApplyParityDeltaRequest::set_allocated_new_range_payload(std::string* new_range_payload) {
+  if (new_range_payload != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.new_range_payload_.SetAllocated(new_range_payload, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.new_range_payload_.IsDefault()) {
+    _impl_.new_range_payload_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsApplyParityDeltaRequest.new_range_payload)
+}
+
+// string src_data_block_key = 9;
+inline void PbsApplyParityDeltaRequest::clear_src_data_block_key() {
+  _impl_.src_data_block_key_.ClearToEmpty();
+}
+inline const std::string& PbsApplyParityDeltaRequest::src_data_block_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.src_data_block_key)
+  return _internal_src_data_block_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PbsApplyParityDeltaRequest::set_src_data_block_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.src_data_block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.src_data_block_key)
+}
+inline std::string* PbsApplyParityDeltaRequest::mutable_src_data_block_key() {
+  std::string* _s = _internal_mutable_src_data_block_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsApplyParityDeltaRequest.src_data_block_key)
+  return _s;
+}
+inline const std::string& PbsApplyParityDeltaRequest::_internal_src_data_block_key() const {
+  return _impl_.src_data_block_key_.Get();
+}
+inline void PbsApplyParityDeltaRequest::_internal_set_src_data_block_key(const std::string& value) {
+  
+  _impl_.src_data_block_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PbsApplyParityDeltaRequest::_internal_mutable_src_data_block_key() {
+  
+  return _impl_.src_data_block_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PbsApplyParityDeltaRequest::release_src_data_block_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.PbsApplyParityDeltaRequest.src_data_block_key)
+  return _impl_.src_data_block_key_.Release();
+}
+inline void PbsApplyParityDeltaRequest::set_allocated_src_data_block_key(std::string* src_data_block_key) {
+  if (src_data_block_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.src_data_block_key_.SetAllocated(src_data_block_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.src_data_block_key_.IsDefault()) {
+    _impl_.src_data_block_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsApplyParityDeltaRequest.src_data_block_key)
+}
+
+// string src_data_datanode_ip = 10;
+inline void PbsApplyParityDeltaRequest::clear_src_data_datanode_ip() {
+  _impl_.src_data_datanode_ip_.ClearToEmpty();
+}
+inline const std::string& PbsApplyParityDeltaRequest::src_data_datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_ip)
+  return _internal_src_data_datanode_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PbsApplyParityDeltaRequest::set_src_data_datanode_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.src_data_datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_ip)
+}
+inline std::string* PbsApplyParityDeltaRequest::mutable_src_data_datanode_ip() {
+  std::string* _s = _internal_mutable_src_data_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_ip)
+  return _s;
+}
+inline const std::string& PbsApplyParityDeltaRequest::_internal_src_data_datanode_ip() const {
+  return _impl_.src_data_datanode_ip_.Get();
+}
+inline void PbsApplyParityDeltaRequest::_internal_set_src_data_datanode_ip(const std::string& value) {
+  
+  _impl_.src_data_datanode_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PbsApplyParityDeltaRequest::_internal_mutable_src_data_datanode_ip() {
+  
+  return _impl_.src_data_datanode_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PbsApplyParityDeltaRequest::release_src_data_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_ip)
+  return _impl_.src_data_datanode_ip_.Release();
+}
+inline void PbsApplyParityDeltaRequest::set_allocated_src_data_datanode_ip(std::string* src_data_datanode_ip) {
+  if (src_data_datanode_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.src_data_datanode_ip_.SetAllocated(src_data_datanode_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.src_data_datanode_ip_.IsDefault()) {
+    _impl_.src_data_datanode_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_ip)
+}
+
+// int32 src_data_datanode_port = 11;
+inline void PbsApplyParityDeltaRequest::clear_src_data_datanode_port() {
+  _impl_.src_data_datanode_port_ = 0;
+}
+inline int32_t PbsApplyParityDeltaRequest::_internal_src_data_datanode_port() const {
+  return _impl_.src_data_datanode_port_;
+}
+inline int32_t PbsApplyParityDeltaRequest::src_data_datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_port)
+  return _internal_src_data_datanode_port();
+}
+inline void PbsApplyParityDeltaRequest::_internal_set_src_data_datanode_port(int32_t value) {
+  
+  _impl_.src_data_datanode_port_ = value;
+}
+inline void PbsApplyParityDeltaRequest::set_src_data_datanode_port(int32_t value) {
+  _internal_set_src_data_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_port)
+}
+
+// uint64 pbs_batch_id = 12;
+inline void PbsApplyParityDeltaRequest::clear_pbs_batch_id() {
+  _impl_.pbs_batch_id_ = uint64_t{0u};
+}
+inline uint64_t PbsApplyParityDeltaRequest::_internal_pbs_batch_id() const {
+  return _impl_.pbs_batch_id_;
+}
+inline uint64_t PbsApplyParityDeltaRequest::pbs_batch_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.pbs_batch_id)
+  return _internal_pbs_batch_id();
+}
+inline void PbsApplyParityDeltaRequest::_internal_set_pbs_batch_id(uint64_t value) {
+  
+  _impl_.pbs_batch_id_ = value;
+}
+inline void PbsApplyParityDeltaRequest::set_pbs_batch_id(uint64_t value) {
+  _internal_set_pbs_batch_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.pbs_batch_id)
+}
+
+// uint32 pbs_batch_index = 13;
+inline void PbsApplyParityDeltaRequest::clear_pbs_batch_index() {
+  _impl_.pbs_batch_index_ = 0u;
+}
+inline uint32_t PbsApplyParityDeltaRequest::_internal_pbs_batch_index() const {
+  return _impl_.pbs_batch_index_;
+}
+inline uint32_t PbsApplyParityDeltaRequest::pbs_batch_index() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.pbs_batch_index)
+  return _internal_pbs_batch_index();
+}
+inline void PbsApplyParityDeltaRequest::_internal_set_pbs_batch_index(uint32_t value) {
+  
+  _impl_.pbs_batch_index_ = value;
+}
+inline void PbsApplyParityDeltaRequest::set_pbs_batch_index(uint32_t value) {
+  _internal_set_pbs_batch_index(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.pbs_batch_index)
+}
+
+// uint32 pbs_batch_total = 14;
+inline void PbsApplyParityDeltaRequest::clear_pbs_batch_total() {
+  _impl_.pbs_batch_total_ = 0u;
+}
+inline uint32_t PbsApplyParityDeltaRequest::_internal_pbs_batch_total() const {
+  return _impl_.pbs_batch_total_;
+}
+inline uint32_t PbsApplyParityDeltaRequest::pbs_batch_total() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.pbs_batch_total)
+  return _internal_pbs_batch_total();
+}
+inline void PbsApplyParityDeltaRequest::_internal_set_pbs_batch_total(uint32_t value) {
+  
+  _impl_.pbs_batch_total_ = value;
+}
+inline void PbsApplyParityDeltaRequest::set_pbs_batch_total(uint32_t value) {
+  _internal_set_pbs_batch_total(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.pbs_batch_total)
+}
+
+// bytes data_range_old_snapshot = 15;
+inline void PbsApplyParityDeltaRequest::clear_data_range_old_snapshot() {
+  _impl_.data_range_old_snapshot_.ClearToEmpty();
+}
+inline const std::string& PbsApplyParityDeltaRequest::data_range_old_snapshot() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.data_range_old_snapshot)
+  return _internal_data_range_old_snapshot();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PbsApplyParityDeltaRequest::set_data_range_old_snapshot(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.data_range_old_snapshot_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.data_range_old_snapshot)
+}
+inline std::string* PbsApplyParityDeltaRequest::mutable_data_range_old_snapshot() {
+  std::string* _s = _internal_mutable_data_range_old_snapshot();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsApplyParityDeltaRequest.data_range_old_snapshot)
+  return _s;
+}
+inline const std::string& PbsApplyParityDeltaRequest::_internal_data_range_old_snapshot() const {
+  return _impl_.data_range_old_snapshot_.Get();
+}
+inline void PbsApplyParityDeltaRequest::_internal_set_data_range_old_snapshot(const std::string& value) {
+  
+  _impl_.data_range_old_snapshot_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PbsApplyParityDeltaRequest::_internal_mutable_data_range_old_snapshot() {
+  
+  return _impl_.data_range_old_snapshot_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PbsApplyParityDeltaRequest::release_data_range_old_snapshot() {
+  // @@protoc_insertion_point(field_release:proxy_proto.PbsApplyParityDeltaRequest.data_range_old_snapshot)
+  return _impl_.data_range_old_snapshot_.Release();
+}
+inline void PbsApplyParityDeltaRequest::set_allocated_data_range_old_snapshot(std::string* data_range_old_snapshot) {
+  if (data_range_old_snapshot != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.data_range_old_snapshot_.SetAllocated(data_range_old_snapshot, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.data_range_old_snapshot_.IsDefault()) {
+    _impl_.data_range_old_snapshot_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsApplyParityDeltaRequest.data_range_old_snapshot)
+}
+
+// -------------------------------------------------------------------
+
 // AppendStripeDataPlacement
 
 // string key = 1;
@@ -11320,6 +13457,14 @@ StripeAndBlockIDs::mutable_datanodeports() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

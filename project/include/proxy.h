@@ -11,6 +11,10 @@
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/grpcpp.h>
 #include <thread>
+#include <unordered_map>
+#include <map>
+#include <memory>
+#include <condition_variable>
 #include <semaphore.h>
 #include <config.h>
 #include <toolbox.h>
@@ -47,6 +51,14 @@ namespace ECProject
     grpc::Status scheduleAppend2Datanode(
         grpc::ServerContext *context,
         const proxy_proto::AppendStripeDataPlacement *append_stripe_data_placement,
+        proxy_proto::SetReply *response) override;
+    grpc::Status pbsScheduleDataUpdate(
+        grpc::ServerContext *context,
+        const proxy_proto::PbsDataUpdatePlacement *placement,
+        proxy_proto::SetReply *response) override;
+    grpc::Status pbsApplyParityDelta(
+        grpc::ServerContext *context,
+        const proxy_proto::PbsApplyParityDeltaRequest *request,
         proxy_proto::SetReply *response) override;
     // decode and get
     grpc::Status decodeAndGetObject(
@@ -122,6 +134,10 @@ namespace ECProject
     void get_from_node(const std::string &block_key, char *block_value, const size_t block_size, const char *datanode_ip, const int datanode_port, bool *status, int index);
     void get_from_node_breakdown(const std::string &block_key, char *block_value, const size_t block_size, const char *datanode_ip, const int datanode_port, bool *status, int index, 
       double *disk_io_start_time, double *disk_io_end_time, double *network_start_time, double *network_end_time, double *grpc_notify_time, double *grpc_start_time);
+    /** PBS: XOR Δ into each listed parity块（旧路径：对端直接传 delta） */
+    bool apply_pbs_parity_delta_internal(const proxy_proto::PbsApplyParityDeltaRequest &req);
+    /** PBS: 新负载 + batch 收齐后一次性 XOR 更新校验块（从 src_data 读旧数据块区间） */
+    bool apply_pbs_parity_new_payload_batched(const proxy_proto::PbsApplyParityDeltaRequest &req);
 
   private:
     std::mutex m_mutex;
@@ -139,6 +155,31 @@ namespace ECProject
     asio::ip::tcp::acceptor acceptor;
     sem_t sem;
     std::string m_coordinator_address;
+    /** PBS 同 batch 在单进程内合并（batch_id 由 coordinator 全局唯一分配） */
+    std::mutex m_pbs_parity_batch_mutex;
+    struct PbsParityChunkBuf
+    {
+      int stripe_id = 0;
+      int data_block_id = 0;
+      int ro = 0;
+      size_t len = 0;
+      std::string new_payload;
+      std::string old_payload;
+      std::string src_key;
+      std::string src_ip;
+      int src_port = 0;
+      std::vector<proxy_proto::PbsParityDeltaTarget> targets;
+    };
+    struct PbsParityBatchWait
+    {
+      uint32_t total = 0;
+      std::map<uint32_t, PbsParityChunkBuf> parts;
+      bool finalized = false;
+      bool success = false;
+      std::condition_variable cv;
+    };
+    std::unordered_map<uint64_t, std::shared_ptr<PbsParityBatchWait>> m_pbs_parity_batches;
+    bool flush_pbs_parity_batch_unlocked(const PbsParityBatchWait &bw);
   };
 
   class Proxy
