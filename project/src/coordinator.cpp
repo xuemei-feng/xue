@@ -153,7 +153,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return std::to_string(stripe_id) + "_" + std::to_string(900000 + seq);
     }
 
-    // ReplyProxyIPsPorts.group_ids：与 append_keys 对齐，供 Client::rackcu_update 解析步骤语义
+    // ReplyProxyIPsPorts.group_ids：与 append_keys 对齐，供 Client::rackcu_update 解析步骤语义。
+    // 取值与历史版本保持一致：2 保留为 DATA_TO_COLLECTOR（当前 planner 不再下发），便于旧 client 与新版 coordinator 混用。
     enum RackCuClientStep : int32_t
     {
       RACKCU_STEP_DATA_HOME = 1,
@@ -162,6 +163,22 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       RACKCU_STEP_PARITY_GLOBAL_FROM_DATA = 4,
       RACKCU_STEP_LOCAL_PARITY = 5,
     };
+
+    // 与 proxy RACKCU_DATA_HOME_XOR_FIRST 生成的 blob 字节数一致（magic+nseg+segments）
+    uint64_t rack_cu_home_delta_blob_byte_size(const proxy_proto::AppendStripeDataPlacement &plan, int k_bs)
+    {
+      uint64_t payload = 0;
+      for (int j = 0; j < plan.blockids_size(); j++)
+      {
+        const int bid = plan.blockids(j);
+        if (bid < 0 || bid >= k_bs)
+        {
+          continue;
+        }
+        payload += 12ull + static_cast<uint64_t>(plan.sizes(j));
+      }
+      return 8ull + payload;
+    }
   } // namespace
 
   grpc::Status CoordinatorImpl::setParameter(
@@ -1172,6 +1189,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     plans.reserve(16);
     plan_steps.reserve(16);
     int append_seq = 0;
+    std::vector<proxy_proto::RackCuHomeDeltaStagingRef> rack_cu_home_wave_stagings;
+    rack_cu_home_wave_stagings.clear();
 
     auto emit_plan = [&](proxy_proto::AppendStripeDataPlacement plan, int32_t step) {
       if (plan.append_mode().empty())
@@ -1260,48 +1279,24 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       plan.set_append_size(append_size);
       // home Proxy：写新数据前读盘 old 并记录 ΔD=new⊕old（见 proxy RACKCU_DATA_HOME_XOR_FIRST）
       plan.set_append_mode("RACKCU_DATA_HOME_XOR_FIRST");
+      {
+        proxy_proto::RackCuHomeDeltaStagingRef st;
+        st.set_staging_key(plan.key() + ".rackcu_home_delta");
+        st.set_holder_proxy_ip(m_cluster_table[cluster_id].proxy_ip);
+        st.set_holder_proxy_port(m_cluster_table[cluster_id].proxy_port);
+        st.set_blob_bytes(rack_cu_home_delta_blob_byte_size(plan, k));
+        const Block *db0 = find_block_const(*stripe, plan.blockids(0));
+        if (db0 == nullptr)
+        {
+          return grpc::Status(grpc::StatusCode::INTERNAL, "RackCU DATA_HOME: invalid first block");
+        }
+        const Node &n0 = m_node_table[db0->map2node];
+        st.set_staging_datanode_ip(n0.node_ip);
+        st.set_staging_datanode_port(n0.node_port);
+        st.set_staging_source_cluster_id(cluster_id);
+        rack_cu_home_wave_stagings.push_back(st);
+      }
       emit_plan(std::move(plan), RACKCU_STEP_DATA_HOME);
-    }
-
-    // 2) 将不在 collector 所在 cluster 的更新数据块增量发往 collector（顺序与 touched_data_blocks 一致）
-    {
-      std::vector<int> remote_touched_data_blocks;
-      remote_touched_data_blocks.reserve(touched_data_blocks.size());
-      for (int dbid : touched_data_blocks)
-      {
-        const Block *db = find_block_const(*stripe, dbid);
-        if (db != nullptr && db->map2cluster != best_cluster)
-        {
-          remote_touched_data_blocks.push_back(dbid);
-        }
-      }
-      if (!remote_touched_data_blocks.empty())
-      {
-      std::cout << "[RackCU][Transfer] data-clusters -> collector c" << best_cluster
-                << " content=data_deltas"
-                << " blocks=" << remote_touched_data_blocks.size()
-                << " detail=" << describe_data_slices(remote_touched_data_blocks) << std::endl;
-      proxy_proto::AppendStripeDataPlacement plan;
-      plan.set_key(gen_rackcu_append_key(stripe_id, append_seq++));
-      plan.set_stripe_id(stripe_id);
-      plan.set_cluster_id(best_cluster);
-      plan.set_is_merge_parity(false);
-      plan.set_is_serialized(true);
-      size_t append_size = 0;
-      for (int dbid : remote_touched_data_blocks)
-      {
-        const Block *db = find_block_const(*stripe, dbid);
-        const Node &node = m_node_table[db->map2node];
-        for (const auto &seg : block_intervals[dbid])
-        {
-          const int len = seg.second - seg.first;
-          append_size += static_cast<size_t>(len);
-          addBlockToAppendPlan(plan, db, node, std::make_pair(len, seg.first));
-        }
-      }
-      plan.set_append_size(append_size);
-      emit_plan(std::move(plan), RACKCU_STEP_DATA_TO_COLLECTOR);
-      }
     }
 
     for (size_t ps_idx = 0; ps_idx < parity_slices.size(); ps_idx++)
@@ -1309,7 +1304,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       const int parity_slice_offset = parity_slices[ps_idx].first;
       const int parity_slice_size = parity_slices[ps_idx].second;
 
-      // 3) 全局校验：按 cluster 比较 collector 与 global parity cluster 的“待更新块数”
+      // 2) 全局校验：按 cluster 比较 collector 与 global parity cluster 的“待更新块数”
+      std::vector<int> collector_global_pjs;
+      collector_global_pjs.reserve(static_cast<size_t>(r));
+      std::vector<bool> parity_from_collector(static_cast<size_t>(r), false);
       for (int pj = 0; pj < r; pj++)
       {
         const int pbid = k + pj;
@@ -1329,92 +1327,127 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           }
         }
         const bool send_parity_from_collector = (best_cnt >= global_parity_cnt_on_gcluster);
-
         if (send_parity_from_collector)
         {
-          std::cout << "[RackCU][Transfer] collector c" << best_cluster << " -> global-parity-cluster c"
-                    << g_cluster
-                    << " content=global_parity_delta"
-                    << " target_block=g" << pj
-                    << " parity_comp=" << ps_idx << "/" << parity_slices.size()
-                    << " slice=[" << parity_slice_offset << "," << (parity_slice_offset + parity_slice_size) << ")"
-                    << " data_detail=" << describe_data_slices(touched_data_blocks)
-                    << " parity_delta_bytes=" << parity_slice_size
-                    << std::endl;
-          proxy_proto::AppendStripeDataPlacement plan;
-          plan.set_key(gen_rackcu_append_key(stripe_id, append_seq++));
-          plan.set_stripe_id(stripe_id);
-          // 由 collector proxy 先计算全局校验增量，再跨 cluster 写入目标全局校验块。
-          plan.set_cluster_id(best_cluster);
-          plan.set_is_merge_parity(true);
-          plan.set_is_serialized(true);
-          plan.set_append_mode("RACKCU_PARITY_GLOBAL_BY_COLLECTOR_HOME_DELTA");
-          plan.set_target_proxy_ip(m_cluster_table[g_cluster].proxy_ip);
-          plan.set_target_proxy_port(m_cluster_table[g_cluster].proxy_port);
-          size_t append_size = 0;
-          for (int dbid : touched_data_blocks)
-          {
-            const Block *db = find_block_const(*stripe, dbid);
-            const Node &dnode = m_node_table[db->map2node];
-            for (const auto &seg : block_intervals[dbid])
-            {
-              const int len = seg.second - seg.first;
-              append_size += static_cast<size_t>(len);
-              addBlockToAppendPlan(plan, db, dnode, std::make_pair(len, seg.first));
-            }
-          }
-          const Node &node = m_node_table[pb->map2node];
-          // 尾部附带目标全局校验块的元信息，客户端发送对应占位字节。
-          addBlockToAppendPlan(plan, pb, node, std::make_pair(parity_slice_size, parity_slice_offset));
-          append_size += static_cast<size_t>(parity_slice_size);
-          plan.set_append_size(append_size);
-          emit_plan(std::move(plan), RACKCU_STEP_PARITY_GLOBAL);
+          parity_from_collector[static_cast<size_t>(pj)] = true;
+          collector_global_pjs.push_back(pj);
         }
-        else
+      }
+
+      if (!collector_global_pjs.empty())
+      {
+        std::ostringstream glist;
+        for (size_t ii = 0; ii < collector_global_pjs.size(); ii++)
         {
-          std::cout << "[RackCU][Transfer] data-clusters -> global-parity-cluster c" << g_cluster
-                    << " content=data_deltas(+parity_target_meta)"
-                    << " target_block=g" << pj
-                    << " data_blocks=" << touched_data_blocks.size()
-                    << " parity_comp=" << ps_idx << "/" << parity_slices.size()
-                    << " parity_slice=[" << parity_slice_offset << "," << (parity_slice_offset + parity_slice_size) << ")"
-                    << " data_detail=" << describe_data_slices(touched_data_blocks)
-                    << " parity_meta_bytes=" << parity_slice_size
-                    << std::endl;
-          proxy_proto::AppendStripeDataPlacement plan;
-          plan.set_key(gen_rackcu_append_key(stripe_id, append_seq++));
-          plan.set_stripe_id(stripe_id);
-          plan.set_cluster_id(g_cluster);
-          // 发送数据增量到全局校验块所在 cluster，由目标 proxy 完成全局校验增量合并。
-          plan.set_is_merge_parity(true);
-          plan.set_is_serialized(true);
-          plan.set_append_mode("RACKCU_GLOBAL_FROM_DATA_HOME_DELTA");
-          plan.set_target_proxy_ip(m_cluster_table[g_cluster].proxy_ip);
-          plan.set_target_proxy_port(m_cluster_table[g_cluster].proxy_port);
-          size_t append_size = 0;
-          const Node &pnode = m_node_table[pb->map2node];
-          for (int dbid : touched_data_blocks)
+          if (ii)
           {
-            const Block *db = find_block_const(*stripe, dbid);
-            const Node &dnode = m_node_table[db->map2node];
-            for (const auto &seg : block_intervals[dbid])
-            {
-              const int len = seg.second - seg.first;
-              append_size += static_cast<size_t>(len);
-              addBlockToAppendPlan(plan, db, dnode, std::make_pair(len, seg.first));
-            }
+            glist << ',';
           }
-          // 尾部附带 parity 目标块元信息（offset/size），客户端发送对应占位字节。
-          addBlockToAppendPlan(plan, pb, pnode, std::make_pair(parity_slice_size, parity_slice_offset));
-          append_size += static_cast<size_t>(parity_slice_size);
-          plan.set_append_size(append_size);
-          emit_plan(std::move(plan), RACKCU_STEP_PARITY_GLOBAL_FROM_DATA);
+          glist << 'g' << collector_global_pjs[ii];
         }
+        const int g0_cluster = find_block_const(*stripe, k + collector_global_pjs.front())->map2cluster;
+        std::cout << "[RackCU][Transfer] collector c" << best_cluster << " -> global-parity (batch) targets=" << glist.str()
+                  << " first_global_cluster=c" << g0_cluster
+                  << " parity_comp=" << ps_idx << "/" << parity_slices.size()
+                  << " slice=[" << parity_slice_offset << "," << (parity_slice_offset + parity_slice_size) << ")"
+                  << " data_detail=" << describe_data_slices(touched_data_blocks)
+                  << " parity_delta_bytes_each=" << parity_slice_size
+                  << std::endl;
+        proxy_proto::AppendStripeDataPlacement plan;
+        plan.set_key(gen_rackcu_append_key(stripe_id, append_seq++));
+        plan.set_stripe_id(stripe_id);
+        plan.set_cluster_id(best_cluster);
+        plan.set_is_merge_parity(true);
+        plan.set_is_serialized(true);
+        plan.set_append_mode("RACKCU_PARITY_GLOBAL_BY_COLLECTOR_HOME_DELTA_STAGING_BATCH");
+        plan.set_target_proxy_ip(m_cluster_table[g0_cluster].proxy_ip);
+        plan.set_target_proxy_port(m_cluster_table[g0_cluster].proxy_port);
+        for (int dbid : touched_data_blocks)
+        {
+          const Block *db = find_block_const(*stripe, dbid);
+          const Node &dnode = m_node_table[db->map2node];
+          for (const auto &seg : block_intervals[dbid])
+          {
+            const int len = seg.second - seg.first;
+            addBlockToAppendPlan(plan, db, dnode, std::make_pair(len, seg.first));
+          }
+        }
+        for (int pj : collector_global_pjs)
+        {
+          const int pbid = k + pj;
+          const Block *pb = find_block_const(*stripe, pbid);
+          const int g_cluster = pb->map2cluster;
+          const Node &node = m_node_table[pb->map2node];
+          auto *t = plan.add_rackcu_global_parity_batch();
+          t->set_parity_block_id(pbid);
+          t->set_offset(static_cast<uint64_t>(parity_slice_offset));
+          t->set_size(static_cast<uint64_t>(parity_slice_size));
+          t->set_blockkey(pb->block_key);
+          t->set_datanode_ip(node.node_ip);
+          t->set_datanode_port(node.node_port);
+          t->set_target_proxy_ip(m_cluster_table[g_cluster].proxy_ip);
+          t->set_target_proxy_port(m_cluster_table[g_cluster].proxy_port);
+        }
+        plan.clear_rackcu_home_delta_staging_refs();
+        for (const auto &st : rack_cu_home_wave_stagings)
+        {
+          *plan.add_rackcu_home_delta_staging_refs() = st;
+        }
+        plan.set_append_size(0);
+        emit_plan(std::move(plan), RACKCU_STEP_PARITY_GLOBAL);
+      }
+
+      for (int pj = 0; pj < r; pj++)
+      {
+        if (parity_from_collector[static_cast<size_t>(pj)])
+        {
+          continue;
+        }
+        const int pbid = k + pj;
+        const Block *pb = find_block_const(*stripe, pbid);
+        const int g_cluster = pb->map2cluster;
+        std::cout << "[RackCU][Transfer] data-clusters -> global-parity-cluster c" << g_cluster
+                  << " content=data_deltas(+parity_target_meta)"
+                  << " target_block=g" << pj
+                  << " data_blocks=" << touched_data_blocks.size()
+                  << " parity_comp=" << ps_idx << "/" << parity_slices.size()
+                  << " parity_slice=[" << parity_slice_offset << "," << (parity_slice_offset + parity_slice_size) << ")"
+                  << " data_detail=" << describe_data_slices(touched_data_blocks)
+                  << " parity_meta_bytes=" << parity_slice_size
+                  << std::endl;
+        proxy_proto::AppendStripeDataPlacement plan;
+        plan.set_key(gen_rackcu_append_key(stripe_id, append_seq++));
+        plan.set_stripe_id(stripe_id);
+        plan.set_cluster_id(g_cluster);
+        plan.set_is_merge_parity(true);
+        plan.set_is_serialized(true);
+        plan.set_append_mode("RACKCU_GLOBAL_FROM_DATA_HOME_DELTA_STAGING");
+        plan.set_target_proxy_ip(m_cluster_table[g_cluster].proxy_ip);
+        plan.set_target_proxy_port(m_cluster_table[g_cluster].proxy_port);
+        const Node &pnode = m_node_table[pb->map2node];
+        for (int dbid : touched_data_blocks)
+        {
+          const Block *db = find_block_const(*stripe, dbid);
+          const Node &dnode = m_node_table[db->map2node];
+          for (const auto &seg : block_intervals[dbid])
+          {
+            const int len = seg.second - seg.first;
+            addBlockToAppendPlan(plan, db, dnode, std::make_pair(len, seg.first));
+          }
+        }
+        addBlockToAppendPlan(plan, pb, pnode, std::make_pair(parity_slice_size, parity_slice_offset));
+        plan.clear_rackcu_home_delta_staging_refs();
+        for (const auto &st : rack_cu_home_wave_stagings)
+        {
+          *plan.add_rackcu_home_delta_staging_refs() = st;
+        }
+        plan.set_append_size(0);
+        emit_plan(std::move(plan), RACKCU_STEP_PARITY_GLOBAL_FROM_DATA);
       }
 
     }
 
-    // 4) 本地校验：按“本地组独立 parity slice”生成计划；同组同 cluster 合并，不同组分开发送。
+    // 3) 本地校验：按“本地组独立 parity slice”生成计划；同组同 cluster 合并，不同组分开发送。
     std::unordered_set<int> local_groups;
     for (int dbid : touched_data_blocks)
     {
@@ -1499,10 +1532,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           plan.set_cluster_id(source_cluster);
           plan.set_is_merge_parity(true);
           plan.set_is_serialized(true);
-          plan.set_append_mode("RACKCU_LOCAL_FROM_DATA_HOME_DELTA");
+          plan.set_append_mode("RACKCU_LOCAL_FROM_DATA_HOME_DELTA_STAGING");
           plan.set_target_proxy_ip(m_cluster_table[target_cluster].proxy_ip);
           plan.set_target_proxy_port(m_cluster_table[target_cluster].proxy_port);
-          size_t append_size = 0;
           const Node &pnode = m_node_table[lp->map2node];
 
           for (int dbid : src_group_blocks)
@@ -1512,13 +1544,33 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             for (const auto &seg : block_intervals[dbid])
             {
               const int len = seg.second - seg.first;
-              append_size += static_cast<size_t>(len);
               addBlockToAppendPlan(plan, db, dnode, std::make_pair(len, seg.first));
             }
           }
           addBlockToAppendPlan(plan, lp, pnode, std::make_pair(parity_slice_size, parity_slice_offset));
-          append_size += static_cast<size_t>(parity_slice_size);
-          plan.set_append_size(append_size);
+          plan.clear_rackcu_home_delta_staging_refs();
+          std::unordered_set<int> local_needed_clusters;
+          for (int dbid : src_group_blocks)
+          {
+            const Block *db = find_block_const(*stripe, dbid);
+            if (db != nullptr)
+            {
+              local_needed_clusters.insert(db->map2cluster);
+            }
+          }
+          for (const auto &st : rack_cu_home_wave_stagings)
+          {
+            if (!st.has_staging_source_cluster_id())
+            {
+              *plan.add_rackcu_home_delta_staging_refs() = st;
+              continue;
+            }
+            if (local_needed_clusters.count(st.staging_source_cluster_id()) > 0)
+            {
+              *plan.add_rackcu_home_delta_staging_refs() = st;
+            }
+          }
+          plan.set_append_size(0);
           emit_plan(std::move(plan), RACKCU_STEP_LOCAL_PARITY);
         }
       }
@@ -1560,6 +1612,16 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       t.join();
     }
     proxyIPPort->set_sum_append_size(sum_append_size);
+
+    for (const auto &st : rack_cu_home_wave_stagings)
+    {
+      coordinator_proto::RackCuStagingCleanupRef *c = proxyIPPort->add_rack_cu_staging_cleanup();
+      c->set_staging_key(st.staging_key());
+      c->set_holder_proxy_ip(st.holder_proxy_ip());
+      c->set_holder_proxy_port(st.holder_proxy_port());
+      c->set_staging_datanode_ip(st.staging_datanode_ip());
+      c->set_staging_datanode_port(st.staging_datanode_port());
+    }
 
     return grpc::Status::OK;
   }
@@ -3620,10 +3682,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::unique_lock<std::mutex> lck(m_mutex);
     try
     {
-      if (commit_abortkey->rackcu_home_delta_blob().size() > 0)
-      {
-        m_rackcu_home_delta_by_append_key[key] = commit_abortkey->rackcu_home_delta_blob();
-      }
       if (commit_abortkey->ifcommitmetadata())
       {
         if (opp == SET || opp == APPEND)
@@ -3801,12 +3859,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           it = std::find(m_stripe_deleting_table.begin(), m_stripe_deleting_table.end(), stripe_id);
         }
       }
-    }
-    auto rd_it = m_rackcu_home_delta_by_append_key.find(key);
-    if (rd_it != m_rackcu_home_delta_by_append_key.end())
-    {
-      reply->set_rackcu_home_delta_blob(rd_it->second);
-      m_rackcu_home_delta_by_append_key.erase(rd_it);
     }
     reply->set_ifcommit(true);
     return grpc::Status::OK;

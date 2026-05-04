@@ -40,8 +40,45 @@ service proxyService {
   rpc deleteBlock(NodeAndBlock) returns (DelReply);
   // append
   rpc scheduleAppend2Datanode(AppendStripeDataPlacement) returns (SetReply);
+  // RackCU：其它 cluster 的 proxy 向本机拉取已落盘的 home Δ blob（纯集群内转发）
+  rpc fetchRackCuHomeDeltaStaging(RackCuHomeDeltaFetchRequest) returns (RackCuHomeDeltaFetchReply);
+  // RackCU：删除本 cluster datanode 上的 home Δ 暂存（全轮更新成功后由 client 触发）
+  rpc deleteRackCuHomeDeltaStaging(RackCuHomeDeltaDeleteRequest) returns (RackCuHomeDeltaDeleteReply);
   // get stripe
   rpc getBlocks(StripeAndBlockIDs) returns (GetReply);
+}
+
+message RackCuHomeDeltaFetchRequest {
+  string staging_key = 1;
+  string staging_datanode_ip = 2;
+  int32 staging_datanode_port = 3;
+  uint64 blob_bytes = 4;
+}
+
+message RackCuHomeDeltaFetchReply {
+  bool ok = 1;
+  bytes blob = 2;
+}
+
+message RackCuHomeDeltaDeleteRequest {
+  string staging_key = 1;
+  string staging_datanode_ip = 2;
+  int32 staging_datanode_port = 3;
+}
+
+message RackCuHomeDeltaDeleteReply {
+  bool ok = 1;
+}
+
+message RackCuHomeDeltaStagingRef {
+  string staging_key = 1;
+  string holder_proxy_ip = 2;
+  int32 holder_proxy_port = 3;
+  uint64 blob_bytes = 4;
+  string staging_datanode_ip = 5;
+  int32 staging_datanode_port = 6;
+  // DATA_HOME 所在 cluster；LOCAL parity 计划只引用本组涉及的 home blob，避免重复拉取无关 cluster 的 Δ
+  optional int32 staging_source_cluster_id = 7;
 }
 
 // parity block recalculation
@@ -233,6 +270,18 @@ message RecoveryReply {
   
 }
 
+// RackCU：collector 一次 encode 后分别写/转发多个全局校验块（避免每块重复 fetch staging）
+message RackCuGlobalParityBatchTarget {
+  int32 parity_block_id = 1;
+  uint64 offset = 2;
+  uint64 size = 3;
+  string blockkey = 4;
+  string datanode_ip = 5;
+  int32 datanode_port = 6;
+  string target_proxy_ip = 7;
+  int32 target_proxy_port = 8;
+}
+
 // append
 message AppendStripeDataPlacement{
   string key = 1;
@@ -254,6 +303,11 @@ message AppendStripeDataPlacement{
   // forwards it to this target proxy, which is responsible for writing/merging.
   string target_proxy_ip = 14;
   int32 target_proxy_port = 15;
+  // RackCU：后续 parity 步从各 holder proxy/datanode 拉取 home Δ，client 不再携带 Δ
+  repeated RackCuHomeDeltaStagingRef rackcu_home_delta_staging_refs = 16;
+  // RackCU：home -> collector push 时，collector 侧 schedule 用的 cluster_id（与 plan.cluster_id=home 区分）
+  int32 rackcu_collector_cluster_id = 17;
+  repeated RackCuGlobalParityBatchTarget rackcu_global_parity_batch = 18;
 }
 
 message SetReply {

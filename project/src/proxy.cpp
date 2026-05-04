@@ -11,9 +11,22 @@
 #include <fstream>
 #include <sys/mman.h>
 #include "unilrc_encoder.h"
+#include <algorithm>
+#include <atomic>
 #include <chrono>
+#include <cerrno>
+#include <climits>
+#include <cstdint>
+#include <cstring>
 #include <iomanip>
 #include <map>
+#if defined(__linux__)
+#include <netinet/tcp.h>
+#include <sys/socket.h>
+#ifndef SO_MAX_PACING_RATE
+#define SO_MAX_PACING_RATE 47
+#endif
+#endif
 template <typename T>
 inline T ceil(T const &A, T const &B)
 {
@@ -52,6 +65,79 @@ namespace ECProject
                   << static_cast<unsigned>(bytes[i]);
       }
       std::cout << std::dec << std::endl;
+    }
+
+    constexpr uint32_t k_rackcu_home_delta_magic = 0x52434448u;
+    inline uint32_t rackcu_rd_u32_le(const unsigned char *p)
+    {
+      return static_cast<uint32_t>(p[0]) | (static_cast<uint32_t>(p[1]) << 8) | (static_cast<uint32_t>(p[2]) << 16) |
+             (static_cast<uint32_t>(p[3]) << 24);
+    }
+    inline int32_t rackcu_rd_i32_le(const unsigned char *p)
+    {
+      return static_cast<int32_t>(rackcu_rd_u32_le(p));
+    }
+
+    bool merge_one_home_delta_blob_into_rows(std::vector<std::vector<unsigned char>> *rows, int k, int block_size,
+                                               const std::string &blob)
+    {
+      if (rows == nullptr || static_cast<int>(rows->size()) < k)
+      {
+        return false;
+      }
+      if (blob.size() < 8u)
+      {
+        return false;
+      }
+      const auto *base = reinterpret_cast<const unsigned char *>(blob.data());
+      if (rackcu_rd_u32_le(base) != k_rackcu_home_delta_magic)
+      {
+        return false;
+      }
+      const uint32_t nseg = rackcu_rd_u32_le(base + 4);
+      size_t pos = 8u;
+      for (uint32_t si = 0; si < nseg; si++)
+      {
+        if (pos + 12u > blob.size())
+        {
+          return false;
+        }
+        const int32_t bid = rackcu_rd_i32_le(base + pos);
+        pos += 4u;
+        const int32_t off = rackcu_rd_i32_le(base + pos);
+        pos += 4u;
+        const int32_t len = rackcu_rd_i32_le(base + pos);
+        pos += 4u;
+        if (bid < 0 || bid >= k || off < 0 || len < 0 || off + len > block_size)
+        {
+          return false;
+        }
+        if (pos + static_cast<size_t>(len) > blob.size())
+        {
+          return false;
+        }
+        if ((*rows)[static_cast<size_t>(bid)].size() != static_cast<size_t>(block_size))
+        {
+          (*rows)[static_cast<size_t>(bid)].assign(static_cast<size_t>(block_size), 0);
+        }
+        std::memcpy((*rows)[static_cast<size_t>(bid)].data() + off, base + pos, static_cast<size_t>(len));
+        pos += static_cast<size_t>(len);
+      }
+      return pos == blob.size();
+    }
+
+    bool merge_rackcu_home_delta_blobs(std::vector<std::vector<unsigned char>> *rows, int k, int block_size,
+                                       const std::vector<std::string> &blobs)
+    {
+      rows->assign(static_cast<size_t>(k), std::vector<unsigned char>(static_cast<size_t>(block_size), 0));
+      for (const auto &b : blobs)
+      {
+        if (!merge_one_home_delta_blob_into_rows(rows, k, block_size, b))
+        {
+          return false;
+        }
+      }
+      return true;
     }
   }
 
@@ -114,6 +200,176 @@ namespace ECProject
     return true;
   }
 
+  namespace
+  {
+    std::string rackcu_ip_only_host(std::string const &hostport)
+    {
+      const auto c = hostport.find(':');
+      if (c == std::string::npos)
+      {
+        return hostport;
+      }
+      return hostport.substr(0, c);
+    }
+
+    void tcp_read_all_bytes(asio::ip::tcp::socket &sock, void *buf, size_t nbytes, asio::error_code &ec)
+    {
+      ec.clear();
+      char *p = static_cast<char *>(buf);
+      size_t off = 0;
+      while (off < nbytes)
+      {
+        const size_t m = asio::read(sock, asio::buffer(p + off, nbytes - off), ec);
+        if (ec)
+        {
+          return;
+        }
+        off += m;
+      }
+    }
+  }
+
+  bool ProxyImpl::init_ip_to_cluster_map(std::string cluster_xml_path)
+  {
+    m_ip_to_cluster_id.clear();
+    tinyxml2::XMLDocument xml;
+    if (xml.LoadFile(cluster_xml_path.c_str()) != tinyxml2::XML_SUCCESS)
+    {
+      std::cout << "[Proxy] init_ip_to_cluster_map: failed to load " << cluster_xml_path << std::endl;
+      return false;
+    }
+    tinyxml2::XMLElement *root = xml.RootElement();
+    if (root == nullptr)
+    {
+      return false;
+    }
+    for (tinyxml2::XMLElement *cluster = root->FirstChildElement(); cluster != nullptr; cluster = cluster->NextSiblingElement())
+    {
+      const int cid = std::stoi(cluster->Attribute("id"));
+      const std::string proxy(cluster->Attribute("proxy"));
+      m_ip_to_cluster_id[rackcu_ip_only_host(proxy)] = cid;
+      tinyxml2::XMLElement *dn_root = cluster->FirstChildElement();
+      if (dn_root == nullptr)
+      {
+        continue;
+      }
+      for (tinyxml2::XMLElement *node = dn_root->FirstChildElement(); node != nullptr; node = node->NextSiblingElement())
+      {
+        const std::string uri(node->Attribute("uri"));
+        m_ip_to_cluster_id[rackcu_ip_only_host(uri)] = cid;
+      }
+    }
+    return true;
+  }
+
+  bool ProxyImpl::init_bandwidth_matrix(std::string cluster_xml_path)
+  {
+    m_bw_matrix_enabled = false;
+    std::string dir = std::move(cluster_xml_path);
+    const auto pos = dir.find_last_of('/');
+    if (pos != std::string::npos)
+    {
+      dir = dir.substr(0, pos);
+    }
+    else
+    {
+      dir = ".";
+    }
+    const std::string bwfile = dir + "/bw_limit_matrix.txt";
+    if (!m_bw_limit.loadFromFile(bwfile))
+    {
+      std::cout << "[Proxy] cross-cluster bandwidth: matrix not loaded (optional) " << bwfile << std::endl;
+      return false;
+    }
+    m_bw_matrix_enabled = true;
+#if defined(__linux__)
+    std::cout << "[Proxy] cross-cluster bandwidth: kernel pacing (SO_MAX_PACING_RATE) + RCVBUF, matrix=" << bwfile
+              << std::endl;
+#else
+    std::cout << "[Proxy] cross-cluster bandwidth matrix loaded but kernel pacing only on Linux; " << bwfile
+              << std::endl;
+#endif
+    return true;
+  }
+
+  int ProxyImpl::cluster_for_datapath_ip(const char *ip) const
+  {
+    if (ip == nullptr)
+    {
+      return -1;
+    }
+    const auto it = m_ip_to_cluster_id.find(std::string(ip));
+    if (it == m_ip_to_cluster_id.end())
+    {
+      return -1;
+    }
+    return it->second;
+  }
+
+  void ProxyImpl::apply_kernel_bandwidth_to_peer_socket(asio::ip::tcp::socket &sock, const char *peer_ip) const
+  {
+#if !defined(__linux__)
+    (void)sock;
+    (void)peer_ip;
+    return;
+#else
+    if (!m_bw_matrix_enabled || peer_ip == nullptr || peer_ip[0] == '\0')
+    {
+      return;
+    }
+    const int peer = cluster_for_datapath_ip(peer_ip);
+    if (peer < 0 || peer == m_self_cluster_id)
+    {
+      return;
+    }
+    const double mbps = m_bw_limit.getBandwidthMBps(m_self_cluster_id, peer, 0.0);
+    if (mbps <= 0.0)
+    {
+      return;
+    }
+    const double bps_d = mbps * 1024.0 * 1024.0;
+    const auto fd = sock.native_handle();
+    uint32_t pacing_bps = 0;
+    if (bps_d >= static_cast<double>(UINT32_MAX))
+    {
+      pacing_bps = UINT32_MAX;
+    }
+    else
+    {
+      pacing_bps = static_cast<uint32_t>(bps_d);
+    }
+    if (pacing_bps > 0u)
+    {
+      if (setsockopt(fd, SOL_SOCKET, SO_MAX_PACING_RATE, &pacing_bps, sizeof(pacing_bps)) != 0)
+      {
+        static std::atomic<int> warn_pace{0};
+        if (warn_pace.fetch_add(1) == 0)
+        {
+          std::cout << "[Proxy] SO_MAX_PACING_RATE failed (kernel/fq?): errno=" << errno << " " << std::strerror(errno)
+                    << std::endl;
+        }
+      }
+    }
+    int rcv = static_cast<int>(bps_d * 0.05);
+    if (rcv < 8192)
+    {
+      rcv = 8192;
+    }
+    if (rcv > 4 * 1024 * 1024)
+    {
+      rcv = 4 * 1024 * 1024;
+    }
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rcv, sizeof(rcv)) != 0)
+    {
+      static std::atomic<int> warn_rcv{0};
+      if (warn_rcv.fetch_add(1) == 0)
+      {
+        std::cout << "[Proxy] SO_RCVBUF tune failed: errno=" << errno << " " << std::strerror(errno) << std::endl;
+      }
+    }
+#endif
+  }
+
   grpc::Status ProxyImpl::checkalive(grpc::ServerContext *context,
                                      const proxy_proto::CheckaliveCMD *request,
                                      proxy_proto::RequestResult *response)
@@ -122,6 +378,134 @@ namespace ECProject
     std::cout << "[Proxy] checkalive" << request->name() << std::endl;
     response->set_message(false);
     init_coordinator();
+    return grpc::Status::OK;
+  }
+
+  bool ProxyImpl::fetch_rack_cu_home_staging_blob(const proxy_proto::RackCuHomeDeltaStagingRef &ref, std::string *out_blob)
+  {
+    if (out_blob == nullptr)
+    {
+      return false;
+    }
+    const std::string &cache_key = ref.staging_key();
+    constexpr auto k_cache_ttl = std::chrono::minutes(5);
+    {
+      std::lock_guard<std::mutex> lk(m_rackcu_home_staging_cache_mu);
+      auto it = m_rackcu_home_staging_blob_cache.find(cache_key);
+      if (it != m_rackcu_home_staging_blob_cache.end())
+      {
+        const auto age = std::chrono::steady_clock::now() - it->second.second;
+        if (age < k_cache_ttl)
+        {
+          *out_blob = it->second.first;
+          return true;
+        }
+        m_rackcu_home_staging_blob_cache.erase(it);
+      }
+    }
+
+    const uint64_t nb = ref.blob_bytes();
+    if (nb == 0u || nb > (1ull << 30))
+    {
+      return false;
+    }
+    const size_t nbytes = static_cast<size_t>(nb);
+    out_blob->assign(nbytes, '\0');
+    if (ref.holder_proxy_ip() == m_ip && ref.holder_proxy_port() == m_port)
+    {
+      if (!GetFromDatanode(ref.staging_key(), &(*out_blob)[0], nbytes, ref.staging_datanode_ip().c_str(),
+                           ref.staging_datanode_port()))
+      {
+        return false;
+      }
+    }
+    else
+    {
+      const std::string target = ref.holder_proxy_ip() + ":" + std::to_string(ref.holder_proxy_port());
+      auto channel = grpc::CreateChannel(target, grpc::InsecureChannelCredentials());
+      auto stub = proxy_proto::proxyService::NewStub(channel);
+      proxy_proto::RackCuHomeDeltaFetchRequest req;
+      req.set_staging_key(ref.staging_key());
+      req.set_staging_datanode_ip(ref.staging_datanode_ip());
+      req.set_staging_datanode_port(ref.staging_datanode_port());
+      req.set_blob_bytes(ref.blob_bytes());
+      grpc::ClientContext ctx;
+      proxy_proto::RackCuHomeDeltaFetchReply rep;
+      grpc::Status st = stub->fetchRackCuHomeDeltaStaging(&ctx, req, &rep);
+      if (!st.ok() || !rep.ok() || static_cast<size_t>(rep.blob().size()) != nbytes)
+      {
+        return false;
+      }
+      *out_blob = rep.blob();
+    }
+
+    {
+      std::lock_guard<std::mutex> lk(m_rackcu_home_staging_cache_mu);
+      m_rackcu_home_staging_blob_cache[cache_key] = {*out_blob, std::chrono::steady_clock::now()};
+    }
+    return true;
+  }
+
+  grpc::Status ProxyImpl::fetchRackCuHomeDeltaStaging(grpc::ServerContext *context,
+                                                      const proxy_proto::RackCuHomeDeltaFetchRequest *request,
+                                                      proxy_proto::RackCuHomeDeltaFetchReply *response)
+  {
+    (void)context;
+    const uint64_t nb = request->blob_bytes();
+    if (nb == 0u || nb > (1ull << 30))
+    {
+      response->set_ok(false);
+      return grpc::Status::OK;
+    }
+    const size_t nbytes = static_cast<size_t>(nb);
+    std::vector<char> buf(nbytes);
+    const bool ok = GetFromDatanode(request->staging_key(), buf.data(), nbytes, request->staging_datanode_ip().c_str(),
+                                    request->staging_datanode_port());
+    response->set_ok(ok);
+    if (ok)
+    {
+      response->set_blob(buf.data(), buf.size());
+    }
+    return grpc::Status::OK;
+  }
+
+  bool ProxyImpl::delete_rack_cu_staging_on_datanode(const std::string &key, const std::string &dn_ip, int dn_port)
+  {
+    const std::string node_ip_port = dn_ip + ":" + std::to_string(dn_port);
+    const auto it = m_datanode_ptrs.find(node_ip_port);
+    if (it == m_datanode_ptrs.end())
+    {
+      std::cout << "[Proxy" << m_self_cluster_id << "][RACKCU][DEL-STAGING] unknown datanode " << node_ip_port << std::endl;
+      return false;
+    }
+    grpc::ClientContext context;
+    datanode_proto::DelInfo delinfo;
+    datanode_proto::RequestResult response_dn;
+    delinfo.set_block_key(key);
+    grpc::Status status = it->second->handleDelete(&context, delinfo, &response_dn);
+    if (!status.ok())
+    {
+      std::cout << "[Proxy" << m_self_cluster_id << "][RACKCU][DEL-STAGING] handleDelete failed key=" << key
+                << " err=" << status.error_message() << std::endl;
+      return false;
+    }
+    std::cout << "[Proxy" << m_self_cluster_id << "][RACKCU][DEL-STAGING] removed staging key=" << key << " at " << node_ip_port
+              << std::endl;
+    {
+      std::lock_guard<std::mutex> lk(m_rackcu_home_staging_cache_mu);
+      m_rackcu_home_staging_blob_cache.erase(key);
+    }
+    return true;
+  }
+
+  grpc::Status ProxyImpl::deleteRackCuHomeDeltaStaging(grpc::ServerContext *context,
+                                                       const proxy_proto::RackCuHomeDeltaDeleteRequest *request,
+                                                       proxy_proto::RackCuHomeDeltaDeleteReply *response)
+  {
+    (void)context;
+    const bool ok =
+        delete_rack_cu_staging_on_datanode(request->staging_key(), request->staging_datanode_ip(), request->staging_datanode_port());
+    response->set_ok(ok);
     return grpc::Status::OK;
   }
 
@@ -188,6 +572,7 @@ namespace ECProject
         std::cout << "Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " failed! block_key: " << block_key << " block_id: " << block_id << " slice_size: " << slice_size << " slice_offset: " << slice_offset << " is_serialized: " << is_serialized << std::endl;
         exit(-1);
       }
+      apply_kernel_bandwidth_to_peer_socket(socket, ip);
       asio::write(socket, asio::buffer(slice_buf, slice_size), error);
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
@@ -242,6 +627,7 @@ namespace ECProject
         std::cout << "[RecoveryToDatanode] Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
         exit(-1);
       }
+      apply_kernel_bandwidth_to_peer_socket(socket, ip);
       asio::write(socket, asio::buffer(buf, m_sys_config->BlockSize), error);
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
@@ -294,6 +680,7 @@ namespace ECProject
         std::cout << "[RecoveryToDatanode] Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
         exit(-1);
       }
+      apply_kernel_bandwidth_to_peer_socket(socket, ip);
       asio::write(socket, asio::buffer(buf, m_sys_config->BlockSize), error);
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
@@ -339,6 +726,7 @@ namespace ECProject
         std::cout << "Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " success!" << std::endl;
       }
 
+      apply_kernel_bandwidth_to_peer_socket(socket, ip);
       asio::write(socket, asio::buffer(value, value_length), error);
 
       asio::error_code ignore_ec;
@@ -400,7 +788,8 @@ namespace ECProject
       std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now(); // start time for network
       asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}));
       asio::error_code ec;
-      asio::read(socket, asio::buffer(value, value_length), ec);
+      apply_kernel_bandwidth_to_peer_socket(socket, ip);
+      tcp_read_all_bytes(socket, value, value_length, ec);
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
@@ -454,7 +843,8 @@ namespace ECProject
       asio::ip::tcp::socket socket(io_context);
       asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}));
       asio::error_code ec;
-      asio::read(socket, asio::buffer(buf, value_length), ec);
+      apply_kernel_bandwidth_to_peer_socket(socket, ip);
+      tcp_read_all_bytes(socket, buf, value_length, ec);
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
@@ -509,7 +899,8 @@ namespace ECProject
       asio::ip::tcp::socket socket(io_context);
       asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}));
       asio::error_code ec;
-      asio::read(socket, asio::buffer(value, value_length), ec);
+      apply_kernel_bandwidth_to_peer_socket(socket, ip);
+      tcp_read_all_bytes(socket, value, value_length, ec);
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
@@ -599,16 +990,33 @@ namespace ECProject
     int slice_num = append_stripe_data_placement->blockkeys_size();
     bool is_serialized = append_stripe_data_placement->is_serialized();
 
+    struct RackCuHomeStagingCommit
+    {
+      bool used = false;
+      std::string staging_key;
+      uint64_t blob_bytes = 0;
+      std::string dn_ip;
+      int dn_port = 0;
+    };
     auto placement_copy = std::make_shared<proxy_proto::AppendStripeDataPlacement>(*append_stripe_data_placement);
     auto rackcu_home_delta_out = std::make_shared<std::string>();
+    auto rackcu_home_staging = std::make_shared<RackCuHomeStagingCommit>();
 
-    auto append_and_save = [this, stripe_id, cluster_append_size, slice_num, placement_copy, is_serialized, rackcu_home_delta_out]() mutable
+    auto append_and_save = [this, stripe_id, cluster_append_size, slice_num, placement_copy, is_serialized, rackcu_home_delta_out, rackcu_home_staging]() mutable
     {
       try
       {
         asio::ip::tcp::socket socket_data(io_context);
         acceptor.accept(socket_data);
         asio::error_code error;
+        std::string append_peer_ip;
+        try
+        {
+          append_peer_ip = socket_data.remote_endpoint().address().to_string();
+        }
+        catch (...)
+        {
+        }
 
         // assert(m_pre_allocated_buffer_queue.size() > 0 && "Pre-allocated buffer queue is empty");
         // std::shared_ptr<char[]> append_buf = m_pre_allocated_buffer_queue.front();
@@ -617,14 +1025,18 @@ namespace ECProject
         // memset(append_buf, 0, cluster_append_size);
         // std::shared_ptr<char> append_buf_ptr(append_buf, [](char* p) { delete[] p; }); // 使用智能指针管理内存
         std::vector<char> append_buf(cluster_append_size, 0);
-        asio::read(socket_data, asio::buffer(append_buf.data(), cluster_append_size), error);
-        if (error == asio::error::eof)
+        if (cluster_append_size > 0)
         {
-          std::cout << "error == asio::error::eof" << std::endl;
-        }
-        else if (error)
-        {
-          throw asio::system_error(error);
+          apply_kernel_bandwidth_to_peer_socket(socket_data, append_peer_ip.c_str());
+          tcp_read_all_bytes(socket_data, append_buf.data(), cluster_append_size, error);
+          if (error == asio::error::eof)
+          {
+            std::cout << "error == asio::error::eof" << std::endl;
+          }
+          else if (error)
+          {
+            throw asio::system_error(error);
+          }
         }
 
         if (IF_DEBUG)
@@ -637,7 +1049,17 @@ namespace ECProject
         socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
         socket_data.close(ignore_ec);
 
-        std::vector<char *> slices = m_toolbox->splitCharPointer(append_buf.data(), placement_copy);
+        const std::string &am0 = placement_copy->append_mode();
+        const bool rackcu_parity_staging =
+            am0 == "RACKCU_GLOBAL_FROM_DATA_HOME_DELTA_STAGING" ||
+            am0 == "RACKCU_PARITY_GLOBAL_BY_COLLECTOR_HOME_DELTA_STAGING_BATCH" ||
+            am0 == "RACKCU_LOCAL_FROM_DATA_HOME_DELTA_STAGING";
+
+        std::vector<char *> slices;
+        if (!rackcu_parity_staging)
+        {
+          slices = m_toolbox->splitCharPointer(append_buf.data(), placement_copy);
+        }
 
         // RackCU DATA_HOME：写回 new 之前在本 cluster 读盘 old，计算 ΔD=new⊕old，序列化后经 coordinator
         // 交给 client；校验步仅带 delta，不再读数据块旧值。
@@ -736,39 +1158,124 @@ namespace ECProject
           append_u32(full, k_rackcu_delta_magic);
           append_u32(full, nseg);
           full.insert(full.end(), payload.begin(), payload.end());
-          *rackcu_home_delta_out = std::string(full.begin(), full.end());
+          const std::string staging_key = placement_copy->key() + ".rackcu_home_delta";
+          if (slice_num <= 0)
+          {
+            throw std::runtime_error("RACKCU_DATA_HOME_XOR_FIRST: empty placement");
+          }
+          SetToDatanode(
+              staging_key.c_str(),
+              staging_key.size(),
+              full.data(),
+              full.size(),
+              placement_copy->datanodeip(0).c_str(),
+              placement_copy->datanodeport(0),
+              2);
+          rackcu_home_staging->used = true;
+          rackcu_home_staging->staging_key = staging_key;
+          rackcu_home_staging->blob_bytes = static_cast<uint64_t>(full.size());
+          rackcu_home_staging->dn_ip = placement_copy->datanodeip(0);
+          rackcu_home_staging->dn_port = placement_copy->datanodeport(0);
+          rackcu_home_delta_out->clear();
         }
 
         if (placement_copy->append_mode() == "RACKCU_GLOBAL_FROM_DATA_HOME_DELTA" ||
+            placement_copy->append_mode() == "RACKCU_GLOBAL_FROM_DATA_HOME_DELTA_STAGING" ||
             placement_copy->append_mode() == "RACKCU_PARITY_GLOBAL_BY_COLLECTOR_HOME_DELTA" ||
-            placement_copy->append_mode() == "RACKCU_LOCAL_FROM_DATA_HOME_DELTA")
+            placement_copy->append_mode() == "RACKCU_PARITY_GLOBAL_BY_COLLECTOR_HOME_DELTA_STAGING_BATCH" ||
+            placement_copy->append_mode() == "RACKCU_LOCAL_FROM_DATA_HOME_DELTA" ||
+            placement_copy->append_mode() == "RACKCU_LOCAL_FROM_DATA_HOME_DELTA_STAGING")
         {
           const int k = m_sys_config->k;
           const int r = m_sys_config->r;
           const int z = m_sys_config->z;
           const int block_size = static_cast<int>(m_sys_config->BlockSize);
+          const bool rackcu_global_collector_batch =
+              placement_copy->append_mode() == "RACKCU_PARITY_GLOBAL_BY_COLLECTOR_HOME_DELTA_STAGING_BATCH";
           const int slice_num_local = placement_copy->blockids_size();
-          if (slice_num_local < 2)
+          if (rackcu_global_collector_batch)
+          {
+            if (slice_num_local < 1)
+            {
+              throw std::runtime_error("RACKCU_GLOBAL_COLLECTOR_BATCH: invalid slice num");
+            }
+            if (placement_copy->rackcu_global_parity_batch_size() < 1)
+            {
+              throw std::runtime_error("RACKCU_GLOBAL_COLLECTOR_BATCH: empty parity batch");
+            }
+          }
+          else if (slice_num_local < 2)
           {
             throw std::runtime_error("RACKCU_GLOBAL_FROM_DATA: invalid slice num");
           }
 
-          const int tail_idx = slice_num_local - 1;
-          const int parity_block_id = placement_copy->blockids(tail_idx);
-          const int gidx = parity_block_id - k;
-          const int poff = static_cast<int>(placement_copy->offsets(tail_idx));
-          const int plen = static_cast<int>(placement_copy->sizes(tail_idx));
-          if (poff < 0 || plen < 0 || poff + plen > block_size)
+          int tail_idx;
+          int parity_block_id = -1;
+          int gidx = 0;
+          int poff = 0;
+          int plen = 0;
+          if (!rackcu_global_collector_batch)
           {
-            throw std::runtime_error("RACKCU_GLOBAL_FROM_DATA: invalid parity tail range");
+            tail_idx = slice_num_local - 1;
+            parity_block_id = placement_copy->blockids(tail_idx);
+            gidx = parity_block_id - k;
+            poff = static_cast<int>(placement_copy->offsets(tail_idx));
+            plen = static_cast<int>(placement_copy->sizes(tail_idx));
+            if (poff < 0 || plen < 0 || poff + plen > block_size)
+            {
+              throw std::runtime_error("RACKCU_GLOBAL_FROM_DATA: invalid parity tail range");
+            }
+          }
+          else
+          {
+            tail_idx = slice_num_local;
           }
 
-          // RackCU：*_HOME_DELTA 模式下 TCP 载荷已是各 home 算好的 ΔD，不再读数据块旧盘。
+          // RackCU：*_HOME_DELTA 模式下 TCP 载荷已是各 home 算好的 ΔD；*_STAGING 从各 holder 拉取同格式 blob。
           // 否则 ΔD = D_new XOR D_old（在 proxy 上读旧块）。
           const bool from_home_delta_tcp =
               (placement_copy->append_mode() == "RACKCU_GLOBAL_FROM_DATA_HOME_DELTA" ||
                placement_copy->append_mode() == "RACKCU_PARITY_GLOBAL_BY_COLLECTOR_HOME_DELTA" ||
                placement_copy->append_mode() == "RACKCU_LOCAL_FROM_DATA_HOME_DELTA");
+          const bool from_precomputed_home_delta = from_home_delta_tcp || rackcu_parity_staging;
+          std::vector<char *> wire_slices = slices;
+          std::vector<std::vector<char>> staging_wire_storage;
+          if (rackcu_parity_staging)
+          {
+            if (placement_copy->rackcu_home_delta_staging_refs_size() <= 0)
+            {
+              throw std::runtime_error("RACKCU: missing home delta staging refs");
+            }
+            std::vector<std::string> blobs;
+            blobs.reserve(static_cast<size_t>(placement_copy->rackcu_home_delta_staging_refs_size()));
+            for (int si = 0; si < placement_copy->rackcu_home_delta_staging_refs_size(); si++)
+            {
+              std::string one;
+              if (!fetch_rack_cu_home_staging_blob(placement_copy->rackcu_home_delta_staging_refs(si), &one))
+              {
+                throw std::runtime_error("RACKCU: failed to fetch home delta staging blob");
+              }
+              blobs.push_back(std::move(one));
+            }
+            std::vector<std::vector<unsigned char>> merged_rows;
+            if (!merge_rackcu_home_delta_blobs(&merged_rows, k, block_size, blobs))
+            {
+              throw std::runtime_error("RACKCU: failed to parse/merge home delta staging blobs");
+            }
+            staging_wire_storage.resize(static_cast<size_t>(tail_idx));
+            wire_slices.resize(static_cast<size_t>(tail_idx));
+            for (int j = 0; j < tail_idx; j++)
+            {
+              const int bid = placement_copy->blockids(j);
+              const int off = static_cast<int>(placement_copy->offsets(j));
+              const int len = static_cast<int>(placement_copy->sizes(j));
+              staging_wire_storage[static_cast<size_t>(j)].assign(static_cast<size_t>(len), '\0');
+              std::memcpy(staging_wire_storage[static_cast<size_t>(j)].data(),
+                            merged_rows[static_cast<size_t>(bid)].data() + static_cast<size_t>(off),
+                            static_cast<size_t>(len));
+              wire_slices[static_cast<size_t>(j)] = staging_wire_storage[static_cast<size_t>(j)].data();
+            }
+          }
           std::map<int, std::vector<unsigned char>> old_data_cache;
           auto load_old_block = [&](int j) -> std::vector<unsigned char> &
           {
@@ -808,16 +1315,16 @@ namespace ECProject
               throw std::runtime_error("RACKCU: invalid data slice range");
             }
             std::vector<unsigned char> delta(static_cast<size_t>(len), 0);
-            if (from_home_delta_tcp)
+            if (from_precomputed_home_delta)
             {
-              std::memcpy(delta.data(), slices[static_cast<size_t>(j)], static_cast<size_t>(len));
+              std::memcpy(delta.data(), wire_slices[static_cast<size_t>(j)], static_cast<size_t>(len));
             }
             else
             {
               std::vector<unsigned char> &old_block = load_old_block(j);
               for (int t = 0; t < len; t++)
               {
-                const unsigned char new_v = static_cast<unsigned char>(slices[j][t]);
+                const unsigned char new_v = static_cast<unsigned char>(wire_slices[static_cast<size_t>(j)][t]);
                 const unsigned char old_v = old_block[static_cast<size_t>(off + t)];
                 delta[static_cast<size_t>(t)] = static_cast<unsigned char>(new_v ^ old_v);
               }
@@ -827,13 +1334,14 @@ namespace ECProject
             {
               std::cout << "[Proxy" << m_self_cluster_id << "][RACKCU][DeltaTag] stripe=" << stripe_id
                         << " block=" << bid << " offset=" << off << " size=" << len
-                        << (from_home_delta_tcp ? " (home_delta_tcp)" : "") << std::endl;
+                        << (from_precomputed_home_delta ? " (home_delta_precomputed)" : "") << std::endl;
             }
           }
 
           std::vector<std::vector<unsigned char>> parity_rows(static_cast<size_t>(r + z), std::vector<unsigned char>(static_cast<size_t>(block_size), 0));
           if (placement_copy->append_mode() == "RACKCU_LOCAL_FROM_DATA" ||
-              placement_copy->append_mode() == "RACKCU_LOCAL_FROM_DATA_HOME_DELTA")
+              placement_copy->append_mode() == "RACKCU_LOCAL_FROM_DATA_HOME_DELTA" ||
+              placement_copy->append_mode() == "RACKCU_LOCAL_FROM_DATA_HOME_DELTA_STAGING")
           {
             if (parity_block_id < k + r || parity_block_id >= k + r + z)
             {
@@ -875,9 +1383,12 @@ namespace ECProject
           }
           else
           {
-            if (parity_block_id < k || parity_block_id >= k + r)
+            if (!rackcu_global_collector_batch)
             {
-              throw std::runtime_error("RACKCU_GLOBAL_FROM_DATA: invalid global parity block id");
+              if (parity_block_id < k || parity_block_id >= k + r)
+              {
+                throw std::runtime_error("RACKCU_GLOBAL_FROM_DATA: invalid global parity block id");
+              }
             }
             // build k-row sparse delta data blocks, then full azure encode to get parity deltas
             std::vector<std::vector<unsigned char>> delta_rows(static_cast<size_t>(k), std::vector<unsigned char>(static_cast<size_t>(block_size), 0));
@@ -909,6 +1420,121 @@ namespace ECProject
               parity_ptrs.push_back(parity_rows[static_cast<size_t>(pid)].data());
             }
             ECProject::encode_azure_lrc(k, r, z, data_ptrs.data(), parity_ptrs.data(), block_size);
+          }
+
+          if (rackcu_global_collector_batch)
+          {
+            for (int bi = 0; bi < placement_copy->rackcu_global_parity_batch_size(); bi++)
+            {
+              const auto &pt = placement_copy->rackcu_global_parity_batch(bi);
+              const int parity_block_id_b = pt.parity_block_id();
+              const int gidx_b = parity_block_id_b - k;
+              if (parity_block_id_b < k || parity_block_id_b >= k + r)
+              {
+                throw std::runtime_error("RACKCU_GLOBAL_COLLECTOR_BATCH: invalid global parity block id");
+              }
+              const int poff_b = static_cast<int>(pt.offset());
+              const int plen_b = static_cast<int>(pt.size());
+              if (poff_b < 0 || plen_b < 0 || poff_b + plen_b > block_size)
+              {
+                throw std::runtime_error("RACKCU_GLOBAL_COLLECTOR_BATCH: invalid parity slice range");
+              }
+              const unsigned char *delta_at_poff_b = parity_rows[static_cast<size_t>(gidx_b)].data() + static_cast<size_t>(poff_b);
+              log_rackcu_parity_range_hex(
+                  m_self_cluster_id, stripe_id, "xor_delta_encoded", parity_block_id_b,
+                  poff_b, plen_b, delta_at_poff_b, plen_b);
+
+              bool forwarded = false;
+              if (!pt.target_proxy_ip().empty() && pt.target_proxy_port() > 0)
+              {
+                proxy_proto::AppendStripeDataPlacement forward_plan;
+                forward_plan.set_key(placement_copy->key());
+                forward_plan.set_cluster_id(placement_copy->cluster_id());
+                forward_plan.set_stripe_id(stripe_id);
+                forward_plan.set_append_size(static_cast<uint64_t>(plen_b));
+                forward_plan.add_datanodeip(pt.datanode_ip());
+                forward_plan.add_datanodeport(pt.datanode_port());
+                forward_plan.add_blockkeys(pt.blockkey());
+                forward_plan.add_blockids(parity_block_id_b);
+                forward_plan.add_offsets(static_cast<uint64_t>(poff_b));
+                forward_plan.add_sizes(static_cast<uint64_t>(plen_b));
+                forward_plan.set_is_merge_parity(true);
+                forward_plan.set_append_mode("RACKCU_PARITY_APPLY_ONLY");
+                forward_plan.set_is_serialized(true);
+
+                const std::string rpc_target = pt.target_proxy_ip() + ":" + std::to_string(pt.target_proxy_port());
+                auto target_stub = proxy_proto::proxyService::NewStub(
+                    grpc::CreateChannel(rpc_target, grpc::InsecureChannelCredentials()));
+                grpc::ClientContext fctx;
+                proxy_proto::SetReply freply;
+                grpc::Status st = target_stub->scheduleAppend2Datanode(&fctx, forward_plan, &freply);
+                if (st.ok())
+                {
+                  asio::io_context fwd_io;
+                  asio::error_code ec;
+                  asio::ip::tcp::resolver resolver(fwd_io);
+                  const int target_data_port = pt.target_proxy_port() + ECProject::PROXY_PORT_SHIFT;
+                  auto endpoints = resolver.resolve(pt.target_proxy_ip(), std::to_string(target_data_port), ec);
+                  if (!ec)
+                  {
+                    asio::ip::tcp::socket sock(fwd_io);
+                    asio::connect(sock, endpoints, ec);
+                    if (!ec)
+                    {
+                      apply_kernel_bandwidth_to_peer_socket(sock, pt.target_proxy_ip().c_str());
+                      asio::write(sock, asio::buffer(reinterpret_cast<const char *>(delta_at_poff_b), static_cast<size_t>(plen_b)), ec);
+                      if (!ec)
+                      {
+                        asio::error_code ignore_ec;
+                        sock.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
+                        sock.close(ignore_ec);
+                        forwarded = true;
+                      }
+                    }
+                  }
+                }
+                if (!forwarded && IF_DEBUG)
+                {
+                  std::cout << "[Proxy" << m_self_cluster_id << "][RACKCU][ForwardBatch] failed target="
+                            << rpc_target << std::endl;
+                }
+              }
+              if (!forwarded)
+              {
+                AppendToDatanode(pt.blockkey().c_str(),
+                                 parity_block_id_b,
+                                 static_cast<size_t>(plen_b),
+                                 reinterpret_cast<const char *>(delta_at_poff_b),
+                                 poff_b,
+                                 pt.datanode_ip().c_str(),
+                                 pt.datanode_port(),
+                                 true);
+                MergeParityOnDatanode(pt.blockkey().c_str(),
+                                      parity_block_id_b,
+                                      pt.datanode_ip().c_str(),
+                                      pt.datanode_port(),
+                                      "UNILRC_MODE");
+              }
+            }
+
+            coordinator_proto::CommitAbortKey commit_abort_key;
+            coordinator_proto::ReplyFromCoordinator result;
+            grpc::ClientContext context2;
+            ECProject::OpperateType opp = APPEND;
+            commit_abort_key.set_opp(opp);
+            commit_abort_key.set_key(placement_copy->key());
+            commit_abort_key.set_stripe_id(stripe_id);
+            commit_abort_key.set_ifcommitmetadata(true);
+            if (rackcu_home_delta_out != nullptr && !rackcu_home_delta_out->empty())
+            {
+              commit_abort_key.set_rackcu_home_delta_blob(*rackcu_home_delta_out);
+            }
+            grpc::Status status = m_coordinator_ptr->reportCommitAbort(&context2, commit_abort_key, &result);
+            if (!status.ok() && IF_DEBUG)
+            {
+              std::cout << "[Proxy][RACKCU] report commit failed!" << std::endl;
+            }
+            return;
           }
 
           const unsigned char *delta_at_poff = parity_rows[static_cast<size_t>(gidx)].data() + static_cast<size_t>(poff);
@@ -984,6 +1610,7 @@ namespace ECProject
                         << " err=" << ec.message() << std::endl;
               return false;
             }
+            apply_kernel_bandwidth_to_peer_socket(sock, placement_copy->target_proxy_ip().c_str());
             asio::write(sock, asio::buffer(reinterpret_cast<const char *>(delta_at_poff), static_cast<size_t>(plen)), ec);
             if (ec)
             {
@@ -1100,7 +1727,14 @@ namespace ECProject
         commit_abort_key.set_key(placement_copy->key());
         commit_abort_key.set_stripe_id(stripe_id);
         commit_abort_key.set_ifcommitmetadata(true);
-        if (rackcu_home_delta_out != nullptr && !rackcu_home_delta_out->empty())
+        if (rackcu_home_staging->used)
+        {
+          commit_abort_key.set_rackcu_home_staging_key(rackcu_home_staging->staging_key);
+          commit_abort_key.set_rackcu_home_staging_bytes(rackcu_home_staging->blob_bytes);
+          commit_abort_key.set_rackcu_home_staging_dn_ip(rackcu_home_staging->dn_ip);
+          commit_abort_key.set_rackcu_home_staging_dn_port(rackcu_home_staging->dn_port);
+        }
+        else if (rackcu_home_delta_out != nullptr && !rackcu_home_delta_out->empty())
         {
           commit_abort_key.set_rackcu_home_delta_blob(*rackcu_home_delta_out);
         }
@@ -1508,12 +2142,13 @@ namespace ECProject
       asio::ip::tcp::socket sock_data(io_context);
       asio::connect(sock_data, endpoints);
 
-      asio::write(sock_data, asio::buffer(key, key.size()), error);
+      apply_kernel_bandwidth_to_peer_socket(sock_data, clientip.c_str());
+      asio::write(sock_data, asio::buffer(key.data(), key.size()), error);
       if(error)
       {
         std::cout << "error in write key" << std::endl;
       }
-      asio::write(sock_data, asio::buffer(value, value_size_bytes), error);
+      asio::write(sock_data, asio::buffer(value.data(), value_size_bytes), error);
       if(error)
       {
         std::cout << "error in write value" << std::endl;
@@ -3074,8 +3709,9 @@ namespace ECProject
       }
       std::cout << "connected to client" << std::endl;
       u_int32_t block_id = request->block_ids(i);
-      asio::write(socket_data, asio::buffer(&block_id, sizeof(u_int32_t)));
-      asio::write(socket_data, asio::buffer(blocks + i * static_cast<size_t>(BlockSize), BlockSize));
+      apply_kernel_bandwidth_to_peer_socket(socket_data, request->clientip().c_str());
+      asio::write(socket_data, asio::buffer(&block_id, sizeof(u_int32_t)), error);
+      asio::write(socket_data, asio::buffer(blocks + i * static_cast<size_t>(BlockSize), BlockSize), error);
       asio::error_code ignore_ec;
       socket_data.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
       socket_data.close(ignore_ec);

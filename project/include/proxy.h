@@ -17,6 +17,8 @@
 #include <toolbox.h>
 #include <queue>
 #include <unordered_map>
+#include <chrono>
+#include <mutex>
 // #define IF_DEBUG true
 #define IF_DEBUG false
 namespace ECProject
@@ -31,6 +33,8 @@ namespace ECProject
     {
       init_coordinator();
       init_datanodes(config_path);
+      init_ip_to_cluster_map(config_path);
+      init_bandwidth_matrix(config_path);
       m_ip = proxy_ip_port.substr(0, proxy_ip_port.find(':'));
       m_port = std::stoi(proxy_ip_port.substr(proxy_ip_port.find(':') + 1, proxy_ip_port.size()));
       std::cout << "Cluster id:" << m_self_cluster_id << std::endl;
@@ -50,6 +54,14 @@ namespace ECProject
         grpc::ServerContext *context,
         const proxy_proto::AppendStripeDataPlacement *append_stripe_data_placement,
         proxy_proto::SetReply *response) override;
+    grpc::Status fetchRackCuHomeDeltaStaging(
+        grpc::ServerContext *context,
+        const proxy_proto::RackCuHomeDeltaFetchRequest *request,
+        proxy_proto::RackCuHomeDeltaFetchReply *response) override;
+    grpc::Status deleteRackCuHomeDeltaStaging(
+        grpc::ServerContext *context,
+        const proxy_proto::RackCuHomeDeltaDeleteRequest *request,
+        proxy_proto::RackCuHomeDeltaDeleteReply *response) override;
     // decode and get
     grpc::Status decodeAndGetObject(
         grpc::ServerContext *context,
@@ -126,6 +138,13 @@ namespace ECProject
       double *disk_io_start_time, double *disk_io_end_time, double *network_start_time, double *network_end_time, double *grpc_notify_time, double *grpc_start_time);
 
   private:
+    bool init_ip_to_cluster_map(std::string cluster_xml_path);
+    bool init_bandwidth_matrix(std::string cluster_xml_path);
+    int cluster_for_datapath_ip(const char *ip) const;
+    // Linux: SO_MAX_PACING_RATE (fq) + SO_RCVBUF 收紧窗口；非 Linux 无操作。
+    void apply_kernel_bandwidth_to_peer_socket(asio::ip::tcp::socket &sock, const char *peer_ip) const;
+    bool fetch_rack_cu_home_staging_blob(const proxy_proto::RackCuHomeDeltaStagingRef &ref, std::string *out_blob);
+    bool delete_rack_cu_staging_on_datanode(const std::string &key, const std::string &dn_ip, int dn_port);
     std::mutex m_mutex;
     std::condition_variable cv;
     bool init_coordinator();
@@ -142,7 +161,13 @@ namespace ECProject
     sem_t sem;
     std::string m_coordinator_address;
     BWLimit m_bw_limit;
+    bool m_bw_matrix_enabled = false;
+    std::unordered_map<std::string, int> m_ip_to_cluster_id;
     std::unordered_map<std::string, int> m_proxy_cluster_by_endpoint;
+    // RackCU：同一 staging_key 在一次更新内可能被多条计划重复拉取；短期缓存减少重复 Get / 跨 proxy fetch
+    std::mutex m_rackcu_home_staging_cache_mu;
+    std::unordered_map<std::string, std::pair<std::string, std::chrono::steady_clock::time_point>>
+        m_rackcu_home_staging_blob_cache;
   };
 
   class Proxy

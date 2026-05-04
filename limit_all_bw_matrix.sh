@@ -8,15 +8,11 @@ HOSTS_FILE="proxy_hosts"
 USER="root"
 PARALLEL=5
 
-LOCAL_SCRIPT="/users/xue/xue/limit_bw_matrix.sh"
-REMOTE_SCRIPT="/users/xue/xue/limit_bw_matrix.sh"
 REMOTE_COMMAND="cd /users/xue/xue && /bin/bash limit_bw_matrix.sh"
 
 echo "Applying matrix bandwidth limit on all nodes..."
-# 1) Distribute latest script to all nodes first.
-sudo pdcp -R ssh -w ^"${HOSTS_FILE}" -l "${USER}" -f "${PARALLEL}" "${LOCAL_SCRIPT}" "${REMOTE_SCRIPT}"
-
-# 2) Run with bash explicitly on all nodes.
+# 10.10.1.1 / 10.10.1.2 不做限速：勿加入 proxy_hosts；单机上跑 limit_bw_matrix.sh 也会自动跳过。
+# 假定各节点已通过 update_all.sh（rsync）与本机目录 /users/xue/xue 对齐，无需 pdcp 分发。
 if sudo pdsh -R ssh -w ^"${HOSTS_FILE}" -l "${USER}" -f "${PARALLEL}" "${REMOTE_COMMAND}"; then
   echo "Bandwidth matrix applied on all nodes."
 else

@@ -14,6 +14,11 @@ namespace ECProject
     return std::to_string(a) + "," + std::to_string(b);
   }
 
+  std::string BWLimit::MakeOrderedPairKey(int a, int b)
+  {
+    return makeKey(a, b);
+  }
+
   bool BWLimit::loadFromFile(const std::string &file_path)
   {
     m_bw.clear();

@@ -14,6 +14,23 @@ if [[ ! -f "$BW_FILE" ]]; then
 fi
 source "$BW_FILE"
 
+# 不参与矩阵限速的节点（管理/协调等；不挂 HTB）
+SKIP_BW_LIMIT_IPS=(
+  "10.10.1.1"
+  "10.10.1.2"
+)
+
+skip_bw_limit_this_host() {
+  local ips lip s
+  ips="$(hostname -I 2>/dev/null || true)"
+  for lip in $ips; do
+    for s in "${SKIP_BW_LIMIT_IPS[@]}"; do
+      [[ "$lip" == "$s" ]] && return 0
+    done
+  done
+  return 1
+}
+
 # cluster id -> host ip (from clusterInformation.xml)
 CLUSTER_IPS=(
   "10.10.1.3"  # 0: TYO
@@ -29,14 +46,26 @@ detect_iface() {
     echo "$1"
     return 0
   fi
-  local dev
+  # 优先：发往集群对端的出口（与 ip route get <peer> 一致），避免默认路由块网卡与业务路由不一致
+  local ip dev my_ips
+  my_ips="$(hostname -I 2>/dev/null || true)"
+  for ip in "${CLUSTER_IPS[@]}"; do
+    for lip in $my_ips; do
+      [[ "$lip" == "$ip" ]] && continue 2
+    done
+    dev="$(ip route get "$ip" 2>/dev/null | awk '{ for (i = 1; i <= NF; i++) if ($i == "dev") { print $(i + 1); exit } }')"
+    if [[ -n "$dev" && "$dev" != "lo" ]]; then
+      echo "$dev"
+      return 0
+    fi
+  done
   dev="$(ip route | awk '/^default/ {print $5; exit}')"
   if [[ -n "$dev" ]]; then
     echo "$dev"
     return 0
   fi
   for cand in enp6s0f0 enp6s0f1 enp1s0f0 enp1s0f1 eth0; do
-    if ip link show "$cand" &>/dev/null && ip link show "$cand" | rg -q "state UP"; then
+    if ip link show "$cand" &>/dev/null && ip link show "$cand" | grep -q "state UP"; then
       echo "$cand"
       return 0
     fi
@@ -64,6 +93,11 @@ mbps_to_mbit() {
 }
 
 main() {
+  if skip_bw_limit_this_host; then
+    echo "Skip bandwidth matrix: this host is in SKIP_BW_LIMIT_IPS (${SKIP_BW_LIMIT_IPS[*]})."
+    exit 0
+  fi
+
   local iface
   iface="$(detect_iface "${1:-}")" || {
     echo "Error: cannot detect active interface" >&2
@@ -102,9 +136,10 @@ main() {
     echo "Limit dst=${dst_ip} cluster=${idx} bw=${bw_mb}MB/s (${bw_mbit}mbit)"
   done
 
-  echo "Done. Current qdisc/classes:"
+  echo "Done. Current qdisc/class/filter:"
   tc qdisc show dev "$iface"
   tc class show dev "$iface"
+  tc filter show dev "$iface"
 }
 
 main "$@"

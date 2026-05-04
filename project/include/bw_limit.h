@@ -19,6 +19,8 @@ namespace ECProject
     // Return MB/s. If not found, return fallback_bw.
     double getBandwidthMBps(int cluster_a, int cluster_b, double fallback_bw = 0.0) const;
 
+    static std::string MakeOrderedPairKey(int a, int b);
+
   private:
     std::unordered_map<std::string, double> m_bw;
     static std::string makeKey(int a, int b);

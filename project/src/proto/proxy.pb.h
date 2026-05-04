@@ -78,6 +78,24 @@ extern ObjectAndPlacementDefaultTypeInternal _ObjectAndPlacement_default_instanc
 class PartialDecodingRequest;
 struct PartialDecodingRequestDefaultTypeInternal;
 extern PartialDecodingRequestDefaultTypeInternal _PartialDecodingRequest_default_instance_;
+class RackCuGlobalParityBatchTarget;
+struct RackCuGlobalParityBatchTargetDefaultTypeInternal;
+extern RackCuGlobalParityBatchTargetDefaultTypeInternal _RackCuGlobalParityBatchTarget_default_instance_;
+class RackCuHomeDeltaDeleteReply;
+struct RackCuHomeDeltaDeleteReplyDefaultTypeInternal;
+extern RackCuHomeDeltaDeleteReplyDefaultTypeInternal _RackCuHomeDeltaDeleteReply_default_instance_;
+class RackCuHomeDeltaDeleteRequest;
+struct RackCuHomeDeltaDeleteRequestDefaultTypeInternal;
+extern RackCuHomeDeltaDeleteRequestDefaultTypeInternal _RackCuHomeDeltaDeleteRequest_default_instance_;
+class RackCuHomeDeltaFetchReply;
+struct RackCuHomeDeltaFetchReplyDefaultTypeInternal;
+extern RackCuHomeDeltaFetchReplyDefaultTypeInternal _RackCuHomeDeltaFetchReply_default_instance_;
+class RackCuHomeDeltaFetchRequest;
+struct RackCuHomeDeltaFetchRequestDefaultTypeInternal;
+extern RackCuHomeDeltaFetchRequestDefaultTypeInternal _RackCuHomeDeltaFetchRequest_default_instance_;
+class RackCuHomeDeltaStagingRef;
+struct RackCuHomeDeltaStagingRefDefaultTypeInternal;
+extern RackCuHomeDeltaStagingRefDefaultTypeInternal _RackCuHomeDeltaStagingRef_default_instance_;
 class RecalReply;
 struct RecalReplyDefaultTypeInternal;
 extern RecalReplyDefaultTypeInternal _RecalReply_default_instance_;
@@ -127,6 +145,12 @@ template<> ::proxy_proto::MultipleRecoveryRequest* Arena::CreateMaybeMessage<::p
 template<> ::proxy_proto::NodeAndBlock* Arena::CreateMaybeMessage<::proxy_proto::NodeAndBlock>(Arena*);
 template<> ::proxy_proto::ObjectAndPlacement* Arena::CreateMaybeMessage<::proxy_proto::ObjectAndPlacement>(Arena*);
 template<> ::proxy_proto::PartialDecodingRequest* Arena::CreateMaybeMessage<::proxy_proto::PartialDecodingRequest>(Arena*);
+template<> ::proxy_proto::RackCuGlobalParityBatchTarget* Arena::CreateMaybeMessage<::proxy_proto::RackCuGlobalParityBatchTarget>(Arena*);
+template<> ::proxy_proto::RackCuHomeDeltaDeleteReply* Arena::CreateMaybeMessage<::proxy_proto::RackCuHomeDeltaDeleteReply>(Arena*);
+template<> ::proxy_proto::RackCuHomeDeltaDeleteRequest* Arena::CreateMaybeMessage<::proxy_proto::RackCuHomeDeltaDeleteRequest>(Arena*);
+template<> ::proxy_proto::RackCuHomeDeltaFetchReply* Arena::CreateMaybeMessage<::proxy_proto::RackCuHomeDeltaFetchReply>(Arena*);
+template<> ::proxy_proto::RackCuHomeDeltaFetchRequest* Arena::CreateMaybeMessage<::proxy_proto::RackCuHomeDeltaFetchRequest>(Arena*);
+template<> ::proxy_proto::RackCuHomeDeltaStagingRef* Arena::CreateMaybeMessage<::proxy_proto::RackCuHomeDeltaStagingRef>(Arena*);
 template<> ::proxy_proto::RecalReply* Arena::CreateMaybeMessage<::proxy_proto::RecalReply>(Arena*);
 template<> ::proxy_proto::RecoveryReply* Arena::CreateMaybeMessage<::proxy_proto::RecoveryReply>(Arena*);
 template<> ::proxy_proto::RecoveryRequest* Arena::CreateMaybeMessage<::proxy_proto::RecoveryRequest>(Arena*);
@@ -143,6 +167,923 @@ PROTOBUF_NAMESPACE_CLOSE
 namespace proxy_proto {
 
 // ===================================================================
+
+class RackCuHomeDeltaFetchRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.RackCuHomeDeltaFetchRequest) */ {
+ public:
+  inline RackCuHomeDeltaFetchRequest() : RackCuHomeDeltaFetchRequest(nullptr) {}
+  ~RackCuHomeDeltaFetchRequest() override;
+  explicit PROTOBUF_CONSTEXPR RackCuHomeDeltaFetchRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  RackCuHomeDeltaFetchRequest(const RackCuHomeDeltaFetchRequest& from);
+  RackCuHomeDeltaFetchRequest(RackCuHomeDeltaFetchRequest&& from) noexcept
+    : RackCuHomeDeltaFetchRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline RackCuHomeDeltaFetchRequest& operator=(const RackCuHomeDeltaFetchRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline RackCuHomeDeltaFetchRequest& operator=(RackCuHomeDeltaFetchRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const RackCuHomeDeltaFetchRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const RackCuHomeDeltaFetchRequest* internal_default_instance() {
+    return reinterpret_cast<const RackCuHomeDeltaFetchRequest*>(
+               &_RackCuHomeDeltaFetchRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    0;
+
+  friend void swap(RackCuHomeDeltaFetchRequest& a, RackCuHomeDeltaFetchRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(RackCuHomeDeltaFetchRequest* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(RackCuHomeDeltaFetchRequest* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  RackCuHomeDeltaFetchRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<RackCuHomeDeltaFetchRequest>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const RackCuHomeDeltaFetchRequest& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const RackCuHomeDeltaFetchRequest& from) {
+    RackCuHomeDeltaFetchRequest::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(RackCuHomeDeltaFetchRequest* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.RackCuHomeDeltaFetchRequest";
+  }
+  protected:
+  explicit RackCuHomeDeltaFetchRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kStagingKeyFieldNumber = 1,
+    kStagingDatanodeIpFieldNumber = 2,
+    kBlobBytesFieldNumber = 4,
+    kStagingDatanodePortFieldNumber = 3,
+  };
+  // string staging_key = 1;
+  void clear_staging_key();
+  const std::string& staging_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_staging_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_staging_key();
+  PROTOBUF_NODISCARD std::string* release_staging_key();
+  void set_allocated_staging_key(std::string* staging_key);
+  private:
+  const std::string& _internal_staging_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_staging_key(const std::string& value);
+  std::string* _internal_mutable_staging_key();
+  public:
+
+  // string staging_datanode_ip = 2;
+  void clear_staging_datanode_ip();
+  const std::string& staging_datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_staging_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_staging_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_staging_datanode_ip();
+  void set_allocated_staging_datanode_ip(std::string* staging_datanode_ip);
+  private:
+  const std::string& _internal_staging_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_staging_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_staging_datanode_ip();
+  public:
+
+  // uint64 blob_bytes = 4;
+  void clear_blob_bytes();
+  uint64_t blob_bytes() const;
+  void set_blob_bytes(uint64_t value);
+  private:
+  uint64_t _internal_blob_bytes() const;
+  void _internal_set_blob_bytes(uint64_t value);
+  public:
+
+  // int32 staging_datanode_port = 3;
+  void clear_staging_datanode_port();
+  int32_t staging_datanode_port() const;
+  void set_staging_datanode_port(int32_t value);
+  private:
+  int32_t _internal_staging_datanode_port() const;
+  void _internal_set_staging_datanode_port(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.RackCuHomeDeltaFetchRequest)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr staging_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr staging_datanode_ip_;
+    uint64_t blob_bytes_;
+    int32_t staging_datanode_port_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class RackCuHomeDeltaFetchReply final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.RackCuHomeDeltaFetchReply) */ {
+ public:
+  inline RackCuHomeDeltaFetchReply() : RackCuHomeDeltaFetchReply(nullptr) {}
+  ~RackCuHomeDeltaFetchReply() override;
+  explicit PROTOBUF_CONSTEXPR RackCuHomeDeltaFetchReply(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  RackCuHomeDeltaFetchReply(const RackCuHomeDeltaFetchReply& from);
+  RackCuHomeDeltaFetchReply(RackCuHomeDeltaFetchReply&& from) noexcept
+    : RackCuHomeDeltaFetchReply() {
+    *this = ::std::move(from);
+  }
+
+  inline RackCuHomeDeltaFetchReply& operator=(const RackCuHomeDeltaFetchReply& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline RackCuHomeDeltaFetchReply& operator=(RackCuHomeDeltaFetchReply&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const RackCuHomeDeltaFetchReply& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const RackCuHomeDeltaFetchReply* internal_default_instance() {
+    return reinterpret_cast<const RackCuHomeDeltaFetchReply*>(
+               &_RackCuHomeDeltaFetchReply_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    1;
+
+  friend void swap(RackCuHomeDeltaFetchReply& a, RackCuHomeDeltaFetchReply& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(RackCuHomeDeltaFetchReply* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(RackCuHomeDeltaFetchReply* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  RackCuHomeDeltaFetchReply* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<RackCuHomeDeltaFetchReply>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const RackCuHomeDeltaFetchReply& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const RackCuHomeDeltaFetchReply& from) {
+    RackCuHomeDeltaFetchReply::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(RackCuHomeDeltaFetchReply* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.RackCuHomeDeltaFetchReply";
+  }
+  protected:
+  explicit RackCuHomeDeltaFetchReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kBlobFieldNumber = 2,
+    kOkFieldNumber = 1,
+  };
+  // bytes blob = 2;
+  void clear_blob();
+  const std::string& blob() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_blob(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_blob();
+  PROTOBUF_NODISCARD std::string* release_blob();
+  void set_allocated_blob(std::string* blob);
+  private:
+  const std::string& _internal_blob() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_blob(const std::string& value);
+  std::string* _internal_mutable_blob();
+  public:
+
+  // bool ok = 1;
+  void clear_ok();
+  bool ok() const;
+  void set_ok(bool value);
+  private:
+  bool _internal_ok() const;
+  void _internal_set_ok(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.RackCuHomeDeltaFetchReply)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr blob_;
+    bool ok_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class RackCuHomeDeltaDeleteRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.RackCuHomeDeltaDeleteRequest) */ {
+ public:
+  inline RackCuHomeDeltaDeleteRequest() : RackCuHomeDeltaDeleteRequest(nullptr) {}
+  ~RackCuHomeDeltaDeleteRequest() override;
+  explicit PROTOBUF_CONSTEXPR RackCuHomeDeltaDeleteRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  RackCuHomeDeltaDeleteRequest(const RackCuHomeDeltaDeleteRequest& from);
+  RackCuHomeDeltaDeleteRequest(RackCuHomeDeltaDeleteRequest&& from) noexcept
+    : RackCuHomeDeltaDeleteRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline RackCuHomeDeltaDeleteRequest& operator=(const RackCuHomeDeltaDeleteRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline RackCuHomeDeltaDeleteRequest& operator=(RackCuHomeDeltaDeleteRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const RackCuHomeDeltaDeleteRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const RackCuHomeDeltaDeleteRequest* internal_default_instance() {
+    return reinterpret_cast<const RackCuHomeDeltaDeleteRequest*>(
+               &_RackCuHomeDeltaDeleteRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    2;
+
+  friend void swap(RackCuHomeDeltaDeleteRequest& a, RackCuHomeDeltaDeleteRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(RackCuHomeDeltaDeleteRequest* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(RackCuHomeDeltaDeleteRequest* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  RackCuHomeDeltaDeleteRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<RackCuHomeDeltaDeleteRequest>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const RackCuHomeDeltaDeleteRequest& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const RackCuHomeDeltaDeleteRequest& from) {
+    RackCuHomeDeltaDeleteRequest::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(RackCuHomeDeltaDeleteRequest* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.RackCuHomeDeltaDeleteRequest";
+  }
+  protected:
+  explicit RackCuHomeDeltaDeleteRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kStagingKeyFieldNumber = 1,
+    kStagingDatanodeIpFieldNumber = 2,
+    kStagingDatanodePortFieldNumber = 3,
+  };
+  // string staging_key = 1;
+  void clear_staging_key();
+  const std::string& staging_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_staging_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_staging_key();
+  PROTOBUF_NODISCARD std::string* release_staging_key();
+  void set_allocated_staging_key(std::string* staging_key);
+  private:
+  const std::string& _internal_staging_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_staging_key(const std::string& value);
+  std::string* _internal_mutable_staging_key();
+  public:
+
+  // string staging_datanode_ip = 2;
+  void clear_staging_datanode_ip();
+  const std::string& staging_datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_staging_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_staging_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_staging_datanode_ip();
+  void set_allocated_staging_datanode_ip(std::string* staging_datanode_ip);
+  private:
+  const std::string& _internal_staging_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_staging_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_staging_datanode_ip();
+  public:
+
+  // int32 staging_datanode_port = 3;
+  void clear_staging_datanode_port();
+  int32_t staging_datanode_port() const;
+  void set_staging_datanode_port(int32_t value);
+  private:
+  int32_t _internal_staging_datanode_port() const;
+  void _internal_set_staging_datanode_port(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.RackCuHomeDeltaDeleteRequest)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr staging_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr staging_datanode_ip_;
+    int32_t staging_datanode_port_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class RackCuHomeDeltaDeleteReply final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.RackCuHomeDeltaDeleteReply) */ {
+ public:
+  inline RackCuHomeDeltaDeleteReply() : RackCuHomeDeltaDeleteReply(nullptr) {}
+  ~RackCuHomeDeltaDeleteReply() override;
+  explicit PROTOBUF_CONSTEXPR RackCuHomeDeltaDeleteReply(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  RackCuHomeDeltaDeleteReply(const RackCuHomeDeltaDeleteReply& from);
+  RackCuHomeDeltaDeleteReply(RackCuHomeDeltaDeleteReply&& from) noexcept
+    : RackCuHomeDeltaDeleteReply() {
+    *this = ::std::move(from);
+  }
+
+  inline RackCuHomeDeltaDeleteReply& operator=(const RackCuHomeDeltaDeleteReply& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline RackCuHomeDeltaDeleteReply& operator=(RackCuHomeDeltaDeleteReply&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const RackCuHomeDeltaDeleteReply& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const RackCuHomeDeltaDeleteReply* internal_default_instance() {
+    return reinterpret_cast<const RackCuHomeDeltaDeleteReply*>(
+               &_RackCuHomeDeltaDeleteReply_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    3;
+
+  friend void swap(RackCuHomeDeltaDeleteReply& a, RackCuHomeDeltaDeleteReply& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(RackCuHomeDeltaDeleteReply* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(RackCuHomeDeltaDeleteReply* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  RackCuHomeDeltaDeleteReply* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<RackCuHomeDeltaDeleteReply>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const RackCuHomeDeltaDeleteReply& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const RackCuHomeDeltaDeleteReply& from) {
+    RackCuHomeDeltaDeleteReply::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(RackCuHomeDeltaDeleteReply* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.RackCuHomeDeltaDeleteReply";
+  }
+  protected:
+  explicit RackCuHomeDeltaDeleteReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kOkFieldNumber = 1,
+  };
+  // bool ok = 1;
+  void clear_ok();
+  bool ok() const;
+  void set_ok(bool value);
+  private:
+  bool _internal_ok() const;
+  void _internal_set_ok(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.RackCuHomeDeltaDeleteReply)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    bool ok_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class RackCuHomeDeltaStagingRef final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.RackCuHomeDeltaStagingRef) */ {
+ public:
+  inline RackCuHomeDeltaStagingRef() : RackCuHomeDeltaStagingRef(nullptr) {}
+  ~RackCuHomeDeltaStagingRef() override;
+  explicit PROTOBUF_CONSTEXPR RackCuHomeDeltaStagingRef(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  RackCuHomeDeltaStagingRef(const RackCuHomeDeltaStagingRef& from);
+  RackCuHomeDeltaStagingRef(RackCuHomeDeltaStagingRef&& from) noexcept
+    : RackCuHomeDeltaStagingRef() {
+    *this = ::std::move(from);
+  }
+
+  inline RackCuHomeDeltaStagingRef& operator=(const RackCuHomeDeltaStagingRef& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline RackCuHomeDeltaStagingRef& operator=(RackCuHomeDeltaStagingRef&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const RackCuHomeDeltaStagingRef& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const RackCuHomeDeltaStagingRef* internal_default_instance() {
+    return reinterpret_cast<const RackCuHomeDeltaStagingRef*>(
+               &_RackCuHomeDeltaStagingRef_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    4;
+
+  friend void swap(RackCuHomeDeltaStagingRef& a, RackCuHomeDeltaStagingRef& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(RackCuHomeDeltaStagingRef* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(RackCuHomeDeltaStagingRef* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  RackCuHomeDeltaStagingRef* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<RackCuHomeDeltaStagingRef>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const RackCuHomeDeltaStagingRef& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const RackCuHomeDeltaStagingRef& from) {
+    RackCuHomeDeltaStagingRef::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(RackCuHomeDeltaStagingRef* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.RackCuHomeDeltaStagingRef";
+  }
+  protected:
+  explicit RackCuHomeDeltaStagingRef(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kStagingKeyFieldNumber = 1,
+    kHolderProxyIpFieldNumber = 2,
+    kStagingDatanodeIpFieldNumber = 5,
+    kBlobBytesFieldNumber = 4,
+    kHolderProxyPortFieldNumber = 3,
+    kStagingDatanodePortFieldNumber = 6,
+    kStagingSourceClusterIdFieldNumber = 7,
+  };
+  // string staging_key = 1;
+  void clear_staging_key();
+  const std::string& staging_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_staging_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_staging_key();
+  PROTOBUF_NODISCARD std::string* release_staging_key();
+  void set_allocated_staging_key(std::string* staging_key);
+  private:
+  const std::string& _internal_staging_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_staging_key(const std::string& value);
+  std::string* _internal_mutable_staging_key();
+  public:
+
+  // string holder_proxy_ip = 2;
+  void clear_holder_proxy_ip();
+  const std::string& holder_proxy_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_holder_proxy_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_holder_proxy_ip();
+  PROTOBUF_NODISCARD std::string* release_holder_proxy_ip();
+  void set_allocated_holder_proxy_ip(std::string* holder_proxy_ip);
+  private:
+  const std::string& _internal_holder_proxy_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_holder_proxy_ip(const std::string& value);
+  std::string* _internal_mutable_holder_proxy_ip();
+  public:
+
+  // string staging_datanode_ip = 5;
+  void clear_staging_datanode_ip();
+  const std::string& staging_datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_staging_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_staging_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_staging_datanode_ip();
+  void set_allocated_staging_datanode_ip(std::string* staging_datanode_ip);
+  private:
+  const std::string& _internal_staging_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_staging_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_staging_datanode_ip();
+  public:
+
+  // uint64 blob_bytes = 4;
+  void clear_blob_bytes();
+  uint64_t blob_bytes() const;
+  void set_blob_bytes(uint64_t value);
+  private:
+  uint64_t _internal_blob_bytes() const;
+  void _internal_set_blob_bytes(uint64_t value);
+  public:
+
+  // int32 holder_proxy_port = 3;
+  void clear_holder_proxy_port();
+  int32_t holder_proxy_port() const;
+  void set_holder_proxy_port(int32_t value);
+  private:
+  int32_t _internal_holder_proxy_port() const;
+  void _internal_set_holder_proxy_port(int32_t value);
+  public:
+
+  // int32 staging_datanode_port = 6;
+  void clear_staging_datanode_port();
+  int32_t staging_datanode_port() const;
+  void set_staging_datanode_port(int32_t value);
+  private:
+  int32_t _internal_staging_datanode_port() const;
+  void _internal_set_staging_datanode_port(int32_t value);
+  public:
+
+  // optional int32 staging_source_cluster_id = 7;
+  bool has_staging_source_cluster_id() const;
+  private:
+  bool _internal_has_staging_source_cluster_id() const;
+  public:
+  void clear_staging_source_cluster_id();
+  int32_t staging_source_cluster_id() const;
+  void set_staging_source_cluster_id(int32_t value);
+  private:
+  int32_t _internal_staging_source_cluster_id() const;
+  void _internal_set_staging_source_cluster_id(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.RackCuHomeDeltaStagingRef)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr staging_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr holder_proxy_ip_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr staging_datanode_ip_;
+    uint64_t blob_bytes_;
+    int32_t holder_proxy_port_;
+    int32_t staging_datanode_port_;
+    int32_t staging_source_cluster_id_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
 
 class locationInfo final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.locationInfo) */ {
@@ -192,7 +1133,7 @@ class locationInfo final :
                &_locationInfo_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    0;
+    5;
 
   friend void swap(locationInfo& a, locationInfo& b) {
     a.Swap(&b);
@@ -469,7 +1410,7 @@ class mainRecalPlan final :
                &_mainRecalPlan_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    1;
+    6;
 
   friend void swap(mainRecalPlan& a, mainRecalPlan& b) {
     a.Swap(&b);
@@ -802,7 +1743,7 @@ class RecalReply final :
                &_RecalReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    7;
 
   friend void swap(RecalReply& a, RecalReply& b) {
     a.Swap(&b);
@@ -955,7 +1896,7 @@ class helpRecalPlan final :
                &_helpRecalPlan_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    3;
+    8;
 
   friend void swap(helpRecalPlan& a, helpRecalPlan& b) {
     a.Swap(&b);
@@ -1287,7 +2228,7 @@ class blockRelocPlan final :
                &_blockRelocPlan_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    4;
+    9;
 
   friend void swap(blockRelocPlan& a, blockRelocPlan& b) {
     a.Swap(&b);
@@ -1563,7 +2504,7 @@ class blockRelocReply final :
                &_blockRelocReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    5;
+    10;
 
   friend void swap(blockRelocReply& a, blockRelocReply& b) {
     a.Swap(&b);
@@ -1716,7 +2657,7 @@ class AskIfSuccess final :
                &_AskIfSuccess_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    11;
 
   friend void swap(AskIfSuccess& a, AskIfSuccess& b) {
     a.Swap(&b);
@@ -1864,7 +2805,7 @@ class RepIfSuccess final :
                &_RepIfSuccess_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    12;
 
   friend void swap(RepIfSuccess& a, RepIfSuccess& b) {
     a.Swap(&b);
@@ -2012,7 +2953,7 @@ class NodeAndBlock final :
                &_NodeAndBlock_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    13;
 
   friend void swap(NodeAndBlock& a, NodeAndBlock& b) {
     a.Swap(&b);
@@ -2253,7 +3194,7 @@ class DelReply final :
                &_DelReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    14;
 
   friend void swap(DelReply& a, DelReply& b) {
     a.Swap(&b);
@@ -2401,7 +3342,7 @@ class CheckaliveCMD final :
                &_CheckaliveCMD_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    15;
 
   friend void swap(CheckaliveCMD& a, CheckaliveCMD& b) {
     a.Swap(&b);
@@ -2554,7 +3495,7 @@ class RequestResult final :
                &_RequestResult_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    16;
 
   friend void swap(RequestResult& a, RequestResult& b) {
     a.Swap(&b);
@@ -2702,7 +3643,7 @@ class ObjectAndPlacement final :
                &_ObjectAndPlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    17;
 
   friend void swap(ObjectAndPlacement& a, ObjectAndPlacement& b) {
     a.Swap(&b);
@@ -3061,7 +4002,7 @@ class DegradedReadRequest final :
                &_DegradedReadRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    13;
+    18;
 
   friend void swap(DegradedReadRequest& a, DegradedReadRequest& b) {
     a.Swap(&b);
@@ -3365,7 +4306,7 @@ class PartialDecodingRequest final :
                &_PartialDecodingRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    14;
+    19;
 
   friend void swap(PartialDecodingRequest& a, PartialDecodingRequest& b) {
     a.Swap(&b);
@@ -3667,7 +4608,7 @@ class DegradedReadReply final :
                &_DegradedReadReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    15;
+    20;
 
   friend void swap(DegradedReadReply& a, DegradedReadReply& b) {
     a.Swap(&b);
@@ -3925,7 +4866,7 @@ class RecoveryRequest final :
                &_RecoveryRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    16;
+    21;
 
   friend void swap(RecoveryRequest& a, RecoveryRequest& b) {
     a.Swap(&b);
@@ -4302,7 +5243,7 @@ class MultipleRecoveryRequest final :
                &_MultipleRecoveryRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    17;
+    22;
 
   friend void swap(MultipleRecoveryRequest& a, MultipleRecoveryRequest& b) {
     a.Swap(&b);
@@ -4528,7 +5469,7 @@ class RecoveryReply final :
                &_RecoveryReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    23;
 
   friend void swap(RecoveryReply& a, RecoveryReply& b) {
     a.Swap(&b);
@@ -4760,6 +5701,246 @@ class RecoveryReply final :
 };
 // -------------------------------------------------------------------
 
+class RackCuGlobalParityBatchTarget final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.RackCuGlobalParityBatchTarget) */ {
+ public:
+  inline RackCuGlobalParityBatchTarget() : RackCuGlobalParityBatchTarget(nullptr) {}
+  ~RackCuGlobalParityBatchTarget() override;
+  explicit PROTOBUF_CONSTEXPR RackCuGlobalParityBatchTarget(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  RackCuGlobalParityBatchTarget(const RackCuGlobalParityBatchTarget& from);
+  RackCuGlobalParityBatchTarget(RackCuGlobalParityBatchTarget&& from) noexcept
+    : RackCuGlobalParityBatchTarget() {
+    *this = ::std::move(from);
+  }
+
+  inline RackCuGlobalParityBatchTarget& operator=(const RackCuGlobalParityBatchTarget& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline RackCuGlobalParityBatchTarget& operator=(RackCuGlobalParityBatchTarget&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const RackCuGlobalParityBatchTarget& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const RackCuGlobalParityBatchTarget* internal_default_instance() {
+    return reinterpret_cast<const RackCuGlobalParityBatchTarget*>(
+               &_RackCuGlobalParityBatchTarget_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    24;
+
+  friend void swap(RackCuGlobalParityBatchTarget& a, RackCuGlobalParityBatchTarget& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(RackCuGlobalParityBatchTarget* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(RackCuGlobalParityBatchTarget* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  RackCuGlobalParityBatchTarget* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<RackCuGlobalParityBatchTarget>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const RackCuGlobalParityBatchTarget& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const RackCuGlobalParityBatchTarget& from) {
+    RackCuGlobalParityBatchTarget::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(RackCuGlobalParityBatchTarget* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.RackCuGlobalParityBatchTarget";
+  }
+  protected:
+  explicit RackCuGlobalParityBatchTarget(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kBlockkeyFieldNumber = 4,
+    kDatanodeIpFieldNumber = 5,
+    kTargetProxyIpFieldNumber = 7,
+    kOffsetFieldNumber = 2,
+    kSizeFieldNumber = 3,
+    kParityBlockIdFieldNumber = 1,
+    kDatanodePortFieldNumber = 6,
+    kTargetProxyPortFieldNumber = 8,
+  };
+  // string blockkey = 4;
+  void clear_blockkey();
+  const std::string& blockkey() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_blockkey(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_blockkey();
+  PROTOBUF_NODISCARD std::string* release_blockkey();
+  void set_allocated_blockkey(std::string* blockkey);
+  private:
+  const std::string& _internal_blockkey() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_blockkey(const std::string& value);
+  std::string* _internal_mutable_blockkey();
+  public:
+
+  // string datanode_ip = 5;
+  void clear_datanode_ip();
+  const std::string& datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_datanode_ip();
+  void set_allocated_datanode_ip(std::string* datanode_ip);
+  private:
+  const std::string& _internal_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_datanode_ip();
+  public:
+
+  // string target_proxy_ip = 7;
+  void clear_target_proxy_ip();
+  const std::string& target_proxy_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_target_proxy_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_target_proxy_ip();
+  PROTOBUF_NODISCARD std::string* release_target_proxy_ip();
+  void set_allocated_target_proxy_ip(std::string* target_proxy_ip);
+  private:
+  const std::string& _internal_target_proxy_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_target_proxy_ip(const std::string& value);
+  std::string* _internal_mutable_target_proxy_ip();
+  public:
+
+  // uint64 offset = 2;
+  void clear_offset();
+  uint64_t offset() const;
+  void set_offset(uint64_t value);
+  private:
+  uint64_t _internal_offset() const;
+  void _internal_set_offset(uint64_t value);
+  public:
+
+  // uint64 size = 3;
+  void clear_size();
+  uint64_t size() const;
+  void set_size(uint64_t value);
+  private:
+  uint64_t _internal_size() const;
+  void _internal_set_size(uint64_t value);
+  public:
+
+  // int32 parity_block_id = 1;
+  void clear_parity_block_id();
+  int32_t parity_block_id() const;
+  void set_parity_block_id(int32_t value);
+  private:
+  int32_t _internal_parity_block_id() const;
+  void _internal_set_parity_block_id(int32_t value);
+  public:
+
+  // int32 datanode_port = 6;
+  void clear_datanode_port();
+  int32_t datanode_port() const;
+  void set_datanode_port(int32_t value);
+  private:
+  int32_t _internal_datanode_port() const;
+  void _internal_set_datanode_port(int32_t value);
+  public:
+
+  // int32 target_proxy_port = 8;
+  void clear_target_proxy_port();
+  int32_t target_proxy_port() const;
+  void set_target_proxy_port(int32_t value);
+  private:
+  int32_t _internal_target_proxy_port() const;
+  void _internal_set_target_proxy_port(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.RackCuGlobalParityBatchTarget)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr blockkey_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr datanode_ip_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr target_proxy_ip_;
+    uint64_t offset_;
+    uint64_t size_;
+    int32_t parity_block_id_;
+    int32_t datanode_port_;
+    int32_t target_proxy_port_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
 class AppendStripeDataPlacement final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.AppendStripeDataPlacement) */ {
  public:
@@ -4808,7 +5989,7 @@ class AppendStripeDataPlacement final :
                &_AppendStripeDataPlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    25;
 
   friend void swap(AppendStripeDataPlacement& a, AppendStripeDataPlacement& b) {
     a.Swap(&b);
@@ -4887,6 +6068,8 @@ class AppendStripeDataPlacement final :
     kBlockidsFieldNumber = 8,
     kOffsetsFieldNumber = 9,
     kSizesFieldNumber = 10,
+    kRackcuHomeDeltaStagingRefsFieldNumber = 16,
+    kRackcuGlobalParityBatchFieldNumber = 18,
     kKeyFieldNumber = 1,
     kAppendModeFieldNumber = 12,
     kTargetProxyIpFieldNumber = 14,
@@ -4896,6 +6079,7 @@ class AppendStripeDataPlacement final :
     kIsMergeParityFieldNumber = 11,
     kIsSerializedFieldNumber = 13,
     kTargetProxyPortFieldNumber = 15,
+    kRackcuCollectorClusterIdFieldNumber = 17,
   };
   // repeated string datanodeip = 5;
   int datanodeip_size() const;
@@ -5033,6 +6217,42 @@ class AppendStripeDataPlacement final :
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t >*
       mutable_sizes();
 
+  // repeated .proxy_proto.RackCuHomeDeltaStagingRef rackcu_home_delta_staging_refs = 16;
+  int rackcu_home_delta_staging_refs_size() const;
+  private:
+  int _internal_rackcu_home_delta_staging_refs_size() const;
+  public:
+  void clear_rackcu_home_delta_staging_refs();
+  ::proxy_proto::RackCuHomeDeltaStagingRef* mutable_rackcu_home_delta_staging_refs(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::RackCuHomeDeltaStagingRef >*
+      mutable_rackcu_home_delta_staging_refs();
+  private:
+  const ::proxy_proto::RackCuHomeDeltaStagingRef& _internal_rackcu_home_delta_staging_refs(int index) const;
+  ::proxy_proto::RackCuHomeDeltaStagingRef* _internal_add_rackcu_home_delta_staging_refs();
+  public:
+  const ::proxy_proto::RackCuHomeDeltaStagingRef& rackcu_home_delta_staging_refs(int index) const;
+  ::proxy_proto::RackCuHomeDeltaStagingRef* add_rackcu_home_delta_staging_refs();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::RackCuHomeDeltaStagingRef >&
+      rackcu_home_delta_staging_refs() const;
+
+  // repeated .proxy_proto.RackCuGlobalParityBatchTarget rackcu_global_parity_batch = 18;
+  int rackcu_global_parity_batch_size() const;
+  private:
+  int _internal_rackcu_global_parity_batch_size() const;
+  public:
+  void clear_rackcu_global_parity_batch();
+  ::proxy_proto::RackCuGlobalParityBatchTarget* mutable_rackcu_global_parity_batch(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::RackCuGlobalParityBatchTarget >*
+      mutable_rackcu_global_parity_batch();
+  private:
+  const ::proxy_proto::RackCuGlobalParityBatchTarget& _internal_rackcu_global_parity_batch(int index) const;
+  ::proxy_proto::RackCuGlobalParityBatchTarget* _internal_add_rackcu_global_parity_batch();
+  public:
+  const ::proxy_proto::RackCuGlobalParityBatchTarget& rackcu_global_parity_batch(int index) const;
+  ::proxy_proto::RackCuGlobalParityBatchTarget* add_rackcu_global_parity_batch();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::RackCuGlobalParityBatchTarget >&
+      rackcu_global_parity_batch() const;
+
   // string key = 1;
   void clear_key();
   const std::string& key() const;
@@ -5129,6 +6349,15 @@ class AppendStripeDataPlacement final :
   void _internal_set_target_proxy_port(int32_t value);
   public:
 
+  // int32 rackcu_collector_cluster_id = 17;
+  void clear_rackcu_collector_cluster_id();
+  int32_t rackcu_collector_cluster_id() const;
+  void set_rackcu_collector_cluster_id(int32_t value);
+  private:
+  int32_t _internal_rackcu_collector_cluster_id() const;
+  void _internal_set_rackcu_collector_cluster_id(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:proxy_proto.AppendStripeDataPlacement)
  private:
   class _Internal;
@@ -5147,6 +6376,8 @@ class AppendStripeDataPlacement final :
     mutable std::atomic<int> _offsets_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t > sizes_;
     mutable std::atomic<int> _sizes_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::RackCuHomeDeltaStagingRef > rackcu_home_delta_staging_refs_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::RackCuGlobalParityBatchTarget > rackcu_global_parity_batch_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr append_mode_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr target_proxy_ip_;
@@ -5156,6 +6387,7 @@ class AppendStripeDataPlacement final :
     bool is_merge_parity_;
     bool is_serialized_;
     int32_t target_proxy_port_;
+    int32_t rackcu_collector_cluster_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -5211,7 +6443,7 @@ class SetReply final :
                &_SetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    26;
 
   friend void swap(SetReply& a, SetReply& b) {
     a.Swap(&b);
@@ -5359,7 +6591,7 @@ class GetReply final :
                &_GetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    27;
 
   friend void swap(GetReply& a, GetReply& b) {
     a.Swap(&b);
@@ -5507,7 +6739,7 @@ class StripeAndBlockIDs final :
                &_StripeAndBlockIDs_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    28;
 
   friend void swap(StripeAndBlockIDs& a, StripeAndBlockIDs& b) {
     a.Swap(&b);
@@ -5754,6 +6986,614 @@ class StripeAndBlockIDs final :
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
+// RackCuHomeDeltaFetchRequest
+
+// string staging_key = 1;
+inline void RackCuHomeDeltaFetchRequest::clear_staging_key() {
+  _impl_.staging_key_.ClearToEmpty();
+}
+inline const std::string& RackCuHomeDeltaFetchRequest::staging_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaFetchRequest.staging_key)
+  return _internal_staging_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void RackCuHomeDeltaFetchRequest::set_staging_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.staging_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaFetchRequest.staging_key)
+}
+inline std::string* RackCuHomeDeltaFetchRequest::mutable_staging_key() {
+  std::string* _s = _internal_mutable_staging_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.RackCuHomeDeltaFetchRequest.staging_key)
+  return _s;
+}
+inline const std::string& RackCuHomeDeltaFetchRequest::_internal_staging_key() const {
+  return _impl_.staging_key_.Get();
+}
+inline void RackCuHomeDeltaFetchRequest::_internal_set_staging_key(const std::string& value) {
+  
+  _impl_.staging_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaFetchRequest::_internal_mutable_staging_key() {
+  
+  return _impl_.staging_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaFetchRequest::release_staging_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.RackCuHomeDeltaFetchRequest.staging_key)
+  return _impl_.staging_key_.Release();
+}
+inline void RackCuHomeDeltaFetchRequest::set_allocated_staging_key(std::string* staging_key) {
+  if (staging_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.staging_key_.SetAllocated(staging_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.staging_key_.IsDefault()) {
+    _impl_.staging_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.RackCuHomeDeltaFetchRequest.staging_key)
+}
+
+// string staging_datanode_ip = 2;
+inline void RackCuHomeDeltaFetchRequest::clear_staging_datanode_ip() {
+  _impl_.staging_datanode_ip_.ClearToEmpty();
+}
+inline const std::string& RackCuHomeDeltaFetchRequest::staging_datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaFetchRequest.staging_datanode_ip)
+  return _internal_staging_datanode_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void RackCuHomeDeltaFetchRequest::set_staging_datanode_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.staging_datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaFetchRequest.staging_datanode_ip)
+}
+inline std::string* RackCuHomeDeltaFetchRequest::mutable_staging_datanode_ip() {
+  std::string* _s = _internal_mutable_staging_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.RackCuHomeDeltaFetchRequest.staging_datanode_ip)
+  return _s;
+}
+inline const std::string& RackCuHomeDeltaFetchRequest::_internal_staging_datanode_ip() const {
+  return _impl_.staging_datanode_ip_.Get();
+}
+inline void RackCuHomeDeltaFetchRequest::_internal_set_staging_datanode_ip(const std::string& value) {
+  
+  _impl_.staging_datanode_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaFetchRequest::_internal_mutable_staging_datanode_ip() {
+  
+  return _impl_.staging_datanode_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaFetchRequest::release_staging_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.RackCuHomeDeltaFetchRequest.staging_datanode_ip)
+  return _impl_.staging_datanode_ip_.Release();
+}
+inline void RackCuHomeDeltaFetchRequest::set_allocated_staging_datanode_ip(std::string* staging_datanode_ip) {
+  if (staging_datanode_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.staging_datanode_ip_.SetAllocated(staging_datanode_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.staging_datanode_ip_.IsDefault()) {
+    _impl_.staging_datanode_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.RackCuHomeDeltaFetchRequest.staging_datanode_ip)
+}
+
+// int32 staging_datanode_port = 3;
+inline void RackCuHomeDeltaFetchRequest::clear_staging_datanode_port() {
+  _impl_.staging_datanode_port_ = 0;
+}
+inline int32_t RackCuHomeDeltaFetchRequest::_internal_staging_datanode_port() const {
+  return _impl_.staging_datanode_port_;
+}
+inline int32_t RackCuHomeDeltaFetchRequest::staging_datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaFetchRequest.staging_datanode_port)
+  return _internal_staging_datanode_port();
+}
+inline void RackCuHomeDeltaFetchRequest::_internal_set_staging_datanode_port(int32_t value) {
+  
+  _impl_.staging_datanode_port_ = value;
+}
+inline void RackCuHomeDeltaFetchRequest::set_staging_datanode_port(int32_t value) {
+  _internal_set_staging_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaFetchRequest.staging_datanode_port)
+}
+
+// uint64 blob_bytes = 4;
+inline void RackCuHomeDeltaFetchRequest::clear_blob_bytes() {
+  _impl_.blob_bytes_ = uint64_t{0u};
+}
+inline uint64_t RackCuHomeDeltaFetchRequest::_internal_blob_bytes() const {
+  return _impl_.blob_bytes_;
+}
+inline uint64_t RackCuHomeDeltaFetchRequest::blob_bytes() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaFetchRequest.blob_bytes)
+  return _internal_blob_bytes();
+}
+inline void RackCuHomeDeltaFetchRequest::_internal_set_blob_bytes(uint64_t value) {
+  
+  _impl_.blob_bytes_ = value;
+}
+inline void RackCuHomeDeltaFetchRequest::set_blob_bytes(uint64_t value) {
+  _internal_set_blob_bytes(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaFetchRequest.blob_bytes)
+}
+
+// -------------------------------------------------------------------
+
+// RackCuHomeDeltaFetchReply
+
+// bool ok = 1;
+inline void RackCuHomeDeltaFetchReply::clear_ok() {
+  _impl_.ok_ = false;
+}
+inline bool RackCuHomeDeltaFetchReply::_internal_ok() const {
+  return _impl_.ok_;
+}
+inline bool RackCuHomeDeltaFetchReply::ok() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaFetchReply.ok)
+  return _internal_ok();
+}
+inline void RackCuHomeDeltaFetchReply::_internal_set_ok(bool value) {
+  
+  _impl_.ok_ = value;
+}
+inline void RackCuHomeDeltaFetchReply::set_ok(bool value) {
+  _internal_set_ok(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaFetchReply.ok)
+}
+
+// bytes blob = 2;
+inline void RackCuHomeDeltaFetchReply::clear_blob() {
+  _impl_.blob_.ClearToEmpty();
+}
+inline const std::string& RackCuHomeDeltaFetchReply::blob() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaFetchReply.blob)
+  return _internal_blob();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void RackCuHomeDeltaFetchReply::set_blob(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.blob_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaFetchReply.blob)
+}
+inline std::string* RackCuHomeDeltaFetchReply::mutable_blob() {
+  std::string* _s = _internal_mutable_blob();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.RackCuHomeDeltaFetchReply.blob)
+  return _s;
+}
+inline const std::string& RackCuHomeDeltaFetchReply::_internal_blob() const {
+  return _impl_.blob_.Get();
+}
+inline void RackCuHomeDeltaFetchReply::_internal_set_blob(const std::string& value) {
+  
+  _impl_.blob_.Set(value, GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaFetchReply::_internal_mutable_blob() {
+  
+  return _impl_.blob_.Mutable(GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaFetchReply::release_blob() {
+  // @@protoc_insertion_point(field_release:proxy_proto.RackCuHomeDeltaFetchReply.blob)
+  return _impl_.blob_.Release();
+}
+inline void RackCuHomeDeltaFetchReply::set_allocated_blob(std::string* blob) {
+  if (blob != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.blob_.SetAllocated(blob, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.blob_.IsDefault()) {
+    _impl_.blob_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.RackCuHomeDeltaFetchReply.blob)
+}
+
+// -------------------------------------------------------------------
+
+// RackCuHomeDeltaDeleteRequest
+
+// string staging_key = 1;
+inline void RackCuHomeDeltaDeleteRequest::clear_staging_key() {
+  _impl_.staging_key_.ClearToEmpty();
+}
+inline const std::string& RackCuHomeDeltaDeleteRequest::staging_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaDeleteRequest.staging_key)
+  return _internal_staging_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void RackCuHomeDeltaDeleteRequest::set_staging_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.staging_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaDeleteRequest.staging_key)
+}
+inline std::string* RackCuHomeDeltaDeleteRequest::mutable_staging_key() {
+  std::string* _s = _internal_mutable_staging_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.RackCuHomeDeltaDeleteRequest.staging_key)
+  return _s;
+}
+inline const std::string& RackCuHomeDeltaDeleteRequest::_internal_staging_key() const {
+  return _impl_.staging_key_.Get();
+}
+inline void RackCuHomeDeltaDeleteRequest::_internal_set_staging_key(const std::string& value) {
+  
+  _impl_.staging_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaDeleteRequest::_internal_mutable_staging_key() {
+  
+  return _impl_.staging_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaDeleteRequest::release_staging_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.RackCuHomeDeltaDeleteRequest.staging_key)
+  return _impl_.staging_key_.Release();
+}
+inline void RackCuHomeDeltaDeleteRequest::set_allocated_staging_key(std::string* staging_key) {
+  if (staging_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.staging_key_.SetAllocated(staging_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.staging_key_.IsDefault()) {
+    _impl_.staging_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.RackCuHomeDeltaDeleteRequest.staging_key)
+}
+
+// string staging_datanode_ip = 2;
+inline void RackCuHomeDeltaDeleteRequest::clear_staging_datanode_ip() {
+  _impl_.staging_datanode_ip_.ClearToEmpty();
+}
+inline const std::string& RackCuHomeDeltaDeleteRequest::staging_datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaDeleteRequest.staging_datanode_ip)
+  return _internal_staging_datanode_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void RackCuHomeDeltaDeleteRequest::set_staging_datanode_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.staging_datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaDeleteRequest.staging_datanode_ip)
+}
+inline std::string* RackCuHomeDeltaDeleteRequest::mutable_staging_datanode_ip() {
+  std::string* _s = _internal_mutable_staging_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.RackCuHomeDeltaDeleteRequest.staging_datanode_ip)
+  return _s;
+}
+inline const std::string& RackCuHomeDeltaDeleteRequest::_internal_staging_datanode_ip() const {
+  return _impl_.staging_datanode_ip_.Get();
+}
+inline void RackCuHomeDeltaDeleteRequest::_internal_set_staging_datanode_ip(const std::string& value) {
+  
+  _impl_.staging_datanode_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaDeleteRequest::_internal_mutable_staging_datanode_ip() {
+  
+  return _impl_.staging_datanode_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaDeleteRequest::release_staging_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.RackCuHomeDeltaDeleteRequest.staging_datanode_ip)
+  return _impl_.staging_datanode_ip_.Release();
+}
+inline void RackCuHomeDeltaDeleteRequest::set_allocated_staging_datanode_ip(std::string* staging_datanode_ip) {
+  if (staging_datanode_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.staging_datanode_ip_.SetAllocated(staging_datanode_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.staging_datanode_ip_.IsDefault()) {
+    _impl_.staging_datanode_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.RackCuHomeDeltaDeleteRequest.staging_datanode_ip)
+}
+
+// int32 staging_datanode_port = 3;
+inline void RackCuHomeDeltaDeleteRequest::clear_staging_datanode_port() {
+  _impl_.staging_datanode_port_ = 0;
+}
+inline int32_t RackCuHomeDeltaDeleteRequest::_internal_staging_datanode_port() const {
+  return _impl_.staging_datanode_port_;
+}
+inline int32_t RackCuHomeDeltaDeleteRequest::staging_datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaDeleteRequest.staging_datanode_port)
+  return _internal_staging_datanode_port();
+}
+inline void RackCuHomeDeltaDeleteRequest::_internal_set_staging_datanode_port(int32_t value) {
+  
+  _impl_.staging_datanode_port_ = value;
+}
+inline void RackCuHomeDeltaDeleteRequest::set_staging_datanode_port(int32_t value) {
+  _internal_set_staging_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaDeleteRequest.staging_datanode_port)
+}
+
+// -------------------------------------------------------------------
+
+// RackCuHomeDeltaDeleteReply
+
+// bool ok = 1;
+inline void RackCuHomeDeltaDeleteReply::clear_ok() {
+  _impl_.ok_ = false;
+}
+inline bool RackCuHomeDeltaDeleteReply::_internal_ok() const {
+  return _impl_.ok_;
+}
+inline bool RackCuHomeDeltaDeleteReply::ok() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaDeleteReply.ok)
+  return _internal_ok();
+}
+inline void RackCuHomeDeltaDeleteReply::_internal_set_ok(bool value) {
+  
+  _impl_.ok_ = value;
+}
+inline void RackCuHomeDeltaDeleteReply::set_ok(bool value) {
+  _internal_set_ok(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaDeleteReply.ok)
+}
+
+// -------------------------------------------------------------------
+
+// RackCuHomeDeltaStagingRef
+
+// string staging_key = 1;
+inline void RackCuHomeDeltaStagingRef::clear_staging_key() {
+  _impl_.staging_key_.ClearToEmpty();
+}
+inline const std::string& RackCuHomeDeltaStagingRef::staging_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaStagingRef.staging_key)
+  return _internal_staging_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void RackCuHomeDeltaStagingRef::set_staging_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.staging_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaStagingRef.staging_key)
+}
+inline std::string* RackCuHomeDeltaStagingRef::mutable_staging_key() {
+  std::string* _s = _internal_mutable_staging_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.RackCuHomeDeltaStagingRef.staging_key)
+  return _s;
+}
+inline const std::string& RackCuHomeDeltaStagingRef::_internal_staging_key() const {
+  return _impl_.staging_key_.Get();
+}
+inline void RackCuHomeDeltaStagingRef::_internal_set_staging_key(const std::string& value) {
+  
+  _impl_.staging_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaStagingRef::_internal_mutable_staging_key() {
+  
+  return _impl_.staging_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaStagingRef::release_staging_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.RackCuHomeDeltaStagingRef.staging_key)
+  return _impl_.staging_key_.Release();
+}
+inline void RackCuHomeDeltaStagingRef::set_allocated_staging_key(std::string* staging_key) {
+  if (staging_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.staging_key_.SetAllocated(staging_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.staging_key_.IsDefault()) {
+    _impl_.staging_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.RackCuHomeDeltaStagingRef.staging_key)
+}
+
+// string holder_proxy_ip = 2;
+inline void RackCuHomeDeltaStagingRef::clear_holder_proxy_ip() {
+  _impl_.holder_proxy_ip_.ClearToEmpty();
+}
+inline const std::string& RackCuHomeDeltaStagingRef::holder_proxy_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaStagingRef.holder_proxy_ip)
+  return _internal_holder_proxy_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void RackCuHomeDeltaStagingRef::set_holder_proxy_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.holder_proxy_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaStagingRef.holder_proxy_ip)
+}
+inline std::string* RackCuHomeDeltaStagingRef::mutable_holder_proxy_ip() {
+  std::string* _s = _internal_mutable_holder_proxy_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.RackCuHomeDeltaStagingRef.holder_proxy_ip)
+  return _s;
+}
+inline const std::string& RackCuHomeDeltaStagingRef::_internal_holder_proxy_ip() const {
+  return _impl_.holder_proxy_ip_.Get();
+}
+inline void RackCuHomeDeltaStagingRef::_internal_set_holder_proxy_ip(const std::string& value) {
+  
+  _impl_.holder_proxy_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaStagingRef::_internal_mutable_holder_proxy_ip() {
+  
+  return _impl_.holder_proxy_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaStagingRef::release_holder_proxy_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.RackCuHomeDeltaStagingRef.holder_proxy_ip)
+  return _impl_.holder_proxy_ip_.Release();
+}
+inline void RackCuHomeDeltaStagingRef::set_allocated_holder_proxy_ip(std::string* holder_proxy_ip) {
+  if (holder_proxy_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.holder_proxy_ip_.SetAllocated(holder_proxy_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.holder_proxy_ip_.IsDefault()) {
+    _impl_.holder_proxy_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.RackCuHomeDeltaStagingRef.holder_proxy_ip)
+}
+
+// int32 holder_proxy_port = 3;
+inline void RackCuHomeDeltaStagingRef::clear_holder_proxy_port() {
+  _impl_.holder_proxy_port_ = 0;
+}
+inline int32_t RackCuHomeDeltaStagingRef::_internal_holder_proxy_port() const {
+  return _impl_.holder_proxy_port_;
+}
+inline int32_t RackCuHomeDeltaStagingRef::holder_proxy_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaStagingRef.holder_proxy_port)
+  return _internal_holder_proxy_port();
+}
+inline void RackCuHomeDeltaStagingRef::_internal_set_holder_proxy_port(int32_t value) {
+  
+  _impl_.holder_proxy_port_ = value;
+}
+inline void RackCuHomeDeltaStagingRef::set_holder_proxy_port(int32_t value) {
+  _internal_set_holder_proxy_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaStagingRef.holder_proxy_port)
+}
+
+// uint64 blob_bytes = 4;
+inline void RackCuHomeDeltaStagingRef::clear_blob_bytes() {
+  _impl_.blob_bytes_ = uint64_t{0u};
+}
+inline uint64_t RackCuHomeDeltaStagingRef::_internal_blob_bytes() const {
+  return _impl_.blob_bytes_;
+}
+inline uint64_t RackCuHomeDeltaStagingRef::blob_bytes() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaStagingRef.blob_bytes)
+  return _internal_blob_bytes();
+}
+inline void RackCuHomeDeltaStagingRef::_internal_set_blob_bytes(uint64_t value) {
+  
+  _impl_.blob_bytes_ = value;
+}
+inline void RackCuHomeDeltaStagingRef::set_blob_bytes(uint64_t value) {
+  _internal_set_blob_bytes(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaStagingRef.blob_bytes)
+}
+
+// string staging_datanode_ip = 5;
+inline void RackCuHomeDeltaStagingRef::clear_staging_datanode_ip() {
+  _impl_.staging_datanode_ip_.ClearToEmpty();
+}
+inline const std::string& RackCuHomeDeltaStagingRef::staging_datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaStagingRef.staging_datanode_ip)
+  return _internal_staging_datanode_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void RackCuHomeDeltaStagingRef::set_staging_datanode_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.staging_datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaStagingRef.staging_datanode_ip)
+}
+inline std::string* RackCuHomeDeltaStagingRef::mutable_staging_datanode_ip() {
+  std::string* _s = _internal_mutable_staging_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.RackCuHomeDeltaStagingRef.staging_datanode_ip)
+  return _s;
+}
+inline const std::string& RackCuHomeDeltaStagingRef::_internal_staging_datanode_ip() const {
+  return _impl_.staging_datanode_ip_.Get();
+}
+inline void RackCuHomeDeltaStagingRef::_internal_set_staging_datanode_ip(const std::string& value) {
+  
+  _impl_.staging_datanode_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaStagingRef::_internal_mutable_staging_datanode_ip() {
+  
+  return _impl_.staging_datanode_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* RackCuHomeDeltaStagingRef::release_staging_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.RackCuHomeDeltaStagingRef.staging_datanode_ip)
+  return _impl_.staging_datanode_ip_.Release();
+}
+inline void RackCuHomeDeltaStagingRef::set_allocated_staging_datanode_ip(std::string* staging_datanode_ip) {
+  if (staging_datanode_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.staging_datanode_ip_.SetAllocated(staging_datanode_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.staging_datanode_ip_.IsDefault()) {
+    _impl_.staging_datanode_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.RackCuHomeDeltaStagingRef.staging_datanode_ip)
+}
+
+// int32 staging_datanode_port = 6;
+inline void RackCuHomeDeltaStagingRef::clear_staging_datanode_port() {
+  _impl_.staging_datanode_port_ = 0;
+}
+inline int32_t RackCuHomeDeltaStagingRef::_internal_staging_datanode_port() const {
+  return _impl_.staging_datanode_port_;
+}
+inline int32_t RackCuHomeDeltaStagingRef::staging_datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaStagingRef.staging_datanode_port)
+  return _internal_staging_datanode_port();
+}
+inline void RackCuHomeDeltaStagingRef::_internal_set_staging_datanode_port(int32_t value) {
+  
+  _impl_.staging_datanode_port_ = value;
+}
+inline void RackCuHomeDeltaStagingRef::set_staging_datanode_port(int32_t value) {
+  _internal_set_staging_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaStagingRef.staging_datanode_port)
+}
+
+// optional int32 staging_source_cluster_id = 7;
+inline bool RackCuHomeDeltaStagingRef::_internal_has_staging_source_cluster_id() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline bool RackCuHomeDeltaStagingRef::has_staging_source_cluster_id() const {
+  return _internal_has_staging_source_cluster_id();
+}
+inline void RackCuHomeDeltaStagingRef::clear_staging_source_cluster_id() {
+  _impl_.staging_source_cluster_id_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline int32_t RackCuHomeDeltaStagingRef::_internal_staging_source_cluster_id() const {
+  return _impl_.staging_source_cluster_id_;
+}
+inline int32_t RackCuHomeDeltaStagingRef::staging_source_cluster_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaStagingRef.staging_source_cluster_id)
+  return _internal_staging_source_cluster_id();
+}
+inline void RackCuHomeDeltaStagingRef::_internal_set_staging_source_cluster_id(int32_t value) {
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.staging_source_cluster_id_ = value;
+}
+inline void RackCuHomeDeltaStagingRef::set_staging_source_cluster_id(int32_t value) {
+  _internal_set_staging_source_cluster_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaStagingRef.staging_source_cluster_id)
+}
+
+// -------------------------------------------------------------------
+
 // locationInfo
 
 // int32 cluster_id = 1;
@@ -10398,6 +12238,260 @@ inline void RecoveryReply::set_dest_data_node_disk_io_time(double value) {
 
 // -------------------------------------------------------------------
 
+// RackCuGlobalParityBatchTarget
+
+// int32 parity_block_id = 1;
+inline void RackCuGlobalParityBatchTarget::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
+}
+inline int32_t RackCuGlobalParityBatchTarget::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
+}
+inline int32_t RackCuGlobalParityBatchTarget::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuGlobalParityBatchTarget.parity_block_id)
+  return _internal_parity_block_id();
+}
+inline void RackCuGlobalParityBatchTarget::_internal_set_parity_block_id(int32_t value) {
+  
+  _impl_.parity_block_id_ = value;
+}
+inline void RackCuGlobalParityBatchTarget::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuGlobalParityBatchTarget.parity_block_id)
+}
+
+// uint64 offset = 2;
+inline void RackCuGlobalParityBatchTarget::clear_offset() {
+  _impl_.offset_ = uint64_t{0u};
+}
+inline uint64_t RackCuGlobalParityBatchTarget::_internal_offset() const {
+  return _impl_.offset_;
+}
+inline uint64_t RackCuGlobalParityBatchTarget::offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuGlobalParityBatchTarget.offset)
+  return _internal_offset();
+}
+inline void RackCuGlobalParityBatchTarget::_internal_set_offset(uint64_t value) {
+  
+  _impl_.offset_ = value;
+}
+inline void RackCuGlobalParityBatchTarget::set_offset(uint64_t value) {
+  _internal_set_offset(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuGlobalParityBatchTarget.offset)
+}
+
+// uint64 size = 3;
+inline void RackCuGlobalParityBatchTarget::clear_size() {
+  _impl_.size_ = uint64_t{0u};
+}
+inline uint64_t RackCuGlobalParityBatchTarget::_internal_size() const {
+  return _impl_.size_;
+}
+inline uint64_t RackCuGlobalParityBatchTarget::size() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuGlobalParityBatchTarget.size)
+  return _internal_size();
+}
+inline void RackCuGlobalParityBatchTarget::_internal_set_size(uint64_t value) {
+  
+  _impl_.size_ = value;
+}
+inline void RackCuGlobalParityBatchTarget::set_size(uint64_t value) {
+  _internal_set_size(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuGlobalParityBatchTarget.size)
+}
+
+// string blockkey = 4;
+inline void RackCuGlobalParityBatchTarget::clear_blockkey() {
+  _impl_.blockkey_.ClearToEmpty();
+}
+inline const std::string& RackCuGlobalParityBatchTarget::blockkey() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuGlobalParityBatchTarget.blockkey)
+  return _internal_blockkey();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void RackCuGlobalParityBatchTarget::set_blockkey(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.blockkey_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuGlobalParityBatchTarget.blockkey)
+}
+inline std::string* RackCuGlobalParityBatchTarget::mutable_blockkey() {
+  std::string* _s = _internal_mutable_blockkey();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.RackCuGlobalParityBatchTarget.blockkey)
+  return _s;
+}
+inline const std::string& RackCuGlobalParityBatchTarget::_internal_blockkey() const {
+  return _impl_.blockkey_.Get();
+}
+inline void RackCuGlobalParityBatchTarget::_internal_set_blockkey(const std::string& value) {
+  
+  _impl_.blockkey_.Set(value, GetArenaForAllocation());
+}
+inline std::string* RackCuGlobalParityBatchTarget::_internal_mutable_blockkey() {
+  
+  return _impl_.blockkey_.Mutable(GetArenaForAllocation());
+}
+inline std::string* RackCuGlobalParityBatchTarget::release_blockkey() {
+  // @@protoc_insertion_point(field_release:proxy_proto.RackCuGlobalParityBatchTarget.blockkey)
+  return _impl_.blockkey_.Release();
+}
+inline void RackCuGlobalParityBatchTarget::set_allocated_blockkey(std::string* blockkey) {
+  if (blockkey != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.blockkey_.SetAllocated(blockkey, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.blockkey_.IsDefault()) {
+    _impl_.blockkey_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.RackCuGlobalParityBatchTarget.blockkey)
+}
+
+// string datanode_ip = 5;
+inline void RackCuGlobalParityBatchTarget::clear_datanode_ip() {
+  _impl_.datanode_ip_.ClearToEmpty();
+}
+inline const std::string& RackCuGlobalParityBatchTarget::datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuGlobalParityBatchTarget.datanode_ip)
+  return _internal_datanode_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void RackCuGlobalParityBatchTarget::set_datanode_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuGlobalParityBatchTarget.datanode_ip)
+}
+inline std::string* RackCuGlobalParityBatchTarget::mutable_datanode_ip() {
+  std::string* _s = _internal_mutable_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.RackCuGlobalParityBatchTarget.datanode_ip)
+  return _s;
+}
+inline const std::string& RackCuGlobalParityBatchTarget::_internal_datanode_ip() const {
+  return _impl_.datanode_ip_.Get();
+}
+inline void RackCuGlobalParityBatchTarget::_internal_set_datanode_ip(const std::string& value) {
+  
+  _impl_.datanode_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* RackCuGlobalParityBatchTarget::_internal_mutable_datanode_ip() {
+  
+  return _impl_.datanode_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* RackCuGlobalParityBatchTarget::release_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.RackCuGlobalParityBatchTarget.datanode_ip)
+  return _impl_.datanode_ip_.Release();
+}
+inline void RackCuGlobalParityBatchTarget::set_allocated_datanode_ip(std::string* datanode_ip) {
+  if (datanode_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.datanode_ip_.SetAllocated(datanode_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.datanode_ip_.IsDefault()) {
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.RackCuGlobalParityBatchTarget.datanode_ip)
+}
+
+// int32 datanode_port = 6;
+inline void RackCuGlobalParityBatchTarget::clear_datanode_port() {
+  _impl_.datanode_port_ = 0;
+}
+inline int32_t RackCuGlobalParityBatchTarget::_internal_datanode_port() const {
+  return _impl_.datanode_port_;
+}
+inline int32_t RackCuGlobalParityBatchTarget::datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuGlobalParityBatchTarget.datanode_port)
+  return _internal_datanode_port();
+}
+inline void RackCuGlobalParityBatchTarget::_internal_set_datanode_port(int32_t value) {
+  
+  _impl_.datanode_port_ = value;
+}
+inline void RackCuGlobalParityBatchTarget::set_datanode_port(int32_t value) {
+  _internal_set_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuGlobalParityBatchTarget.datanode_port)
+}
+
+// string target_proxy_ip = 7;
+inline void RackCuGlobalParityBatchTarget::clear_target_proxy_ip() {
+  _impl_.target_proxy_ip_.ClearToEmpty();
+}
+inline const std::string& RackCuGlobalParityBatchTarget::target_proxy_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuGlobalParityBatchTarget.target_proxy_ip)
+  return _internal_target_proxy_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void RackCuGlobalParityBatchTarget::set_target_proxy_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.target_proxy_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuGlobalParityBatchTarget.target_proxy_ip)
+}
+inline std::string* RackCuGlobalParityBatchTarget::mutable_target_proxy_ip() {
+  std::string* _s = _internal_mutable_target_proxy_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.RackCuGlobalParityBatchTarget.target_proxy_ip)
+  return _s;
+}
+inline const std::string& RackCuGlobalParityBatchTarget::_internal_target_proxy_ip() const {
+  return _impl_.target_proxy_ip_.Get();
+}
+inline void RackCuGlobalParityBatchTarget::_internal_set_target_proxy_ip(const std::string& value) {
+  
+  _impl_.target_proxy_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* RackCuGlobalParityBatchTarget::_internal_mutable_target_proxy_ip() {
+  
+  return _impl_.target_proxy_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* RackCuGlobalParityBatchTarget::release_target_proxy_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.RackCuGlobalParityBatchTarget.target_proxy_ip)
+  return _impl_.target_proxy_ip_.Release();
+}
+inline void RackCuGlobalParityBatchTarget::set_allocated_target_proxy_ip(std::string* target_proxy_ip) {
+  if (target_proxy_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.target_proxy_ip_.SetAllocated(target_proxy_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.target_proxy_ip_.IsDefault()) {
+    _impl_.target_proxy_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.RackCuGlobalParityBatchTarget.target_proxy_ip)
+}
+
+// int32 target_proxy_port = 8;
+inline void RackCuGlobalParityBatchTarget::clear_target_proxy_port() {
+  _impl_.target_proxy_port_ = 0;
+}
+inline int32_t RackCuGlobalParityBatchTarget::_internal_target_proxy_port() const {
+  return _impl_.target_proxy_port_;
+}
+inline int32_t RackCuGlobalParityBatchTarget::target_proxy_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuGlobalParityBatchTarget.target_proxy_port)
+  return _internal_target_proxy_port();
+}
+inline void RackCuGlobalParityBatchTarget::_internal_set_target_proxy_port(int32_t value) {
+  
+  _impl_.target_proxy_port_ = value;
+}
+inline void RackCuGlobalParityBatchTarget::set_target_proxy_port(int32_t value) {
+  _internal_set_target_proxy_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuGlobalParityBatchTarget.target_proxy_port)
+}
+
+// -------------------------------------------------------------------
+
 // AppendStripeDataPlacement
 
 // string key = 1;
@@ -11008,6 +13102,106 @@ inline void AppendStripeDataPlacement::set_target_proxy_port(int32_t value) {
   // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.target_proxy_port)
 }
 
+// repeated .proxy_proto.RackCuHomeDeltaStagingRef rackcu_home_delta_staging_refs = 16;
+inline int AppendStripeDataPlacement::_internal_rackcu_home_delta_staging_refs_size() const {
+  return _impl_.rackcu_home_delta_staging_refs_.size();
+}
+inline int AppendStripeDataPlacement::rackcu_home_delta_staging_refs_size() const {
+  return _internal_rackcu_home_delta_staging_refs_size();
+}
+inline void AppendStripeDataPlacement::clear_rackcu_home_delta_staging_refs() {
+  _impl_.rackcu_home_delta_staging_refs_.Clear();
+}
+inline ::proxy_proto::RackCuHomeDeltaStagingRef* AppendStripeDataPlacement::mutable_rackcu_home_delta_staging_refs(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.AppendStripeDataPlacement.rackcu_home_delta_staging_refs)
+  return _impl_.rackcu_home_delta_staging_refs_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::RackCuHomeDeltaStagingRef >*
+AppendStripeDataPlacement::mutable_rackcu_home_delta_staging_refs() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.AppendStripeDataPlacement.rackcu_home_delta_staging_refs)
+  return &_impl_.rackcu_home_delta_staging_refs_;
+}
+inline const ::proxy_proto::RackCuHomeDeltaStagingRef& AppendStripeDataPlacement::_internal_rackcu_home_delta_staging_refs(int index) const {
+  return _impl_.rackcu_home_delta_staging_refs_.Get(index);
+}
+inline const ::proxy_proto::RackCuHomeDeltaStagingRef& AppendStripeDataPlacement::rackcu_home_delta_staging_refs(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.rackcu_home_delta_staging_refs)
+  return _internal_rackcu_home_delta_staging_refs(index);
+}
+inline ::proxy_proto::RackCuHomeDeltaStagingRef* AppendStripeDataPlacement::_internal_add_rackcu_home_delta_staging_refs() {
+  return _impl_.rackcu_home_delta_staging_refs_.Add();
+}
+inline ::proxy_proto::RackCuHomeDeltaStagingRef* AppendStripeDataPlacement::add_rackcu_home_delta_staging_refs() {
+  ::proxy_proto::RackCuHomeDeltaStagingRef* _add = _internal_add_rackcu_home_delta_staging_refs();
+  // @@protoc_insertion_point(field_add:proxy_proto.AppendStripeDataPlacement.rackcu_home_delta_staging_refs)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::RackCuHomeDeltaStagingRef >&
+AppendStripeDataPlacement::rackcu_home_delta_staging_refs() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.AppendStripeDataPlacement.rackcu_home_delta_staging_refs)
+  return _impl_.rackcu_home_delta_staging_refs_;
+}
+
+// int32 rackcu_collector_cluster_id = 17;
+inline void AppendStripeDataPlacement::clear_rackcu_collector_cluster_id() {
+  _impl_.rackcu_collector_cluster_id_ = 0;
+}
+inline int32_t AppendStripeDataPlacement::_internal_rackcu_collector_cluster_id() const {
+  return _impl_.rackcu_collector_cluster_id_;
+}
+inline int32_t AppendStripeDataPlacement::rackcu_collector_cluster_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.rackcu_collector_cluster_id)
+  return _internal_rackcu_collector_cluster_id();
+}
+inline void AppendStripeDataPlacement::_internal_set_rackcu_collector_cluster_id(int32_t value) {
+  
+  _impl_.rackcu_collector_cluster_id_ = value;
+}
+inline void AppendStripeDataPlacement::set_rackcu_collector_cluster_id(int32_t value) {
+  _internal_set_rackcu_collector_cluster_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.rackcu_collector_cluster_id)
+}
+
+// repeated .proxy_proto.RackCuGlobalParityBatchTarget rackcu_global_parity_batch = 18;
+inline int AppendStripeDataPlacement::_internal_rackcu_global_parity_batch_size() const {
+  return _impl_.rackcu_global_parity_batch_.size();
+}
+inline int AppendStripeDataPlacement::rackcu_global_parity_batch_size() const {
+  return _internal_rackcu_global_parity_batch_size();
+}
+inline void AppendStripeDataPlacement::clear_rackcu_global_parity_batch() {
+  _impl_.rackcu_global_parity_batch_.Clear();
+}
+inline ::proxy_proto::RackCuGlobalParityBatchTarget* AppendStripeDataPlacement::mutable_rackcu_global_parity_batch(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.AppendStripeDataPlacement.rackcu_global_parity_batch)
+  return _impl_.rackcu_global_parity_batch_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::RackCuGlobalParityBatchTarget >*
+AppendStripeDataPlacement::mutable_rackcu_global_parity_batch() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.AppendStripeDataPlacement.rackcu_global_parity_batch)
+  return &_impl_.rackcu_global_parity_batch_;
+}
+inline const ::proxy_proto::RackCuGlobalParityBatchTarget& AppendStripeDataPlacement::_internal_rackcu_global_parity_batch(int index) const {
+  return _impl_.rackcu_global_parity_batch_.Get(index);
+}
+inline const ::proxy_proto::RackCuGlobalParityBatchTarget& AppendStripeDataPlacement::rackcu_global_parity_batch(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.rackcu_global_parity_batch)
+  return _internal_rackcu_global_parity_batch(index);
+}
+inline ::proxy_proto::RackCuGlobalParityBatchTarget* AppendStripeDataPlacement::_internal_add_rackcu_global_parity_batch() {
+  return _impl_.rackcu_global_parity_batch_.Add();
+}
+inline ::proxy_proto::RackCuGlobalParityBatchTarget* AppendStripeDataPlacement::add_rackcu_global_parity_batch() {
+  ::proxy_proto::RackCuGlobalParityBatchTarget* _add = _internal_add_rackcu_global_parity_batch();
+  // @@protoc_insertion_point(field_add:proxy_proto.AppendStripeDataPlacement.rackcu_global_parity_batch)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::RackCuGlobalParityBatchTarget >&
+AppendStripeDataPlacement::rackcu_global_parity_batch() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.AppendStripeDataPlacement.rackcu_global_parity_batch)
+  return _impl_.rackcu_global_parity_batch_;
+}
+
 // -------------------------------------------------------------------
 
 // SetReply
@@ -11417,6 +13611,18 @@ StripeAndBlockIDs::mutable_datanodeports() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

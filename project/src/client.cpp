@@ -1,5 +1,6 @@
 #include "client.h"
 #include "coordinator.grpc.pb.h"
+#include "proxy.grpc.pb.h"
 #include "proxy.pb.h"
 
 #include <asio.hpp>
@@ -21,7 +22,7 @@ namespace ECProject
       return code_type == "AzureLRC" || code_type == "RandomLRC";
     }
 
-    // 必须与 coordinator.cpp 匿名命名空间中的 RackCuClientStep 取值一致
+    // 必须与 coordinator.cpp 匿名命名空间中的 RackCuClientStep 取值一致（与历史 group_ids 兼容）
     enum RackCuClientStep : int32_t
     {
       RACKCU_STEP_DATA_HOME = 1,
@@ -53,64 +54,6 @@ namespace ECProject
         }
       }
       vec.swap(merged);
-    }
-
-    constexpr uint32_t k_rackcu_home_delta_magic = 0x52434448u;
-    inline uint32_t rackcu_rd_u32_le(const unsigned char *p)
-    {
-      return static_cast<uint32_t>(p[0]) | (static_cast<uint32_t>(p[1]) << 8) | (static_cast<uint32_t>(p[2]) << 16) |
-             (static_cast<uint32_t>(p[3]) << 24);
-    }
-    inline int32_t rackcu_rd_i32_le(const unsigned char *p)
-    {
-      return static_cast<int32_t>(rackcu_rd_u32_le(p));
-    }
-    bool merge_rackcu_home_delta_blob_into(const std::string &blob, int k, int block_size,
-                                           std::vector<std::vector<unsigned char>> *rows)
-    {
-      if (rows == nullptr || static_cast<int>(rows->size()) < k)
-      {
-        return false;
-      }
-      if (blob.size() < 8u)
-      {
-        return false;
-      }
-      const auto *base = reinterpret_cast<const unsigned char *>(blob.data());
-      if (rackcu_rd_u32_le(base) != k_rackcu_home_delta_magic)
-      {
-        return false;
-      }
-      const uint32_t nseg = rackcu_rd_u32_le(base + 4);
-      size_t pos = 8u;
-      for (uint32_t si = 0; si < nseg; si++)
-      {
-        if (pos + 12u > blob.size())
-        {
-          return false;
-        }
-        const int32_t bid = rackcu_rd_i32_le(base + pos);
-        pos += 4u;
-        const int32_t off = rackcu_rd_i32_le(base + pos);
-        pos += 4u;
-        const int32_t len = rackcu_rd_i32_le(base + pos);
-        pos += 4u;
-        if (bid < 0 || bid >= k || off < 0 || len < 0 || off + len > block_size)
-        {
-          return false;
-        }
-        if (pos + static_cast<size_t>(len) > blob.size())
-        {
-          return false;
-        }
-        if ((*rows)[static_cast<size_t>(bid)].size() != static_cast<size_t>(block_size))
-        {
-          (*rows)[static_cast<size_t>(bid)].assign(static_cast<size_t>(block_size), 0);
-        }
-        std::memcpy((*rows)[static_cast<size_t>(bid)].data() + off, base + pos, static_cast<size_t>(len));
-        pos += static_cast<size_t>(len);
-      }
-      return pos == blob.size();
     }
 
   }
@@ -462,14 +405,6 @@ namespace ECProject
       if (reply.ifcommit())
       {
         if_commit_arr[index] = true;
-        if (rackcu_delta_by_block != nullptr && reply.rackcu_home_delta_blob().size() > 0)
-        {
-          if (!merge_rackcu_home_delta_blob_into(reply.rackcu_home_delta_blob(), static_cast<int>(m_sys_config->k),
-                                                 static_cast<int>(m_sys_config->BlockSize), rackcu_delta_by_block))
-          {
-            std::cout << "[RACKCU] merge home delta blob failed append_key=" << append_key << std::endl;
-          }
-        }
       }
       else
       {
@@ -1056,46 +991,13 @@ namespace ECProject
       return w;
     };
 
-    std::vector<std::vector<unsigned char>> rackcu_delta_by_block(
-        static_cast<size_t>(k), std::vector<unsigned char>(static_cast<size_t>(block_size), 0));
-
-    auto pack_merge_plan_use_delta = [&](const proxy_proto::AppendStripeDataPlacement &plan, char *dst, size_t expect_total) -> bool {
-      const int pn = plan.blockids_size();
-      if (pn < 2)
-      {
-        return false;
-      }
-      size_t w = 0;
-      for (int j = 0; j + 1 < pn; j++)
-      {
-        const int bid = plan.blockids(j);
-        const int off = static_cast<int>(plan.offsets(j));
-        const int len = static_cast<int>(plan.sizes(j));
-        if (bid < 0 || bid >= k || off < 0 || len < 0 || off + len > block_size)
-        {
-          return false;
-        }
-        std::memcpy(dst + w, rackcu_delta_by_block[static_cast<size_t>(bid)].data() + off, static_cast<size_t>(len));
-        w += static_cast<size_t>(len);
-      }
-      const int off_last = static_cast<int>(plan.offsets(pn - 1));
-      const int len_last = static_cast<int>(plan.sizes(pn - 1));
-      if (off_last < 0 || len_last < 0 || off_last + len_last > block_size)
-      {
-        return false;
-      }
-      std::memset(dst + w, 0, static_cast<size_t>(len_last));
-      w += static_cast<size_t>(len_last);
-      return w == expect_total;
-    };
-
     std::vector<int> dispatch_order;
     dispatch_order.reserve(static_cast<size_t>(nsteps));
     for (int i = 0; i < nsteps; i++)
     {
       dispatch_order.push_back(i);
     }
-    // 先执行所有 DATA_HOME（home 读旧、写新、经 coordinator 回传 ΔD），再 COLLECTOR（仍发 new），最后 parity（TCP 仅带 ΔD）。
+    // 先 DATA_HOME，再（若存在）DATA_TO_COLLECTOR，最后 parity；与历史 group_ids 分桶一致。
     auto rackcu_step_bucket = [](int32_t s) -> int {
       if (s == RACKCU_STEP_DATA_HOME)
       {
@@ -1129,7 +1031,7 @@ namespace ECProject
       }
 
       const size_t slice_size = static_cast<size_t>(reply.cluster_slice_sizes(i));
-      std::vector<char> buf(slice_size);
+      std::vector<char> buf(std::max(slice_size, static_cast<size_t>(1)), 0);
       char *p = buf.data();
 
       const int32_t step = reply.group_ids(i);
@@ -1140,7 +1042,6 @@ namespace ECProject
       switch (step)
       {
       case RACKCU_STEP_DATA_HOME:
-      case RACKCU_STEP_DATA_TO_COLLECTOR:
       {
         const size_t w = pack_slices_in_plan_order(plan, p);
         if (w != slice_size)
@@ -1150,34 +1051,28 @@ namespace ECProject
         }
         break;
       }
-      case RACKCU_STEP_PARITY_GLOBAL_FROM_DATA:
+      case RACKCU_STEP_DATA_TO_COLLECTOR:
       {
-        if (!pack_merge_plan_use_delta(plan, p, slice_size))
-        {
-          std::cout << "[RACKCU] pack PARITY_GLOBAL_FROM_DATA (home delta) failed" << std::endl;
-          return false;
-        }
-        break;
+        std::cout << "[RACKCU] 本 client 不再执行 DATA_TO_COLLECTOR（group_ids=2）；请升级 coordinator/proxy 至同版本，"
+                     "或与仍下发该步的旧 coordinator 配套的旧 client 一起使用"
+                  << std::endl;
+        return false;
       }
+      case RACKCU_STEP_PARITY_GLOBAL_FROM_DATA:
       case RACKCU_STEP_PARITY_GLOBAL:
       {
-        if (!plan.is_merge_parity() || plan.blockids_size() < 2)
+        if (plan.append_mode().find("HOME_DELTA_STAGING") != std::string::npos)
         {
-          std::cout << "[RACKCU] invalid PARITY_GLOBAL plan" << std::endl;
-          return false;
+          if (slice_size != 0)
+          {
+            std::cout << "[RACKCU] parity staging step expects cluster_slice_sizes==0" << std::endl;
+            return false;
+          }
+          break;
         }
-        const int pbid = plan.blockids(plan.blockids_size() - 1);
-        if (pbid < k || pbid >= k + r)
-        {
-          std::cout << "[RACKCU] PARITY_GLOBAL plan block id invalid" << std::endl;
-          return false;
-        }
-        if (!pack_merge_plan_use_delta(plan, p, slice_size))
-        {
-          std::cout << "[RACKCU] pack PARITY_GLOBAL (home delta) failed" << std::endl;
-          return false;
-        }
-        break;
+        std::cout << "[RACKCU] unsupported parity append_mode (expected *_HOME_DELTA_STAGING): " << plan.append_mode()
+                  << std::endl;
+        return false;
       }
       case RACKCU_STEP_LOCAL_PARITY:
       {
@@ -1199,14 +1094,19 @@ namespace ECProject
           std::cout << "[RACKCU] LOCAL_PARITY tail slice bounds invalid" << std::endl;
           return false;
         }
-        if (plan.append_mode().find("RACKCU_LOCAL_FROM_DATA") != std::string::npos)
+        if (plan.append_mode().find("HOME_DELTA_STAGING") != std::string::npos)
         {
-          if (!pack_merge_plan_use_delta(plan, p, slice_size))
+          if (slice_size != 0)
           {
-            std::cout << "[RACKCU] pack LOCAL_FROM_DATA (home delta) failed" << std::endl;
+            std::cout << "[RACKCU] local parity staging expects cluster_slice_sizes==0" << std::endl;
             return false;
           }
           break;
+        }
+        if (plan.append_mode().find("RACKCU_LOCAL_FROM_DATA") != std::string::npos)
+        {
+          std::cout << "[RACKCU] unsupported local parity append_mode: " << plan.append_mode() << std::endl;
+          return false;
         }
 
         // 兼容旧路径：客户端本地计算 local parity delta 后发送
@@ -1255,10 +1155,32 @@ namespace ECProject
       }
 
       bool ok = true;
-      async_append_to_proxies(p, reply.append_keys(i), static_cast<int>(slice_size), reply.proxyips(i), reply.proxyports(i), i, &ok, stripe_id,
-                              (step == RACKCU_STEP_DATA_HOME) ? &rackcu_delta_by_block : nullptr);
+      async_append_to_proxies(p, reply.append_keys(i), static_cast<int>(slice_size), reply.proxyips(i), reply.proxyports(i), 0, &ok, stripe_id,
+                              nullptr);
       if (!ok)
       {
+        return false;
+      }
+    }
+
+    // 全轮（含所有 parity）成功后：删除各 holder 上 datanode 的 home Δ 暂存；校验增量已合并进正式 parity 块，无单独暂存
+    for (int ci = 0; ci < reply.rack_cu_staging_cleanup_size(); ci++)
+    {
+      const coordinator_proto::RackCuStagingCleanupRef &r = reply.rack_cu_staging_cleanup(ci);
+      const std::string channel = r.holder_proxy_ip() + ":" + std::to_string(r.holder_proxy_port());
+      auto ch = grpc::CreateChannel(channel, grpc::InsecureChannelCredentials());
+      auto stub = proxy_proto::proxyService::NewStub(ch);
+      proxy_proto::RackCuHomeDeltaDeleteRequest dreq;
+      dreq.set_staging_key(r.staging_key());
+      dreq.set_staging_datanode_ip(r.staging_datanode_ip());
+      dreq.set_staging_datanode_port(r.staging_datanode_port());
+      grpc::ClientContext dctx;
+      proxy_proto::RackCuHomeDeltaDeleteReply drep;
+      grpc::Status dst = stub->deleteRackCuHomeDeltaStaging(&dctx, dreq, &drep);
+      if (!dst.ok() || !drep.ok())
+      {
+        std::cout << "[RACKCU] staging cleanup failed key=" << r.staging_key() << " holder=" << channel
+                  << " grpc=" << (dst.ok() ? "ok" : dst.error_message()) << " del_ok=" << drep.ok() << std::endl;
         return false;
       }
     }

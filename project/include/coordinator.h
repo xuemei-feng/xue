@@ -211,7 +211,6 @@ namespace ECProject
     std::vector<std::vector<int>> m_merge_groups;
     std::vector<int> m_free_clusters;
     int m_agg_start_cid = 0;
-    std::unordered_map<std::string, std::string> m_rackcu_home_delta_by_append_key;
   };
 
   class Coordinator

@@ -108,6 +108,20 @@ message CommitAbortKey {
   int32 stripe_id = 4;
   // RackCU DATA_HOME：各数据块 ΔD=new⊕old 的序列化（见 proxy / client 约定格式）
   bytes rackcu_home_delta_blob = 5;
+  // 纯集群路径：Δ 已写入 holder 侧 datanode，不再经 coordinator 回传大块给 client
+  string rackcu_home_staging_key = 6;
+  uint64 rackcu_home_staging_bytes = 7;
+  string rackcu_home_staging_dn_ip = 8;
+  int32 rackcu_home_staging_dn_port = 9;
+}
+
+// RackCU：本轮 DATA_HOME 写入的 home Δ 暂存位置；全轮成功后由 client 调各 holder 删除
+message RackCuStagingCleanupRef {
+  string staging_key = 1;
+  string holder_proxy_ip = 2;
+  int32 holder_proxy_port = 3;
+  string staging_datanode_ip = 4;
+  int32 staging_datanode_port = 5;
 }
 
 // append
@@ -120,6 +134,7 @@ message ReplyProxyIPsPorts {
   repeated int32 group_ids = 6;
   // 与 append_keys 等字段一一对应：proxy_proto.AppendStripeDataPlacement 的 SerializeAsString 结果
   repeated bytes append_plans = 7;
+  repeated RackCuStagingCleanupRef rack_cu_staging_cleanup = 8;
 }
 
 // set, del, merge
