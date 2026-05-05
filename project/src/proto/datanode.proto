@@ -36,6 +36,9 @@ service datanodeService {
   rpc handleGetBreakdown(GetInfo) returns(RequestResult);
   // delete
   rpc handleDelete(DelInfo) returns(RequestResult);
+  // random access read/write for in-place updates (XUE_UPDATE data path)
+  rpc handleReadRange(ReadRangeInfo) returns(RequestResult);
+  rpc handleWriteRange(WriteRangeInfo) returns(RequestResult);
 }
 
 // The request message containing the user's name.
@@ -84,4 +87,18 @@ message GetInfo {
 
 message DelInfo {
     string block_key = 1;
+}
+
+message ReadRangeInfo {
+    string block_key = 1;
+    int32 block_id = 2;
+    int32 range_offset = 3;
+    int32 range_size = 4;
+}
+
+message WriteRangeInfo {
+    string block_key = 1;
+    int32 block_id = 2;
+    int32 range_offset = 3;
+    int32 range_size = 4;
 }

@@ -1,5 +1,6 @@
 #include "datanode.h"
 #include "toolbox.h"
+#include <cstdio>
 #include <fstream>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -267,6 +268,143 @@ namespace ECProject
             std::cerr << e.what() << '\n';
         }
 
+        return grpc::Status::OK;
+    }
+
+    grpc::Status DatanodeImpl::handleReadRange(
+        grpc::ServerContext *context,
+        const datanode_proto::ReadRangeInfo *request,
+        datanode_proto::RequestResult *response)
+    {
+        (void)context;
+        std::string block_key = request->block_key();
+        const int range_offset = request->range_offset();
+        const int range_size = request->range_size();
+        if (range_size <= 0)
+        {
+            response->set_message(false);
+            return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid range_size");
+        }
+
+        auto buf = std::make_shared<std::vector<char>>(static_cast<size_t>(range_size), 0);
+        std::string targetdir = "./storage/" + std::to_string(m_port) + "/";
+        std::string readpath = targetdir + block_key;
+        if (access(readpath.c_str(), F_OK) == 0)
+        {
+            FILE *fp = std::fopen(readpath.c_str(), "rb");
+            if (fp != nullptr)
+            {
+                if (std::fseek(fp, range_offset, SEEK_SET) == 0)
+                {
+                    const size_t n = std::fread(buf->data(), 1, static_cast<size_t>(range_size), fp);
+                    (void)n;
+                }
+                std::fclose(fp);
+            }
+        }
+
+        auto handler = [this, buf, range_size]() mutable
+        {
+            try
+            {
+                asio::error_code ec;
+                asio::ip::tcp::socket socket(io_context);
+                acceptor.accept(socket);
+                asio::write(socket, asio::buffer(buf->data(), static_cast<size_t>(range_size)), ec);
+                asio::error_code ignore_ec;
+                socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+                socket.close(ignore_ec);
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << e.what() << '\n';
+            }
+        };
+
+        try
+        {
+            std::thread my_thread(handler);
+            my_thread.detach();
+            response->set_message(true);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+        return grpc::Status::OK;
+    }
+
+    grpc::Status DatanodeImpl::handleWriteRange(
+        grpc::ServerContext *context,
+        const datanode_proto::WriteRangeInfo *request,
+        datanode_proto::RequestResult *response)
+    {
+        (void)context;
+        std::string block_key = request->block_key();
+        const int range_offset = request->range_offset();
+        const int range_size = request->range_size();
+        if (range_size <= 0)
+        {
+            response->set_message(false);
+            return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid range_size");
+        }
+
+        std::string targetdir = "./storage/" + std::to_string(m_port) + "/";
+        std::string writepath = targetdir + block_key;
+        if (access(targetdir.c_str(), F_OK) == -1)
+        {
+            createDirectories(targetdir);
+        }
+
+        auto handler = [this, writepath, range_offset, range_size]() mutable
+        {
+            try
+            {
+                std::vector<char> payload(static_cast<size_t>(range_size));
+                asio::error_code ec;
+                asio::ip::tcp::socket socket(io_context);
+                acceptor.accept(socket);
+                asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(range_size)), ec);
+                asio::error_code ignore_ec;
+                socket.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
+                socket.close(ignore_ec);
+
+                FILE *fp = std::fopen(writepath.c_str(), "r+b");
+                if (fp == nullptr)
+                {
+                    fp = std::fopen(writepath.c_str(), "w+b");
+                }
+                if (fp == nullptr)
+                {
+                    std::cerr << "[Datanode] handleWriteRange: cannot open " << writepath << std::endl;
+                    return;
+                }
+                if (std::fseek(fp, range_offset, SEEK_SET) != 0)
+                {
+                    std::fclose(fp);
+                    return;
+                }
+                const size_t w = std::fwrite(payload.data(), 1, static_cast<size_t>(range_size), fp);
+                (void)w;
+                std::fflush(fp);
+                std::fclose(fp);
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << e.what() << '\n';
+            }
+        };
+
+        try
+        {
+            std::thread my_thread(handler);
+            my_thread.detach();
+            response->set_message(true);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+        }
         return grpc::Status::OK;
     }
 

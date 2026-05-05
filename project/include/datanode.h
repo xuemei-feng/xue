@@ -72,6 +72,14 @@ namespace ECProject
             grpc::ServerContext *context,
             const datanode_proto::DelInfo *del_info,
             datanode_proto::RequestResult *response) override;
+        grpc::Status handleReadRange(
+            grpc::ServerContext *context,
+            const datanode_proto::ReadRangeInfo *request,
+            datanode_proto::RequestResult *response) override;
+        grpc::Status handleWriteRange(
+            grpc::ServerContext *context,
+            const datanode_proto::WriteRangeInfo *request,
+            datanode_proto::RequestResult *response) override;
 
         void serialize(const std::string &filename, const ParitySlice &slice);
         std::vector<ParitySlice> deserialize(const std::string &filename);

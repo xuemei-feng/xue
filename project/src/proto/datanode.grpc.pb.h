@@ -129,6 +129,21 @@ class datanodeService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>> PrepareAsynchandleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>>(PrepareAsynchandleDeleteRaw(context, request, cq));
     }
+    // random access read/write for in-place updates (XUE_UPDATE data path)
+    virtual ::grpc::Status handleReadRange(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo& request, ::datanode_proto::RequestResult* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>> AsynchandleReadRange(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>>(AsynchandleReadRangeRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>> PrepareAsynchandleReadRange(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>>(PrepareAsynchandleReadRangeRaw(context, request, cq));
+    }
+    virtual ::grpc::Status handleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::datanode_proto::RequestResult* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>> AsynchandleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>>(AsynchandleWriteRangeRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>> PrepareAsynchandleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>>(PrepareAsynchandleWriteRangeRaw(context, request, cq));
+    }
     class async_interface {
      public:
       virtual ~async_interface() {}
@@ -160,6 +175,11 @@ class datanodeService final {
       // delete
       virtual void handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
       virtual void handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      // random access read/write for in-place updates (XUE_UPDATE data path)
+      virtual void handleReadRange(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleReadRange(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void handleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
@@ -185,6 +205,10 @@ class datanodeService final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* PrepareAsynchandleGetBreakdownRaw(::grpc::ClientContext* context, const ::datanode_proto::GetInfo& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* AsynchandleDeleteRaw(::grpc::ClientContext* context, const ::datanode_proto::DelInfo& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* PrepareAsynchandleDeleteRaw(::grpc::ClientContext* context, const ::datanode_proto::DelInfo& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* AsynchandleReadRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* PrepareAsynchandleReadRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* AsynchandleWriteRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* PrepareAsynchandleWriteRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -259,6 +283,20 @@ class datanodeService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>> PrepareAsynchandleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>>(PrepareAsynchandleDeleteRaw(context, request, cq));
     }
+    ::grpc::Status handleReadRange(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo& request, ::datanode_proto::RequestResult* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>> AsynchandleReadRange(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>>(AsynchandleReadRangeRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>> PrepareAsynchandleReadRange(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>>(PrepareAsynchandleReadRangeRaw(context, request, cq));
+    }
+    ::grpc::Status handleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::datanode_proto::RequestResult* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>> AsynchandleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>>(AsynchandleWriteRangeRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>> PrepareAsynchandleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>>(PrepareAsynchandleWriteRangeRaw(context, request, cq));
+    }
     class async final :
       public StubInterface::async_interface {
      public:
@@ -282,6 +320,10 @@ class datanodeService final {
       void handleGetBreakdown(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
       void handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
       void handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void handleReadRange(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleReadRange(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void handleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -313,6 +355,10 @@ class datanodeService final {
     ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* PrepareAsynchandleGetBreakdownRaw(::grpc::ClientContext* context, const ::datanode_proto::GetInfo& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* AsynchandleDeleteRaw(::grpc::ClientContext* context, const ::datanode_proto::DelInfo& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* PrepareAsynchandleDeleteRaw(::grpc::ClientContext* context, const ::datanode_proto::DelInfo& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* AsynchandleReadRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* PrepareAsynchandleReadRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* AsynchandleWriteRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* PrepareAsynchandleWriteRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_checkalive_;
     const ::grpc::internal::RpcMethod rpcmethod_handleSet_;
     const ::grpc::internal::RpcMethod rpcmethod_handleAppend_;
@@ -323,6 +369,8 @@ class datanodeService final {
     const ::grpc::internal::RpcMethod rpcmethod_handleGet_;
     const ::grpc::internal::RpcMethod rpcmethod_handleGetBreakdown_;
     const ::grpc::internal::RpcMethod rpcmethod_handleDelete_;
+    const ::grpc::internal::RpcMethod rpcmethod_handleReadRange_;
+    const ::grpc::internal::RpcMethod rpcmethod_handleWriteRange_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -348,6 +396,9 @@ class datanodeService final {
     virtual ::grpc::Status handleGetBreakdown(::grpc::ServerContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response);
     // delete
     virtual ::grpc::Status handleDelete(::grpc::ServerContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response);
+    // random access read/write for in-place updates (XUE_UPDATE data path)
+    virtual ::grpc::Status handleReadRange(::grpc::ServerContext* context, const ::datanode_proto::ReadRangeInfo* request, ::datanode_proto::RequestResult* response);
+    virtual ::grpc::Status handleWriteRange(::grpc::ServerContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_checkalive : public BaseClass {
@@ -549,7 +600,47 @@ class datanodeService final {
       ::grpc::Service::RequestAsyncUnary(9, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_checkalive<WithAsyncMethod_handleSet<WithAsyncMethod_handleAppend<WithAsyncMethod_handleMergeParity<WithAsyncMethod_handleMergeParityWithRep<WithAsyncMethod_handleRecovery<WithAsyncMethod_handleRecoveryBreakdown<WithAsyncMethod_handleGet<WithAsyncMethod_handleGetBreakdown<WithAsyncMethod_handleDelete<Service > > > > > > > > > > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_handleReadRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_handleReadRange() {
+      ::grpc::Service::MarkMethodAsync(10);
+    }
+    ~WithAsyncMethod_handleReadRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleReadRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::ReadRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequesthandleReadRange(::grpc::ServerContext* context, ::datanode_proto::ReadRangeInfo* request, ::grpc::ServerAsyncResponseWriter< ::datanode_proto::RequestResult>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(10, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_handleWriteRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_handleWriteRange() {
+      ::grpc::Service::MarkMethodAsync(11);
+    }
+    ~WithAsyncMethod_handleWriteRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleWriteRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequesthandleWriteRange(::grpc::ServerContext* context, ::datanode_proto::WriteRangeInfo* request, ::grpc::ServerAsyncResponseWriter< ::datanode_proto::RequestResult>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(11, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_checkalive<WithAsyncMethod_handleSet<WithAsyncMethod_handleAppend<WithAsyncMethod_handleMergeParity<WithAsyncMethod_handleMergeParityWithRep<WithAsyncMethod_handleRecovery<WithAsyncMethod_handleRecoveryBreakdown<WithAsyncMethod_handleGet<WithAsyncMethod_handleGetBreakdown<WithAsyncMethod_handleDelete<WithAsyncMethod_handleReadRange<WithAsyncMethod_handleWriteRange<Service > > > > > > > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_checkalive : public BaseClass {
    private:
@@ -820,7 +911,61 @@ class datanodeService final {
     virtual ::grpc::ServerUnaryReactor* handleDelete(
       ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::DelInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_checkalive<WithCallbackMethod_handleSet<WithCallbackMethod_handleAppend<WithCallbackMethod_handleMergeParity<WithCallbackMethod_handleMergeParityWithRep<WithCallbackMethod_handleRecovery<WithCallbackMethod_handleRecoveryBreakdown<WithCallbackMethod_handleGet<WithCallbackMethod_handleGetBreakdown<WithCallbackMethod_handleDelete<Service > > > > > > > > > > CallbackService;
+  template <class BaseClass>
+  class WithCallbackMethod_handleReadRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_handleReadRange() {
+      ::grpc::Service::MarkMethodCallback(10,
+          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::ReadRangeInfo, ::datanode_proto::RequestResult>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::datanode_proto::ReadRangeInfo* request, ::datanode_proto::RequestResult* response) { return this->handleReadRange(context, request, response); }));}
+    void SetMessageAllocatorFor_handleReadRange(
+        ::grpc::MessageAllocator< ::datanode_proto::ReadRangeInfo, ::datanode_proto::RequestResult>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(10);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::ReadRangeInfo, ::datanode_proto::RequestResult>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_handleReadRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleReadRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::ReadRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* handleReadRange(
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::ReadRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithCallbackMethod_handleWriteRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_handleWriteRange() {
+      ::grpc::Service::MarkMethodCallback(11,
+          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::WriteRangeInfo, ::datanode_proto::RequestResult>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response) { return this->handleWriteRange(context, request, response); }));}
+    void SetMessageAllocatorFor_handleWriteRange(
+        ::grpc::MessageAllocator< ::datanode_proto::WriteRangeInfo, ::datanode_proto::RequestResult>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(11);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::WriteRangeInfo, ::datanode_proto::RequestResult>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_handleWriteRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleWriteRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* handleWriteRange(
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+  };
+  typedef WithCallbackMethod_checkalive<WithCallbackMethod_handleSet<WithCallbackMethod_handleAppend<WithCallbackMethod_handleMergeParity<WithCallbackMethod_handleMergeParityWithRep<WithCallbackMethod_handleRecovery<WithCallbackMethod_handleRecoveryBreakdown<WithCallbackMethod_handleGet<WithCallbackMethod_handleGetBreakdown<WithCallbackMethod_handleDelete<WithCallbackMethod_handleReadRange<WithCallbackMethod_handleWriteRange<Service > > > > > > > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_checkalive : public BaseClass {
@@ -988,6 +1133,40 @@ class datanodeService final {
     }
     // disable synchronous version of this method
     ::grpc::Status handleDelete(::grpc::ServerContext* /*context*/, const ::datanode_proto::DelInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_handleReadRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_handleReadRange() {
+      ::grpc::Service::MarkMethodGeneric(10);
+    }
+    ~WithGenericMethod_handleReadRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleReadRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::ReadRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_handleWriteRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_handleWriteRange() {
+      ::grpc::Service::MarkMethodGeneric(11);
+    }
+    ~WithGenericMethod_handleWriteRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleWriteRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -1190,6 +1369,46 @@ class datanodeService final {
     }
     void RequesthandleDelete(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(9, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_handleReadRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_handleReadRange() {
+      ::grpc::Service::MarkMethodRaw(10);
+    }
+    ~WithRawMethod_handleReadRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleReadRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::ReadRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequesthandleReadRange(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(10, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_handleWriteRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_handleWriteRange() {
+      ::grpc::Service::MarkMethodRaw(11);
+    }
+    ~WithRawMethod_handleWriteRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleWriteRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequesthandleWriteRange(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(11, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -1410,6 +1629,50 @@ class datanodeService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     virtual ::grpc::ServerUnaryReactor* handleDelete(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_handleReadRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_handleReadRange() {
+      ::grpc::Service::MarkMethodRawCallback(10,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleReadRange(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_handleReadRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleReadRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::ReadRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* handleReadRange(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_handleWriteRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_handleWriteRange() {
+      ::grpc::Service::MarkMethodRawCallback(11,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleWriteRange(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_handleWriteRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleWriteRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* handleWriteRange(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -1682,9 +1945,63 @@ class datanodeService final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedhandleDelete(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::datanode_proto::DelInfo,::datanode_proto::RequestResult>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_handleSet<WithStreamedUnaryMethod_handleAppend<WithStreamedUnaryMethod_handleMergeParity<WithStreamedUnaryMethod_handleMergeParityWithRep<WithStreamedUnaryMethod_handleRecovery<WithStreamedUnaryMethod_handleRecoveryBreakdown<WithStreamedUnaryMethod_handleGet<WithStreamedUnaryMethod_handleGetBreakdown<WithStreamedUnaryMethod_handleDelete<Service > > > > > > > > > > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_handleReadRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_handleReadRange() {
+      ::grpc::Service::MarkMethodStreamed(10,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::datanode_proto::ReadRangeInfo, ::datanode_proto::RequestResult>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::datanode_proto::ReadRangeInfo, ::datanode_proto::RequestResult>* streamer) {
+                       return this->StreamedhandleReadRange(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_handleReadRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status handleReadRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::ReadRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedhandleReadRange(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::datanode_proto::ReadRangeInfo,::datanode_proto::RequestResult>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_handleWriteRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_handleWriteRange() {
+      ::grpc::Service::MarkMethodStreamed(11,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::datanode_proto::WriteRangeInfo, ::datanode_proto::RequestResult>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::datanode_proto::WriteRangeInfo, ::datanode_proto::RequestResult>* streamer) {
+                       return this->StreamedhandleWriteRange(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_handleWriteRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status handleWriteRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedhandleWriteRange(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::datanode_proto::WriteRangeInfo,::datanode_proto::RequestResult>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_handleSet<WithStreamedUnaryMethod_handleAppend<WithStreamedUnaryMethod_handleMergeParity<WithStreamedUnaryMethod_handleMergeParityWithRep<WithStreamedUnaryMethod_handleRecovery<WithStreamedUnaryMethod_handleRecoveryBreakdown<WithStreamedUnaryMethod_handleGet<WithStreamedUnaryMethod_handleGetBreakdown<WithStreamedUnaryMethod_handleDelete<WithStreamedUnaryMethod_handleReadRange<WithStreamedUnaryMethod_handleWriteRange<Service > > > > > > > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_handleSet<WithStreamedUnaryMethod_handleAppend<WithStreamedUnaryMethod_handleMergeParity<WithStreamedUnaryMethod_handleMergeParityWithRep<WithStreamedUnaryMethod_handleRecovery<WithStreamedUnaryMethod_handleRecoveryBreakdown<WithStreamedUnaryMethod_handleGet<WithStreamedUnaryMethod_handleGetBreakdown<WithStreamedUnaryMethod_handleDelete<Service > > > > > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_handleSet<WithStreamedUnaryMethod_handleAppend<WithStreamedUnaryMethod_handleMergeParity<WithStreamedUnaryMethod_handleMergeParityWithRep<WithStreamedUnaryMethod_handleRecovery<WithStreamedUnaryMethod_handleRecoveryBreakdown<WithStreamedUnaryMethod_handleGet<WithStreamedUnaryMethod_handleGetBreakdown<WithStreamedUnaryMethod_handleDelete<WithStreamedUnaryMethod_handleReadRange<WithStreamedUnaryMethod_handleWriteRange<Service > > > > > > > > > > > > StreamedService;
 };
 
 }  // namespace datanode_proto

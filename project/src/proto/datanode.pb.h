@@ -60,12 +60,18 @@ extern GetInfoDefaultTypeInternal _GetInfo_default_instance_;
 class MergeParityInfo;
 struct MergeParityInfoDefaultTypeInternal;
 extern MergeParityInfoDefaultTypeInternal _MergeParityInfo_default_instance_;
+class ReadRangeInfo;
+struct ReadRangeInfoDefaultTypeInternal;
+extern ReadRangeInfoDefaultTypeInternal _ReadRangeInfo_default_instance_;
 class RequestResult;
 struct RequestResultDefaultTypeInternal;
 extern RequestResultDefaultTypeInternal _RequestResult_default_instance_;
 class SetInfo;
 struct SetInfoDefaultTypeInternal;
 extern SetInfoDefaultTypeInternal _SetInfo_default_instance_;
+class WriteRangeInfo;
+struct WriteRangeInfoDefaultTypeInternal;
+extern WriteRangeInfoDefaultTypeInternal _WriteRangeInfo_default_instance_;
 }  // namespace datanode_proto
 PROTOBUF_NAMESPACE_OPEN
 template<> ::datanode_proto::AppendInfo* Arena::CreateMaybeMessage<::datanode_proto::AppendInfo>(Arena*);
@@ -73,8 +79,10 @@ template<> ::datanode_proto::CheckaliveCMD* Arena::CreateMaybeMessage<::datanode
 template<> ::datanode_proto::DelInfo* Arena::CreateMaybeMessage<::datanode_proto::DelInfo>(Arena*);
 template<> ::datanode_proto::GetInfo* Arena::CreateMaybeMessage<::datanode_proto::GetInfo>(Arena*);
 template<> ::datanode_proto::MergeParityInfo* Arena::CreateMaybeMessage<::datanode_proto::MergeParityInfo>(Arena*);
+template<> ::datanode_proto::ReadRangeInfo* Arena::CreateMaybeMessage<::datanode_proto::ReadRangeInfo>(Arena*);
 template<> ::datanode_proto::RequestResult* Arena::CreateMaybeMessage<::datanode_proto::RequestResult>(Arena*);
 template<> ::datanode_proto::SetInfo* Arena::CreateMaybeMessage<::datanode_proto::SetInfo>(Arena*);
+template<> ::datanode_proto::WriteRangeInfo* Arena::CreateMaybeMessage<::datanode_proto::WriteRangeInfo>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace datanode_proto {
 
@@ -1352,6 +1360,378 @@ class DelInfo final :
   union { Impl_ _impl_; };
   friend struct ::TableStruct_datanode_2eproto;
 };
+// -------------------------------------------------------------------
+
+class ReadRangeInfo final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:datanode_proto.ReadRangeInfo) */ {
+ public:
+  inline ReadRangeInfo() : ReadRangeInfo(nullptr) {}
+  ~ReadRangeInfo() override;
+  explicit PROTOBUF_CONSTEXPR ReadRangeInfo(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ReadRangeInfo(const ReadRangeInfo& from);
+  ReadRangeInfo(ReadRangeInfo&& from) noexcept
+    : ReadRangeInfo() {
+    *this = ::std::move(from);
+  }
+
+  inline ReadRangeInfo& operator=(const ReadRangeInfo& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ReadRangeInfo& operator=(ReadRangeInfo&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ReadRangeInfo& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ReadRangeInfo* internal_default_instance() {
+    return reinterpret_cast<const ReadRangeInfo*>(
+               &_ReadRangeInfo_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    7;
+
+  friend void swap(ReadRangeInfo& a, ReadRangeInfo& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ReadRangeInfo* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ReadRangeInfo* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ReadRangeInfo* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ReadRangeInfo>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ReadRangeInfo& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ReadRangeInfo& from) {
+    ReadRangeInfo::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ReadRangeInfo* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "datanode_proto.ReadRangeInfo";
+  }
+  protected:
+  explicit ReadRangeInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kBlockKeyFieldNumber = 1,
+    kBlockIdFieldNumber = 2,
+    kRangeOffsetFieldNumber = 3,
+    kRangeSizeFieldNumber = 4,
+  };
+  // string block_key = 1;
+  void clear_block_key();
+  const std::string& block_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_block_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_block_key();
+  PROTOBUF_NODISCARD std::string* release_block_key();
+  void set_allocated_block_key(std::string* block_key);
+  private:
+  const std::string& _internal_block_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_block_key(const std::string& value);
+  std::string* _internal_mutable_block_key();
+  public:
+
+  // int32 block_id = 2;
+  void clear_block_id();
+  int32_t block_id() const;
+  void set_block_id(int32_t value);
+  private:
+  int32_t _internal_block_id() const;
+  void _internal_set_block_id(int32_t value);
+  public:
+
+  // int32 range_offset = 3;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // int32 range_size = 4;
+  void clear_range_size();
+  int32_t range_size() const;
+  void set_range_size(int32_t value);
+  private:
+  int32_t _internal_range_size() const;
+  void _internal_set_range_size(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:datanode_proto.ReadRangeInfo)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr block_key_;
+    int32_t block_id_;
+    int32_t range_offset_;
+    int32_t range_size_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_datanode_2eproto;
+};
+// -------------------------------------------------------------------
+
+class WriteRangeInfo final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:datanode_proto.WriteRangeInfo) */ {
+ public:
+  inline WriteRangeInfo() : WriteRangeInfo(nullptr) {}
+  ~WriteRangeInfo() override;
+  explicit PROTOBUF_CONSTEXPR WriteRangeInfo(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  WriteRangeInfo(const WriteRangeInfo& from);
+  WriteRangeInfo(WriteRangeInfo&& from) noexcept
+    : WriteRangeInfo() {
+    *this = ::std::move(from);
+  }
+
+  inline WriteRangeInfo& operator=(const WriteRangeInfo& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline WriteRangeInfo& operator=(WriteRangeInfo&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const WriteRangeInfo& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const WriteRangeInfo* internal_default_instance() {
+    return reinterpret_cast<const WriteRangeInfo*>(
+               &_WriteRangeInfo_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    8;
+
+  friend void swap(WriteRangeInfo& a, WriteRangeInfo& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(WriteRangeInfo* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(WriteRangeInfo* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  WriteRangeInfo* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<WriteRangeInfo>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const WriteRangeInfo& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const WriteRangeInfo& from) {
+    WriteRangeInfo::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(WriteRangeInfo* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "datanode_proto.WriteRangeInfo";
+  }
+  protected:
+  explicit WriteRangeInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kBlockKeyFieldNumber = 1,
+    kBlockIdFieldNumber = 2,
+    kRangeOffsetFieldNumber = 3,
+    kRangeSizeFieldNumber = 4,
+  };
+  // string block_key = 1;
+  void clear_block_key();
+  const std::string& block_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_block_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_block_key();
+  PROTOBUF_NODISCARD std::string* release_block_key();
+  void set_allocated_block_key(std::string* block_key);
+  private:
+  const std::string& _internal_block_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_block_key(const std::string& value);
+  std::string* _internal_mutable_block_key();
+  public:
+
+  // int32 block_id = 2;
+  void clear_block_id();
+  int32_t block_id() const;
+  void set_block_id(int32_t value);
+  private:
+  int32_t _internal_block_id() const;
+  void _internal_set_block_id(int32_t value);
+  public:
+
+  // int32 range_offset = 3;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // int32 range_size = 4;
+  void clear_range_size();
+  int32_t range_size() const;
+  void set_range_size(int32_t value);
+  private:
+  int32_t _internal_range_size() const;
+  void _internal_set_range_size(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:datanode_proto.WriteRangeInfo)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr block_key_;
+    int32_t block_id_;
+    int32_t range_offset_;
+    int32_t range_size_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_datanode_2eproto;
+};
 // ===================================================================
 
 
@@ -2127,9 +2507,241 @@ inline void DelInfo::set_allocated_block_key(std::string* block_key) {
   // @@protoc_insertion_point(field_set_allocated:datanode_proto.DelInfo.block_key)
 }
 
+// -------------------------------------------------------------------
+
+// ReadRangeInfo
+
+// string block_key = 1;
+inline void ReadRangeInfo::clear_block_key() {
+  _impl_.block_key_.ClearToEmpty();
+}
+inline const std::string& ReadRangeInfo::block_key() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ReadRangeInfo.block_key)
+  return _internal_block_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ReadRangeInfo::set_block_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:datanode_proto.ReadRangeInfo.block_key)
+}
+inline std::string* ReadRangeInfo::mutable_block_key() {
+  std::string* _s = _internal_mutable_block_key();
+  // @@protoc_insertion_point(field_mutable:datanode_proto.ReadRangeInfo.block_key)
+  return _s;
+}
+inline const std::string& ReadRangeInfo::_internal_block_key() const {
+  return _impl_.block_key_.Get();
+}
+inline void ReadRangeInfo::_internal_set_block_key(const std::string& value) {
+  
+  _impl_.block_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ReadRangeInfo::_internal_mutable_block_key() {
+  
+  return _impl_.block_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ReadRangeInfo::release_block_key() {
+  // @@protoc_insertion_point(field_release:datanode_proto.ReadRangeInfo.block_key)
+  return _impl_.block_key_.Release();
+}
+inline void ReadRangeInfo::set_allocated_block_key(std::string* block_key) {
+  if (block_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.block_key_.SetAllocated(block_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.block_key_.IsDefault()) {
+    _impl_.block_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:datanode_proto.ReadRangeInfo.block_key)
+}
+
+// int32 block_id = 2;
+inline void ReadRangeInfo::clear_block_id() {
+  _impl_.block_id_ = 0;
+}
+inline int32_t ReadRangeInfo::_internal_block_id() const {
+  return _impl_.block_id_;
+}
+inline int32_t ReadRangeInfo::block_id() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ReadRangeInfo.block_id)
+  return _internal_block_id();
+}
+inline void ReadRangeInfo::_internal_set_block_id(int32_t value) {
+  
+  _impl_.block_id_ = value;
+}
+inline void ReadRangeInfo::set_block_id(int32_t value) {
+  _internal_set_block_id(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ReadRangeInfo.block_id)
+}
+
+// int32 range_offset = 3;
+inline void ReadRangeInfo::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t ReadRangeInfo::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t ReadRangeInfo::range_offset() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ReadRangeInfo.range_offset)
+  return _internal_range_offset();
+}
+inline void ReadRangeInfo::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void ReadRangeInfo::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ReadRangeInfo.range_offset)
+}
+
+// int32 range_size = 4;
+inline void ReadRangeInfo::clear_range_size() {
+  _impl_.range_size_ = 0;
+}
+inline int32_t ReadRangeInfo::_internal_range_size() const {
+  return _impl_.range_size_;
+}
+inline int32_t ReadRangeInfo::range_size() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ReadRangeInfo.range_size)
+  return _internal_range_size();
+}
+inline void ReadRangeInfo::_internal_set_range_size(int32_t value) {
+  
+  _impl_.range_size_ = value;
+}
+inline void ReadRangeInfo::set_range_size(int32_t value) {
+  _internal_set_range_size(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ReadRangeInfo.range_size)
+}
+
+// -------------------------------------------------------------------
+
+// WriteRangeInfo
+
+// string block_key = 1;
+inline void WriteRangeInfo::clear_block_key() {
+  _impl_.block_key_.ClearToEmpty();
+}
+inline const std::string& WriteRangeInfo::block_key() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.WriteRangeInfo.block_key)
+  return _internal_block_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void WriteRangeInfo::set_block_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:datanode_proto.WriteRangeInfo.block_key)
+}
+inline std::string* WriteRangeInfo::mutable_block_key() {
+  std::string* _s = _internal_mutable_block_key();
+  // @@protoc_insertion_point(field_mutable:datanode_proto.WriteRangeInfo.block_key)
+  return _s;
+}
+inline const std::string& WriteRangeInfo::_internal_block_key() const {
+  return _impl_.block_key_.Get();
+}
+inline void WriteRangeInfo::_internal_set_block_key(const std::string& value) {
+  
+  _impl_.block_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* WriteRangeInfo::_internal_mutable_block_key() {
+  
+  return _impl_.block_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* WriteRangeInfo::release_block_key() {
+  // @@protoc_insertion_point(field_release:datanode_proto.WriteRangeInfo.block_key)
+  return _impl_.block_key_.Release();
+}
+inline void WriteRangeInfo::set_allocated_block_key(std::string* block_key) {
+  if (block_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.block_key_.SetAllocated(block_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.block_key_.IsDefault()) {
+    _impl_.block_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:datanode_proto.WriteRangeInfo.block_key)
+}
+
+// int32 block_id = 2;
+inline void WriteRangeInfo::clear_block_id() {
+  _impl_.block_id_ = 0;
+}
+inline int32_t WriteRangeInfo::_internal_block_id() const {
+  return _impl_.block_id_;
+}
+inline int32_t WriteRangeInfo::block_id() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.WriteRangeInfo.block_id)
+  return _internal_block_id();
+}
+inline void WriteRangeInfo::_internal_set_block_id(int32_t value) {
+  
+  _impl_.block_id_ = value;
+}
+inline void WriteRangeInfo::set_block_id(int32_t value) {
+  _internal_set_block_id(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.WriteRangeInfo.block_id)
+}
+
+// int32 range_offset = 3;
+inline void WriteRangeInfo::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t WriteRangeInfo::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t WriteRangeInfo::range_offset() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.WriteRangeInfo.range_offset)
+  return _internal_range_offset();
+}
+inline void WriteRangeInfo::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void WriteRangeInfo::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.WriteRangeInfo.range_offset)
+}
+
+// int32 range_size = 4;
+inline void WriteRangeInfo::clear_range_size() {
+  _impl_.range_size_ = 0;
+}
+inline int32_t WriteRangeInfo::_internal_range_size() const {
+  return _impl_.range_size_;
+}
+inline int32_t WriteRangeInfo::range_size() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.WriteRangeInfo.range_size)
+  return _internal_range_size();
+}
+inline void WriteRangeInfo::_internal_set_range_size(int32_t value) {
+  
+  _impl_.range_size_ = value;
+}
+inline void WriteRangeInfo::set_range_size(int32_t value) {
+  _internal_set_range_size(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.WriteRangeInfo.range_size)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

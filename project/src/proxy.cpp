@@ -11,6 +11,7 @@
 #include <sys/mman.h>
 #include "unilrc_encoder.h"
 #include <chrono>
+#include <cstring>
 template <typename T>
 inline T ceil(T const &A, T const &B)
 {
@@ -167,6 +168,88 @@ namespace ECProject
     }
 
     return true;
+  }
+
+  bool ProxyImpl::ReadRangeFromDatanode(const char *block_key, int block_id, int range_offset, int range_size, char *out_buf, const char *ip, int port)
+  {
+    try
+    {
+      grpc::ClientContext context;
+      datanode_proto::ReadRangeInfo req;
+      datanode_proto::RequestResult result;
+      req.set_block_key(std::string(block_key));
+      req.set_block_id(block_id);
+      req.set_range_offset(range_offset);
+      req.set_range_size(range_size);
+      std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
+      grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleReadRange(&context, req, &result);
+      if (!stat.ok() || !result.message())
+      {
+        return false;
+      }
+
+      asio::error_code con_error;
+      asio::io_context io_context;
+      asio::ip::tcp::socket socket(io_context);
+      asio::ip::tcp::resolver resolver(io_context);
+      asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}), con_error);
+      if (con_error)
+      {
+        return false;
+      }
+      asio::error_code ec;
+      asio::read(socket, asio::buffer(out_buf, static_cast<size_t>(range_size)), ec);
+      asio::error_code ignore_ec;
+      socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+      socket.close(ignore_ec);
+      return !ec;
+    }
+    catch (const std::exception &e)
+    {
+      std::cerr << e.what() << '\n';
+      return false;
+    }
+  }
+
+  bool ProxyImpl::WriteRangeToDatanode(const char *block_key, int block_id, int range_offset, const char *data, int range_size, const char *ip, int port)
+  {
+    try
+    {
+      grpc::ClientContext context;
+      datanode_proto::WriteRangeInfo req;
+      datanode_proto::RequestResult result;
+      req.set_block_key(std::string(block_key));
+      req.set_block_id(block_id);
+      req.set_range_offset(range_offset);
+      req.set_range_size(range_size);
+      std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
+      grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleWriteRange(&context, req, &result);
+      if (!stat.ok() || !result.message())
+      {
+        return false;
+      }
+
+      asio::error_code error;
+      asio::io_context io_context;
+      asio::ip::tcp::socket socket(io_context);
+      asio::ip::tcp::resolver resolver(io_context);
+      asio::error_code con_error;
+      asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}), con_error);
+      if (con_error)
+      {
+        return false;
+      }
+      asio::write(socket, asio::buffer(data, static_cast<size_t>(range_size)), error);
+      asio::error_code ignore_ec;
+      socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+      socket.close(ignore_ec);
+      return !error;
+    }
+    catch (const std::exception &e)
+    {
+      std::cerr << e.what() << '\n';
+      return false;
+    }
   }
 
   bool ProxyImpl::RecoveryToDatanode(const char *block_key, int block_id, const char *buf, const char *ip, int port)
@@ -611,10 +694,45 @@ namespace ECProject
           AppendToDatanode(block_key, block_id, slice_size, slice_buf, slice_offset, ip, port, is_serialized);
         };
 
+        const std::string append_mode_str = placement_copy->append_mode();
         std::vector<std::thread> senders;
         for (int j = 0; j < slice_num; j++)
         {
-          senders.push_back(std::thread(append_to_datanode, placement_copy->blockkeys(j).c_str(), placement_copy->blockids(j), placement_copy->sizes(j), slices[j], placement_copy->offsets(j), placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j), is_serialized));
+          const int bid = placement_copy->blockids(j);
+          const bool xue_data_path =
+              (append_mode_str == "XUE_UPDATE" && bid >= 0 && bid < m_sys_config->k);
+          if (xue_data_path)
+          {
+            senders.push_back(std::thread(
+                [this, placement_copy, slices, j]() {
+                  const std::string bk = placement_copy->blockkeys(j);
+                  const int block_id = placement_copy->blockids(j);
+                  const size_t sz = placement_copy->sizes(j);
+                  const int off = static_cast<int>(placement_copy->offsets(j));
+                  const std::string dip = placement_copy->datanodeip(j);
+                  const int dport = placement_copy->datanodeport(j);
+                  std::vector<char> oldbuf(sz);
+                  if (!ReadRangeFromDatanode(bk.c_str(), block_id, off, static_cast<int>(sz), oldbuf.data(), dip.c_str(), dport))
+                  {
+                    std::memset(oldbuf.data(), 0, sz);
+                  }
+                  std::vector<char> newbuf(sz);
+                  std::memcpy(newbuf.data(), slices[j], sz);
+                  for (size_t i = 0; i < sz; ++i)
+                  {
+                    slices[j][i] = static_cast<char>(
+                        static_cast<unsigned char>(newbuf[i]) ^ static_cast<unsigned char>(oldbuf[i]));
+                  }
+                  if (!WriteRangeToDatanode(bk.c_str(), block_id, off, newbuf.data(), static_cast<int>(sz), dip.c_str(), dport))
+                  {
+                    std::cerr << "[Proxy] XUE_UPDATE WriteRangeToDatanode failed block " << bk << std::endl;
+                  }
+                }));
+          }
+          else
+          {
+            senders.push_back(std::thread(append_to_datanode, placement_copy->blockkeys(j).c_str(), bid, placement_copy->sizes(j), slices[j], placement_copy->offsets(j), placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j), is_serialized));
+          }
         }
         for (int j = 0; j < int(senders.size()); j++)
         {
