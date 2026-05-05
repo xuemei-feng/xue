@@ -10,6 +10,7 @@
 #include <chrono>
 #include <algorithm>
 #include <random>
+#include <vector>
 #include "unilrc_encoder.h"
 
 int main(int argc, char **argv)
@@ -69,39 +70,77 @@ int main(int argc, char **argv)
     std::cin >> input;
     if (input == 'y') 
     {
-        std::string method;
-        std::cout << "Select update method: " << std::endl;
-        std::cin >> method;
-
-        if (method == "pbs") 
-        {
             int stripe_id = 0;
-            int range_cnt = 0;
-            std::cout << "Input stripe_id range_count: " << std::endl;
-            std::cin >> stripe_id >> range_cnt;
-            if (range_cnt <= 0)
+            int num_ranges = 1;
+            std::cout << "Parix update: enter stripe_id num_ranges (num_ranges>=1), then num_ranges lines of logical_start logical_end_exclusive.\n"
+                         "Logical offsets are within stripe data [0, k*BlockSize). If the disjoint ranges exactly cover that full interval, "
+                         "full-stripe rewrite is used; otherwise partial update (packed payload) is used.\n"
+                         "Example partial: 0 2 / 0 512 / 8192 8704\n"
+                         "Example full (single range): 0 1 / 0 67108864   (when k*BlockSize==67108864)" << std::endl;
+            std::cin >> stripe_id >> num_ranges;
+            if (num_ranges < 1)
             {
-                std::cout << "Invalid range_count: " << range_cnt << std::endl;
-                return 1;
+                std::cout << "Invalid num_ranges" << std::endl;
             }
-            std::vector<std::pair<int, int>> logical_ranges;
-            logical_ranges.reserve(static_cast<size_t>(range_cnt));
-            std::cout << "Input each logical range as [start, end): logical_offset_start logical_offset_end_exclusive" << std::endl;
-            for (int i = 0; i < range_cnt; i++)
+            else
             {
-                int logical_offset_start = 0;
-                int logical_offset_end = 0;
-                std::cin >> logical_offset_start >> logical_offset_end;
-                logical_ranges.emplace_back(logical_offset_start, logical_offset_end);
+                std::vector<std::pair<int, int>> ranges;
+                ranges.reserve(static_cast<size_t>(num_ranges));
+                int total_span = 0;
+                for (int ri = 0; ri < num_ranges; ++ri)
+                {
+                    int lo = 0;
+                    int hi = 0;
+                    std::cin >> lo >> hi;
+                    if (hi <= lo)
+                    {
+                        std::cout << "Invalid range on line " << (ri + 1) << std::endl;
+                        total_span = -1;
+                        break;
+                    }
+                    ranges.push_back({lo, hi});
+                    total_span += hi - lo;
+                }
+                if (total_span > 0)
+                {
+                    const std::chrono::high_resolution_clock::time_point req_start = std::chrono::high_resolution_clock::now();
+                    bool parix_ok = false;
+                    if (client.parix_ranges_cover_full_stripe_data(ranges))
+                    {
+                        std::cout << "[Parix auto] ranges cover full stripe data -> parix_full_stripe_rewrite (reads data from cluster; "
+                                     "no packed payload)" << std::endl;
+                        parix_ok = client.parix_full_stripe_rewrite(stripe_id);
+                    }
+                    else
+                    {
+                        std::vector<char> packed(static_cast<size_t>(total_span));
+                        auto randomize_preallocated_ranges = [&packed]() {
+                            std::mt19937 rng(std::random_device{}());
+                            std::uniform_int_distribution<int> byte_dist(0, 255);
+                            for (size_t i = 0; i < packed.size(); ++i)
+                            {
+                                packed[i] = static_cast<char>(byte_dist(rng));
+                            }
+                        };
+                        randomize_preallocated_ranges();
+                        std::cout << "[Parix auto] partial path -> parix_partial_update_ranges(stripe_id, ranges, packed.data())" << std::endl;
+                        parix_ok = client.parix_partial_update_ranges(stripe_id, ranges, packed.data());
+                    }
+                    const std::chrono::high_resolution_clock::time_point req_end = std::chrono::high_resolution_clock::now();
+                    const std::chrono::duration<double> parix_wall =
+                        std::chrono::duration_cast<std::chrono::duration<double>>(req_end - req_start);
+                    std::cout << "[Parix auto] wall time: " << parix_wall.count() << " s" << std::endl;
+
+                    if (parix_ok)
+                    {
+                        std::cout << "Parix update OK" << std::endl;
+                    }
+                    else
+                    {
+                        std::cout << "Parix update failed" << std::endl;
+                    }
+                }
             }
-            std::cout << "Calling PBS update..." << std::endl;
-            const bool ok = client.pbs_update(stripe_id, logical_ranges);
-            std::cout << "pbs_update result: " << (ok ? "success" : "failed") << std::endl;
-        } 
-        else 
-        {
-            std::cout << "Unknown method: " << method << std::endl;
-        }
     } 
     else 
     {

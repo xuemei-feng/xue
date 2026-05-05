@@ -33,10 +33,6 @@ service coordinatorService {
   rpc uploadSubsetValue (RequestProxyIPPort) returns (ReplyProxyIPsPorts) {};
   // append
   rpc uploadAppendValue (RequestProxyIPPort) returns (ReplyProxyIPsPorts) {};
-  // PBS update: phase-1 plans data-block range writes; call uploadPbsFinalize afterwards for parity refresh
-  rpc uploadPbsUpdate (PbsUpdateRequest) returns (ReplyProxyIPsPorts) {};
-  rpc uploadPbsFinalize (PbsFinalizeRequest) returns (ReplyProxyIPsPorts) {};
-  // get
   rpc getValue(KeyAndClientIP) returns (RepIfGetSuccess) {};
 
   rpc getStripe(KeyAndClientIP) returns (ReplyProxyIPsPorts) {};
@@ -60,6 +56,12 @@ service coordinatorService {
   //other
   rpc listStripes(RequestToCoordinator) returns (RepStripeIds) {};
   rpc decodeTest(KeyAndClientIP) returns (DegradedReadReply) {};
+  // Parix: partial stripe range update — plan segments + batch id
+  rpc planParixPartial(ParixPartialPlanRequest) returns (ParixPartialPlanReply) {};
+  // Parix: after all data proxies finish, replay journals on parity clusters
+  rpc commitParixBatch(ParixCommitBatchRequest) returns (ReplyFromCoordinator) {};
+  // Parix: full stripe overwrite — pick master data proxy, bump write generation
+  rpc planParixFullStripe(ParixFullStripePlanRequest) returns (ParixFullStripePlanReply) {};
 }
 
 message Parameter {
@@ -115,8 +117,6 @@ message ReplyProxyIPsPorts {
   repeated int32 proxyports = 4;
   repeated uint64 cluster_slice_sizes = 5;
   repeated int32 group_ids = 6;
-  // PBS data phase: byte offset inside the data block for each slice (same order as append_keys)
-  repeated int32 pbs_range_offs = 7;
 }
 
 // set, del, merge
@@ -146,22 +146,6 @@ message BlockIDsAndClientIP{
   string clientip = 3;
   int32 clientport = 4;
   int32 failed_block_id = 5;
-}
-
-message LogicalRange {
-  int32 logical_offset_start = 1;
-  int32 logical_offset_end = 2;
-}
-
-message PbsUpdateRequest {
-  string client_id = 1;
-  int32 stripe_id = 2;
-  // 多个不连续逻辑区间，均在同一条带逻辑地址 [0, k*BlockSize) 内
-  repeated LogicalRange ranges = 3;
-}
-
-message PbsFinalizeRequest {
-  int32 stripe_id = 1;
 }
 
 // delete
@@ -199,6 +183,86 @@ message DegradedReadReply {
   double network_time = 2;
   double decode_time = 3;
   double grpc_start_time = 4;
+}
+
+message ParixLogicalRange {
+  int32 logical_offset_start = 1;
+  int32 logical_offset_end = 2;
+}
+
+message ParixPartialPlanRequest {
+  int32 stripe_id = 1;
+  repeated ParixLogicalRange ranges = 2;
+}
+
+message ParixParityEndpoint {
+  string proxy_ip = 1;
+  int32 proxy_grpc_port = 2;
+  int32 parity_block_id = 3;
+  string parity_block_key = 4;
+  string parity_datanode_ip = 5;
+  int32 parity_datanode_port = 6;
+}
+
+message ParixDataBlockEndpoint {
+  int32 data_block_id = 1;
+  string block_key = 2;
+  string datanode_ip = 3;
+  int32 datanode_port = 4;
+}
+
+message ParixDataSegmentPlan {
+  string append_key = 1;
+  int32 cluster_id = 2;
+  string data_proxy_ip = 3;
+  int32 data_proxy_grpc_port = 4;
+  int32 data_proxy_tcp_shift_port = 5;
+  string block_key = 6;
+  int32 block_id = 7;
+  int32 range_offset = 8;
+  uint64 range_length = 9;
+  string datanode_ip = 10;
+  int32 datanode_port = 11;
+  int32 map2group = 12;
+  uint64 write_generation = 13;
+  repeated ParixParityEndpoint global_parities = 14;
+  ParixParityEndpoint local_parity = 15;
+}
+
+message ParixPartialPlanReply {
+  uint64 batch_id = 1;
+  repeated ParixDataSegmentPlan segments = 2;
+}
+
+message ParixCommitBatchRequest {
+  int32 stripe_id = 1;
+  uint64 batch_id = 2;
+}
+
+// 与本次覆盖写在数据块上的字节区间一致；校验侧仅删除与该区间相交的 Parix 日志。
+message ParixJournalInvalidationRange {
+  int32 data_block_id = 1;
+  int32 range_offset = 2;
+  uint64 range_length = 3;
+}
+
+message ParixFullStripePlanRequest {
+  int32 stripe_id = 1;
+  // 若为空：按全部 k 个数据块整块失效；若非空：仅所列区间内的部分写日志被删除。
+  repeated ParixJournalInvalidationRange covered_data_ranges = 2;
+}
+
+message ParixFullStripePlanReply {
+  bool ok = 1;
+  string err = 2;
+  string master_append_key = 3;
+  string master_proxy_ip = 4;
+  int32 master_proxy_grpc_port = 5;
+  int32 master_proxy_tcp_shift_port = 6;
+  uint64 new_write_generation = 7;
+  repeated ParixParityEndpoint parity_targets = 8;
+  repeated ParixJournalInvalidationRange journal_invalidations = 9;
+  repeated ParixDataBlockEndpoint data_block_targets = 10;
 }
 
 message RecoveryReply {

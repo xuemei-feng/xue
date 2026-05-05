@@ -31,8 +31,6 @@ static const char* coordinatorService_method_names[] = {
   "/coordinator_proto.coordinatorService/uploadSetValue",
   "/coordinator_proto.coordinatorService/uploadSubsetValue",
   "/coordinator_proto.coordinatorService/uploadAppendValue",
-  "/coordinator_proto.coordinatorService/uploadPbsUpdate",
-  "/coordinator_proto.coordinatorService/uploadPbsFinalize",
   "/coordinator_proto.coordinatorService/getValue",
   "/coordinator_proto.coordinatorService/getStripe",
   "/coordinator_proto.coordinatorService/getBlocks",
@@ -47,6 +45,9 @@ static const char* coordinatorService_method_names[] = {
   "/coordinator_proto.coordinatorService/delByStripe",
   "/coordinator_proto.coordinatorService/listStripes",
   "/coordinator_proto.coordinatorService/decodeTest",
+  "/coordinator_proto.coordinatorService/planParixPartial",
+  "/coordinator_proto.coordinatorService/commitParixBatch",
+  "/coordinator_proto.coordinatorService/planParixFullStripe",
 };
 
 std::unique_ptr< coordinatorService::Stub> coordinatorService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -65,22 +66,23 @@ coordinatorService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>&
   , rpcmethod_uploadSetValue_(coordinatorService_method_names[6], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_uploadSubsetValue_(coordinatorService_method_names[7], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_uploadAppendValue_(coordinatorService_method_names[8], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_uploadPbsUpdate_(coordinatorService_method_names[9], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_uploadPbsFinalize_(coordinatorService_method_names[10], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_getValue_(coordinatorService_method_names[11], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_getStripe_(coordinatorService_method_names[12], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_getBlocks_(coordinatorService_method_names[13], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_getDegradedReadBlocks_(coordinatorService_method_names[14], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_getDegradedReadBlock_(coordinatorService_method_names[15], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_getDegradedReadBlockBreakdown_(coordinatorService_method_names[16], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_getRecovery_(coordinatorService_method_names[17], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_getRecoveryBreakdown_(coordinatorService_method_names[18], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_fullNodeRecovery_(coordinatorService_method_names[19], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_multiBlockRecovery_(coordinatorService_method_names[20], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_delByKey_(coordinatorService_method_names[21], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_delByStripe_(coordinatorService_method_names[22], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_listStripes_(coordinatorService_method_names[23], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_decodeTest_(coordinatorService_method_names[24], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_getValue_(coordinatorService_method_names[9], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_getStripe_(coordinatorService_method_names[10], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_getBlocks_(coordinatorService_method_names[11], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_getDegradedReadBlocks_(coordinatorService_method_names[12], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_getDegradedReadBlock_(coordinatorService_method_names[13], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_getDegradedReadBlockBreakdown_(coordinatorService_method_names[14], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_getRecovery_(coordinatorService_method_names[15], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_getRecoveryBreakdown_(coordinatorService_method_names[16], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_fullNodeRecovery_(coordinatorService_method_names[17], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_multiBlockRecovery_(coordinatorService_method_names[18], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_delByKey_(coordinatorService_method_names[19], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_delByStripe_(coordinatorService_method_names[20], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_listStripes_(coordinatorService_method_names[21], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_decodeTest_(coordinatorService_method_names[22], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_planParixPartial_(coordinatorService_method_names[23], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_commitParixBatch_(coordinatorService_method_names[24], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_planParixFullStripe_(coordinatorService_method_names[25], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status coordinatorService::Stub::sayHelloToCoordinator(::grpc::ClientContext* context, const ::coordinator_proto::RequestToCoordinator& request, ::coordinator_proto::ReplyFromCoordinator* response) {
@@ -286,52 +288,6 @@ void coordinatorService::Stub::async::uploadAppendValue(::grpc::ClientContext* c
 ::grpc::ClientAsyncResponseReader< ::coordinator_proto::ReplyProxyIPsPorts>* coordinatorService::Stub::AsyncuploadAppendValueRaw(::grpc::ClientContext* context, const ::coordinator_proto::RequestProxyIPPort& request, ::grpc::CompletionQueue* cq) {
   auto* result =
     this->PrepareAsyncuploadAppendValueRaw(context, request, cq);
-  result->StartCall();
-  return result;
-}
-
-::grpc::Status coordinatorService::Stub::uploadPbsUpdate(::grpc::ClientContext* context, const ::coordinator_proto::PbsUpdateRequest& request, ::coordinator_proto::ReplyProxyIPsPorts* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::coordinator_proto::PbsUpdateRequest, ::coordinator_proto::ReplyProxyIPsPorts, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_uploadPbsUpdate_, context, request, response);
-}
-
-void coordinatorService::Stub::async::uploadPbsUpdate(::grpc::ClientContext* context, const ::coordinator_proto::PbsUpdateRequest* request, ::coordinator_proto::ReplyProxyIPsPorts* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::coordinator_proto::PbsUpdateRequest, ::coordinator_proto::ReplyProxyIPsPorts, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_uploadPbsUpdate_, context, request, response, std::move(f));
-}
-
-void coordinatorService::Stub::async::uploadPbsUpdate(::grpc::ClientContext* context, const ::coordinator_proto::PbsUpdateRequest* request, ::coordinator_proto::ReplyProxyIPsPorts* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_uploadPbsUpdate_, context, request, response, reactor);
-}
-
-::grpc::ClientAsyncResponseReader< ::coordinator_proto::ReplyProxyIPsPorts>* coordinatorService::Stub::PrepareAsyncuploadPbsUpdateRaw(::grpc::ClientContext* context, const ::coordinator_proto::PbsUpdateRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::coordinator_proto::ReplyProxyIPsPorts, ::coordinator_proto::PbsUpdateRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_uploadPbsUpdate_, context, request);
-}
-
-::grpc::ClientAsyncResponseReader< ::coordinator_proto::ReplyProxyIPsPorts>* coordinatorService::Stub::AsyncuploadPbsUpdateRaw(::grpc::ClientContext* context, const ::coordinator_proto::PbsUpdateRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncuploadPbsUpdateRaw(context, request, cq);
-  result->StartCall();
-  return result;
-}
-
-::grpc::Status coordinatorService::Stub::uploadPbsFinalize(::grpc::ClientContext* context, const ::coordinator_proto::PbsFinalizeRequest& request, ::coordinator_proto::ReplyProxyIPsPorts* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::coordinator_proto::PbsFinalizeRequest, ::coordinator_proto::ReplyProxyIPsPorts, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_uploadPbsFinalize_, context, request, response);
-}
-
-void coordinatorService::Stub::async::uploadPbsFinalize(::grpc::ClientContext* context, const ::coordinator_proto::PbsFinalizeRequest* request, ::coordinator_proto::ReplyProxyIPsPorts* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::coordinator_proto::PbsFinalizeRequest, ::coordinator_proto::ReplyProxyIPsPorts, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_uploadPbsFinalize_, context, request, response, std::move(f));
-}
-
-void coordinatorService::Stub::async::uploadPbsFinalize(::grpc::ClientContext* context, const ::coordinator_proto::PbsFinalizeRequest* request, ::coordinator_proto::ReplyProxyIPsPorts* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_uploadPbsFinalize_, context, request, response, reactor);
-}
-
-::grpc::ClientAsyncResponseReader< ::coordinator_proto::ReplyProxyIPsPorts>* coordinatorService::Stub::PrepareAsyncuploadPbsFinalizeRaw(::grpc::ClientContext* context, const ::coordinator_proto::PbsFinalizeRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::coordinator_proto::ReplyProxyIPsPorts, ::coordinator_proto::PbsFinalizeRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_uploadPbsFinalize_, context, request);
-}
-
-::grpc::ClientAsyncResponseReader< ::coordinator_proto::ReplyProxyIPsPorts>* coordinatorService::Stub::AsyncuploadPbsFinalizeRaw(::grpc::ClientContext* context, const ::coordinator_proto::PbsFinalizeRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncuploadPbsFinalizeRaw(context, request, cq);
   result->StartCall();
   return result;
 }
@@ -658,6 +614,75 @@ void coordinatorService::Stub::async::decodeTest(::grpc::ClientContext* context,
   return result;
 }
 
+::grpc::Status coordinatorService::Stub::planParixPartial(::grpc::ClientContext* context, const ::coordinator_proto::ParixPartialPlanRequest& request, ::coordinator_proto::ParixPartialPlanReply* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::coordinator_proto::ParixPartialPlanRequest, ::coordinator_proto::ParixPartialPlanReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_planParixPartial_, context, request, response);
+}
+
+void coordinatorService::Stub::async::planParixPartial(::grpc::ClientContext* context, const ::coordinator_proto::ParixPartialPlanRequest* request, ::coordinator_proto::ParixPartialPlanReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::coordinator_proto::ParixPartialPlanRequest, ::coordinator_proto::ParixPartialPlanReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_planParixPartial_, context, request, response, std::move(f));
+}
+
+void coordinatorService::Stub::async::planParixPartial(::grpc::ClientContext* context, const ::coordinator_proto::ParixPartialPlanRequest* request, ::coordinator_proto::ParixPartialPlanReply* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_planParixPartial_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::coordinator_proto::ParixPartialPlanReply>* coordinatorService::Stub::PrepareAsyncplanParixPartialRaw(::grpc::ClientContext* context, const ::coordinator_proto::ParixPartialPlanRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::coordinator_proto::ParixPartialPlanReply, ::coordinator_proto::ParixPartialPlanRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_planParixPartial_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::coordinator_proto::ParixPartialPlanReply>* coordinatorService::Stub::AsyncplanParixPartialRaw(::grpc::ClientContext* context, const ::coordinator_proto::ParixPartialPlanRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncplanParixPartialRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status coordinatorService::Stub::commitParixBatch(::grpc::ClientContext* context, const ::coordinator_proto::ParixCommitBatchRequest& request, ::coordinator_proto::ReplyFromCoordinator* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::coordinator_proto::ParixCommitBatchRequest, ::coordinator_proto::ReplyFromCoordinator, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_commitParixBatch_, context, request, response);
+}
+
+void coordinatorService::Stub::async::commitParixBatch(::grpc::ClientContext* context, const ::coordinator_proto::ParixCommitBatchRequest* request, ::coordinator_proto::ReplyFromCoordinator* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::coordinator_proto::ParixCommitBatchRequest, ::coordinator_proto::ReplyFromCoordinator, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_commitParixBatch_, context, request, response, std::move(f));
+}
+
+void coordinatorService::Stub::async::commitParixBatch(::grpc::ClientContext* context, const ::coordinator_proto::ParixCommitBatchRequest* request, ::coordinator_proto::ReplyFromCoordinator* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_commitParixBatch_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::coordinator_proto::ReplyFromCoordinator>* coordinatorService::Stub::PrepareAsynccommitParixBatchRaw(::grpc::ClientContext* context, const ::coordinator_proto::ParixCommitBatchRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::coordinator_proto::ReplyFromCoordinator, ::coordinator_proto::ParixCommitBatchRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_commitParixBatch_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::coordinator_proto::ReplyFromCoordinator>* coordinatorService::Stub::AsynccommitParixBatchRaw(::grpc::ClientContext* context, const ::coordinator_proto::ParixCommitBatchRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsynccommitParixBatchRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status coordinatorService::Stub::planParixFullStripe(::grpc::ClientContext* context, const ::coordinator_proto::ParixFullStripePlanRequest& request, ::coordinator_proto::ParixFullStripePlanReply* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::coordinator_proto::ParixFullStripePlanRequest, ::coordinator_proto::ParixFullStripePlanReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_planParixFullStripe_, context, request, response);
+}
+
+void coordinatorService::Stub::async::planParixFullStripe(::grpc::ClientContext* context, const ::coordinator_proto::ParixFullStripePlanRequest* request, ::coordinator_proto::ParixFullStripePlanReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::coordinator_proto::ParixFullStripePlanRequest, ::coordinator_proto::ParixFullStripePlanReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_planParixFullStripe_, context, request, response, std::move(f));
+}
+
+void coordinatorService::Stub::async::planParixFullStripe(::grpc::ClientContext* context, const ::coordinator_proto::ParixFullStripePlanRequest* request, ::coordinator_proto::ParixFullStripePlanReply* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_planParixFullStripe_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::coordinator_proto::ParixFullStripePlanReply>* coordinatorService::Stub::PrepareAsyncplanParixFullStripeRaw(::grpc::ClientContext* context, const ::coordinator_proto::ParixFullStripePlanRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::coordinator_proto::ParixFullStripePlanReply, ::coordinator_proto::ParixFullStripePlanRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_planParixFullStripe_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::coordinator_proto::ParixFullStripePlanReply>* coordinatorService::Stub::AsyncplanParixFullStripeRaw(::grpc::ClientContext* context, const ::coordinator_proto::ParixFullStripePlanRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncplanParixFullStripeRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 coordinatorService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       coordinatorService_method_names[0],
@@ -752,26 +777,6 @@ coordinatorService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       coordinatorService_method_names[9],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::PbsUpdateRequest, ::coordinator_proto::ReplyProxyIPsPorts, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](coordinatorService::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::coordinator_proto::PbsUpdateRequest* req,
-             ::coordinator_proto::ReplyProxyIPsPorts* resp) {
-               return service->uploadPbsUpdate(ctx, req, resp);
-             }, this)));
-  AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[10],
-      ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::PbsFinalizeRequest, ::coordinator_proto::ReplyProxyIPsPorts, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](coordinatorService::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::coordinator_proto::PbsFinalizeRequest* req,
-             ::coordinator_proto::ReplyProxyIPsPorts* resp) {
-               return service->uploadPbsFinalize(ctx, req, resp);
-             }, this)));
-  AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[11],
-      ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::KeyAndClientIP, ::coordinator_proto::RepIfGetSuccess, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](coordinatorService::Service* service,
              ::grpc::ServerContext* ctx,
@@ -780,7 +785,7 @@ coordinatorService::Service::Service() {
                return service->getValue(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[12],
+      coordinatorService_method_names[10],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::KeyAndClientIP, ::coordinator_proto::ReplyProxyIPsPorts, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](coordinatorService::Service* service,
@@ -790,7 +795,7 @@ coordinatorService::Service::Service() {
                return service->getStripe(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[13],
+      coordinatorService_method_names[11],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::BlockIDsAndClientIP, ::coordinator_proto::ReplyProxyIPsPorts, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](coordinatorService::Service* service,
@@ -800,7 +805,7 @@ coordinatorService::Service::Service() {
                return service->getBlocks(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[14],
+      coordinatorService_method_names[12],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::BlockIDsAndClientIP, ::coordinator_proto::ReplyProxyIPsPorts, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](coordinatorService::Service* service,
@@ -810,7 +815,7 @@ coordinatorService::Service::Service() {
                return service->getDegradedReadBlocks(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[15],
+      coordinatorService_method_names[13],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::KeyAndClientIP, ::coordinator_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](coordinatorService::Service* service,
@@ -820,7 +825,7 @@ coordinatorService::Service::Service() {
                return service->getDegradedReadBlock(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[16],
+      coordinatorService_method_names[14],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::KeyAndClientIP, ::coordinator_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](coordinatorService::Service* service,
@@ -830,7 +835,7 @@ coordinatorService::Service::Service() {
                return service->getDegradedReadBlockBreakdown(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[17],
+      coordinatorService_method_names[15],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::KeyAndClientIP, ::coordinator_proto::RecoveryReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](coordinatorService::Service* service,
@@ -840,7 +845,7 @@ coordinatorService::Service::Service() {
                return service->getRecovery(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[18],
+      coordinatorService_method_names[16],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::KeyAndClientIP, ::coordinator_proto::RecoveryReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](coordinatorService::Service* service,
@@ -850,7 +855,7 @@ coordinatorService::Service::Service() {
                return service->getRecoveryBreakdown(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[19],
+      coordinatorService_method_names[17],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::NodeIdFromClient, ::coordinator_proto::RepBlockNum, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](coordinatorService::Service* service,
@@ -860,7 +865,7 @@ coordinatorService::Service::Service() {
                return service->fullNodeRecovery(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[20],
+      coordinatorService_method_names[18],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::StripeIdAndBlockIDsFromClient, ::coordinator_proto::RecoveryReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](coordinatorService::Service* service,
@@ -870,7 +875,7 @@ coordinatorService::Service::Service() {
                return service->multiBlockRecovery(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[21],
+      coordinatorService_method_names[19],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::KeyFromClient, ::coordinator_proto::RepIfDeling, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](coordinatorService::Service* service,
@@ -880,7 +885,7 @@ coordinatorService::Service::Service() {
                return service->delByKey(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[22],
+      coordinatorService_method_names[20],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::StripeIdFromClient, ::coordinator_proto::RepIfDeling, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](coordinatorService::Service* service,
@@ -890,7 +895,7 @@ coordinatorService::Service::Service() {
                return service->delByStripe(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[23],
+      coordinatorService_method_names[21],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::RequestToCoordinator, ::coordinator_proto::RepStripeIds, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](coordinatorService::Service* service,
@@ -900,7 +905,7 @@ coordinatorService::Service::Service() {
                return service->listStripes(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      coordinatorService_method_names[24],
+      coordinatorService_method_names[22],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::KeyAndClientIP, ::coordinator_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](coordinatorService::Service* service,
@@ -908,6 +913,36 @@ coordinatorService::Service::Service() {
              const ::coordinator_proto::KeyAndClientIP* req,
              ::coordinator_proto::DegradedReadReply* resp) {
                return service->decodeTest(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      coordinatorService_method_names[23],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::ParixPartialPlanRequest, ::coordinator_proto::ParixPartialPlanReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](coordinatorService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::coordinator_proto::ParixPartialPlanRequest* req,
+             ::coordinator_proto::ParixPartialPlanReply* resp) {
+               return service->planParixPartial(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      coordinatorService_method_names[24],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::ParixCommitBatchRequest, ::coordinator_proto::ReplyFromCoordinator, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](coordinatorService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::coordinator_proto::ParixCommitBatchRequest* req,
+             ::coordinator_proto::ReplyFromCoordinator* resp) {
+               return service->commitParixBatch(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      coordinatorService_method_names[25],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< coordinatorService::Service, ::coordinator_proto::ParixFullStripePlanRequest, ::coordinator_proto::ParixFullStripePlanReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](coordinatorService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::coordinator_proto::ParixFullStripePlanRequest* req,
+             ::coordinator_proto::ParixFullStripePlanReply* resp) {
+               return service->planParixFullStripe(ctx, req, resp);
              }, this)));
 }
 
@@ -971,20 +1006,6 @@ coordinatorService::Service::~Service() {
 }
 
 ::grpc::Status coordinatorService::Service::uploadAppendValue(::grpc::ServerContext* context, const ::coordinator_proto::RequestProxyIPPort* request, ::coordinator_proto::ReplyProxyIPsPorts* response) {
-  (void) context;
-  (void) request;
-  (void) response;
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-}
-
-::grpc::Status coordinatorService::Service::uploadPbsUpdate(::grpc::ServerContext* context, const ::coordinator_proto::PbsUpdateRequest* request, ::coordinator_proto::ReplyProxyIPsPorts* response) {
-  (void) context;
-  (void) request;
-  (void) response;
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-}
-
-::grpc::Status coordinatorService::Service::uploadPbsFinalize(::grpc::ServerContext* context, const ::coordinator_proto::PbsFinalizeRequest* request, ::coordinator_proto::ReplyProxyIPsPorts* response) {
   (void) context;
   (void) request;
   (void) response;
@@ -1083,6 +1104,27 @@ coordinatorService::Service::~Service() {
 }
 
 ::grpc::Status coordinatorService::Service::decodeTest(::grpc::ServerContext* context, const ::coordinator_proto::KeyAndClientIP* request, ::coordinator_proto::DegradedReadReply* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status coordinatorService::Service::planParixPartial(::grpc::ServerContext* context, const ::coordinator_proto::ParixPartialPlanRequest* request, ::coordinator_proto::ParixPartialPlanReply* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status coordinatorService::Service::commitParixBatch(::grpc::ServerContext* context, const ::coordinator_proto::ParixCommitBatchRequest* request, ::coordinator_proto::ReplyFromCoordinator* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status coordinatorService::Service::planParixFullStripe(::grpc::ServerContext* context, const ::coordinator_proto::ParixFullStripePlanRequest* request, ::coordinator_proto::ParixFullStripePlanReply* response) {
   (void) context;
   (void) request;
   (void) response;

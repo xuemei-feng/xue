@@ -145,6 +145,7 @@ foreach (_target
             ${CMAKE_CURRENT_SOURCE_DIR}/src/lrc.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/config.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/unilrc_encoder.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/parix_journal.cpp
             #${_target}.cpp
             )
     target_link_libraries(${_target}

@@ -1,4 +1,5 @@
 #include "proxy.h"
+#include <grpcpp/create_channel.h>
 #include "jerasure.h"
 #include "reed_sol.h"
 #include "tinyxml2.h"
@@ -11,8 +12,11 @@
 #include <sys/mman.h>
 #include "unilrc_encoder.h"
 #include <chrono>
-#include <algorithm>
 #include <iomanip>
+#include <iostream>
+#include <map>
+#include <tuple>
+#include <vector>
 template <typename T>
 inline T ceil(T const &A, T const &B)
 {
@@ -25,25 +29,6 @@ namespace ECProject
     inline bool is_azure_like_code(const std::string &code_type)
     {
       return code_type == "AzureLRC" || code_type == "RandomLRC";
-    }
-
-    /** PBS 调试：打印区间内前 nbytes 字节（从 buf 指向区间起点） */
-    inline void pbs_log_range_prefix(const char *role, const std::string &block_key, int block_id, int stripe_id, int range_off,
-                                     const char *range_ptr, size_t range_len, size_t nbytes, const char *phase_label)
-    {
-      const size_t n = std::min(nbytes, range_len);
-      std::cout << "[PBS][" << role << "] stripe=" << stripe_id << " block_id=" << block_id << " key=" << block_key << " off=" << range_off
-                << " " << phase_label << " first" << n << "B ";
-      std::cout << std::hex << std::setfill('0');
-      for (size_t j = 0; j < n; ++j)
-      {
-        std::cout << std::setw(2) << (static_cast<unsigned>(static_cast<unsigned char>(range_ptr[j])) & 0xffU);
-        if (j + 1 < n)
-        {
-          std::cout << ' ';
-        }
-      }
-      std::cout << std::dec << std::endl;
     }
   }
 
@@ -577,6 +562,44 @@ namespace ECProject
     std::cout << "===================================" << std::endl;
   }
 
+
+  bool ProxyImpl::CordRangeReadFromDatanode(const std::string &block_key, int block_id, int range_offset, char *out,
+                                            size_t length, const char *ip, int port)
+  {
+    (void)block_key;
+    (void)block_id;
+    (void)range_offset;
+    (void)out;
+    (void)length;
+    (void)ip;
+    (void)port;
+    return false;
+  }
+
+  bool ProxyImpl::CordRangeWriteToDatanode(const std::string &block_key, int block_id, int range_offset, const char *data,
+                                           size_t length, const char *ip, int port)
+  {
+    (void)block_key;
+    (void)block_id;
+    (void)range_offset;
+    (void)data;
+    (void)length;
+    (void)ip;
+    (void)port;
+    return false;
+  }
+
+  bool ProxyImpl::CordDeltaBlobToDatanode(const std::string &blob_key, const char *data, size_t length, const char *ip,
+                                          int port)
+  {
+    (void)blob_key;
+    (void)data;
+    (void)length;
+    (void)ip;
+    (void)port;
+    return false;
+  }
+
   grpc::Status ProxyImpl::scheduleAppend2Datanode(
       grpc::ServerContext *context,
       const proxy_proto::AppendStripeDataPlacement *append_stripe_data_placement,
@@ -716,417 +739,6 @@ namespace ECProject
       std::cout << e.what() << std::endl;
     }
 
-    return grpc::Status::OK;
-  }
-
-  grpc::Status ProxyImpl::pbsScheduleDataUpdate(
-      grpc::ServerContext *context,
-      const proxy_proto::PbsDataUpdatePlacement *placement,
-      proxy_proto::SetReply *response)
-  {
-    (void)context;
-    auto placement_copy = std::make_shared<proxy_proto::PbsDataUpdatePlacement>(*placement);
-    auto job = [this, placement_copy]() mutable
-    {
-      const std::string pbs_key = placement_copy->key();
-      const int pbs_stripe = placement_copy->stripe_id();
-      auto send_commit_report = [this, &pbs_key, &pbs_stripe](bool commit_ok) {
-        try
-        {
-          coordinator_proto::CommitAbortKey commit_abort_key;
-          coordinator_proto::ReplyFromCoordinator result;
-          grpc::ClientContext ctx;
-          commit_abort_key.set_opp(APPEND);
-          commit_abort_key.set_key(pbs_key);
-          commit_abort_key.set_stripe_id(pbs_stripe);
-          commit_abort_key.set_ifcommitmetadata(commit_ok);
-          m_coordinator_ptr->reportCommitAbort(&ctx, commit_abort_key, &result);
-        }
-        catch (const std::exception &e)
-        {
-          std::cout << "[PBS] reportCommitAbort exception: " << e.what() << std::endl;
-        }
-      };
-      try
-      {
-        asio::ip::tcp::socket socket_data(io_context);
-        acceptor.accept(socket_data);
-        const size_t rlen = static_cast<size_t>(placement_copy->range_length());
-        std::vector<char> newv(rlen);
-        asio::error_code ec;
-        asio::read(socket_data, asio::buffer(newv.data(), rlen), ec);
-        asio::error_code ignore_ec;
-        socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
-        socket_data.close(ignore_ec);
-
-        const size_t bs = m_sys_config->BlockSize;
-        const int ro = placement_copy->range_offset();
-        if (ro < 0 || static_cast<size_t>(ro) + rlen > bs)
-        {
-          std::cout << "[PBS] invalid range in block" << std::endl;
-          send_commit_report(false);
-          return;
-        }
-        if (ec)
-        {
-          std::cout << "[PBS] tcp read failed: " << ec.message() << std::endl;
-          send_commit_report(false);
-          return;
-        }
-
-        const std::string &bk = placement_copy->block_key();
-        std::vector<char> block(bs);
-        GetFromDatanode(bk.c_str(), bk.length(), block.data(), bs,
-                        placement_copy->datanode_ip().c_str(), placement_copy->datanode_port(), 0);
-
-        pbs_log_range_prefix("data", bk, placement_copy->block_id(), placement_copy->stripe_id(), ro,
-                             block.data() + static_cast<size_t>(ro), rlen, 16, "before_update");
-        pbs_log_range_prefix("data", bk, placement_copy->block_id(), placement_copy->stripe_id(), ro, newv.data(), rlen, 16,
-                             "after_update(client_payload)");
-
-        std::string old_snap_mut(block.data() + static_cast<size_t>(ro), block.data() + static_cast<size_t>(ro) + rlen);
-
-        uint32_t btot = placement_copy->pbs_batch_total();
-        if (btot == 0)
-        {
-          btot = 1;
-        }
-        const uint64_t bid = placement_copy->pbs_batch_id() != 0ULL ? placement_copy->pbs_batch_id()
-                                                                     : (static_cast<uint64_t>(placement_copy->stripe_id()) << 32 |
-                                                                        static_cast<uint64_t>(placement_copy->pbs_batch_index()) + 1ULL);
-
-        for (int fi = 0; fi < placement_copy->parity_forward_size(); ++fi)
-        {
-          const proxy_proto::PbsParityForwardPlan &fw = placement_copy->parity_forward(fi);
-          proxy_proto::PbsApplyParityDeltaRequest preq;
-          preq.set_stripe_id(placement_copy->stripe_id());
-          preq.set_data_block_id(placement_copy->block_id());
-          preq.set_range_offset(ro);
-          preq.set_range_length(static_cast<uint64_t>(rlen));
-          preq.set_use_new_payload(true);
-          preq.set_new_range_payload(std::string(newv.data(), newv.data() + rlen));
-          preq.set_data_range_old_snapshot(old_snap_mut);
-          preq.set_src_data_block_key(bk);
-          preq.set_src_data_datanode_ip(placement_copy->datanode_ip());
-          preq.set_src_data_datanode_port(placement_copy->datanode_port());
-          preq.set_pbs_batch_id(bid);
-          preq.set_pbs_batch_index(placement_copy->pbs_batch_index());
-          preq.set_pbs_batch_total(btot);
-          for (int j = 0; j < fw.parities_size(); ++j)
-          {
-            *preq.add_parities() = fw.parities(j);
-          }
-          const bool self = (fw.dest_proxy_ip() == m_ip && fw.dest_proxy_base_port() == m_port);
-          if (self)
-          {
-            if (!apply_pbs_parity_delta_internal(preq))
-            {
-              std::cout << "[PBS] apply parity update (local) failed" << std::endl;
-            }
-          }
-          else
-          {
-            const std::string ep = fw.dest_proxy_ip() + ":" + std::to_string(fw.dest_proxy_base_port());
-            auto channel = grpc::CreateChannel(ep, grpc::InsecureChannelCredentials());
-            auto stub = proxy_proto::proxyService::NewStub(channel);
-            grpc::ClientContext pctx;
-            proxy_proto::SetReply presp;
-            grpc::Status pst = stub->pbsApplyParityDelta(&pctx, preq, &presp);
-            if (!pst.ok())
-            {
-              std::cout << "[PBS] apply parity update remote " << ep << " failed: " << pst.error_message() << std::endl;
-            }
-          }
-        }
-
-        for (size_t i = 0; i < rlen; ++i)
-        {
-          const size_t p = static_cast<size_t>(ro) + i;
-          block[p] = newv[i];
-        }
-        RecoveryToDatanode(bk.c_str(), placement_copy->block_id(), block.data(),
-                           placement_copy->datanode_ip().c_str(), placement_copy->datanode_port());
-
-        send_commit_report(true);
-      }
-      catch (const std::exception &e)
-      {
-        std::cout << "[PBS] pbsScheduleDataUpdate exception: " << e.what() << std::endl;
-        send_commit_report(false);
-      }
-    };
-    std::thread(job).detach();
-    response->set_ifcommit(true);
-    return grpc::Status::OK;
-  }
-
-  bool ProxyImpl::apply_pbs_parity_delta_internal(const proxy_proto::PbsApplyParityDeltaRequest &req)
-  {
-    if (req.use_new_payload())
-    {
-      return apply_pbs_parity_new_payload_batched(req);
-    }
-    const size_t bs = m_sys_config->BlockSize;
-    const int ro = req.range_offset();
-    const size_t rlen = static_cast<size_t>(req.range_length());
-    if (ro < 0 || static_cast<size_t>(ro) + rlen > bs || req.delta().size() != rlen)
-    {
-      std::cout << "[PBS] apply_pbs_parity_delta_internal: bad range or delta size" << std::endl;
-      return false;
-    }
-    const char *dptr = req.delta().data();
-    for (int i = 0; i < req.parities_size(); ++i)
-    {
-      const proxy_proto::PbsParityDeltaTarget &t = req.parities(i);
-      std::vector<char> pblk(bs);
-      GetFromDatanode(t.parity_block_key().c_str(), t.parity_block_key().length(), pblk.data(), bs,
-                      t.datanode_ip().c_str(), t.datanode_port(), 0);
-      pbs_log_range_prefix("parity", t.parity_block_key(), t.parity_block_id(), req.stripe_id(), ro,
-                           pblk.data() + static_cast<size_t>(ro), rlen, 16, "before_update");
-      for (size_t j = 0; j < rlen; ++j)
-      {
-        const size_t p = static_cast<size_t>(ro) + j;
-        pblk[p] = static_cast<char>(static_cast<unsigned char>(pblk[p]) ^ static_cast<unsigned char>(dptr[j]));
-      }
-      pbs_log_range_prefix("parity", t.parity_block_key(), t.parity_block_id(), req.stripe_id(), ro,
-                           pblk.data() + static_cast<size_t>(ro), rlen, 16, "after_update");
-      RecoveryToDatanode(t.parity_block_key().c_str(), t.parity_block_id(), pblk.data(), t.datanode_ip().c_str(),
-                         t.datanode_port());
-    }
-    (void)req.stripe_id();
-    (void)req.data_block_id();
-    return true;
-  }
-
-  bool ProxyImpl::flush_pbs_parity_batch_unlocked(const PbsParityBatchWait &bw)
-  {
-    const size_t bs = m_sys_config->BlockSize;
-    const int k = m_sys_config->k;
-    const int r = m_sys_config->r;
-    const int z = m_sys_config->z;
-    const int m = k + r;
-    const std::string &ctype = m_sys_config->CodeType;
-    const bool use_gf_azure = (ctype == "AzureLRC") || (ctype == "RandomLRC");
-    std::vector<unsigned char> enc_matrix;
-    if (use_gf_azure)
-    {
-      enc_matrix.resize(static_cast<size_t>(m + z) * static_cast<size_t>(k));
-      gen_azure_lrc_matrix(enc_matrix.data(), k, r, z);
-    }
-
-    std::vector<std::string> parity_keys;
-    for (const auto &pr : bw.parts)
-    {
-      for (const auto &t : pr.second.targets)
-      {
-        const std::string &pk = t.parity_block_key();
-        if (std::find(parity_keys.begin(), parity_keys.end(), pk) == parity_keys.end())
-        {
-          parity_keys.push_back(pk);
-        }
-      }
-    }
-    const char *parity_log_role = use_gf_azure ? "parity(GF)" : "parity";
-    for (const std::string &pk : parity_keys)
-    {
-      const proxy_proto::PbsParityDeltaTarget *meta = nullptr;
-      for (const auto &pr : bw.parts)
-      {
-        for (const auto &t : pr.second.targets)
-        {
-          if (t.parity_block_key() == pk)
-          {
-            meta = &t;
-            break;
-          }
-        }
-        if (meta != nullptr)
-        {
-          break;
-        }
-      }
-      if (meta == nullptr)
-      {
-        continue;
-      }
-      std::vector<char> pblk(bs);
-      GetFromDatanode(meta->parity_block_key().c_str(), meta->parity_block_key().length(), pblk.data(), bs, meta->datanode_ip().c_str(), meta->datanode_port(), 0);
-      const int stripe_log = bw.parts.empty() ? 0 : bw.parts.begin()->second.stripe_id;
-      pbs_log_range_prefix(parity_log_role, meta->parity_block_key(), meta->parity_block_id(), stripe_log, 0,
-                           reinterpret_cast<const char *>(pblk.data()), bs, 16, "parity_block_head_before_batch");
-
-      for (uint32_t bi = 0; bi < bw.total; ++bi)
-      {
-        const auto pit = bw.parts.find(bi);
-        if (pit == bw.parts.end())
-        {
-          std::cout << "[PBS] batch missing part index " << bi << std::endl;
-          return false;
-        }
-        const PbsParityChunkBuf &ch = pit->second;
-        bool hit = false;
-        for (const auto &t : ch.targets)
-        {
-          if (t.parity_block_key() == pk)
-          {
-            hit = true;
-            break;
-          }
-        }
-        if (!hit)
-        {
-          continue;
-        }
-        if (ch.ro < 0 || static_cast<size_t>(ch.ro) + ch.len > bs || ch.new_payload.size() != ch.len)
-        {
-          return false;
-        }
-        const unsigned char *oldp = nullptr;
-        std::vector<char> datab;
-        if (ch.old_payload.size() == ch.len)
-        {
-          oldp = reinterpret_cast<const unsigned char *>(ch.old_payload.data());
-        }
-        else
-        {
-          datab.resize(bs);
-          GetFromDatanode(ch.src_key.c_str(), ch.src_key.length(), datab.data(), bs, ch.src_ip.c_str(), ch.src_port, 0);
-          oldp = reinterpret_cast<const unsigned char *>(datab.data()) + static_cast<size_t>(ch.ro);
-        }
-        pbs_log_range_prefix("data", ch.src_key, ch.data_block_id, ch.stripe_id, ch.ro, reinterpret_cast<const char *>(oldp), ch.len, 16,
-                             "d_i^(0)_slice");
-        pbs_log_range_prefix("data", ch.src_key, ch.data_block_id, ch.stripe_id, ch.ro, ch.new_payload.data(), ch.len, 16, "d_i^(r)_slice");
-        if (use_gf_azure)
-        {
-          const unsigned char a_ij = enc_matrix[static_cast<size_t>(meta->parity_block_id()) * static_cast<size_t>(k) +
-                                                 static_cast<size_t>(ch.data_block_id)];
-          std::cout << "[PBS][GF] p_j=parity_block_id " << meta->parity_block_id() << " d_i=data_block_id " << ch.data_block_id
-                    << " a_ij=0x" << std::hex << std::setw(2) << static_cast<int>(a_ij) << std::dec << " (Azure/RandomLRC matrix)"
-                    << std::endl;
-          {
-            const size_t nd = std::min<size_t>(16, ch.len);
-            std::cout << "[PBS][GF] (d_i^(r)-d_i^(0))=d_old_xor_d_new first" << nd << "B ";
-            std::cout << std::hex << std::setfill('0');
-            for (size_t j = 0; j < nd; ++j)
-            {
-              std::cout << std::setw(2)
-                        << (static_cast<unsigned>(oldp[j] ^ static_cast<unsigned char>(ch.new_payload[j])) & 0xffU);
-              if (j + 1 < nd)
-              {
-                std::cout << ' ';
-              }
-            }
-            std::cout << std::dec << std::endl;
-          }
-          pbs_log_range_prefix("parity(GF)", meta->parity_block_key(), meta->parity_block_id(), ch.stripe_id, ch.ro,
-                               reinterpret_cast<const char *>(pblk.data()) + static_cast<size_t>(ch.ro), ch.len, 16,
-                               "parity_range_before_p+=a_ij*delta");
-          ECProject::pbs_parity_add_scaled_data_delta(
-              k, meta->parity_block_id(), ch.data_block_id, enc_matrix.data(), oldp,
-              reinterpret_cast<const unsigned char *>(ch.new_payload.data()), reinterpret_cast<unsigned char *>(pblk.data()),
-              ch.ro, static_cast<int>(ch.len));
-          pbs_log_range_prefix("parity(GF)", meta->parity_block_key(), meta->parity_block_id(), ch.stripe_id, ch.ro,
-                               reinterpret_cast<const char *>(pblk.data()) + static_cast<size_t>(ch.ro), ch.len, 16,
-                               "parity_range_after_p+=a_ij*delta");
-        }
-        else
-        {
-          for (size_t j = 0; j < ch.len; ++j)
-          {
-            const size_t p = static_cast<size_t>(ch.ro) + j;
-            pblk[p] = static_cast<char>(static_cast<unsigned char>(pblk[p]) ^ oldp[j] ^
-                                          static_cast<unsigned char>(static_cast<unsigned char>(ch.new_payload[j])));
-          }
-        }
-      }
-      pbs_log_range_prefix(parity_log_role, meta->parity_block_key(), meta->parity_block_id(), stripe_log, 0,
-                           reinterpret_cast<const char *>(pblk.data()), bs, 16, "parity_block_head_after_batch");
-      RecoveryToDatanode(meta->parity_block_key().c_str(), meta->parity_block_id(), pblk.data(), meta->datanode_ip().c_str(),
-                         meta->datanode_port());
-    }
-    return true;
-  }
-
-  bool ProxyImpl::apply_pbs_parity_new_payload_batched(const proxy_proto::PbsApplyParityDeltaRequest &req)
-  {
-    if (req.new_range_payload().size() != static_cast<size_t>(req.range_length()))
-    {
-      std::cout << "[PBS] new_range_payload size mismatch" << std::endl;
-      return false;
-    }
-    const size_t bs = m_sys_config->BlockSize;
-    const int ro = req.range_offset();
-    const size_t rlen = static_cast<size_t>(req.range_length());
-    if (ro < 0 || static_cast<size_t>(ro) + rlen > bs)
-    {
-      return false;
-    }
-    uint64_t bid = req.pbs_batch_id();
-    if (bid == 0ULL)
-    {
-      bid = (static_cast<uint64_t>(req.stripe_id()) << 32) ^ static_cast<uint64_t>(req.data_block_id()) ^ static_cast<uint64_t>(ro);
-    }
-    uint32_t total = req.pbs_batch_total();
-    if (total == 0U)
-    {
-      total = 1U;
-    }
-    const uint32_t idx = req.pbs_batch_index();
-
-    PbsParityChunkBuf chunk;
-    chunk.stripe_id = req.stripe_id();
-    chunk.data_block_id = req.data_block_id();
-    chunk.ro = ro;
-    chunk.len = rlen;
-    chunk.new_payload = req.new_range_payload();
-    chunk.old_payload = req.data_range_old_snapshot();
-    chunk.src_key = req.src_data_block_key();
-    chunk.src_ip = req.src_data_datanode_ip();
-    chunk.src_port = req.src_data_datanode_port();
-    for (int i = 0; i < req.parities_size(); ++i)
-    {
-      chunk.targets.push_back(req.parities(i));
-    }
-
-    std::shared_ptr<PbsParityBatchWait> sp;
-    {
-      std::unique_lock<std::mutex> lk(m_pbs_parity_batch_mutex);
-      const auto em = m_pbs_parity_batches.try_emplace(bid, std::make_shared<PbsParityBatchWait>());
-      const auto it = em.first;
-      const bool inserted = em.second;
-      sp = it->second;
-      if (inserted)
-      {
-        sp->total = total;
-      }
-      else if (sp->total != total)
-      {
-        std::cout << "[PBS] batch_total mismatch for batch_id=" << bid << std::endl;
-        return false;
-      }
-      sp->parts[idx] = std::move(chunk);
-      if (sp->parts.size() < static_cast<size_t>(sp->total))
-      {
-        sp->cv.wait(lk, [&] { return sp->finalized; });
-        return sp->success;
-      }
-      const bool ok = flush_pbs_parity_batch_unlocked(*sp);
-      sp->success = ok;
-      sp->finalized = true;
-      sp->cv.notify_all();
-      m_pbs_parity_batches.erase(it);
-      return ok;
-    }
-  }
-
-  grpc::Status ProxyImpl::pbsApplyParityDelta(
-      grpc::ServerContext *context,
-      const proxy_proto::PbsApplyParityDeltaRequest *request,
-      proxy_proto::SetReply *response)
-  {
-    (void)context;
-    const bool ok = apply_pbs_parity_delta_internal(*request);
-    response->set_ifcommit(ok);
     return grpc::Status::OK;
   }
 
@@ -3077,6 +2689,325 @@ namespace ECProject
 
     delete blocks;
     return grpc::Status();
+  }
+
+  grpc::Status ProxyImpl::parixScheduleDataUpdate(
+      grpc::ServerContext *context,
+      const proxy_proto::ParixDataUpdatePlacement *placement,
+      proxy_proto::ParixScheduleDataUpdateReply *response)
+  {
+    (void)context;
+    response->clear_journal_acks();
+    response->set_ifcommit(false);
+    try
+    {
+      asio::ip::tcp::socket sock(io_context);
+      acceptor.accept(sock);
+      const uint64_t payload_len = placement->range_length();
+      std::vector<char> buf(static_cast<size_t>(payload_len));
+      asio::error_code ec;
+      asio::read(sock, asio::buffer(buf.data(), static_cast<size_t>(payload_len)), ec);
+      asio::error_code ignore_ec;
+      sock.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
+      sock.close(ignore_ec);
+      if (ec)
+      {
+        std::cerr << "[Parix] TCP read failed\n";
+        return grpc::Status::OK;
+      }
+
+      {
+        const int show = static_cast<int>(payload_len > 16 ? 16 : payload_len);
+        std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixScheduleDataUpdate: accepted TCP payload len=" << payload_len
+                  << " stripe=" << placement->stripe_id() << " batch=" << placement->batch_id() << " data_block_id=" << placement->block_id()
+                  << " range[" << placement->range_offset() << "," << (placement->range_offset() + static_cast<int>(payload_len)) << ") key="
+                  << placement->block_key() << " first_" << show << "_bytes:";
+        for (int i = 0; i < show; ++i)
+        {
+          std::cout << ' ' << std::hex << std::setfill('0') << std::setw(2)
+                    << static_cast<unsigned>(static_cast<unsigned char>(buf[static_cast<size_t>(i)]));
+        }
+        std::cout << std::dec << std::endl;
+      }
+
+      auto call_append = [&](const proxy_proto::ParixParityRpcTarget &t, proxy_proto::ParixJournalAckItem *out_item) -> bool {
+        if (t.proxy_ip().empty())
+        {
+          return true;
+        }
+        grpc::ClientContext ctx;
+        proxy_proto::ParixJournalAppendRequest req;
+        req.set_stripe_id(placement->stripe_id());
+        req.set_batch_id(placement->batch_id());
+        req.set_write_generation(placement->write_generation());
+        req.set_parity_block_id(t.parity_block_id());
+        req.set_parity_block_key(t.parity_block_key());
+        req.set_parity_datanode_ip(t.parity_datanode_ip());
+        req.set_parity_datanode_port(t.parity_datanode_port());
+        req.set_data_block_id(placement->block_id());
+        req.set_range_offset(placement->range_offset());
+        req.set_range_length(placement->range_length());
+        req.set_new_payload(buf.data(), buf.size());
+        proxy_proto::ParixJournalAppendReply rep;
+        const std::string addr = t.proxy_ip() + ":" + std::to_string(t.proxy_grpc_port());
+        auto channel = grpc::CreateChannel(addr, grpc::InsecureChannelCredentials());
+        auto stub = proxy_proto::proxyService::NewStub(channel);
+        grpc::Status st = stub->parixJournalAppend(&ctx, req, &rep);
+        if (!st.ok())
+        {
+          std::cerr << "[Parix] parixJournalAppend failed: " << addr << " " << st.error_message() << std::endl;
+          return false;
+        }
+        const char *rname = (rep.ack() == proxy_proto::PARIX_ACK_SUCCESS) ? "SUCCESS" : "NEED_D0";
+        std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] fan-out parixJournalAppend -> " << addr << " parity_block_id=" << t.parity_block_id()
+                  << " -> " << rname << std::endl;
+        if (out_item)
+        {
+          out_item->set_parity_proxy_ip(t.proxy_ip());
+          out_item->set_parity_proxy_grpc_port(t.proxy_grpc_port());
+          out_item->set_parity_block_id(t.parity_block_id());
+          out_item->set_ack(rep.ack());
+        }
+        return true;
+      };
+
+      auto call_append_batch = [&](const std::string &addr,
+                                   const std::vector<const proxy_proto::ParixParityRpcTarget *> &group) -> bool {
+        grpc::ClientContext ctx;
+        proxy_proto::ParixJournalAppendBatchRequest breq;
+        breq.set_stripe_id(placement->stripe_id());
+        breq.set_batch_id(placement->batch_id());
+        breq.set_write_generation(placement->write_generation());
+        breq.set_data_block_id(placement->block_id());
+        breq.set_range_offset(placement->range_offset());
+        breq.set_range_length(placement->range_length());
+        breq.set_new_payload(buf.data(), buf.size());
+        for (const proxy_proto::ParixParityRpcTarget *tp : group)
+        {
+          proxy_proto::ParixJournalAppendBatchItem *bi = breq.add_targets();
+          bi->set_parity_block_id(tp->parity_block_id());
+          bi->set_parity_block_key(tp->parity_block_key());
+          bi->set_parity_datanode_ip(tp->parity_datanode_ip());
+          bi->set_parity_datanode_port(tp->parity_datanode_port());
+        }
+        proxy_proto::ParixJournalAppendBatchReply brep;
+        auto channel = grpc::CreateChannel(addr, grpc::InsecureChannelCredentials());
+        auto stub = proxy_proto::proxyService::NewStub(channel);
+        grpc::Status st = stub->parixJournalAppendBatch(&ctx, breq, &brep);
+        if (!st.ok())
+        {
+          std::cerr << "[Parix] parixJournalAppendBatch failed: " << addr << " " << st.error_message() << std::endl;
+          return false;
+        }
+        if (static_cast<int>(brep.acks_size()) != static_cast<int>(group.size()))
+        {
+          std::cerr << "[Parix] parixJournalAppendBatch ack count mismatch: " << addr << std::endl;
+          return false;
+        }
+        std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] fan-out parixJournalAppendBatch -> " << addr << " targets=" << group.size()
+                  << std::endl;
+        for (int i = 0; i < static_cast<int>(group.size()); ++i)
+        {
+          const proxy_proto::ParixParityRpcTarget *tp = group[static_cast<size_t>(i)];
+          const proxy_proto::ParixJournalAppendBatchAckItem &a = brep.acks(i);
+          if (a.parity_block_id() != tp->parity_block_id())
+          {
+            std::cerr << "[Parix] parixJournalAppendBatch ack parity_block_id order mismatch @ " << addr << std::endl;
+            return false;
+          }
+          const char *rname = (a.ack() == proxy_proto::PARIX_ACK_SUCCESS) ? "SUCCESS" : "NEED_D0";
+          std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "]   batch item parity_block_id=" << tp->parity_block_id() << " -> " << rname
+                    << std::endl;
+          proxy_proto::ParixJournalAckItem *item = response->add_journal_acks();
+          item->set_parity_proxy_ip(tp->proxy_ip());
+          item->set_parity_proxy_grpc_port(tp->proxy_grpc_port());
+          item->set_parity_block_id(tp->parity_block_id());
+          item->set_ack(a.ack());
+        }
+        return true;
+      };
+
+      std::vector<const proxy_proto::ParixParityRpcTarget *> parity_targets;
+      parity_targets.reserve(static_cast<size_t>(placement->global_parities_size() + 1));
+      for (int i = 0; i < placement->global_parities_size(); ++i)
+      {
+        const auto &t = placement->global_parities(i);
+        if (!t.proxy_ip().empty())
+        {
+          parity_targets.push_back(&t);
+        }
+      }
+      if (!placement->local_parity().proxy_ip().empty())
+      {
+        parity_targets.push_back(&placement->local_parity());
+      }
+
+      std::map<std::string, std::vector<const proxy_proto::ParixParityRpcTarget *>> by_endpoint;
+      for (const proxy_proto::ParixParityRpcTarget *tp : parity_targets)
+      {
+        by_endpoint[tp->proxy_ip() + ":" + std::to_string(tp->proxy_grpc_port())].push_back(tp);
+      }
+
+      bool ok = true;
+      for (const auto &kv : by_endpoint)
+      {
+        const std::string &addr = kv.first;
+        const std::vector<const proxy_proto::ParixParityRpcTarget *> &group = kv.second;
+        if (group.empty())
+        {
+          continue;
+        }
+        if (group.size() == 1)
+        {
+          proxy_proto::ParixJournalAckItem *item = response->add_journal_acks();
+          if (!call_append(*group.front(), item))
+          {
+            ok = false;
+          }
+        }
+        else
+        {
+          if (!call_append_batch(addr, group))
+          {
+            ok = false;
+          }
+        }
+      }
+      response->set_ifcommit(ok);
+      std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixScheduleDataUpdate done ifcommit=" << (ok ? "true" : "false") << std::endl;
+    }
+    catch (const std::exception &e)
+    {
+      std::cerr << "[Parix] parixScheduleDataUpdate: " << e.what() << std::endl;
+      response->set_ifcommit(false);
+    }
+    return grpc::Status::OK;
+  }
+
+  grpc::Status ProxyImpl::parixJournalAppendBatch(
+      grpc::ServerContext *context,
+      const proxy_proto::ParixJournalAppendBatchRequest *request,
+      proxy_proto::ParixJournalAppendBatchReply *response)
+  {
+    (void)context;
+    response->clear_acks();
+    const std::string new_payload(request->new_payload().data(), request->new_payload().size());
+    for (int i = 0; i < request->targets_size(); ++i)
+    {
+      const proxy_proto::ParixJournalAppendBatchItem &it = request->targets(i);
+      const ParixJournal::AppendResult ar = m_parix_journal.append(
+          request->stripe_id(), request->batch_id(), request->write_generation(), it.parity_block_id(), it.parity_block_key(),
+          it.parity_datanode_ip(), it.parity_datanode_port(), request->data_block_id(), request->range_offset(),
+          static_cast<int>(request->range_length()), new_payload);
+      proxy_proto::ParixJournalAppendBatchAckItem *out = response->add_acks();
+      out->set_parity_block_id(it.parity_block_id());
+      out->set_ack(ar == ParixJournal::AppendResult::SUCCESS ? proxy_proto::PARIX_ACK_SUCCESS : proxy_proto::PARIX_ACK_NEED_D0);
+      const char *rname = (ar == ParixJournal::AppendResult::SUCCESS) ? "SUCCESS" : "NEED_D0";
+      std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixJournalAppendBatch: stripe=" << request->stripe_id() << " batch=" << request->batch_id()
+                << " parity_block_id=" << it.parity_block_id() << " data_block_id=" << request->data_block_id() << " range["
+                << request->range_offset() << "," << (request->range_offset() + static_cast<int>(request->range_length())) << ") -> " << rname
+                << std::endl;
+    }
+    return grpc::Status::OK;
+  }
+
+  grpc::Status ProxyImpl::parixJournalAppend(
+      grpc::ServerContext *context,
+      const proxy_proto::ParixJournalAppendRequest *request,
+      proxy_proto::ParixJournalAppendReply *response)
+  {
+    (void)context;
+    const std::string new_payload(request->new_payload().data(), request->new_payload().size());
+    const ParixJournal::AppendResult ar = m_parix_journal.append(
+        request->stripe_id(), request->batch_id(), request->write_generation(), request->parity_block_id(),
+        request->parity_block_key(), request->parity_datanode_ip(), request->parity_datanode_port(),
+        request->data_block_id(), request->range_offset(), static_cast<int>(request->range_length()), new_payload);
+    response->set_ack(ar == ParixJournal::AppendResult::SUCCESS ? proxy_proto::PARIX_ACK_SUCCESS
+                                                                 : proxy_proto::PARIX_ACK_NEED_D0);
+    std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixJournalAppend: stripe=" << request->stripe_id() << " batch=" << request->batch_id()
+              << " parity_block_id=" << request->parity_block_id() << " data_block_id=" << request->data_block_id() << " range["
+              << request->range_offset() << "," << (request->range_offset() + static_cast<int>(request->range_length())) << ") -> "
+              << (ar == ParixJournal::AppendResult::SUCCESS ? "SUCCESS" : "NEED_D0") << std::endl;
+    return grpc::Status::OK;
+  }
+
+  grpc::Status ProxyImpl::parixSupplyD0(
+      grpc::ServerContext *context,
+      const proxy_proto::ParixSupplyD0Request *request,
+      proxy_proto::SetReply *response)
+  {
+    (void)context;
+    const std::string old_payload(request->old_payload().data(), request->old_payload().size());
+    const bool ok = m_parix_journal.supply_d0(request->stripe_id(), request->batch_id(), request->write_generation(),
+                                              request->parity_block_id(), request->data_block_id(), request->range_offset(),
+                                              static_cast<int>(request->range_length()), old_payload);
+    response->set_ifcommit(ok);
+    std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixSupplyD0: stripe=" << request->stripe_id() << " batch=" << request->batch_id()
+              << " parity_block_id=" << request->parity_block_id() << " data_block_id=" << request->data_block_id() << " range["
+              << request->range_offset() << "," << (request->range_offset() + static_cast<int>(request->range_length())) << ") ifcommit="
+              << (ok ? "true" : "false") << std::endl;
+    return grpc::Status::OK;
+  }
+
+  grpc::Status ProxyImpl::parixReplayBatch(
+      grpc::ServerContext *context,
+      const proxy_proto::ParixReplayBatchRequest *request,
+      proxy_proto::SetReply *response)
+  {
+    (void)context;
+    const bool ok = m_parix_journal.replay_batch(
+        request->stripe_id(), request->batch_id(), m_sys_config,
+        [this](const std::string &key, int block_id, char *buf, size_t bs, const char *ip, int port) {
+          return this->GetFromDatanode(key, buf, bs, ip, port);
+        },
+        [this](const std::string &key, int block_id, const char *buf, size_t bs, const char *ip, int port) {
+          return this->SetToDatanode(key.c_str(), key.size(), buf, bs, ip, port, 0);
+        });
+    response->set_ifcommit(ok);
+    std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixReplayBatch: stripe=" << request->stripe_id() << " batch=" << request->batch_id()
+              << " (read parity from DN, apply journal deltas, write parity) ifcommit=" << (ok ? "true" : "false") << std::endl;
+    return grpc::Status::OK;
+  }
+
+  grpc::Status ProxyImpl::parixParityFullOverwrite(
+      grpc::ServerContext *context,
+      const proxy_proto::ParixParityFullOverwriteRequest *request,
+      proxy_proto::SetReply *response)
+  {
+    (void)context;
+    const std::string &key = request->parity_block_key();
+    const std::string payload(request->full_parity_block().data(), request->full_parity_block().size());
+    if (payload.size() != m_sys_config->BlockSize)
+    {
+      response->set_ifcommit(false);
+      return grpc::Status::OK;
+    }
+    const bool ok =
+        SetToDatanode(key.c_str(), key.size(), payload.data(), payload.size(), request->datanode_ip().c_str(),
+                      request->datanode_port(), 0);
+    if (ok && request->journal_invalidations_size() > 0)
+    {
+      std::vector<std::tuple<int, int, int>> ranges;
+      ranges.reserve(static_cast<size_t>(request->journal_invalidations_size()));
+      for (int i = 0; i < request->journal_invalidations_size(); ++i)
+      {
+        const auto &r = request->journal_invalidations(i);
+        const int len = static_cast<int>(r.range_length());
+        if (len > 0)
+        {
+          ranges.emplace_back(r.data_block_id(), r.range_offset(), len);
+        }
+      }
+      if (!ranges.empty())
+      {
+        m_parix_journal.remove_entries_overlapping_data_ranges(request->stripe_id(), ranges);
+      }
+    }
+    response->set_ifcommit(ok);
+    std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixParityFullOverwrite: stripe=" << request->stripe_id()
+              << " parity_block_id=" << request->parity_block_id() << " key=" << request->parity_block_key() << " ifcommit="
+              << (ok ? "true" : "false") << " journal_inv=" << request->journal_invalidations_size() << std::endl;
+    return grpc::Status::OK;
   }
 
 } // namespace ECProject

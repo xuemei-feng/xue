@@ -391,89 +391,247 @@ struct RecoveryReplyDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 RecoveryReplyDefaultTypeInternal _RecoveryReply_default_instance_;
-PROTOBUF_CONSTEXPR PbsParityDeltaTarget::PbsParityDeltaTarget(
+PROTOBUF_CONSTEXPR ParixParityRpcTarget::ParixParityRpcTarget(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.parity_block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.datanode_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+    /*decltype(_impl_.proxy_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.parity_block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.parity_datanode_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.proxy_grpc_port_)*/0
   , /*decltype(_impl_.parity_block_id_)*/0
-  , /*decltype(_impl_.datanode_port_)*/0
+  , /*decltype(_impl_.parity_datanode_port_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
-struct PbsParityDeltaTargetDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR PbsParityDeltaTargetDefaultTypeInternal()
+struct ParixParityRpcTargetDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixParityRpcTargetDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
-  ~PbsParityDeltaTargetDefaultTypeInternal() {}
+  ~ParixParityRpcTargetDefaultTypeInternal() {}
   union {
-    PbsParityDeltaTarget _instance;
+    ParixParityRpcTarget _instance;
   };
 };
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PbsParityDeltaTargetDefaultTypeInternal _PbsParityDeltaTarget_default_instance_;
-PROTOBUF_CONSTEXPR PbsParityForwardPlan::PbsParityForwardPlan(
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixParityRpcTargetDefaultTypeInternal _ParixParityRpcTarget_default_instance_;
+PROTOBUF_CONSTEXPR ParixDataUpdatePlacement::ParixDataUpdatePlacement(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.parities_)*/{}
-  , /*decltype(_impl_.dest_proxy_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.dest_proxy_base_port_)*/0
-  , /*decltype(_impl_._cached_size_)*/{}} {}
-struct PbsParityForwardPlanDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR PbsParityForwardPlanDefaultTypeInternal()
-      : _instance(::_pbi::ConstantInitialized{}) {}
-  ~PbsParityForwardPlanDefaultTypeInternal() {}
-  union {
-    PbsParityForwardPlan _instance;
-  };
-};
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PbsParityForwardPlanDefaultTypeInternal _PbsParityForwardPlan_default_instance_;
-PROTOBUF_CONSTEXPR PbsDataUpdatePlacement::PbsDataUpdatePlacement(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.parity_forward_)*/{}
+    /*decltype(_impl_.global_parities_)*/{}
   , /*decltype(_impl_.key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.datanode_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.local_parity_)*/nullptr
+  , /*decltype(_impl_.batch_id_)*/uint64_t{0u}
   , /*decltype(_impl_.stripe_id_)*/0
   , /*decltype(_impl_.cluster_id_)*/0
+  , /*decltype(_impl_.write_generation_)*/uint64_t{0u}
   , /*decltype(_impl_.block_id_)*/0
   , /*decltype(_impl_.range_offset_)*/0
   , /*decltype(_impl_.range_length_)*/uint64_t{0u}
   , /*decltype(_impl_.datanode_port_)*/0
-  , /*decltype(_impl_.pbs_batch_index_)*/0u
-  , /*decltype(_impl_.pbs_batch_id_)*/uint64_t{0u}
-  , /*decltype(_impl_.pbs_batch_total_)*/0u
   , /*decltype(_impl_._cached_size_)*/{}} {}
-struct PbsDataUpdatePlacementDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR PbsDataUpdatePlacementDefaultTypeInternal()
+struct ParixDataUpdatePlacementDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixDataUpdatePlacementDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
-  ~PbsDataUpdatePlacementDefaultTypeInternal() {}
+  ~ParixDataUpdatePlacementDefaultTypeInternal() {}
   union {
-    PbsDataUpdatePlacement _instance;
+    ParixDataUpdatePlacement _instance;
   };
 };
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PbsDataUpdatePlacementDefaultTypeInternal _PbsDataUpdatePlacement_default_instance_;
-PROTOBUF_CONSTEXPR PbsApplyParityDeltaRequest::PbsApplyParityDeltaRequest(
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixDataUpdatePlacementDefaultTypeInternal _ParixDataUpdatePlacement_default_instance_;
+PROTOBUF_CONSTEXPR ParixJournalAckItem::ParixJournalAckItem(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.parities_)*/{}
-  , /*decltype(_impl_.delta_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.new_range_payload_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.src_data_block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.src_data_datanode_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.data_range_old_snapshot_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+    /*decltype(_impl_.parity_proxy_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.parity_proxy_grpc_port_)*/0
+  , /*decltype(_impl_.parity_block_id_)*/0
+  , /*decltype(_impl_.ack_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParixJournalAckItemDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixJournalAckItemDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParixJournalAckItemDefaultTypeInternal() {}
+  union {
+    ParixJournalAckItem _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixJournalAckItemDefaultTypeInternal _ParixJournalAckItem_default_instance_;
+PROTOBUF_CONSTEXPR ParixScheduleDataUpdateReply::ParixScheduleDataUpdateReply(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.journal_acks_)*/{}
+  , /*decltype(_impl_.ifcommit_)*/false
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParixScheduleDataUpdateReplyDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixScheduleDataUpdateReplyDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParixScheduleDataUpdateReplyDefaultTypeInternal() {}
+  union {
+    ParixScheduleDataUpdateReply _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixScheduleDataUpdateReplyDefaultTypeInternal _ParixScheduleDataUpdateReply_default_instance_;
+PROTOBUF_CONSTEXPR ParixJournalAppendRequest::ParixJournalAppendRequest(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.parity_block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.parity_datanode_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.new_payload_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.batch_id_)*/uint64_t{0u}
   , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_.parity_block_id_)*/0
+  , /*decltype(_impl_.write_generation_)*/uint64_t{0u}
+  , /*decltype(_impl_.parity_datanode_port_)*/0
   , /*decltype(_impl_.data_block_id_)*/0
   , /*decltype(_impl_.range_length_)*/uint64_t{0u}
   , /*decltype(_impl_.range_offset_)*/0
-  , /*decltype(_impl_.use_new_payload_)*/false
-  , /*decltype(_impl_.pbs_batch_id_)*/uint64_t{0u}
-  , /*decltype(_impl_.src_data_datanode_port_)*/0
-  , /*decltype(_impl_.pbs_batch_index_)*/0u
-  , /*decltype(_impl_.pbs_batch_total_)*/0u
   , /*decltype(_impl_._cached_size_)*/{}} {}
-struct PbsApplyParityDeltaRequestDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR PbsApplyParityDeltaRequestDefaultTypeInternal()
+struct ParixJournalAppendRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixJournalAppendRequestDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
-  ~PbsApplyParityDeltaRequestDefaultTypeInternal() {}
+  ~ParixJournalAppendRequestDefaultTypeInternal() {}
   union {
-    PbsApplyParityDeltaRequest _instance;
+    ParixJournalAppendRequest _instance;
   };
 };
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PbsApplyParityDeltaRequestDefaultTypeInternal _PbsApplyParityDeltaRequest_default_instance_;
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixJournalAppendRequestDefaultTypeInternal _ParixJournalAppendRequest_default_instance_;
+PROTOBUF_CONSTEXPR ParixJournalAppendReply::ParixJournalAppendReply(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.ack_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParixJournalAppendReplyDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixJournalAppendReplyDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParixJournalAppendReplyDefaultTypeInternal() {}
+  union {
+    ParixJournalAppendReply _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixJournalAppendReplyDefaultTypeInternal _ParixJournalAppendReply_default_instance_;
+PROTOBUF_CONSTEXPR ParixJournalAppendBatchItem::ParixJournalAppendBatchItem(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.parity_block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.parity_datanode_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.parity_block_id_)*/0
+  , /*decltype(_impl_.parity_datanode_port_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParixJournalAppendBatchItemDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixJournalAppendBatchItemDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParixJournalAppendBatchItemDefaultTypeInternal() {}
+  union {
+    ParixJournalAppendBatchItem _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixJournalAppendBatchItemDefaultTypeInternal _ParixJournalAppendBatchItem_default_instance_;
+PROTOBUF_CONSTEXPR ParixJournalAppendBatchRequest::ParixJournalAppendBatchRequest(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.targets_)*/{}
+  , /*decltype(_impl_.new_payload_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.batch_id_)*/uint64_t{0u}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_.data_block_id_)*/0
+  , /*decltype(_impl_.write_generation_)*/uint64_t{0u}
+  , /*decltype(_impl_.range_length_)*/uint64_t{0u}
+  , /*decltype(_impl_.range_offset_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParixJournalAppendBatchRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixJournalAppendBatchRequestDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParixJournalAppendBatchRequestDefaultTypeInternal() {}
+  union {
+    ParixJournalAppendBatchRequest _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixJournalAppendBatchRequestDefaultTypeInternal _ParixJournalAppendBatchRequest_default_instance_;
+PROTOBUF_CONSTEXPR ParixJournalAppendBatchAckItem::ParixJournalAppendBatchAckItem(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.parity_block_id_)*/0
+  , /*decltype(_impl_.ack_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParixJournalAppendBatchAckItemDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixJournalAppendBatchAckItemDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParixJournalAppendBatchAckItemDefaultTypeInternal() {}
+  union {
+    ParixJournalAppendBatchAckItem _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixJournalAppendBatchAckItemDefaultTypeInternal _ParixJournalAppendBatchAckItem_default_instance_;
+PROTOBUF_CONSTEXPR ParixJournalAppendBatchReply::ParixJournalAppendBatchReply(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.acks_)*/{}
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParixJournalAppendBatchReplyDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixJournalAppendBatchReplyDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParixJournalAppendBatchReplyDefaultTypeInternal() {}
+  union {
+    ParixJournalAppendBatchReply _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixJournalAppendBatchReplyDefaultTypeInternal _ParixJournalAppendBatchReply_default_instance_;
+PROTOBUF_CONSTEXPR ParixSupplyD0Request::ParixSupplyD0Request(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.old_payload_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.batch_id_)*/uint64_t{0u}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_.parity_block_id_)*/0
+  , /*decltype(_impl_.write_generation_)*/uint64_t{0u}
+  , /*decltype(_impl_.data_block_id_)*/0
+  , /*decltype(_impl_.range_offset_)*/0
+  , /*decltype(_impl_.range_length_)*/uint64_t{0u}
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParixSupplyD0RequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixSupplyD0RequestDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParixSupplyD0RequestDefaultTypeInternal() {}
+  union {
+    ParixSupplyD0Request _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixSupplyD0RequestDefaultTypeInternal _ParixSupplyD0Request_default_instance_;
+PROTOBUF_CONSTEXPR ParixReplayBatchRequest::ParixReplayBatchRequest(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.batch_id_)*/uint64_t{0u}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParixReplayBatchRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixReplayBatchRequestDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParixReplayBatchRequestDefaultTypeInternal() {}
+  union {
+    ParixReplayBatchRequest _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixReplayBatchRequestDefaultTypeInternal _ParixReplayBatchRequest_default_instance_;
+PROTOBUF_CONSTEXPR ParixJournalInvalidationRange::ParixJournalInvalidationRange(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.data_block_id_)*/0
+  , /*decltype(_impl_.range_offset_)*/0
+  , /*decltype(_impl_.range_length_)*/uint64_t{0u}
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParixJournalInvalidationRangeDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixJournalInvalidationRangeDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParixJournalInvalidationRangeDefaultTypeInternal() {}
+  union {
+    ParixJournalInvalidationRange _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixJournalInvalidationRangeDefaultTypeInternal _ParixJournalInvalidationRange_default_instance_;
+PROTOBUF_CONSTEXPR ParixParityFullOverwriteRequest::ParixParityFullOverwriteRequest(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.journal_invalidations_)*/{}
+  , /*decltype(_impl_.parity_block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.full_parity_block_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.datanode_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.new_write_generation_)*/uint64_t{0u}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_.parity_block_id_)*/0
+  , /*decltype(_impl_.datanode_port_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParixParityFullOverwriteRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixParityFullOverwriteRequestDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParixParityFullOverwriteRequestDefaultTypeInternal() {}
+  union {
+    ParixParityFullOverwriteRequest _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixParityFullOverwriteRequestDefaultTypeInternal _ParixParityFullOverwriteRequest_default_instance_;
 PROTOBUF_CONSTEXPR AppendStripeDataPlacement::AppendStripeDataPlacement(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.datanodeip_)*/{}
@@ -552,8 +710,8 @@ struct StripeAndBlockIDsDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StripeAndBlockIDsDefaultTypeInternal _StripeAndBlockIDs_default_instance_;
 }  // namespace proxy_proto
-static ::_pb::Metadata file_level_metadata_proxy_2eproto[27];
-static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_proxy_2eproto = nullptr;
+static ::_pb::Metadata file_level_metadata_proxy_2eproto[37];
+static const ::_pb::EnumDescriptor* file_level_enum_descriptors_proxy_2eproto[1];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_proxy_2eproto = nullptr;
 
 const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
@@ -795,64 +953,162 @@ const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   PROTOBUF_FIELD_OFFSET(::proxy_proto::RecoveryReply, _impl_.dest_data_node_network_time_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::RecoveryReply, _impl_.dest_data_node_disk_io_time_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsParityDeltaTarget, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityRpcTarget, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsParityDeltaTarget, _impl_.parity_block_key_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsParityDeltaTarget, _impl_.parity_block_id_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsParityDeltaTarget, _impl_.datanode_ip_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsParityDeltaTarget, _impl_.datanode_port_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityRpcTarget, _impl_.proxy_ip_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityRpcTarget, _impl_.proxy_grpc_port_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityRpcTarget, _impl_.parity_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityRpcTarget, _impl_.parity_block_key_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityRpcTarget, _impl_.parity_datanode_ip_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityRpcTarget, _impl_.parity_datanode_port_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsParityForwardPlan, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsParityForwardPlan, _impl_.dest_proxy_ip_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsParityForwardPlan, _impl_.dest_proxy_base_port_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsParityForwardPlan, _impl_.parities_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.key_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.batch_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.write_generation_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.cluster_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.block_key_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.range_offset_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.range_length_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.datanode_ip_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.datanode_port_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.global_parities_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.local_parity_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsDataUpdatePlacement, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAckItem, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsDataUpdatePlacement, _impl_.key_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsDataUpdatePlacement, _impl_.stripe_id_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsDataUpdatePlacement, _impl_.cluster_id_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsDataUpdatePlacement, _impl_.block_key_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsDataUpdatePlacement, _impl_.block_id_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsDataUpdatePlacement, _impl_.range_offset_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsDataUpdatePlacement, _impl_.range_length_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsDataUpdatePlacement, _impl_.datanode_ip_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsDataUpdatePlacement, _impl_.datanode_port_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsDataUpdatePlacement, _impl_.parity_forward_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsDataUpdatePlacement, _impl_.pbs_batch_id_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsDataUpdatePlacement, _impl_.pbs_batch_index_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsDataUpdatePlacement, _impl_.pbs_batch_total_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAckItem, _impl_.parity_proxy_ip_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAckItem, _impl_.parity_proxy_grpc_port_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAckItem, _impl_.parity_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAckItem, _impl_.ack_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixScheduleDataUpdateReply, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.stripe_id_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.data_block_id_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.range_offset_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.range_length_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.delta_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.parities_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.use_new_payload_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.new_range_payload_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.src_data_block_key_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.src_data_datanode_ip_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.src_data_datanode_port_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.pbs_batch_id_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.pbs_batch_index_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.pbs_batch_total_),
-  PROTOBUF_FIELD_OFFSET(::proxy_proto::PbsApplyParityDeltaRequest, _impl_.data_range_old_snapshot_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixScheduleDataUpdateReply, _impl_.ifcommit_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixScheduleDataUpdateReply, _impl_.journal_acks_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendRequest, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendRequest, _impl_.batch_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendRequest, _impl_.write_generation_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendRequest, _impl_.parity_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendRequest, _impl_.parity_block_key_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendRequest, _impl_.parity_datanode_ip_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendRequest, _impl_.parity_datanode_port_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendRequest, _impl_.data_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendRequest, _impl_.range_offset_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendRequest, _impl_.range_length_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendRequest, _impl_.new_payload_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendReply, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendReply, _impl_.ack_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchItem, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchItem, _impl_.parity_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchItem, _impl_.parity_block_key_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchItem, _impl_.parity_datanode_ip_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchItem, _impl_.parity_datanode_port_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchRequest, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchRequest, _impl_.batch_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchRequest, _impl_.write_generation_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchRequest, _impl_.data_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchRequest, _impl_.range_offset_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchRequest, _impl_.range_length_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchRequest, _impl_.new_payload_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchRequest, _impl_.targets_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchAckItem, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchAckItem, _impl_.parity_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchAckItem, _impl_.ack_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchReply, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAppendBatchReply, _impl_.acks_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixSupplyD0Request, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixSupplyD0Request, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixSupplyD0Request, _impl_.batch_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixSupplyD0Request, _impl_.write_generation_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixSupplyD0Request, _impl_.parity_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixSupplyD0Request, _impl_.data_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixSupplyD0Request, _impl_.range_offset_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixSupplyD0Request, _impl_.range_length_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixSupplyD0Request, _impl_.old_payload_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixReplayBatchRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixReplayBatchRequest, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixReplayBatchRequest, _impl_.batch_id_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalInvalidationRange, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalInvalidationRange, _impl_.data_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalInvalidationRange, _impl_.range_offset_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalInvalidationRange, _impl_.range_length_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityFullOverwriteRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityFullOverwriteRequest, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityFullOverwriteRequest, _impl_.new_write_generation_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityFullOverwriteRequest, _impl_.parity_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityFullOverwriteRequest, _impl_.parity_block_key_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityFullOverwriteRequest, _impl_.full_parity_block_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityFullOverwriteRequest, _impl_.datanode_ip_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityFullOverwriteRequest, _impl_.datanode_port_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityFullOverwriteRequest, _impl_.journal_invalidations_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -921,14 +1177,24 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 188, -1, -1, sizeof(::proxy_proto::RecoveryRequest)},
   { 207, -1, -1, sizeof(::proxy_proto::MultipleRecoveryRequest)},
   { 218, -1, -1, sizeof(::proxy_proto::RecoveryReply)},
-  { 237, -1, -1, sizeof(::proxy_proto::PbsParityDeltaTarget)},
-  { 247, -1, -1, sizeof(::proxy_proto::PbsParityForwardPlan)},
-  { 256, -1, -1, sizeof(::proxy_proto::PbsDataUpdatePlacement)},
-  { 275, -1, -1, sizeof(::proxy_proto::PbsApplyParityDeltaRequest)},
-  { 296, -1, -1, sizeof(::proxy_proto::AppendStripeDataPlacement)},
-  { 315, -1, -1, sizeof(::proxy_proto::SetReply)},
-  { 322, -1, -1, sizeof(::proxy_proto::GetReply)},
-  { 329, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
+  { 237, -1, -1, sizeof(::proxy_proto::ParixParityRpcTarget)},
+  { 249, -1, -1, sizeof(::proxy_proto::ParixDataUpdatePlacement)},
+  { 268, -1, -1, sizeof(::proxy_proto::ParixJournalAckItem)},
+  { 278, -1, -1, sizeof(::proxy_proto::ParixScheduleDataUpdateReply)},
+  { 286, -1, -1, sizeof(::proxy_proto::ParixJournalAppendRequest)},
+  { 303, -1, -1, sizeof(::proxy_proto::ParixJournalAppendReply)},
+  { 310, -1, -1, sizeof(::proxy_proto::ParixJournalAppendBatchItem)},
+  { 320, -1, -1, sizeof(::proxy_proto::ParixJournalAppendBatchRequest)},
+  { 334, -1, -1, sizeof(::proxy_proto::ParixJournalAppendBatchAckItem)},
+  { 342, -1, -1, sizeof(::proxy_proto::ParixJournalAppendBatchReply)},
+  { 349, -1, -1, sizeof(::proxy_proto::ParixSupplyD0Request)},
+  { 363, -1, -1, sizeof(::proxy_proto::ParixReplayBatchRequest)},
+  { 371, -1, -1, sizeof(::proxy_proto::ParixJournalInvalidationRange)},
+  { 380, -1, -1, sizeof(::proxy_proto::ParixParityFullOverwriteRequest)},
+  { 394, -1, -1, sizeof(::proxy_proto::AppendStripeDataPlacement)},
+  { 413, -1, -1, sizeof(::proxy_proto::SetReply)},
+  { 420, -1, -1, sizeof(::proxy_proto::GetReply)},
+  { 427, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -951,10 +1217,20 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::proxy_proto::_RecoveryRequest_default_instance_._instance,
   &::proxy_proto::_MultipleRecoveryRequest_default_instance_._instance,
   &::proxy_proto::_RecoveryReply_default_instance_._instance,
-  &::proxy_proto::_PbsParityDeltaTarget_default_instance_._instance,
-  &::proxy_proto::_PbsParityForwardPlan_default_instance_._instance,
-  &::proxy_proto::_PbsDataUpdatePlacement_default_instance_._instance,
-  &::proxy_proto::_PbsApplyParityDeltaRequest_default_instance_._instance,
+  &::proxy_proto::_ParixParityRpcTarget_default_instance_._instance,
+  &::proxy_proto::_ParixDataUpdatePlacement_default_instance_._instance,
+  &::proxy_proto::_ParixJournalAckItem_default_instance_._instance,
+  &::proxy_proto::_ParixScheduleDataUpdateReply_default_instance_._instance,
+  &::proxy_proto::_ParixJournalAppendRequest_default_instance_._instance,
+  &::proxy_proto::_ParixJournalAppendReply_default_instance_._instance,
+  &::proxy_proto::_ParixJournalAppendBatchItem_default_instance_._instance,
+  &::proxy_proto::_ParixJournalAppendBatchRequest_default_instance_._instance,
+  &::proxy_proto::_ParixJournalAppendBatchAckItem_default_instance_._instance,
+  &::proxy_proto::_ParixJournalAppendBatchReply_default_instance_._instance,
+  &::proxy_proto::_ParixSupplyD0Request_default_instance_._instance,
+  &::proxy_proto::_ParixReplayBatchRequest_default_instance_._instance,
+  &::proxy_proto::_ParixJournalInvalidationRange_default_instance_._instance,
+  &::proxy_proto::_ParixParityFullOverwriteRequest_default_instance_._instance,
   &::proxy_proto::_AppendStripeDataPlacement_default_instance_._instance,
   &::proxy_proto::_SetReply_default_instance_._instance,
   &::proxy_proto::_GetReply_default_instance_._instance,
@@ -1040,87 +1316,133 @@ const char descriptor_table_protodef_proxy_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "ta_node_grpc_notify_time\030\n \001(\001\022!\n\031data_n"
   "ode_grpc_start_time\030\013 \001(\001\022#\n\033dest_data_n"
   "ode_network_time\030\014 \001(\001\022#\n\033dest_data_node"
-  "_disk_io_time\030\r \001(\001\"u\n\024PbsParityDeltaTar"
-  "get\022\030\n\020parity_block_key\030\001 \001(\t\022\027\n\017parity_"
-  "block_id\030\002 \001(\005\022\023\n\013datanode_ip\030\003 \001(\t\022\025\n\rd"
-  "atanode_port\030\004 \001(\005\"\200\001\n\024PbsParityForwardP"
-  "lan\022\025\n\rdest_proxy_ip\030\001 \001(\t\022\034\n\024dest_proxy"
-  "_base_port\030\002 \001(\005\0223\n\010parities\030\003 \003(\0132!.pro"
-  "xy_proto.PbsParityDeltaTarget\"\314\002\n\026PbsDat"
-  "aUpdatePlacement\022\013\n\003key\030\001 \001(\t\022\021\n\tstripe_"
-  "id\030\002 \001(\005\022\022\n\ncluster_id\030\003 \001(\005\022\021\n\tblock_ke"
-  "y\030\004 \001(\t\022\020\n\010block_id\030\005 \001(\005\022\024\n\014range_offse"
-  "t\030\006 \001(\005\022\024\n\014range_length\030\007 \001(\004\022\023\n\013datanod"
-  "e_ip\030\010 \001(\t\022\025\n\rdatanode_port\030\t \001(\005\0229\n\016par"
-  "ity_forward\030\n \003(\0132!.proxy_proto.PbsParit"
-  "yForwardPlan\022\024\n\014pbs_batch_id\030\013 \001(\004\022\027\n\017pb"
-  "s_batch_index\030\014 \001(\r\022\027\n\017pbs_batch_total\030\r"
-  " \001(\r\"\255\003\n\032PbsApplyParityDeltaRequest\022\021\n\ts"
-  "tripe_id\030\001 \001(\005\022\025\n\rdata_block_id\030\002 \001(\005\022\024\n"
-  "\014range_offset\030\003 \001(\005\022\024\n\014range_length\030\004 \001("
-  "\004\022\r\n\005delta\030\005 \001(\014\0223\n\010parities\030\006 \003(\0132!.pro"
-  "xy_proto.PbsParityDeltaTarget\022\027\n\017use_new"
-  "_payload\030\007 \001(\010\022\031\n\021new_range_payload\030\010 \001("
-  "\014\022\032\n\022src_data_block_key\030\t \001(\t\022\034\n\024src_dat"
-  "a_datanode_ip\030\n \001(\t\022\036\n\026src_data_datanode"
-  "_port\030\013 \001(\005\022\024\n\014pbs_batch_id\030\014 \001(\004\022\027\n\017pbs"
-  "_batch_index\030\r \001(\r\022\027\n\017pbs_batch_total\030\016 "
-  "\001(\r\022\037\n\027data_range_old_snapshot\030\017 \001(\014\"\230\002\n"
-  "\031AppendStripeDataPlacement\022\013\n\003key\030\001 \001(\t\022"
-  "\022\n\ncluster_id\030\002 \001(\005\022\021\n\tstripe_id\030\003 \001(\005\022\023"
-  "\n\013append_size\030\004 \001(\004\022\022\n\ndatanodeip\030\005 \003(\t\022"
-  "\024\n\014datanodeport\030\006 \003(\005\022\021\n\tblockkeys\030\007 \003(\t"
-  "\022\020\n\010blockids\030\010 \003(\005\022\017\n\007offsets\030\t \003(\004\022\r\n\005s"
-  "izes\030\n \003(\004\022\027\n\017is_merge_parity\030\013 \001(\010\022\023\n\013a"
-  "ppend_mode\030\014 \001(\t\022\025\n\ris_serialized\030\r \001(\010\""
-  "\034\n\010SetReply\022\020\n\010ifcommit\030\001 \001(\010\"\036\n\010GetRepl"
-  "y\022\022\n\ngetsuccess\030\001 \001(\010\"\261\001\n\021StripeAndBlock"
-  "IDs\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010group_id\030\002 \001(\005"
-  "\022\020\n\010clientip\030\003 \001(\t\022\022\n\nclientport\030\004 \001(\005\022\021"
-  "\n\tblock_ids\030\005 \003(\005\022\022\n\nblock_keys\030\006 \003(\t\022\023\n"
-  "\013datanodeips\030\007 \003(\t\022\025\n\rdatanodeports\030\010 \003("
-  "\0052\363\n\n\014proxyService\022D\n\ncheckalive\022\032.proxy"
-  "_proto.CheckaliveCMD\032\032.proxy_proto.Reque"
-  "stResult\022L\n\022encodeAndSetObject\022\037.proxy_p"
-  "roto.ObjectAndPlacement\032\025.proxy_proto.Se"
-  "tReply\022L\n\022decodeAndGetObject\022\037.proxy_pro"
-  "to.ObjectAndPlacement\032\025.proxy_proto.GetR"
-  "eply\022P\n\014degradedRead\022 .proxy_proto.Degra"
-  "dedReadRequest\032\036.proxy_proto.DegradedRea"
-  "dReply\022S\n\023degradedRead2Client\022\034.proxy_pr"
-  "oto.RecoveryRequest\032\036.proxy_proto.Degrad"
-  "edReadReply\022Y\n\025degradedReadBreakdown\022 .p"
-  "roxy_proto.DegradedReadRequest\032\036.proxy_p"
-  "roto.DegradedReadReply\022\\\n\034degradedRead2C"
-  "lientBreakdown\022\034.proxy_proto.RecoveryReq"
-  "uest\032\036.proxy_proto.DegradedReadReply\022X\n\035"
-  "degradedReadWithBlockStripeID\022 .proxy_pr"
-  "oto.DegradedReadRequest\032\025.proxy_proto.Ge"
-  "tReply\022V\n\017partialDecoding\022#.proxy_proto."
-  "PartialDecodingRequest\032\036.proxy_proto.Deg"
-  "radedReadReply\022D\n\010recovery\022\034.proxy_proto"
-  ".RecoveryRequest\032\032.proxy_proto.RecoveryR"
-  "eply\022M\n\021recoveryBreakdown\022\034.proxy_proto."
-  "RecoveryRequest\032\032.proxy_proto.RecoveryRe"
-  "ply\022O\n\020multipleRecovery\022$.proxy_proto.Mu"
-  "ltipleRecoveryRequest\032\025.proxy_proto.GetR"
-  "eply\022\?\n\013deleteBlock\022\031.proxy_proto.NodeAn"
-  "dBlock\032\025.proxy_proto.DelReply\022X\n\027schedul"
-  "eAppend2Datanode\022&.proxy_proto.AppendStr"
-  "ipeDataPlacement\032\025.proxy_proto.SetReply\022"
-  "S\n\025pbsScheduleDataUpdate\022#.proxy_proto.P"
-  "bsDataUpdatePlacement\032\025.proxy_proto.SetR"
-  "eply\022U\n\023pbsApplyParityDelta\022\'.proxy_prot"
-  "o.PbsApplyParityDeltaRequest\032\025.proxy_pro"
-  "to.SetReply\022B\n\tgetBlocks\022\036.proxy_proto.S"
-  "tripeAndBlockIDs\032\025.proxy_proto.GetReplyb"
-  "\006proto3"
+  "_disk_io_time\030\r \001(\001\"\256\001\n\024ParixParityRpcTa"
+  "rget\022\020\n\010proxy_ip\030\001 \001(\t\022\027\n\017proxy_grpc_por"
+  "t\030\002 \001(\005\022\027\n\017parity_block_id\030\003 \001(\005\022\030\n\020pari"
+  "ty_block_key\030\004 \001(\t\022\032\n\022parity_datanode_ip"
+  "\030\005 \001(\t\022\034\n\024parity_datanode_port\030\006 \001(\005\"\354\002\n"
+  "\030ParixDataUpdatePlacement\022\013\n\003key\030\001 \001(\t\022\021"
+  "\n\tstripe_id\030\002 \001(\005\022\020\n\010batch_id\030\003 \001(\004\022\030\n\020w"
+  "rite_generation\030\004 \001(\004\022\022\n\ncluster_id\030\005 \001("
+  "\005\022\021\n\tblock_key\030\006 \001(\t\022\020\n\010block_id\030\007 \001(\005\022\024"
+  "\n\014range_offset\030\010 \001(\005\022\024\n\014range_length\030\t \001"
+  "(\004\022\023\n\013datanode_ip\030\n \001(\t\022\025\n\rdatanode_port"
+  "\030\013 \001(\005\022:\n\017global_parities\030\014 \003(\0132!.proxy_"
+  "proto.ParixParityRpcTarget\0227\n\014local_pari"
+  "ty\030\r \001(\0132!.proxy_proto.ParixParityRpcTar"
+  "get\"\221\001\n\023ParixJournalAckItem\022\027\n\017parity_pr"
+  "oxy_ip\030\001 \001(\t\022\036\n\026parity_proxy_grpc_port\030\002"
+  " \001(\005\022\027\n\017parity_block_id\030\003 \001(\005\022(\n\003ack\030\004 \001"
+  "(\0162\033.proxy_proto.ParixParityAck\"h\n\034Parix"
+  "ScheduleDataUpdateReply\022\020\n\010ifcommit\030\001 \001("
+  "\010\0226\n\014journal_acks\030\002 \003(\0132 .proxy_proto.Pa"
+  "rixJournalAckItem\"\237\002\n\031ParixJournalAppend"
+  "Request\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010batch_id\030\002"
+  " \001(\004\022\030\n\020write_generation\030\003 \001(\004\022\027\n\017parity"
+  "_block_id\030\004 \001(\005\022\030\n\020parity_block_key\030\005 \001("
+  "\t\022\032\n\022parity_datanode_ip\030\006 \001(\t\022\034\n\024parity_"
+  "datanode_port\030\007 \001(\005\022\025\n\rdata_block_id\030\010 \001"
+  "(\005\022\024\n\014range_offset\030\t \001(\005\022\024\n\014range_length"
+  "\030\n \001(\004\022\023\n\013new_payload\030\013 \001(\014\"C\n\027ParixJour"
+  "nalAppendReply\022(\n\003ack\030\001 \001(\0162\033.proxy_prot"
+  "o.ParixParityAck\"\212\001\n\033ParixJournalAppendB"
+  "atchItem\022\027\n\017parity_block_id\030\001 \001(\005\022\030\n\020par"
+  "ity_block_key\030\002 \001(\t\022\032\n\022parity_datanode_i"
+  "p\030\003 \001(\t\022\034\n\024parity_datanode_port\030\004 \001(\005\"\362\001"
+  "\n\036ParixJournalAppendBatchRequest\022\021\n\tstri"
+  "pe_id\030\001 \001(\005\022\020\n\010batch_id\030\002 \001(\004\022\030\n\020write_g"
+  "eneration\030\003 \001(\004\022\025\n\rdata_block_id\030\004 \001(\005\022\024"
+  "\n\014range_offset\030\005 \001(\005\022\024\n\014range_length\030\006 \001"
+  "(\004\022\023\n\013new_payload\030\007 \001(\014\0229\n\007targets\030\010 \003(\013"
+  "2(.proxy_proto.ParixJournalAppendBatchIt"
+  "em\"c\n\036ParixJournalAppendBatchAckItem\022\027\n\017"
+  "parity_block_id\030\001 \001(\005\022(\n\003ack\030\002 \001(\0162\033.pro"
+  "xy_proto.ParixParityAck\"Y\n\034ParixJournalA"
+  "ppendBatchReply\0229\n\004acks\030\001 \003(\0132+.proxy_pr"
+  "oto.ParixJournalAppendBatchAckItem\"\306\001\n\024P"
+  "arixSupplyD0Request\022\021\n\tstripe_id\030\001 \001(\005\022\020"
+  "\n\010batch_id\030\002 \001(\004\022\030\n\020write_generation\030\003 \001"
+  "(\004\022\027\n\017parity_block_id\030\004 \001(\005\022\025\n\rdata_bloc"
+  "k_id\030\005 \001(\005\022\024\n\014range_offset\030\006 \001(\005\022\024\n\014rang"
+  "e_length\030\007 \001(\004\022\023\n\013old_payload\030\010 \001(\014\">\n\027P"
+  "arixReplayBatchRequest\022\021\n\tstripe_id\030\001 \001("
+  "\005\022\020\n\010batch_id\030\002 \001(\004\"b\n\035ParixJournalInval"
+  "idationRange\022\025\n\rdata_block_id\030\001 \001(\005\022\024\n\014r"
+  "ange_offset\030\002 \001(\005\022\024\n\014range_length\030\003 \001(\004\""
+  "\227\002\n\037ParixParityFullOverwriteRequest\022\021\n\ts"
+  "tripe_id\030\001 \001(\005\022\034\n\024new_write_generation\030\002"
+  " \001(\004\022\027\n\017parity_block_id\030\003 \001(\005\022\030\n\020parity_"
+  "block_key\030\004 \001(\t\022\031\n\021full_parity_block\030\005 \001"
+  "(\014\022\023\n\013datanode_ip\030\006 \001(\t\022\025\n\rdatanode_port"
+  "\030\007 \001(\005\022I\n\025journal_invalidations\030\010 \003(\0132*."
+  "proxy_proto.ParixJournalInvalidationRang"
+  "e\"\230\002\n\031AppendStripeDataPlacement\022\013\n\003key\030\001"
+  " \001(\t\022\022\n\ncluster_id\030\002 \001(\005\022\021\n\tstripe_id\030\003 "
+  "\001(\005\022\023\n\013append_size\030\004 \001(\004\022\022\n\ndatanodeip\030\005"
+  " \003(\t\022\024\n\014datanodeport\030\006 \003(\005\022\021\n\tblockkeys\030"
+  "\007 \003(\t\022\020\n\010blockids\030\010 \003(\005\022\017\n\007offsets\030\t \003(\004"
+  "\022\r\n\005sizes\030\n \003(\004\022\027\n\017is_merge_parity\030\013 \001(\010"
+  "\022\023\n\013append_mode\030\014 \001(\t\022\025\n\ris_serialized\030\r"
+  " \001(\010\"\034\n\010SetReply\022\020\n\010ifcommit\030\001 \001(\010\"\036\n\010Ge"
+  "tReply\022\022\n\ngetsuccess\030\001 \001(\010\"\261\001\n\021StripeAnd"
+  "BlockIDs\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010group_id\030"
+  "\002 \001(\005\022\020\n\010clientip\030\003 \001(\t\022\022\n\nclientport\030\004 "
+  "\001(\005\022\021\n\tblock_ids\030\005 \003(\005\022\022\n\nblock_keys\030\006 \003"
+  "(\t\022\023\n\013datanodeips\030\007 \003(\t\022\025\n\rdatanodeports"
+  "\030\010 \003(\005*>\n\016ParixParityAck\022\025\n\021PARIX_ACK_SU"
+  "CCESS\020\000\022\025\n\021PARIX_ACK_NEED_D0\020\0012\210\016\n\014proxy"
+  "Service\022D\n\ncheckalive\022\032.proxy_proto.Chec"
+  "kaliveCMD\032\032.proxy_proto.RequestResult\022L\n"
+  "\022encodeAndSetObject\022\037.proxy_proto.Object"
+  "AndPlacement\032\025.proxy_proto.SetReply\022L\n\022d"
+  "ecodeAndGetObject\022\037.proxy_proto.ObjectAn"
+  "dPlacement\032\025.proxy_proto.GetReply\022P\n\014deg"
+  "radedRead\022 .proxy_proto.DegradedReadRequ"
+  "est\032\036.proxy_proto.DegradedReadReply\022S\n\023d"
+  "egradedRead2Client\022\034.proxy_proto.Recover"
+  "yRequest\032\036.proxy_proto.DegradedReadReply"
+  "\022Y\n\025degradedReadBreakdown\022 .proxy_proto."
+  "DegradedReadRequest\032\036.proxy_proto.Degrad"
+  "edReadReply\022\\\n\034degradedRead2ClientBreakd"
+  "own\022\034.proxy_proto.RecoveryRequest\032\036.prox"
+  "y_proto.DegradedReadReply\022X\n\035degradedRea"
+  "dWithBlockStripeID\022 .proxy_proto.Degrade"
+  "dReadRequest\032\025.proxy_proto.GetReply\022V\n\017p"
+  "artialDecoding\022#.proxy_proto.PartialDeco"
+  "dingRequest\032\036.proxy_proto.DegradedReadRe"
+  "ply\022D\n\010recovery\022\034.proxy_proto.RecoveryRe"
+  "quest\032\032.proxy_proto.RecoveryReply\022M\n\021rec"
+  "overyBreakdown\022\034.proxy_proto.RecoveryReq"
+  "uest\032\032.proxy_proto.RecoveryReply\022O\n\020mult"
+  "ipleRecovery\022$.proxy_proto.MultipleRecov"
+  "eryRequest\032\025.proxy_proto.GetReply\022\?\n\013del"
+  "eteBlock\022\031.proxy_proto.NodeAndBlock\032\025.pr"
+  "oxy_proto.DelReply\022X\n\027scheduleAppend2Dat"
+  "anode\022&.proxy_proto.AppendStripeDataPlac"
+  "ement\032\025.proxy_proto.SetReply\022k\n\027parixSch"
+  "eduleDataUpdate\022%.proxy_proto.ParixDataU"
+  "pdatePlacement\032).proxy_proto.ParixSchedu"
+  "leDataUpdateReply\022b\n\022parixJournalAppend\022"
+  "&.proxy_proto.ParixJournalAppendRequest\032"
+  "$.proxy_proto.ParixJournalAppendReply\022q\n"
+  "\027parixJournalAppendBatch\022+.proxy_proto.P"
+  "arixJournalAppendBatchRequest\032).proxy_pr"
+  "oto.ParixJournalAppendBatchReply\022I\n\rpari"
+  "xSupplyD0\022!.proxy_proto.ParixSupplyD0Req"
+  "uest\032\025.proxy_proto.SetReply\022O\n\020parixRepl"
+  "ayBatch\022$.proxy_proto.ParixReplayBatchRe"
+  "quest\032\025.proxy_proto.SetReply\022_\n\030parixPar"
+  "ityFullOverwrite\022,.proxy_proto.ParixPari"
+  "tyFullOverwriteRequest\032\025.proxy_proto.Set"
+  "Reply\022B\n\tgetBlocks\022\036.proxy_proto.StripeA"
+  "ndBlockIDs\032\025.proxy_proto.GetReplyb\006proto"
+  "3"
   ;
 static ::_pbi::once_flag descriptor_table_proxy_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_proxy_2eproto = {
-    false, false, 6087, descriptor_table_protodef_proxy_2eproto,
+    false, false, 7921, descriptor_table_protodef_proxy_2eproto,
     "proxy.proto",
-    &descriptor_table_proxy_2eproto_once, nullptr, 0, 27,
+    &descriptor_table_proxy_2eproto_once, nullptr, 0, 37,
     schemas, file_default_instances, TableStruct_proxy_2eproto::offsets,
     file_level_metadata_proxy_2eproto, file_level_enum_descriptors_proxy_2eproto,
     file_level_service_descriptors_proxy_2eproto,
@@ -1132,6 +1454,20 @@ PROTOBUF_ATTRIBUTE_WEAK const ::_pbi::DescriptorTable* descriptor_table_proxy_2e
 // Force running AddDescriptors() at dynamic initialization time.
 PROTOBUF_ATTRIBUTE_INIT_PRIORITY2 static ::_pbi::AddDescriptorsRunner dynamic_init_dummy_proxy_2eproto(&descriptor_table_proxy_2eproto);
 namespace proxy_proto {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ParixParityAck_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_proxy_2eproto);
+  return file_level_enum_descriptors_proxy_2eproto[0];
+}
+bool ParixParityAck_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+      return true;
+    default:
+      return false;
+  }
+}
+
 
 // ===================================================================
 
@@ -8435,27 +8771,37 @@ void RecoveryReply::InternalSwap(RecoveryReply* other) {
 
 // ===================================================================
 
-class PbsParityDeltaTarget::_Internal {
+class ParixParityRpcTarget::_Internal {
  public:
 };
 
-PbsParityDeltaTarget::PbsParityDeltaTarget(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+ParixParityRpcTarget::ParixParityRpcTarget(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
   SharedCtor(arena, is_message_owned);
-  // @@protoc_insertion_point(arena_constructor:proxy_proto.PbsParityDeltaTarget)
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixParityRpcTarget)
 }
-PbsParityDeltaTarget::PbsParityDeltaTarget(const PbsParityDeltaTarget& from)
+ParixParityRpcTarget::ParixParityRpcTarget(const ParixParityRpcTarget& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
-  PbsParityDeltaTarget* const _this = this; (void)_this;
+  ParixParityRpcTarget* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.parity_block_key_){}
-    , decltype(_impl_.datanode_ip_){}
+      decltype(_impl_.proxy_ip_){}
+    , decltype(_impl_.parity_block_key_){}
+    , decltype(_impl_.parity_datanode_ip_){}
+    , decltype(_impl_.proxy_grpc_port_){}
     , decltype(_impl_.parity_block_id_){}
-    , decltype(_impl_.datanode_port_){}
+    , decltype(_impl_.parity_datanode_port_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.proxy_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.proxy_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_proxy_ip().empty()) {
+    _this->_impl_.proxy_ip_.Set(from._internal_proxy_ip(), 
+      _this->GetArenaForAllocation());
+  }
   _impl_.parity_block_key_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.parity_block_key_.Set("", GetArenaForAllocation());
@@ -8464,43 +8810,49 @@ PbsParityDeltaTarget::PbsParityDeltaTarget(const PbsParityDeltaTarget& from)
     _this->_impl_.parity_block_key_.Set(from._internal_parity_block_key(), 
       _this->GetArenaForAllocation());
   }
-  _impl_.datanode_ip_.InitDefault();
+  _impl_.parity_datanode_ip_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_datanode_ip().empty()) {
-    _this->_impl_.datanode_ip_.Set(from._internal_datanode_ip(), 
+  if (!from._internal_parity_datanode_ip().empty()) {
+    _this->_impl_.parity_datanode_ip_.Set(from._internal_parity_datanode_ip(), 
       _this->GetArenaForAllocation());
   }
-  ::memcpy(&_impl_.parity_block_id_, &from._impl_.parity_block_id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.datanode_port_) -
-    reinterpret_cast<char*>(&_impl_.parity_block_id_)) + sizeof(_impl_.datanode_port_));
-  // @@protoc_insertion_point(copy_constructor:proxy_proto.PbsParityDeltaTarget)
+  ::memcpy(&_impl_.proxy_grpc_port_, &from._impl_.proxy_grpc_port_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.parity_datanode_port_) -
+    reinterpret_cast<char*>(&_impl_.proxy_grpc_port_)) + sizeof(_impl_.parity_datanode_port_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixParityRpcTarget)
 }
 
-inline void PbsParityDeltaTarget::SharedCtor(
+inline void ParixParityRpcTarget::SharedCtor(
     ::_pb::Arena* arena, bool is_message_owned) {
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.parity_block_key_){}
-    , decltype(_impl_.datanode_ip_){}
+      decltype(_impl_.proxy_ip_){}
+    , decltype(_impl_.parity_block_key_){}
+    , decltype(_impl_.parity_datanode_ip_){}
+    , decltype(_impl_.proxy_grpc_port_){0}
     , decltype(_impl_.parity_block_id_){0}
-    , decltype(_impl_.datanode_port_){0}
+    , decltype(_impl_.parity_datanode_port_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
+  _impl_.proxy_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.proxy_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   _impl_.parity_block_key_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.parity_block_key_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  _impl_.datanode_ip_.InitDefault();
+  _impl_.parity_datanode_ip_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
-PbsParityDeltaTarget::~PbsParityDeltaTarget() {
-  // @@protoc_insertion_point(destructor:proxy_proto.PbsParityDeltaTarget)
+ParixParityRpcTarget::~ParixParityRpcTarget() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixParityRpcTarget)
   if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
   (void)arena;
     return;
@@ -8508,68 +8860,88 @@ PbsParityDeltaTarget::~PbsParityDeltaTarget() {
   SharedDtor();
 }
 
-inline void PbsParityDeltaTarget::SharedDtor() {
+inline void ParixParityRpcTarget::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.proxy_ip_.Destroy();
   _impl_.parity_block_key_.Destroy();
-  _impl_.datanode_ip_.Destroy();
+  _impl_.parity_datanode_ip_.Destroy();
 }
 
-void PbsParityDeltaTarget::SetCachedSize(int size) const {
+void ParixParityRpcTarget::SetCachedSize(int size) const {
   _impl_._cached_size_.Set(size);
 }
 
-void PbsParityDeltaTarget::Clear() {
-// @@protoc_insertion_point(message_clear_start:proxy_proto.PbsParityDeltaTarget)
+void ParixParityRpcTarget::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixParityRpcTarget)
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  _impl_.proxy_ip_.ClearToEmpty();
   _impl_.parity_block_key_.ClearToEmpty();
-  _impl_.datanode_ip_.ClearToEmpty();
-  ::memset(&_impl_.parity_block_id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.datanode_port_) -
-      reinterpret_cast<char*>(&_impl_.parity_block_id_)) + sizeof(_impl_.datanode_port_));
+  _impl_.parity_datanode_ip_.ClearToEmpty();
+  ::memset(&_impl_.proxy_grpc_port_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.parity_datanode_port_) -
+      reinterpret_cast<char*>(&_impl_.proxy_grpc_port_)) + sizeof(_impl_.parity_datanode_port_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-const char* PbsParityDeltaTarget::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+const char* ParixParityRpcTarget::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // string parity_block_key = 1;
+      // string proxy_ip = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
-          auto str = _internal_mutable_parity_block_key();
+          auto str = _internal_mutable_proxy_ip();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.PbsParityDeltaTarget.parity_block_key"));
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.ParixParityRpcTarget.proxy_ip"));
         } else
           goto handle_unusual;
         continue;
-      // int32 parity_block_id = 2;
+      // int32 proxy_grpc_port = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.proxy_grpc_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_block_id = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
           _impl_.parity_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
-      // string datanode_ip = 3;
-      case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
-          auto str = _internal_mutable_datanode_ip();
+      // string parity_block_key = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          auto str = _internal_mutable_parity_block_key();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.PbsParityDeltaTarget.datanode_ip"));
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.ParixParityRpcTarget.parity_block_key"));
         } else
           goto handle_unusual;
         continue;
-      // int32 datanode_port = 4;
-      case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
-          _impl_.datanode_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+      // string parity_datanode_ip = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+          auto str = _internal_mutable_parity_datanode_ip();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.ParixParityRpcTarget.parity_datanode_ip"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_datanode_port = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
+          _impl_.parity_datanode_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -8597,150 +8969,188 @@ failure:
 #undef CHK_
 }
 
-uint8_t* PbsParityDeltaTarget::_InternalSerialize(
+uint8_t* ParixParityRpcTarget::_InternalSerialize(
     uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.PbsParityDeltaTarget)
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixParityRpcTarget)
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // string parity_block_key = 1;
+  // string proxy_ip = 1;
+  if (!this->_internal_proxy_ip().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_proxy_ip().data(), static_cast<int>(this->_internal_proxy_ip().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.ParixParityRpcTarget.proxy_ip");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_proxy_ip(), target);
+  }
+
+  // int32 proxy_grpc_port = 2;
+  if (this->_internal_proxy_grpc_port() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_proxy_grpc_port(), target);
+  }
+
+  // int32 parity_block_id = 3;
+  if (this->_internal_parity_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_parity_block_id(), target);
+  }
+
+  // string parity_block_key = 4;
   if (!this->_internal_parity_block_key().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_parity_block_key().data(), static_cast<int>(this->_internal_parity_block_key().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "proxy_proto.PbsParityDeltaTarget.parity_block_key");
+      "proxy_proto.ParixParityRpcTarget.parity_block_key");
     target = stream->WriteStringMaybeAliased(
-        1, this->_internal_parity_block_key(), target);
+        4, this->_internal_parity_block_key(), target);
   }
 
-  // int32 parity_block_id = 2;
-  if (this->_internal_parity_block_id() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_parity_block_id(), target);
-  }
-
-  // string datanode_ip = 3;
-  if (!this->_internal_datanode_ip().empty()) {
+  // string parity_datanode_ip = 5;
+  if (!this->_internal_parity_datanode_ip().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_datanode_ip().data(), static_cast<int>(this->_internal_datanode_ip().length()),
+      this->_internal_parity_datanode_ip().data(), static_cast<int>(this->_internal_parity_datanode_ip().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "proxy_proto.PbsParityDeltaTarget.datanode_ip");
+      "proxy_proto.ParixParityRpcTarget.parity_datanode_ip");
     target = stream->WriteStringMaybeAliased(
-        3, this->_internal_datanode_ip(), target);
+        5, this->_internal_parity_datanode_ip(), target);
   }
 
-  // int32 datanode_port = 4;
-  if (this->_internal_datanode_port() != 0) {
+  // int32 parity_datanode_port = 6;
+  if (this->_internal_parity_datanode_port() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_datanode_port(), target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(6, this->_internal_parity_datanode_port(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.PbsParityDeltaTarget)
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixParityRpcTarget)
   return target;
 }
 
-size_t PbsParityDeltaTarget::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:proxy_proto.PbsParityDeltaTarget)
+size_t ParixParityRpcTarget::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixParityRpcTarget)
   size_t total_size = 0;
 
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string parity_block_key = 1;
+  // string proxy_ip = 1;
+  if (!this->_internal_proxy_ip().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_proxy_ip());
+  }
+
+  // string parity_block_key = 4;
   if (!this->_internal_parity_block_key().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_parity_block_key());
   }
 
-  // string datanode_ip = 3;
-  if (!this->_internal_datanode_ip().empty()) {
+  // string parity_datanode_ip = 5;
+  if (!this->_internal_parity_datanode_ip().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_datanode_ip());
+        this->_internal_parity_datanode_ip());
   }
 
-  // int32 parity_block_id = 2;
+  // int32 proxy_grpc_port = 2;
+  if (this->_internal_proxy_grpc_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_proxy_grpc_port());
+  }
+
+  // int32 parity_block_id = 3;
   if (this->_internal_parity_block_id() != 0) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_block_id());
   }
 
-  // int32 datanode_port = 4;
-  if (this->_internal_datanode_port() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_datanode_port());
+  // int32 parity_datanode_port = 6;
+  if (this->_internal_parity_datanode_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_datanode_port());
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData PbsParityDeltaTarget::_class_data_ = {
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixParityRpcTarget::_class_data_ = {
     ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    PbsParityDeltaTarget::MergeImpl
+    ParixParityRpcTarget::MergeImpl
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*PbsParityDeltaTarget::GetClassData() const { return &_class_data_; }
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixParityRpcTarget::GetClassData() const { return &_class_data_; }
 
 
-void PbsParityDeltaTarget::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<PbsParityDeltaTarget*>(&to_msg);
-  auto& from = static_cast<const PbsParityDeltaTarget&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.PbsParityDeltaTarget)
+void ParixParityRpcTarget::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixParityRpcTarget*>(&to_msg);
+  auto& from = static_cast<const ParixParityRpcTarget&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixParityRpcTarget)
   GOOGLE_DCHECK_NE(&from, _this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
+  if (!from._internal_proxy_ip().empty()) {
+    _this->_internal_set_proxy_ip(from._internal_proxy_ip());
+  }
   if (!from._internal_parity_block_key().empty()) {
     _this->_internal_set_parity_block_key(from._internal_parity_block_key());
   }
-  if (!from._internal_datanode_ip().empty()) {
-    _this->_internal_set_datanode_ip(from._internal_datanode_ip());
+  if (!from._internal_parity_datanode_ip().empty()) {
+    _this->_internal_set_parity_datanode_ip(from._internal_parity_datanode_ip());
+  }
+  if (from._internal_proxy_grpc_port() != 0) {
+    _this->_internal_set_proxy_grpc_port(from._internal_proxy_grpc_port());
   }
   if (from._internal_parity_block_id() != 0) {
     _this->_internal_set_parity_block_id(from._internal_parity_block_id());
   }
-  if (from._internal_datanode_port() != 0) {
-    _this->_internal_set_datanode_port(from._internal_datanode_port());
+  if (from._internal_parity_datanode_port() != 0) {
+    _this->_internal_set_parity_datanode_port(from._internal_parity_datanode_port());
   }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
-void PbsParityDeltaTarget::CopyFrom(const PbsParityDeltaTarget& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.PbsParityDeltaTarget)
+void ParixParityRpcTarget::CopyFrom(const ParixParityRpcTarget& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixParityRpcTarget)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool PbsParityDeltaTarget::IsInitialized() const {
+bool ParixParityRpcTarget::IsInitialized() const {
   return true;
 }
 
-void PbsParityDeltaTarget::InternalSwap(PbsParityDeltaTarget* other) {
+void ParixParityRpcTarget::InternalSwap(ParixParityRpcTarget* other) {
   using std::swap;
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.proxy_ip_, lhs_arena,
+      &other->_impl_.proxy_ip_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.parity_block_key_, lhs_arena,
       &other->_impl_.parity_block_key_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.datanode_ip_, lhs_arena,
-      &other->_impl_.datanode_ip_, rhs_arena
+      &_impl_.parity_datanode_ip_, lhs_arena,
+      &other->_impl_.parity_datanode_ip_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(PbsParityDeltaTarget, _impl_.datanode_port_)
-      + sizeof(PbsParityDeltaTarget::_impl_.datanode_port_)
-      - PROTOBUF_FIELD_OFFSET(PbsParityDeltaTarget, _impl_.parity_block_id_)>(
-          reinterpret_cast<char*>(&_impl_.parity_block_id_),
-          reinterpret_cast<char*>(&other->_impl_.parity_block_id_));
+      PROTOBUF_FIELD_OFFSET(ParixParityRpcTarget, _impl_.parity_datanode_port_)
+      + sizeof(ParixParityRpcTarget::_impl_.parity_datanode_port_)
+      - PROTOBUF_FIELD_OFFSET(ParixParityRpcTarget, _impl_.proxy_grpc_port_)>(
+          reinterpret_cast<char*>(&_impl_.proxy_grpc_port_),
+          reinterpret_cast<char*>(&other->_impl_.proxy_grpc_port_));
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata PbsParityDeltaTarget::GetMetadata() const {
+::PROTOBUF_NAMESPACE_ID::Metadata ParixParityRpcTarget::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
       file_level_metadata_proxy_2eproto[19]);
@@ -8748,297 +9158,38 @@ void PbsParityDeltaTarget::InternalSwap(PbsParityDeltaTarget* other) {
 
 // ===================================================================
 
-class PbsParityForwardPlan::_Internal {
+class ParixDataUpdatePlacement::_Internal {
  public:
+  static const ::proxy_proto::ParixParityRpcTarget& local_parity(const ParixDataUpdatePlacement* msg);
 };
 
-PbsParityForwardPlan::PbsParityForwardPlan(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+const ::proxy_proto::ParixParityRpcTarget&
+ParixDataUpdatePlacement::_Internal::local_parity(const ParixDataUpdatePlacement* msg) {
+  return *msg->_impl_.local_parity_;
+}
+ParixDataUpdatePlacement::ParixDataUpdatePlacement(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
   SharedCtor(arena, is_message_owned);
-  // @@protoc_insertion_point(arena_constructor:proxy_proto.PbsParityForwardPlan)
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixDataUpdatePlacement)
 }
-PbsParityForwardPlan::PbsParityForwardPlan(const PbsParityForwardPlan& from)
+ParixDataUpdatePlacement::ParixDataUpdatePlacement(const ParixDataUpdatePlacement& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
-  PbsParityForwardPlan* const _this = this; (void)_this;
+  ParixDataUpdatePlacement* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.parities_){from._impl_.parities_}
-    , decltype(_impl_.dest_proxy_ip_){}
-    , decltype(_impl_.dest_proxy_base_port_){}
-    , /*decltype(_impl_._cached_size_)*/{}};
-
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _impl_.dest_proxy_ip_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.dest_proxy_ip_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_dest_proxy_ip().empty()) {
-    _this->_impl_.dest_proxy_ip_.Set(from._internal_dest_proxy_ip(), 
-      _this->GetArenaForAllocation());
-  }
-  _this->_impl_.dest_proxy_base_port_ = from._impl_.dest_proxy_base_port_;
-  // @@protoc_insertion_point(copy_constructor:proxy_proto.PbsParityForwardPlan)
-}
-
-inline void PbsParityForwardPlan::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_.parities_){arena}
-    , decltype(_impl_.dest_proxy_ip_){}
-    , decltype(_impl_.dest_proxy_base_port_){0}
-    , /*decltype(_impl_._cached_size_)*/{}
-  };
-  _impl_.dest_proxy_ip_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.dest_proxy_ip_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-}
-
-PbsParityForwardPlan::~PbsParityForwardPlan() {
-  // @@protoc_insertion_point(destructor:proxy_proto.PbsParityForwardPlan)
-  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
-  (void)arena;
-    return;
-  }
-  SharedDtor();
-}
-
-inline void PbsParityForwardPlan::SharedDtor() {
-  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.parities_.~RepeatedPtrField();
-  _impl_.dest_proxy_ip_.Destroy();
-}
-
-void PbsParityForwardPlan::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
-}
-
-void PbsParityForwardPlan::Clear() {
-// @@protoc_insertion_point(message_clear_start:proxy_proto.PbsParityForwardPlan)
-  uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  _impl_.parities_.Clear();
-  _impl_.dest_proxy_ip_.ClearToEmpty();
-  _impl_.dest_proxy_base_port_ = 0;
-  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
-}
-
-const char* PbsParityForwardPlan::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    uint32_t tag;
-    ptr = ::_pbi::ReadTag(ptr, &tag);
-    switch (tag >> 3) {
-      // string dest_proxy_ip = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
-          auto str = _internal_mutable_dest_proxy_ip();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.PbsParityForwardPlan.dest_proxy_ip"));
-        } else
-          goto handle_unusual;
-        continue;
-      // int32 dest_proxy_base_port = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
-          _impl_.dest_proxy_base_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // repeated .proxy_proto.PbsParityDeltaTarget parities = 3;
-      case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
-          ptr -= 1;
-          do {
-            ptr += 1;
-            ptr = ctx->ParseMessage(_internal_add_parities(), ptr);
-            CHK_(ptr);
-            if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<26>(ptr));
-        } else
-          goto handle_unusual;
-        continue;
-      default:
-        goto handle_unusual;
-    }  // switch
-  handle_unusual:
-    if ((tag == 0) || ((tag & 7) == 4)) {
-      CHK_(ptr);
-      ctx->SetLastTag(tag);
-      goto message_done;
-    }
-    ptr = UnknownFieldParse(
-        tag,
-        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
-        ptr, ctx);
-    CHK_(ptr != nullptr);
-  }  // while
-message_done:
-  return ptr;
-failure:
-  ptr = nullptr;
-  goto message_done;
-#undef CHK_
-}
-
-uint8_t* PbsParityForwardPlan::_InternalSerialize(
-    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.PbsParityForwardPlan)
-  uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // string dest_proxy_ip = 1;
-  if (!this->_internal_dest_proxy_ip().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_dest_proxy_ip().data(), static_cast<int>(this->_internal_dest_proxy_ip().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "proxy_proto.PbsParityForwardPlan.dest_proxy_ip");
-    target = stream->WriteStringMaybeAliased(
-        1, this->_internal_dest_proxy_ip(), target);
-  }
-
-  // int32 dest_proxy_base_port = 2;
-  if (this->_internal_dest_proxy_base_port() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_dest_proxy_base_port(), target);
-  }
-
-  // repeated .proxy_proto.PbsParityDeltaTarget parities = 3;
-  for (unsigned i = 0,
-      n = static_cast<unsigned>(this->_internal_parities_size()); i < n; i++) {
-    const auto& repfield = this->_internal_parities(i);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-        InternalWriteMessage(3, repfield, repfield.GetCachedSize(), target, stream);
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.PbsParityForwardPlan)
-  return target;
-}
-
-size_t PbsParityForwardPlan::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:proxy_proto.PbsParityForwardPlan)
-  size_t total_size = 0;
-
-  uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  // repeated .proxy_proto.PbsParityDeltaTarget parities = 3;
-  total_size += 1UL * this->_internal_parities_size();
-  for (const auto& msg : this->_impl_.parities_) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
-  }
-
-  // string dest_proxy_ip = 1;
-  if (!this->_internal_dest_proxy_ip().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_dest_proxy_ip());
-  }
-
-  // int32 dest_proxy_base_port = 2;
-  if (this->_internal_dest_proxy_base_port() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_dest_proxy_base_port());
-  }
-
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
-}
-
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData PbsParityForwardPlan::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    PbsParityForwardPlan::MergeImpl
-};
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*PbsParityForwardPlan::GetClassData() const { return &_class_data_; }
-
-
-void PbsParityForwardPlan::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<PbsParityForwardPlan*>(&to_msg);
-  auto& from = static_cast<const PbsParityForwardPlan&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.PbsParityForwardPlan)
-  GOOGLE_DCHECK_NE(&from, _this);
-  uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  _this->_impl_.parities_.MergeFrom(from._impl_.parities_);
-  if (!from._internal_dest_proxy_ip().empty()) {
-    _this->_internal_set_dest_proxy_ip(from._internal_dest_proxy_ip());
-  }
-  if (from._internal_dest_proxy_base_port() != 0) {
-    _this->_internal_set_dest_proxy_base_port(from._internal_dest_proxy_base_port());
-  }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-}
-
-void PbsParityForwardPlan::CopyFrom(const PbsParityForwardPlan& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.PbsParityForwardPlan)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool PbsParityForwardPlan::IsInitialized() const {
-  return true;
-}
-
-void PbsParityForwardPlan::InternalSwap(PbsParityForwardPlan* other) {
-  using std::swap;
-  auto* lhs_arena = GetArenaForAllocation();
-  auto* rhs_arena = other->GetArenaForAllocation();
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  _impl_.parities_.InternalSwap(&other->_impl_.parities_);
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.dest_proxy_ip_, lhs_arena,
-      &other->_impl_.dest_proxy_ip_, rhs_arena
-  );
-  swap(_impl_.dest_proxy_base_port_, other->_impl_.dest_proxy_base_port_);
-}
-
-::PROTOBUF_NAMESPACE_ID::Metadata PbsParityForwardPlan::GetMetadata() const {
-  return ::_pbi::AssignDescriptors(
-      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[20]);
-}
-
-// ===================================================================
-
-class PbsDataUpdatePlacement::_Internal {
- public:
-};
-
-PbsDataUpdatePlacement::PbsDataUpdatePlacement(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                         bool is_message_owned)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
-  // @@protoc_insertion_point(arena_constructor:proxy_proto.PbsDataUpdatePlacement)
-}
-PbsDataUpdatePlacement::PbsDataUpdatePlacement(const PbsDataUpdatePlacement& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  PbsDataUpdatePlacement* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_.parity_forward_){from._impl_.parity_forward_}
+      decltype(_impl_.global_parities_){from._impl_.global_parities_}
     , decltype(_impl_.key_){}
     , decltype(_impl_.block_key_){}
     , decltype(_impl_.datanode_ip_){}
+    , decltype(_impl_.local_parity_){nullptr}
+    , decltype(_impl_.batch_id_){}
     , decltype(_impl_.stripe_id_){}
     , decltype(_impl_.cluster_id_){}
+    , decltype(_impl_.write_generation_){}
     , decltype(_impl_.block_id_){}
     , decltype(_impl_.range_offset_){}
     , decltype(_impl_.range_length_){}
     , decltype(_impl_.datanode_port_){}
-    , decltype(_impl_.pbs_batch_index_){}
-    , decltype(_impl_.pbs_batch_id_){}
-    , decltype(_impl_.pbs_batch_total_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -9066,30 +9217,33 @@ PbsDataUpdatePlacement::PbsDataUpdatePlacement(const PbsDataUpdatePlacement& fro
     _this->_impl_.datanode_ip_.Set(from._internal_datanode_ip(), 
       _this->GetArenaForAllocation());
   }
-  ::memcpy(&_impl_.stripe_id_, &from._impl_.stripe_id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.pbs_batch_total_) -
-    reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.pbs_batch_total_));
-  // @@protoc_insertion_point(copy_constructor:proxy_proto.PbsDataUpdatePlacement)
+  if (from._internal_has_local_parity()) {
+    _this->_impl_.local_parity_ = new ::proxy_proto::ParixParityRpcTarget(*from._impl_.local_parity_);
+  }
+  ::memcpy(&_impl_.batch_id_, &from._impl_.batch_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.datanode_port_) -
+    reinterpret_cast<char*>(&_impl_.batch_id_)) + sizeof(_impl_.datanode_port_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixDataUpdatePlacement)
 }
 
-inline void PbsDataUpdatePlacement::SharedCtor(
+inline void ParixDataUpdatePlacement::SharedCtor(
     ::_pb::Arena* arena, bool is_message_owned) {
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.parity_forward_){arena}
+      decltype(_impl_.global_parities_){arena}
     , decltype(_impl_.key_){}
     , decltype(_impl_.block_key_){}
     , decltype(_impl_.datanode_ip_){}
+    , decltype(_impl_.local_parity_){nullptr}
+    , decltype(_impl_.batch_id_){uint64_t{0u}}
     , decltype(_impl_.stripe_id_){0}
     , decltype(_impl_.cluster_id_){0}
+    , decltype(_impl_.write_generation_){uint64_t{0u}}
     , decltype(_impl_.block_id_){0}
     , decltype(_impl_.range_offset_){0}
     , decltype(_impl_.range_length_){uint64_t{0u}}
     , decltype(_impl_.datanode_port_){0}
-    , decltype(_impl_.pbs_batch_index_){0u}
-    , decltype(_impl_.pbs_batch_id_){uint64_t{0u}}
-    , decltype(_impl_.pbs_batch_total_){0u}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.key_.InitDefault();
@@ -9106,8 +9260,8 @@ inline void PbsDataUpdatePlacement::SharedCtor(
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
-PbsDataUpdatePlacement::~PbsDataUpdatePlacement() {
-  // @@protoc_insertion_point(destructor:proxy_proto.PbsDataUpdatePlacement)
+ParixDataUpdatePlacement::~ParixDataUpdatePlacement() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixDataUpdatePlacement)
   if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
   (void)arena;
     return;
@@ -9115,35 +9269,40 @@ PbsDataUpdatePlacement::~PbsDataUpdatePlacement() {
   SharedDtor();
 }
 
-inline void PbsDataUpdatePlacement::SharedDtor() {
+inline void ParixDataUpdatePlacement::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.parity_forward_.~RepeatedPtrField();
+  _impl_.global_parities_.~RepeatedPtrField();
   _impl_.key_.Destroy();
   _impl_.block_key_.Destroy();
   _impl_.datanode_ip_.Destroy();
+  if (this != internal_default_instance()) delete _impl_.local_parity_;
 }
 
-void PbsDataUpdatePlacement::SetCachedSize(int size) const {
+void ParixDataUpdatePlacement::SetCachedSize(int size) const {
   _impl_._cached_size_.Set(size);
 }
 
-void PbsDataUpdatePlacement::Clear() {
-// @@protoc_insertion_point(message_clear_start:proxy_proto.PbsDataUpdatePlacement)
+void ParixDataUpdatePlacement::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixDataUpdatePlacement)
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  _impl_.parity_forward_.Clear();
+  _impl_.global_parities_.Clear();
   _impl_.key_.ClearToEmpty();
   _impl_.block_key_.ClearToEmpty();
   _impl_.datanode_ip_.ClearToEmpty();
-  ::memset(&_impl_.stripe_id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.pbs_batch_total_) -
-      reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.pbs_batch_total_));
+  if (GetArenaForAllocation() == nullptr && _impl_.local_parity_ != nullptr) {
+    delete _impl_.local_parity_;
+  }
+  _impl_.local_parity_ = nullptr;
+  ::memset(&_impl_.batch_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.datanode_port_) -
+      reinterpret_cast<char*>(&_impl_.batch_id_)) + sizeof(_impl_.datanode_port_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-const char* PbsDataUpdatePlacement::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+const char* ParixDataUpdatePlacement::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
     uint32_t tag;
@@ -9155,7 +9314,7 @@ const char* PbsDataUpdatePlacement::_InternalParse(const char* ptr, ::_pbi::Pars
           auto str = _internal_mutable_key();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.PbsDataUpdatePlacement.key"));
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.ParixDataUpdatePlacement.key"));
         } else
           goto handle_unusual;
         continue;
@@ -9167,28 +9326,2838 @@ const char* PbsDataUpdatePlacement::_InternalParse(const char* ptr, ::_pbi::Pars
         } else
           goto handle_unusual;
         continue;
-      // int32 cluster_id = 3;
+      // uint64 batch_id = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.batch_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 write_generation = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.write_generation_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 cluster_id = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
           _impl_.cluster_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
-      // string block_key = 4;
-      case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+      // string block_key = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
           auto str = _internal_mutable_block_key();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.PbsDataUpdatePlacement.block_key"));
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.ParixDataUpdatePlacement.block_key"));
         } else
           goto handle_unusual;
         continue;
-      // int32 block_id = 5;
+      // int32 block_id = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
+          _impl_.block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_offset = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 64)) {
+          _impl_.range_offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 range_length = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 72)) {
+          _impl_.range_length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string datanode_ip = 10;
+      case 10:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 82)) {
+          auto str = _internal_mutable_datanode_ip();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.ParixDataUpdatePlacement.datanode_ip"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 datanode_port = 11;
+      case 11:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 88)) {
+          _impl_.datanode_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated .proxy_proto.ParixParityRpcTarget global_parities = 12;
+      case 12:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 98)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_global_parities(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<98>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // .proxy_proto.ParixParityRpcTarget local_parity = 13;
+      case 13:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 106)) {
+          ptr = ctx->ParseMessage(_internal_mutable_local_parity(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParixDataUpdatePlacement::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixDataUpdatePlacement)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string key = 1;
+  if (!this->_internal_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_key().data(), static_cast<int>(this->_internal_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.ParixDataUpdatePlacement.key");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_key(), target);
+  }
+
+  // int32 stripe_id = 2;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_stripe_id(), target);
+  }
+
+  // uint64 batch_id = 3;
+  if (this->_internal_batch_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(3, this->_internal_batch_id(), target);
+  }
+
+  // uint64 write_generation = 4;
+  if (this->_internal_write_generation() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(4, this->_internal_write_generation(), target);
+  }
+
+  // int32 cluster_id = 5;
+  if (this->_internal_cluster_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_cluster_id(), target);
+  }
+
+  // string block_key = 6;
+  if (!this->_internal_block_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_block_key().data(), static_cast<int>(this->_internal_block_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.ParixDataUpdatePlacement.block_key");
+    target = stream->WriteStringMaybeAliased(
+        6, this->_internal_block_key(), target);
+  }
+
+  // int32 block_id = 7;
+  if (this->_internal_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(7, this->_internal_block_id(), target);
+  }
+
+  // int32 range_offset = 8;
+  if (this->_internal_range_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(8, this->_internal_range_offset(), target);
+  }
+
+  // uint64 range_length = 9;
+  if (this->_internal_range_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(9, this->_internal_range_length(), target);
+  }
+
+  // string datanode_ip = 10;
+  if (!this->_internal_datanode_ip().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_datanode_ip().data(), static_cast<int>(this->_internal_datanode_ip().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.ParixDataUpdatePlacement.datanode_ip");
+    target = stream->WriteStringMaybeAliased(
+        10, this->_internal_datanode_ip(), target);
+  }
+
+  // int32 datanode_port = 11;
+  if (this->_internal_datanode_port() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(11, this->_internal_datanode_port(), target);
+  }
+
+  // repeated .proxy_proto.ParixParityRpcTarget global_parities = 12;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_global_parities_size()); i < n; i++) {
+    const auto& repfield = this->_internal_global_parities(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(12, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
+  // .proxy_proto.ParixParityRpcTarget local_parity = 13;
+  if (this->_internal_has_local_parity()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(13, _Internal::local_parity(this),
+        _Internal::local_parity(this).GetCachedSize(), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixDataUpdatePlacement)
+  return target;
+}
+
+size_t ParixDataUpdatePlacement::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixDataUpdatePlacement)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated .proxy_proto.ParixParityRpcTarget global_parities = 12;
+  total_size += 1UL * this->_internal_global_parities_size();
+  for (const auto& msg : this->_impl_.global_parities_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // string key = 1;
+  if (!this->_internal_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_key());
+  }
+
+  // string block_key = 6;
+  if (!this->_internal_block_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_block_key());
+  }
+
+  // string datanode_ip = 10;
+  if (!this->_internal_datanode_ip().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_datanode_ip());
+  }
+
+  // .proxy_proto.ParixParityRpcTarget local_parity = 13;
+  if (this->_internal_has_local_parity()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.local_parity_);
+  }
+
+  // uint64 batch_id = 3;
+  if (this->_internal_batch_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_batch_id());
+  }
+
+  // int32 stripe_id = 2;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  // int32 cluster_id = 5;
+  if (this->_internal_cluster_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_cluster_id());
+  }
+
+  // uint64 write_generation = 4;
+  if (this->_internal_write_generation() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_write_generation());
+  }
+
+  // int32 block_id = 7;
+  if (this->_internal_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_block_id());
+  }
+
+  // int32 range_offset = 8;
+  if (this->_internal_range_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_offset());
+  }
+
+  // uint64 range_length = 9;
+  if (this->_internal_range_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_range_length());
+  }
+
+  // int32 datanode_port = 11;
+  if (this->_internal_datanode_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_datanode_port());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixDataUpdatePlacement::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParixDataUpdatePlacement::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixDataUpdatePlacement::GetClassData() const { return &_class_data_; }
+
+
+void ParixDataUpdatePlacement::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixDataUpdatePlacement*>(&to_msg);
+  auto& from = static_cast<const ParixDataUpdatePlacement&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixDataUpdatePlacement)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.global_parities_.MergeFrom(from._impl_.global_parities_);
+  if (!from._internal_key().empty()) {
+    _this->_internal_set_key(from._internal_key());
+  }
+  if (!from._internal_block_key().empty()) {
+    _this->_internal_set_block_key(from._internal_block_key());
+  }
+  if (!from._internal_datanode_ip().empty()) {
+    _this->_internal_set_datanode_ip(from._internal_datanode_ip());
+  }
+  if (from._internal_has_local_parity()) {
+    _this->_internal_mutable_local_parity()->::proxy_proto::ParixParityRpcTarget::MergeFrom(
+        from._internal_local_parity());
+  }
+  if (from._internal_batch_id() != 0) {
+    _this->_internal_set_batch_id(from._internal_batch_id());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  if (from._internal_cluster_id() != 0) {
+    _this->_internal_set_cluster_id(from._internal_cluster_id());
+  }
+  if (from._internal_write_generation() != 0) {
+    _this->_internal_set_write_generation(from._internal_write_generation());
+  }
+  if (from._internal_block_id() != 0) {
+    _this->_internal_set_block_id(from._internal_block_id());
+  }
+  if (from._internal_range_offset() != 0) {
+    _this->_internal_set_range_offset(from._internal_range_offset());
+  }
+  if (from._internal_range_length() != 0) {
+    _this->_internal_set_range_length(from._internal_range_length());
+  }
+  if (from._internal_datanode_port() != 0) {
+    _this->_internal_set_datanode_port(from._internal_datanode_port());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParixDataUpdatePlacement::CopyFrom(const ParixDataUpdatePlacement& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixDataUpdatePlacement)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParixDataUpdatePlacement::IsInitialized() const {
+  return true;
+}
+
+void ParixDataUpdatePlacement::InternalSwap(ParixDataUpdatePlacement* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.global_parities_.InternalSwap(&other->_impl_.global_parities_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.key_, lhs_arena,
+      &other->_impl_.key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.block_key_, lhs_arena,
+      &other->_impl_.block_key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.datanode_ip_, lhs_arena,
+      &other->_impl_.datanode_ip_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParixDataUpdatePlacement, _impl_.datanode_port_)
+      + sizeof(ParixDataUpdatePlacement::_impl_.datanode_port_)
+      - PROTOBUF_FIELD_OFFSET(ParixDataUpdatePlacement, _impl_.local_parity_)>(
+          reinterpret_cast<char*>(&_impl_.local_parity_),
+          reinterpret_cast<char*>(&other->_impl_.local_parity_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParixDataUpdatePlacement::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[20]);
+}
+
+// ===================================================================
+
+class ParixJournalAckItem::_Internal {
+ public:
+};
+
+ParixJournalAckItem::ParixJournalAckItem(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixJournalAckItem)
+}
+ParixJournalAckItem::ParixJournalAckItem(const ParixJournalAckItem& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParixJournalAckItem* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_proxy_ip_){}
+    , decltype(_impl_.parity_proxy_grpc_port_){}
+    , decltype(_impl_.parity_block_id_){}
+    , decltype(_impl_.ack_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.parity_proxy_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_proxy_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_parity_proxy_ip().empty()) {
+    _this->_impl_.parity_proxy_ip_.Set(from._internal_parity_proxy_ip(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.parity_proxy_grpc_port_, &from._impl_.parity_proxy_grpc_port_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.ack_) -
+    reinterpret_cast<char*>(&_impl_.parity_proxy_grpc_port_)) + sizeof(_impl_.ack_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixJournalAckItem)
+}
+
+inline void ParixJournalAckItem::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_proxy_ip_){}
+    , decltype(_impl_.parity_proxy_grpc_port_){0}
+    , decltype(_impl_.parity_block_id_){0}
+    , decltype(_impl_.ack_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.parity_proxy_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_proxy_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+ParixJournalAckItem::~ParixJournalAckItem() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixJournalAckItem)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParixJournalAckItem::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.parity_proxy_ip_.Destroy();
+}
+
+void ParixJournalAckItem::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParixJournalAckItem::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixJournalAckItem)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.parity_proxy_ip_.ClearToEmpty();
+  ::memset(&_impl_.parity_proxy_grpc_port_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.ack_) -
+      reinterpret_cast<char*>(&_impl_.parity_proxy_grpc_port_)) + sizeof(_impl_.ack_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParixJournalAckItem::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // string parity_proxy_ip = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          auto str = _internal_mutable_parity_proxy_ip();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.ParixJournalAckItem.parity_proxy_ip"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_proxy_grpc_port = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.parity_proxy_grpc_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_block_id = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.parity_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .proxy_proto.ParixParityAck ack = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+          _internal_set_ack(static_cast<::proxy_proto::ParixParityAck>(val));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParixJournalAckItem::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixJournalAckItem)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string parity_proxy_ip = 1;
+  if (!this->_internal_parity_proxy_ip().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_parity_proxy_ip().data(), static_cast<int>(this->_internal_parity_proxy_ip().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.ParixJournalAckItem.parity_proxy_ip");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_parity_proxy_ip(), target);
+  }
+
+  // int32 parity_proxy_grpc_port = 2;
+  if (this->_internal_parity_proxy_grpc_port() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_parity_proxy_grpc_port(), target);
+  }
+
+  // int32 parity_block_id = 3;
+  if (this->_internal_parity_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_parity_block_id(), target);
+  }
+
+  // .proxy_proto.ParixParityAck ack = 4;
+  if (this->_internal_ack() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteEnumToArray(
+      4, this->_internal_ack(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixJournalAckItem)
+  return target;
+}
+
+size_t ParixJournalAckItem::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixJournalAckItem)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string parity_proxy_ip = 1;
+  if (!this->_internal_parity_proxy_ip().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_parity_proxy_ip());
+  }
+
+  // int32 parity_proxy_grpc_port = 2;
+  if (this->_internal_parity_proxy_grpc_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_proxy_grpc_port());
+  }
+
+  // int32 parity_block_id = 3;
+  if (this->_internal_parity_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_block_id());
+  }
+
+  // .proxy_proto.ParixParityAck ack = 4;
+  if (this->_internal_ack() != 0) {
+    total_size += 1 +
+      ::_pbi::WireFormatLite::EnumSize(this->_internal_ack());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixJournalAckItem::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParixJournalAckItem::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixJournalAckItem::GetClassData() const { return &_class_data_; }
+
+
+void ParixJournalAckItem::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixJournalAckItem*>(&to_msg);
+  auto& from = static_cast<const ParixJournalAckItem&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixJournalAckItem)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_parity_proxy_ip().empty()) {
+    _this->_internal_set_parity_proxy_ip(from._internal_parity_proxy_ip());
+  }
+  if (from._internal_parity_proxy_grpc_port() != 0) {
+    _this->_internal_set_parity_proxy_grpc_port(from._internal_parity_proxy_grpc_port());
+  }
+  if (from._internal_parity_block_id() != 0) {
+    _this->_internal_set_parity_block_id(from._internal_parity_block_id());
+  }
+  if (from._internal_ack() != 0) {
+    _this->_internal_set_ack(from._internal_ack());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParixJournalAckItem::CopyFrom(const ParixJournalAckItem& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixJournalAckItem)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParixJournalAckItem::IsInitialized() const {
+  return true;
+}
+
+void ParixJournalAckItem::InternalSwap(ParixJournalAckItem* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.parity_proxy_ip_, lhs_arena,
+      &other->_impl_.parity_proxy_ip_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParixJournalAckItem, _impl_.ack_)
+      + sizeof(ParixJournalAckItem::_impl_.ack_)
+      - PROTOBUF_FIELD_OFFSET(ParixJournalAckItem, _impl_.parity_proxy_grpc_port_)>(
+          reinterpret_cast<char*>(&_impl_.parity_proxy_grpc_port_),
+          reinterpret_cast<char*>(&other->_impl_.parity_proxy_grpc_port_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalAckItem::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[21]);
+}
+
+// ===================================================================
+
+class ParixScheduleDataUpdateReply::_Internal {
+ public:
+};
+
+ParixScheduleDataUpdateReply::ParixScheduleDataUpdateReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixScheduleDataUpdateReply)
+}
+ParixScheduleDataUpdateReply::ParixScheduleDataUpdateReply(const ParixScheduleDataUpdateReply& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParixScheduleDataUpdateReply* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.journal_acks_){from._impl_.journal_acks_}
+    , decltype(_impl_.ifcommit_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.ifcommit_ = from._impl_.ifcommit_;
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixScheduleDataUpdateReply)
+}
+
+inline void ParixScheduleDataUpdateReply::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.journal_acks_){arena}
+    , decltype(_impl_.ifcommit_){false}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+ParixScheduleDataUpdateReply::~ParixScheduleDataUpdateReply() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixScheduleDataUpdateReply)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParixScheduleDataUpdateReply::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.journal_acks_.~RepeatedPtrField();
+}
+
+void ParixScheduleDataUpdateReply::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParixScheduleDataUpdateReply::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixScheduleDataUpdateReply)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.journal_acks_.Clear();
+  _impl_.ifcommit_ = false;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParixScheduleDataUpdateReply::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // bool ifcommit = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.ifcommit_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated .proxy_proto.ParixJournalAckItem journal_acks = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_journal_acks(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParixScheduleDataUpdateReply::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixScheduleDataUpdateReply)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // bool ifcommit = 1;
+  if (this->_internal_ifcommit() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(1, this->_internal_ifcommit(), target);
+  }
+
+  // repeated .proxy_proto.ParixJournalAckItem journal_acks = 2;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_journal_acks_size()); i < n; i++) {
+    const auto& repfield = this->_internal_journal_acks(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(2, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixScheduleDataUpdateReply)
+  return target;
+}
+
+size_t ParixScheduleDataUpdateReply::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixScheduleDataUpdateReply)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated .proxy_proto.ParixJournalAckItem journal_acks = 2;
+  total_size += 1UL * this->_internal_journal_acks_size();
+  for (const auto& msg : this->_impl_.journal_acks_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // bool ifcommit = 1;
+  if (this->_internal_ifcommit() != 0) {
+    total_size += 1 + 1;
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixScheduleDataUpdateReply::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParixScheduleDataUpdateReply::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixScheduleDataUpdateReply::GetClassData() const { return &_class_data_; }
+
+
+void ParixScheduleDataUpdateReply::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixScheduleDataUpdateReply*>(&to_msg);
+  auto& from = static_cast<const ParixScheduleDataUpdateReply&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixScheduleDataUpdateReply)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.journal_acks_.MergeFrom(from._impl_.journal_acks_);
+  if (from._internal_ifcommit() != 0) {
+    _this->_internal_set_ifcommit(from._internal_ifcommit());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParixScheduleDataUpdateReply::CopyFrom(const ParixScheduleDataUpdateReply& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixScheduleDataUpdateReply)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParixScheduleDataUpdateReply::IsInitialized() const {
+  return true;
+}
+
+void ParixScheduleDataUpdateReply::InternalSwap(ParixScheduleDataUpdateReply* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.journal_acks_.InternalSwap(&other->_impl_.journal_acks_);
+  swap(_impl_.ifcommit_, other->_impl_.ifcommit_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParixScheduleDataUpdateReply::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[22]);
+}
+
+// ===================================================================
+
+class ParixJournalAppendRequest::_Internal {
+ public:
+};
+
+ParixJournalAppendRequest::ParixJournalAppendRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixJournalAppendRequest)
+}
+ParixJournalAppendRequest::ParixJournalAppendRequest(const ParixJournalAppendRequest& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParixJournalAppendRequest* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_block_key_){}
+    , decltype(_impl_.parity_datanode_ip_){}
+    , decltype(_impl_.new_payload_){}
+    , decltype(_impl_.batch_id_){}
+    , decltype(_impl_.stripe_id_){}
+    , decltype(_impl_.parity_block_id_){}
+    , decltype(_impl_.write_generation_){}
+    , decltype(_impl_.parity_datanode_port_){}
+    , decltype(_impl_.data_block_id_){}
+    , decltype(_impl_.range_length_){}
+    , decltype(_impl_.range_offset_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.parity_block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_parity_block_key().empty()) {
+    _this->_impl_.parity_block_key_.Set(from._internal_parity_block_key(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.parity_datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_parity_datanode_ip().empty()) {
+    _this->_impl_.parity_datanode_ip_.Set(from._internal_parity_datanode_ip(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.new_payload_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.new_payload_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_new_payload().empty()) {
+    _this->_impl_.new_payload_.Set(from._internal_new_payload(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.batch_id_, &from._impl_.batch_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.range_offset_) -
+    reinterpret_cast<char*>(&_impl_.batch_id_)) + sizeof(_impl_.range_offset_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixJournalAppendRequest)
+}
+
+inline void ParixJournalAppendRequest::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_block_key_){}
+    , decltype(_impl_.parity_datanode_ip_){}
+    , decltype(_impl_.new_payload_){}
+    , decltype(_impl_.batch_id_){uint64_t{0u}}
+    , decltype(_impl_.stripe_id_){0}
+    , decltype(_impl_.parity_block_id_){0}
+    , decltype(_impl_.write_generation_){uint64_t{0u}}
+    , decltype(_impl_.parity_datanode_port_){0}
+    , decltype(_impl_.data_block_id_){0}
+    , decltype(_impl_.range_length_){uint64_t{0u}}
+    , decltype(_impl_.range_offset_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.parity_block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.parity_datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.new_payload_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.new_payload_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+ParixJournalAppendRequest::~ParixJournalAppendRequest() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixJournalAppendRequest)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParixJournalAppendRequest::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.parity_block_key_.Destroy();
+  _impl_.parity_datanode_ip_.Destroy();
+  _impl_.new_payload_.Destroy();
+}
+
+void ParixJournalAppendRequest::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParixJournalAppendRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixJournalAppendRequest)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.parity_block_key_.ClearToEmpty();
+  _impl_.parity_datanode_ip_.ClearToEmpty();
+  _impl_.new_payload_.ClearToEmpty();
+  ::memset(&_impl_.batch_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.range_offset_) -
+      reinterpret_cast<char*>(&_impl_.batch_id_)) + sizeof(_impl_.range_offset_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParixJournalAppendRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 batch_id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.batch_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 write_generation = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.write_generation_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_block_id = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.parity_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string parity_block_key = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+          auto str = _internal_mutable_parity_block_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.ParixJournalAppendRequest.parity_block_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string parity_datanode_ip = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
+          auto str = _internal_mutable_parity_datanode_ip();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.ParixJournalAppendRequest.parity_datanode_ip"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_datanode_port = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
+          _impl_.parity_datanode_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 data_block_id = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 64)) {
+          _impl_.data_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_offset = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 72)) {
+          _impl_.range_offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 range_length = 10;
+      case 10:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 80)) {
+          _impl_.range_length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bytes new_payload = 11;
+      case 11:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 90)) {
+          auto str = _internal_mutable_new_payload();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParixJournalAppendRequest::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixJournalAppendRequest)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // uint64 batch_id = 2;
+  if (this->_internal_batch_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(2, this->_internal_batch_id(), target);
+  }
+
+  // uint64 write_generation = 3;
+  if (this->_internal_write_generation() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(3, this->_internal_write_generation(), target);
+  }
+
+  // int32 parity_block_id = 4;
+  if (this->_internal_parity_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_parity_block_id(), target);
+  }
+
+  // string parity_block_key = 5;
+  if (!this->_internal_parity_block_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_parity_block_key().data(), static_cast<int>(this->_internal_parity_block_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.ParixJournalAppendRequest.parity_block_key");
+    target = stream->WriteStringMaybeAliased(
+        5, this->_internal_parity_block_key(), target);
+  }
+
+  // string parity_datanode_ip = 6;
+  if (!this->_internal_parity_datanode_ip().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_parity_datanode_ip().data(), static_cast<int>(this->_internal_parity_datanode_ip().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.ParixJournalAppendRequest.parity_datanode_ip");
+    target = stream->WriteStringMaybeAliased(
+        6, this->_internal_parity_datanode_ip(), target);
+  }
+
+  // int32 parity_datanode_port = 7;
+  if (this->_internal_parity_datanode_port() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(7, this->_internal_parity_datanode_port(), target);
+  }
+
+  // int32 data_block_id = 8;
+  if (this->_internal_data_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(8, this->_internal_data_block_id(), target);
+  }
+
+  // int32 range_offset = 9;
+  if (this->_internal_range_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(9, this->_internal_range_offset(), target);
+  }
+
+  // uint64 range_length = 10;
+  if (this->_internal_range_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(10, this->_internal_range_length(), target);
+  }
+
+  // bytes new_payload = 11;
+  if (!this->_internal_new_payload().empty()) {
+    target = stream->WriteBytesMaybeAliased(
+        11, this->_internal_new_payload(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixJournalAppendRequest)
+  return target;
+}
+
+size_t ParixJournalAppendRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixJournalAppendRequest)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string parity_block_key = 5;
+  if (!this->_internal_parity_block_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_parity_block_key());
+  }
+
+  // string parity_datanode_ip = 6;
+  if (!this->_internal_parity_datanode_ip().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_parity_datanode_ip());
+  }
+
+  // bytes new_payload = 11;
+  if (!this->_internal_new_payload().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+        this->_internal_new_payload());
+  }
+
+  // uint64 batch_id = 2;
+  if (this->_internal_batch_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_batch_id());
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  // int32 parity_block_id = 4;
+  if (this->_internal_parity_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_block_id());
+  }
+
+  // uint64 write_generation = 3;
+  if (this->_internal_write_generation() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_write_generation());
+  }
+
+  // int32 parity_datanode_port = 7;
+  if (this->_internal_parity_datanode_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_datanode_port());
+  }
+
+  // int32 data_block_id = 8;
+  if (this->_internal_data_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_data_block_id());
+  }
+
+  // uint64 range_length = 10;
+  if (this->_internal_range_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_range_length());
+  }
+
+  // int32 range_offset = 9;
+  if (this->_internal_range_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_offset());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixJournalAppendRequest::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParixJournalAppendRequest::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixJournalAppendRequest::GetClassData() const { return &_class_data_; }
+
+
+void ParixJournalAppendRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixJournalAppendRequest*>(&to_msg);
+  auto& from = static_cast<const ParixJournalAppendRequest&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixJournalAppendRequest)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_parity_block_key().empty()) {
+    _this->_internal_set_parity_block_key(from._internal_parity_block_key());
+  }
+  if (!from._internal_parity_datanode_ip().empty()) {
+    _this->_internal_set_parity_datanode_ip(from._internal_parity_datanode_ip());
+  }
+  if (!from._internal_new_payload().empty()) {
+    _this->_internal_set_new_payload(from._internal_new_payload());
+  }
+  if (from._internal_batch_id() != 0) {
+    _this->_internal_set_batch_id(from._internal_batch_id());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  if (from._internal_parity_block_id() != 0) {
+    _this->_internal_set_parity_block_id(from._internal_parity_block_id());
+  }
+  if (from._internal_write_generation() != 0) {
+    _this->_internal_set_write_generation(from._internal_write_generation());
+  }
+  if (from._internal_parity_datanode_port() != 0) {
+    _this->_internal_set_parity_datanode_port(from._internal_parity_datanode_port());
+  }
+  if (from._internal_data_block_id() != 0) {
+    _this->_internal_set_data_block_id(from._internal_data_block_id());
+  }
+  if (from._internal_range_length() != 0) {
+    _this->_internal_set_range_length(from._internal_range_length());
+  }
+  if (from._internal_range_offset() != 0) {
+    _this->_internal_set_range_offset(from._internal_range_offset());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParixJournalAppendRequest::CopyFrom(const ParixJournalAppendRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixJournalAppendRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParixJournalAppendRequest::IsInitialized() const {
+  return true;
+}
+
+void ParixJournalAppendRequest::InternalSwap(ParixJournalAppendRequest* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.parity_block_key_, lhs_arena,
+      &other->_impl_.parity_block_key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.parity_datanode_ip_, lhs_arena,
+      &other->_impl_.parity_datanode_ip_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.new_payload_, lhs_arena,
+      &other->_impl_.new_payload_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParixJournalAppendRequest, _impl_.range_offset_)
+      + sizeof(ParixJournalAppendRequest::_impl_.range_offset_)
+      - PROTOBUF_FIELD_OFFSET(ParixJournalAppendRequest, _impl_.batch_id_)>(
+          reinterpret_cast<char*>(&_impl_.batch_id_),
+          reinterpret_cast<char*>(&other->_impl_.batch_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalAppendRequest::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[23]);
+}
+
+// ===================================================================
+
+class ParixJournalAppendReply::_Internal {
+ public:
+};
+
+ParixJournalAppendReply::ParixJournalAppendReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixJournalAppendReply)
+}
+ParixJournalAppendReply::ParixJournalAppendReply(const ParixJournalAppendReply& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParixJournalAppendReply* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.ack_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.ack_ = from._impl_.ack_;
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixJournalAppendReply)
+}
+
+inline void ParixJournalAppendReply::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.ack_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+ParixJournalAppendReply::~ParixJournalAppendReply() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixJournalAppendReply)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParixJournalAppendReply::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void ParixJournalAppendReply::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParixJournalAppendReply::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixJournalAppendReply)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.ack_ = 0;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParixJournalAppendReply::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // .proxy_proto.ParixParityAck ack = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+          _internal_set_ack(static_cast<::proxy_proto::ParixParityAck>(val));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParixJournalAppendReply::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixJournalAppendReply)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .proxy_proto.ParixParityAck ack = 1;
+  if (this->_internal_ack() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteEnumToArray(
+      1, this->_internal_ack(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixJournalAppendReply)
+  return target;
+}
+
+size_t ParixJournalAppendReply::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixJournalAppendReply)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // .proxy_proto.ParixParityAck ack = 1;
+  if (this->_internal_ack() != 0) {
+    total_size += 1 +
+      ::_pbi::WireFormatLite::EnumSize(this->_internal_ack());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixJournalAppendReply::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParixJournalAppendReply::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixJournalAppendReply::GetClassData() const { return &_class_data_; }
+
+
+void ParixJournalAppendReply::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixJournalAppendReply*>(&to_msg);
+  auto& from = static_cast<const ParixJournalAppendReply&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixJournalAppendReply)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_ack() != 0) {
+    _this->_internal_set_ack(from._internal_ack());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParixJournalAppendReply::CopyFrom(const ParixJournalAppendReply& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixJournalAppendReply)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParixJournalAppendReply::IsInitialized() const {
+  return true;
+}
+
+void ParixJournalAppendReply::InternalSwap(ParixJournalAppendReply* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_.ack_, other->_impl_.ack_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalAppendReply::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[24]);
+}
+
+// ===================================================================
+
+class ParixJournalAppendBatchItem::_Internal {
+ public:
+};
+
+ParixJournalAppendBatchItem::ParixJournalAppendBatchItem(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixJournalAppendBatchItem)
+}
+ParixJournalAppendBatchItem::ParixJournalAppendBatchItem(const ParixJournalAppendBatchItem& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParixJournalAppendBatchItem* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_block_key_){}
+    , decltype(_impl_.parity_datanode_ip_){}
+    , decltype(_impl_.parity_block_id_){}
+    , decltype(_impl_.parity_datanode_port_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.parity_block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_parity_block_key().empty()) {
+    _this->_impl_.parity_block_key_.Set(from._internal_parity_block_key(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.parity_datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_parity_datanode_ip().empty()) {
+    _this->_impl_.parity_datanode_ip_.Set(from._internal_parity_datanode_ip(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.parity_block_id_, &from._impl_.parity_block_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.parity_datanode_port_) -
+    reinterpret_cast<char*>(&_impl_.parity_block_id_)) + sizeof(_impl_.parity_datanode_port_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixJournalAppendBatchItem)
+}
+
+inline void ParixJournalAppendBatchItem::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_block_key_){}
+    , decltype(_impl_.parity_datanode_ip_){}
+    , decltype(_impl_.parity_block_id_){0}
+    , decltype(_impl_.parity_datanode_port_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.parity_block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.parity_datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+ParixJournalAppendBatchItem::~ParixJournalAppendBatchItem() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixJournalAppendBatchItem)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParixJournalAppendBatchItem::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.parity_block_key_.Destroy();
+  _impl_.parity_datanode_ip_.Destroy();
+}
+
+void ParixJournalAppendBatchItem::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParixJournalAppendBatchItem::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixJournalAppendBatchItem)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.parity_block_key_.ClearToEmpty();
+  _impl_.parity_datanode_ip_.ClearToEmpty();
+  ::memset(&_impl_.parity_block_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.parity_datanode_port_) -
+      reinterpret_cast<char*>(&_impl_.parity_block_id_)) + sizeof(_impl_.parity_datanode_port_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParixJournalAppendBatchItem::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 parity_block_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.parity_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string parity_block_key = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          auto str = _internal_mutable_parity_block_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.ParixJournalAppendBatchItem.parity_block_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string parity_datanode_ip = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          auto str = _internal_mutable_parity_datanode_ip();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.ParixJournalAppendBatchItem.parity_datanode_ip"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_datanode_port = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.parity_datanode_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParixJournalAppendBatchItem::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixJournalAppendBatchItem)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 parity_block_id = 1;
+  if (this->_internal_parity_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_parity_block_id(), target);
+  }
+
+  // string parity_block_key = 2;
+  if (!this->_internal_parity_block_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_parity_block_key().data(), static_cast<int>(this->_internal_parity_block_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.ParixJournalAppendBatchItem.parity_block_key");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_parity_block_key(), target);
+  }
+
+  // string parity_datanode_ip = 3;
+  if (!this->_internal_parity_datanode_ip().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_parity_datanode_ip().data(), static_cast<int>(this->_internal_parity_datanode_ip().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.ParixJournalAppendBatchItem.parity_datanode_ip");
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_parity_datanode_ip(), target);
+  }
+
+  // int32 parity_datanode_port = 4;
+  if (this->_internal_parity_datanode_port() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_parity_datanode_port(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixJournalAppendBatchItem)
+  return target;
+}
+
+size_t ParixJournalAppendBatchItem::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixJournalAppendBatchItem)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string parity_block_key = 2;
+  if (!this->_internal_parity_block_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_parity_block_key());
+  }
+
+  // string parity_datanode_ip = 3;
+  if (!this->_internal_parity_datanode_ip().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_parity_datanode_ip());
+  }
+
+  // int32 parity_block_id = 1;
+  if (this->_internal_parity_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_block_id());
+  }
+
+  // int32 parity_datanode_port = 4;
+  if (this->_internal_parity_datanode_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_datanode_port());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixJournalAppendBatchItem::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParixJournalAppendBatchItem::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixJournalAppendBatchItem::GetClassData() const { return &_class_data_; }
+
+
+void ParixJournalAppendBatchItem::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixJournalAppendBatchItem*>(&to_msg);
+  auto& from = static_cast<const ParixJournalAppendBatchItem&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixJournalAppendBatchItem)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_parity_block_key().empty()) {
+    _this->_internal_set_parity_block_key(from._internal_parity_block_key());
+  }
+  if (!from._internal_parity_datanode_ip().empty()) {
+    _this->_internal_set_parity_datanode_ip(from._internal_parity_datanode_ip());
+  }
+  if (from._internal_parity_block_id() != 0) {
+    _this->_internal_set_parity_block_id(from._internal_parity_block_id());
+  }
+  if (from._internal_parity_datanode_port() != 0) {
+    _this->_internal_set_parity_datanode_port(from._internal_parity_datanode_port());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParixJournalAppendBatchItem::CopyFrom(const ParixJournalAppendBatchItem& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixJournalAppendBatchItem)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParixJournalAppendBatchItem::IsInitialized() const {
+  return true;
+}
+
+void ParixJournalAppendBatchItem::InternalSwap(ParixJournalAppendBatchItem* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.parity_block_key_, lhs_arena,
+      &other->_impl_.parity_block_key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.parity_datanode_ip_, lhs_arena,
+      &other->_impl_.parity_datanode_ip_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParixJournalAppendBatchItem, _impl_.parity_datanode_port_)
+      + sizeof(ParixJournalAppendBatchItem::_impl_.parity_datanode_port_)
+      - PROTOBUF_FIELD_OFFSET(ParixJournalAppendBatchItem, _impl_.parity_block_id_)>(
+          reinterpret_cast<char*>(&_impl_.parity_block_id_),
+          reinterpret_cast<char*>(&other->_impl_.parity_block_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalAppendBatchItem::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[25]);
+}
+
+// ===================================================================
+
+class ParixJournalAppendBatchRequest::_Internal {
+ public:
+};
+
+ParixJournalAppendBatchRequest::ParixJournalAppendBatchRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixJournalAppendBatchRequest)
+}
+ParixJournalAppendBatchRequest::ParixJournalAppendBatchRequest(const ParixJournalAppendBatchRequest& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParixJournalAppendBatchRequest* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.targets_){from._impl_.targets_}
+    , decltype(_impl_.new_payload_){}
+    , decltype(_impl_.batch_id_){}
+    , decltype(_impl_.stripe_id_){}
+    , decltype(_impl_.data_block_id_){}
+    , decltype(_impl_.write_generation_){}
+    , decltype(_impl_.range_length_){}
+    , decltype(_impl_.range_offset_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.new_payload_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.new_payload_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_new_payload().empty()) {
+    _this->_impl_.new_payload_.Set(from._internal_new_payload(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.batch_id_, &from._impl_.batch_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.range_offset_) -
+    reinterpret_cast<char*>(&_impl_.batch_id_)) + sizeof(_impl_.range_offset_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixJournalAppendBatchRequest)
+}
+
+inline void ParixJournalAppendBatchRequest::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.targets_){arena}
+    , decltype(_impl_.new_payload_){}
+    , decltype(_impl_.batch_id_){uint64_t{0u}}
+    , decltype(_impl_.stripe_id_){0}
+    , decltype(_impl_.data_block_id_){0}
+    , decltype(_impl_.write_generation_){uint64_t{0u}}
+    , decltype(_impl_.range_length_){uint64_t{0u}}
+    , decltype(_impl_.range_offset_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.new_payload_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.new_payload_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+ParixJournalAppendBatchRequest::~ParixJournalAppendBatchRequest() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixJournalAppendBatchRequest)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParixJournalAppendBatchRequest::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.targets_.~RepeatedPtrField();
+  _impl_.new_payload_.Destroy();
+}
+
+void ParixJournalAppendBatchRequest::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParixJournalAppendBatchRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixJournalAppendBatchRequest)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.targets_.Clear();
+  _impl_.new_payload_.ClearToEmpty();
+  ::memset(&_impl_.batch_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.range_offset_) -
+      reinterpret_cast<char*>(&_impl_.batch_id_)) + sizeof(_impl_.range_offset_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParixJournalAppendBatchRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 batch_id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.batch_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 write_generation = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.write_generation_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 data_block_id = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.data_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_offset = 5;
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
-          _impl_.block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          _impl_.range_offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 range_length = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
+          _impl_.range_length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bytes new_payload = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 58)) {
+          auto str = _internal_mutable_new_payload();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated .proxy_proto.ParixJournalAppendBatchItem targets = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_targets(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<66>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParixJournalAppendBatchRequest::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixJournalAppendBatchRequest)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // uint64 batch_id = 2;
+  if (this->_internal_batch_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(2, this->_internal_batch_id(), target);
+  }
+
+  // uint64 write_generation = 3;
+  if (this->_internal_write_generation() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(3, this->_internal_write_generation(), target);
+  }
+
+  // int32 data_block_id = 4;
+  if (this->_internal_data_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_data_block_id(), target);
+  }
+
+  // int32 range_offset = 5;
+  if (this->_internal_range_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_range_offset(), target);
+  }
+
+  // uint64 range_length = 6;
+  if (this->_internal_range_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(6, this->_internal_range_length(), target);
+  }
+
+  // bytes new_payload = 7;
+  if (!this->_internal_new_payload().empty()) {
+    target = stream->WriteBytesMaybeAliased(
+        7, this->_internal_new_payload(), target);
+  }
+
+  // repeated .proxy_proto.ParixJournalAppendBatchItem targets = 8;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_targets_size()); i < n; i++) {
+    const auto& repfield = this->_internal_targets(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(8, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixJournalAppendBatchRequest)
+  return target;
+}
+
+size_t ParixJournalAppendBatchRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixJournalAppendBatchRequest)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated .proxy_proto.ParixJournalAppendBatchItem targets = 8;
+  total_size += 1UL * this->_internal_targets_size();
+  for (const auto& msg : this->_impl_.targets_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // bytes new_payload = 7;
+  if (!this->_internal_new_payload().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+        this->_internal_new_payload());
+  }
+
+  // uint64 batch_id = 2;
+  if (this->_internal_batch_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_batch_id());
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  // int32 data_block_id = 4;
+  if (this->_internal_data_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_data_block_id());
+  }
+
+  // uint64 write_generation = 3;
+  if (this->_internal_write_generation() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_write_generation());
+  }
+
+  // uint64 range_length = 6;
+  if (this->_internal_range_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_range_length());
+  }
+
+  // int32 range_offset = 5;
+  if (this->_internal_range_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_offset());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixJournalAppendBatchRequest::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParixJournalAppendBatchRequest::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixJournalAppendBatchRequest::GetClassData() const { return &_class_data_; }
+
+
+void ParixJournalAppendBatchRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixJournalAppendBatchRequest*>(&to_msg);
+  auto& from = static_cast<const ParixJournalAppendBatchRequest&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixJournalAppendBatchRequest)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.targets_.MergeFrom(from._impl_.targets_);
+  if (!from._internal_new_payload().empty()) {
+    _this->_internal_set_new_payload(from._internal_new_payload());
+  }
+  if (from._internal_batch_id() != 0) {
+    _this->_internal_set_batch_id(from._internal_batch_id());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  if (from._internal_data_block_id() != 0) {
+    _this->_internal_set_data_block_id(from._internal_data_block_id());
+  }
+  if (from._internal_write_generation() != 0) {
+    _this->_internal_set_write_generation(from._internal_write_generation());
+  }
+  if (from._internal_range_length() != 0) {
+    _this->_internal_set_range_length(from._internal_range_length());
+  }
+  if (from._internal_range_offset() != 0) {
+    _this->_internal_set_range_offset(from._internal_range_offset());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParixJournalAppendBatchRequest::CopyFrom(const ParixJournalAppendBatchRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixJournalAppendBatchRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParixJournalAppendBatchRequest::IsInitialized() const {
+  return true;
+}
+
+void ParixJournalAppendBatchRequest::InternalSwap(ParixJournalAppendBatchRequest* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.targets_.InternalSwap(&other->_impl_.targets_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.new_payload_, lhs_arena,
+      &other->_impl_.new_payload_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParixJournalAppendBatchRequest, _impl_.range_offset_)
+      + sizeof(ParixJournalAppendBatchRequest::_impl_.range_offset_)
+      - PROTOBUF_FIELD_OFFSET(ParixJournalAppendBatchRequest, _impl_.batch_id_)>(
+          reinterpret_cast<char*>(&_impl_.batch_id_),
+          reinterpret_cast<char*>(&other->_impl_.batch_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalAppendBatchRequest::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[26]);
+}
+
+// ===================================================================
+
+class ParixJournalAppendBatchAckItem::_Internal {
+ public:
+};
+
+ParixJournalAppendBatchAckItem::ParixJournalAppendBatchAckItem(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixJournalAppendBatchAckItem)
+}
+ParixJournalAppendBatchAckItem::ParixJournalAppendBatchAckItem(const ParixJournalAppendBatchAckItem& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParixJournalAppendBatchAckItem* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_block_id_){}
+    , decltype(_impl_.ack_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.parity_block_id_, &from._impl_.parity_block_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.ack_) -
+    reinterpret_cast<char*>(&_impl_.parity_block_id_)) + sizeof(_impl_.ack_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixJournalAppendBatchAckItem)
+}
+
+inline void ParixJournalAppendBatchAckItem::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_block_id_){0}
+    , decltype(_impl_.ack_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+ParixJournalAppendBatchAckItem::~ParixJournalAppendBatchAckItem() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixJournalAppendBatchAckItem)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParixJournalAppendBatchAckItem::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void ParixJournalAppendBatchAckItem::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParixJournalAppendBatchAckItem::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixJournalAppendBatchAckItem)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&_impl_.parity_block_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.ack_) -
+      reinterpret_cast<char*>(&_impl_.parity_block_id_)) + sizeof(_impl_.ack_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParixJournalAppendBatchAckItem::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 parity_block_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.parity_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .proxy_proto.ParixParityAck ack = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+          _internal_set_ack(static_cast<::proxy_proto::ParixParityAck>(val));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParixJournalAppendBatchAckItem::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixJournalAppendBatchAckItem)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 parity_block_id = 1;
+  if (this->_internal_parity_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_parity_block_id(), target);
+  }
+
+  // .proxy_proto.ParixParityAck ack = 2;
+  if (this->_internal_ack() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteEnumToArray(
+      2, this->_internal_ack(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixJournalAppendBatchAckItem)
+  return target;
+}
+
+size_t ParixJournalAppendBatchAckItem::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixJournalAppendBatchAckItem)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // int32 parity_block_id = 1;
+  if (this->_internal_parity_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_block_id());
+  }
+
+  // .proxy_proto.ParixParityAck ack = 2;
+  if (this->_internal_ack() != 0) {
+    total_size += 1 +
+      ::_pbi::WireFormatLite::EnumSize(this->_internal_ack());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixJournalAppendBatchAckItem::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParixJournalAppendBatchAckItem::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixJournalAppendBatchAckItem::GetClassData() const { return &_class_data_; }
+
+
+void ParixJournalAppendBatchAckItem::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixJournalAppendBatchAckItem*>(&to_msg);
+  auto& from = static_cast<const ParixJournalAppendBatchAckItem&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixJournalAppendBatchAckItem)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_parity_block_id() != 0) {
+    _this->_internal_set_parity_block_id(from._internal_parity_block_id());
+  }
+  if (from._internal_ack() != 0) {
+    _this->_internal_set_ack(from._internal_ack());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParixJournalAppendBatchAckItem::CopyFrom(const ParixJournalAppendBatchAckItem& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixJournalAppendBatchAckItem)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParixJournalAppendBatchAckItem::IsInitialized() const {
+  return true;
+}
+
+void ParixJournalAppendBatchAckItem::InternalSwap(ParixJournalAppendBatchAckItem* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParixJournalAppendBatchAckItem, _impl_.ack_)
+      + sizeof(ParixJournalAppendBatchAckItem::_impl_.ack_)
+      - PROTOBUF_FIELD_OFFSET(ParixJournalAppendBatchAckItem, _impl_.parity_block_id_)>(
+          reinterpret_cast<char*>(&_impl_.parity_block_id_),
+          reinterpret_cast<char*>(&other->_impl_.parity_block_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalAppendBatchAckItem::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[27]);
+}
+
+// ===================================================================
+
+class ParixJournalAppendBatchReply::_Internal {
+ public:
+};
+
+ParixJournalAppendBatchReply::ParixJournalAppendBatchReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixJournalAppendBatchReply)
+}
+ParixJournalAppendBatchReply::ParixJournalAppendBatchReply(const ParixJournalAppendBatchReply& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParixJournalAppendBatchReply* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.acks_){from._impl_.acks_}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixJournalAppendBatchReply)
+}
+
+inline void ParixJournalAppendBatchReply::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.acks_){arena}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+ParixJournalAppendBatchReply::~ParixJournalAppendBatchReply() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixJournalAppendBatchReply)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParixJournalAppendBatchReply::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.acks_.~RepeatedPtrField();
+}
+
+void ParixJournalAppendBatchReply::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParixJournalAppendBatchReply::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixJournalAppendBatchReply)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.acks_.Clear();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParixJournalAppendBatchReply::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // repeated .proxy_proto.ParixJournalAppendBatchAckItem acks = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_acks(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParixJournalAppendBatchReply::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixJournalAppendBatchReply)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated .proxy_proto.ParixJournalAppendBatchAckItem acks = 1;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_acks_size()); i < n; i++) {
+    const auto& repfield = this->_internal_acks(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(1, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixJournalAppendBatchReply)
+  return target;
+}
+
+size_t ParixJournalAppendBatchReply::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixJournalAppendBatchReply)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated .proxy_proto.ParixJournalAppendBatchAckItem acks = 1;
+  total_size += 1UL * this->_internal_acks_size();
+  for (const auto& msg : this->_impl_.acks_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixJournalAppendBatchReply::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParixJournalAppendBatchReply::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixJournalAppendBatchReply::GetClassData() const { return &_class_data_; }
+
+
+void ParixJournalAppendBatchReply::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixJournalAppendBatchReply*>(&to_msg);
+  auto& from = static_cast<const ParixJournalAppendBatchReply&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixJournalAppendBatchReply)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.acks_.MergeFrom(from._impl_.acks_);
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParixJournalAppendBatchReply::CopyFrom(const ParixJournalAppendBatchReply& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixJournalAppendBatchReply)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParixJournalAppendBatchReply::IsInitialized() const {
+  return true;
+}
+
+void ParixJournalAppendBatchReply::InternalSwap(ParixJournalAppendBatchReply* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.acks_.InternalSwap(&other->_impl_.acks_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalAppendBatchReply::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[28]);
+}
+
+// ===================================================================
+
+class ParixSupplyD0Request::_Internal {
+ public:
+};
+
+ParixSupplyD0Request::ParixSupplyD0Request(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixSupplyD0Request)
+}
+ParixSupplyD0Request::ParixSupplyD0Request(const ParixSupplyD0Request& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParixSupplyD0Request* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.old_payload_){}
+    , decltype(_impl_.batch_id_){}
+    , decltype(_impl_.stripe_id_){}
+    , decltype(_impl_.parity_block_id_){}
+    , decltype(_impl_.write_generation_){}
+    , decltype(_impl_.data_block_id_){}
+    , decltype(_impl_.range_offset_){}
+    , decltype(_impl_.range_length_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.old_payload_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.old_payload_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_old_payload().empty()) {
+    _this->_impl_.old_payload_.Set(from._internal_old_payload(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.batch_id_, &from._impl_.batch_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.range_length_) -
+    reinterpret_cast<char*>(&_impl_.batch_id_)) + sizeof(_impl_.range_length_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixSupplyD0Request)
+}
+
+inline void ParixSupplyD0Request::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.old_payload_){}
+    , decltype(_impl_.batch_id_){uint64_t{0u}}
+    , decltype(_impl_.stripe_id_){0}
+    , decltype(_impl_.parity_block_id_){0}
+    , decltype(_impl_.write_generation_){uint64_t{0u}}
+    , decltype(_impl_.data_block_id_){0}
+    , decltype(_impl_.range_offset_){0}
+    , decltype(_impl_.range_length_){uint64_t{0u}}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.old_payload_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.old_payload_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+ParixSupplyD0Request::~ParixSupplyD0Request() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixSupplyD0Request)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParixSupplyD0Request::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.old_payload_.Destroy();
+}
+
+void ParixSupplyD0Request::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParixSupplyD0Request::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixSupplyD0Request)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.old_payload_.ClearToEmpty();
+  ::memset(&_impl_.batch_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.range_length_) -
+      reinterpret_cast<char*>(&_impl_.batch_id_)) + sizeof(_impl_.range_length_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParixSupplyD0Request::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 batch_id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.batch_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 write_generation = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.write_generation_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_block_id = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.parity_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 data_block_id = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          _impl_.data_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -9209,57 +12178,11 @@ const char* PbsDataUpdatePlacement::_InternalParse(const char* ptr, ::_pbi::Pars
         } else
           goto handle_unusual;
         continue;
-      // string datanode_ip = 8;
+      // bytes old_payload = 8;
       case 8:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
-          auto str = _internal_mutable_datanode_ip();
+          auto str = _internal_mutable_old_payload();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.PbsDataUpdatePlacement.datanode_ip"));
-        } else
-          goto handle_unusual;
-        continue;
-      // int32 datanode_port = 9;
-      case 9:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 72)) {
-          _impl_.datanode_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // repeated .proxy_proto.PbsParityForwardPlan parity_forward = 10;
-      case 10:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 82)) {
-          ptr -= 1;
-          do {
-            ptr += 1;
-            ptr = ctx->ParseMessage(_internal_add_parity_forward(), ptr);
-            CHK_(ptr);
-            if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<82>(ptr));
-        } else
-          goto handle_unusual;
-        continue;
-      // uint64 pbs_batch_id = 11;
-      case 11:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 88)) {
-          _impl_.pbs_batch_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // uint32 pbs_batch_index = 12;
-      case 12:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 96)) {
-          _impl_.pbs_batch_index_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // uint32 pbs_batch_total = 13;
-      case 13:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 104)) {
-          _impl_.pbs_batch_total_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -9287,48 +12210,40 @@ failure:
 #undef CHK_
 }
 
-uint8_t* PbsDataUpdatePlacement::_InternalSerialize(
+uint8_t* ParixSupplyD0Request::_InternalSerialize(
     uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.PbsDataUpdatePlacement)
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixSupplyD0Request)
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // string key = 1;
-  if (!this->_internal_key().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_key().data(), static_cast<int>(this->_internal_key().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "proxy_proto.PbsDataUpdatePlacement.key");
-    target = stream->WriteStringMaybeAliased(
-        1, this->_internal_key(), target);
-  }
-
-  // int32 stripe_id = 2;
+  // int32 stripe_id = 1;
   if (this->_internal_stripe_id() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_stripe_id(), target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
   }
 
-  // int32 cluster_id = 3;
-  if (this->_internal_cluster_id() != 0) {
+  // uint64 batch_id = 2;
+  if (this->_internal_batch_id() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_cluster_id(), target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(2, this->_internal_batch_id(), target);
   }
 
-  // string block_key = 4;
-  if (!this->_internal_block_key().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_block_key().data(), static_cast<int>(this->_internal_block_key().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "proxy_proto.PbsDataUpdatePlacement.block_key");
-    target = stream->WriteStringMaybeAliased(
-        4, this->_internal_block_key(), target);
-  }
-
-  // int32 block_id = 5;
-  if (this->_internal_block_id() != 0) {
+  // uint64 write_generation = 3;
+  if (this->_internal_write_generation() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_block_id(), target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(3, this->_internal_write_generation(), target);
+  }
+
+  // int32 parity_block_id = 4;
+  if (this->_internal_parity_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_parity_block_id(), target);
+  }
+
+  // int32 data_block_id = 5;
+  if (this->_internal_data_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_data_block_id(), target);
   }
 
   // int32 range_offset = 6;
@@ -9343,105 +12258,58 @@ uint8_t* PbsDataUpdatePlacement::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteUInt64ToArray(7, this->_internal_range_length(), target);
   }
 
-  // string datanode_ip = 8;
-  if (!this->_internal_datanode_ip().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_datanode_ip().data(), static_cast<int>(this->_internal_datanode_ip().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "proxy_proto.PbsDataUpdatePlacement.datanode_ip");
-    target = stream->WriteStringMaybeAliased(
-        8, this->_internal_datanode_ip(), target);
-  }
-
-  // int32 datanode_port = 9;
-  if (this->_internal_datanode_port() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(9, this->_internal_datanode_port(), target);
-  }
-
-  // repeated .proxy_proto.PbsParityForwardPlan parity_forward = 10;
-  for (unsigned i = 0,
-      n = static_cast<unsigned>(this->_internal_parity_forward_size()); i < n; i++) {
-    const auto& repfield = this->_internal_parity_forward(i);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-        InternalWriteMessage(10, repfield, repfield.GetCachedSize(), target, stream);
-  }
-
-  // uint64 pbs_batch_id = 11;
-  if (this->_internal_pbs_batch_id() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(11, this->_internal_pbs_batch_id(), target);
-  }
-
-  // uint32 pbs_batch_index = 12;
-  if (this->_internal_pbs_batch_index() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(12, this->_internal_pbs_batch_index(), target);
-  }
-
-  // uint32 pbs_batch_total = 13;
-  if (this->_internal_pbs_batch_total() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(13, this->_internal_pbs_batch_total(), target);
+  // bytes old_payload = 8;
+  if (!this->_internal_old_payload().empty()) {
+    target = stream->WriteBytesMaybeAliased(
+        8, this->_internal_old_payload(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.PbsDataUpdatePlacement)
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixSupplyD0Request)
   return target;
 }
 
-size_t PbsDataUpdatePlacement::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:proxy_proto.PbsDataUpdatePlacement)
+size_t ParixSupplyD0Request::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixSupplyD0Request)
   size_t total_size = 0;
 
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated .proxy_proto.PbsParityForwardPlan parity_forward = 10;
-  total_size += 1UL * this->_internal_parity_forward_size();
-  for (const auto& msg : this->_impl_.parity_forward_) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
-  }
-
-  // string key = 1;
-  if (!this->_internal_key().empty()) {
+  // bytes old_payload = 8;
+  if (!this->_internal_old_payload().empty()) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_key());
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+        this->_internal_old_payload());
   }
 
-  // string block_key = 4;
-  if (!this->_internal_block_key().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_block_key());
+  // uint64 batch_id = 2;
+  if (this->_internal_batch_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_batch_id());
   }
 
-  // string datanode_ip = 8;
-  if (!this->_internal_datanode_ip().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_datanode_ip());
-  }
-
-  // int32 stripe_id = 2;
+  // int32 stripe_id = 1;
   if (this->_internal_stripe_id() != 0) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
   }
 
-  // int32 cluster_id = 3;
-  if (this->_internal_cluster_id() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_cluster_id());
+  // int32 parity_block_id = 4;
+  if (this->_internal_parity_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_block_id());
   }
 
-  // int32 block_id = 5;
-  if (this->_internal_block_id() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_block_id());
+  // uint64 write_generation = 3;
+  if (this->_internal_write_generation() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_write_generation());
+  }
+
+  // int32 data_block_id = 5;
+  if (this->_internal_data_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_data_block_id());
   }
 
   // int32 range_offset = 6;
@@ -9454,62 +12322,41 @@ size_t PbsDataUpdatePlacement::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_range_length());
   }
 
-  // int32 datanode_port = 9;
-  if (this->_internal_datanode_port() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_datanode_port());
-  }
-
-  // uint32 pbs_batch_index = 12;
-  if (this->_internal_pbs_batch_index() != 0) {
-    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_pbs_batch_index());
-  }
-
-  // uint64 pbs_batch_id = 11;
-  if (this->_internal_pbs_batch_id() != 0) {
-    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_pbs_batch_id());
-  }
-
-  // uint32 pbs_batch_total = 13;
-  if (this->_internal_pbs_batch_total() != 0) {
-    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_pbs_batch_total());
-  }
-
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData PbsDataUpdatePlacement::_class_data_ = {
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixSupplyD0Request::_class_data_ = {
     ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    PbsDataUpdatePlacement::MergeImpl
+    ParixSupplyD0Request::MergeImpl
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*PbsDataUpdatePlacement::GetClassData() const { return &_class_data_; }
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixSupplyD0Request::GetClassData() const { return &_class_data_; }
 
 
-void PbsDataUpdatePlacement::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<PbsDataUpdatePlacement*>(&to_msg);
-  auto& from = static_cast<const PbsDataUpdatePlacement&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.PbsDataUpdatePlacement)
+void ParixSupplyD0Request::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixSupplyD0Request*>(&to_msg);
+  auto& from = static_cast<const ParixSupplyD0Request&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixSupplyD0Request)
   GOOGLE_DCHECK_NE(&from, _this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  _this->_impl_.parity_forward_.MergeFrom(from._impl_.parity_forward_);
-  if (!from._internal_key().empty()) {
-    _this->_internal_set_key(from._internal_key());
+  if (!from._internal_old_payload().empty()) {
+    _this->_internal_set_old_payload(from._internal_old_payload());
   }
-  if (!from._internal_block_key().empty()) {
-    _this->_internal_set_block_key(from._internal_block_key());
-  }
-  if (!from._internal_datanode_ip().empty()) {
-    _this->_internal_set_datanode_ip(from._internal_datanode_ip());
+  if (from._internal_batch_id() != 0) {
+    _this->_internal_set_batch_id(from._internal_batch_id());
   }
   if (from._internal_stripe_id() != 0) {
     _this->_internal_set_stripe_id(from._internal_stripe_id());
   }
-  if (from._internal_cluster_id() != 0) {
-    _this->_internal_set_cluster_id(from._internal_cluster_id());
+  if (from._internal_parity_block_id() != 0) {
+    _this->_internal_set_parity_block_id(from._internal_parity_block_id());
   }
-  if (from._internal_block_id() != 0) {
-    _this->_internal_set_block_id(from._internal_block_id());
+  if (from._internal_write_generation() != 0) {
+    _this->_internal_set_write_generation(from._internal_write_generation());
+  }
+  if (from._internal_data_block_id() != 0) {
+    _this->_internal_set_data_block_id(from._internal_data_block_id());
   }
   if (from._internal_range_offset() != 0) {
     _this->_internal_set_range_offset(from._internal_range_offset());
@@ -9517,190 +12364,83 @@ void PbsDataUpdatePlacement::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg,
   if (from._internal_range_length() != 0) {
     _this->_internal_set_range_length(from._internal_range_length());
   }
-  if (from._internal_datanode_port() != 0) {
-    _this->_internal_set_datanode_port(from._internal_datanode_port());
-  }
-  if (from._internal_pbs_batch_index() != 0) {
-    _this->_internal_set_pbs_batch_index(from._internal_pbs_batch_index());
-  }
-  if (from._internal_pbs_batch_id() != 0) {
-    _this->_internal_set_pbs_batch_id(from._internal_pbs_batch_id());
-  }
-  if (from._internal_pbs_batch_total() != 0) {
-    _this->_internal_set_pbs_batch_total(from._internal_pbs_batch_total());
-  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
-void PbsDataUpdatePlacement::CopyFrom(const PbsDataUpdatePlacement& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.PbsDataUpdatePlacement)
+void ParixSupplyD0Request::CopyFrom(const ParixSupplyD0Request& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixSupplyD0Request)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool PbsDataUpdatePlacement::IsInitialized() const {
+bool ParixSupplyD0Request::IsInitialized() const {
   return true;
 }
 
-void PbsDataUpdatePlacement::InternalSwap(PbsDataUpdatePlacement* other) {
+void ParixSupplyD0Request::InternalSwap(ParixSupplyD0Request* other) {
   using std::swap;
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  _impl_.parity_forward_.InternalSwap(&other->_impl_.parity_forward_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.key_, lhs_arena,
-      &other->_impl_.key_, rhs_arena
-  );
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.block_key_, lhs_arena,
-      &other->_impl_.block_key_, rhs_arena
-  );
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.datanode_ip_, lhs_arena,
-      &other->_impl_.datanode_ip_, rhs_arena
+      &_impl_.old_payload_, lhs_arena,
+      &other->_impl_.old_payload_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(PbsDataUpdatePlacement, _impl_.pbs_batch_total_)
-      + sizeof(PbsDataUpdatePlacement::_impl_.pbs_batch_total_)
-      - PROTOBUF_FIELD_OFFSET(PbsDataUpdatePlacement, _impl_.stripe_id_)>(
-          reinterpret_cast<char*>(&_impl_.stripe_id_),
-          reinterpret_cast<char*>(&other->_impl_.stripe_id_));
+      PROTOBUF_FIELD_OFFSET(ParixSupplyD0Request, _impl_.range_length_)
+      + sizeof(ParixSupplyD0Request::_impl_.range_length_)
+      - PROTOBUF_FIELD_OFFSET(ParixSupplyD0Request, _impl_.batch_id_)>(
+          reinterpret_cast<char*>(&_impl_.batch_id_),
+          reinterpret_cast<char*>(&other->_impl_.batch_id_));
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata PbsDataUpdatePlacement::GetMetadata() const {
+::PROTOBUF_NAMESPACE_ID::Metadata ParixSupplyD0Request::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[21]);
+      file_level_metadata_proxy_2eproto[29]);
 }
 
 // ===================================================================
 
-class PbsApplyParityDeltaRequest::_Internal {
+class ParixReplayBatchRequest::_Internal {
  public:
 };
 
-PbsApplyParityDeltaRequest::PbsApplyParityDeltaRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+ParixReplayBatchRequest::ParixReplayBatchRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
   SharedCtor(arena, is_message_owned);
-  // @@protoc_insertion_point(arena_constructor:proxy_proto.PbsApplyParityDeltaRequest)
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixReplayBatchRequest)
 }
-PbsApplyParityDeltaRequest::PbsApplyParityDeltaRequest(const PbsApplyParityDeltaRequest& from)
+ParixReplayBatchRequest::ParixReplayBatchRequest(const ParixReplayBatchRequest& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
-  PbsApplyParityDeltaRequest* const _this = this; (void)_this;
+  ParixReplayBatchRequest* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.parities_){from._impl_.parities_}
-    , decltype(_impl_.delta_){}
-    , decltype(_impl_.new_range_payload_){}
-    , decltype(_impl_.src_data_block_key_){}
-    , decltype(_impl_.src_data_datanode_ip_){}
-    , decltype(_impl_.data_range_old_snapshot_){}
+      decltype(_impl_.batch_id_){}
     , decltype(_impl_.stripe_id_){}
-    , decltype(_impl_.data_block_id_){}
-    , decltype(_impl_.range_length_){}
-    , decltype(_impl_.range_offset_){}
-    , decltype(_impl_.use_new_payload_){}
-    , decltype(_impl_.pbs_batch_id_){}
-    , decltype(_impl_.src_data_datanode_port_){}
-    , decltype(_impl_.pbs_batch_index_){}
-    , decltype(_impl_.pbs_batch_total_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _impl_.delta_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.delta_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_delta().empty()) {
-    _this->_impl_.delta_.Set(from._internal_delta(), 
-      _this->GetArenaForAllocation());
-  }
-  _impl_.new_range_payload_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.new_range_payload_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_new_range_payload().empty()) {
-    _this->_impl_.new_range_payload_.Set(from._internal_new_range_payload(), 
-      _this->GetArenaForAllocation());
-  }
-  _impl_.src_data_block_key_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.src_data_block_key_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_src_data_block_key().empty()) {
-    _this->_impl_.src_data_block_key_.Set(from._internal_src_data_block_key(), 
-      _this->GetArenaForAllocation());
-  }
-  _impl_.src_data_datanode_ip_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.src_data_datanode_ip_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_src_data_datanode_ip().empty()) {
-    _this->_impl_.src_data_datanode_ip_.Set(from._internal_src_data_datanode_ip(), 
-      _this->GetArenaForAllocation());
-  }
-  _impl_.data_range_old_snapshot_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.data_range_old_snapshot_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_data_range_old_snapshot().empty()) {
-    _this->_impl_.data_range_old_snapshot_.Set(from._internal_data_range_old_snapshot(), 
-      _this->GetArenaForAllocation());
-  }
-  ::memcpy(&_impl_.stripe_id_, &from._impl_.stripe_id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.pbs_batch_total_) -
-    reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.pbs_batch_total_));
-  // @@protoc_insertion_point(copy_constructor:proxy_proto.PbsApplyParityDeltaRequest)
+  ::memcpy(&_impl_.batch_id_, &from._impl_.batch_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.stripe_id_) -
+    reinterpret_cast<char*>(&_impl_.batch_id_)) + sizeof(_impl_.stripe_id_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixReplayBatchRequest)
 }
 
-inline void PbsApplyParityDeltaRequest::SharedCtor(
+inline void ParixReplayBatchRequest::SharedCtor(
     ::_pb::Arena* arena, bool is_message_owned) {
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.parities_){arena}
-    , decltype(_impl_.delta_){}
-    , decltype(_impl_.new_range_payload_){}
-    , decltype(_impl_.src_data_block_key_){}
-    , decltype(_impl_.src_data_datanode_ip_){}
-    , decltype(_impl_.data_range_old_snapshot_){}
+      decltype(_impl_.batch_id_){uint64_t{0u}}
     , decltype(_impl_.stripe_id_){0}
-    , decltype(_impl_.data_block_id_){0}
-    , decltype(_impl_.range_length_){uint64_t{0u}}
-    , decltype(_impl_.range_offset_){0}
-    , decltype(_impl_.use_new_payload_){false}
-    , decltype(_impl_.pbs_batch_id_){uint64_t{0u}}
-    , decltype(_impl_.src_data_datanode_port_){0}
-    , decltype(_impl_.pbs_batch_index_){0u}
-    , decltype(_impl_.pbs_batch_total_){0u}
     , /*decltype(_impl_._cached_size_)*/{}
   };
-  _impl_.delta_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.delta_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  _impl_.new_range_payload_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.new_range_payload_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  _impl_.src_data_block_key_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.src_data_block_key_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  _impl_.src_data_datanode_ip_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.src_data_datanode_ip_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  _impl_.data_range_old_snapshot_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.data_range_old_snapshot_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
-PbsApplyParityDeltaRequest::~PbsApplyParityDeltaRequest() {
-  // @@protoc_insertion_point(destructor:proxy_proto.PbsApplyParityDeltaRequest)
+ParixReplayBatchRequest::~ParixReplayBatchRequest() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixReplayBatchRequest)
   if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
   (void)arena;
     return;
@@ -9708,39 +12448,27 @@ PbsApplyParityDeltaRequest::~PbsApplyParityDeltaRequest() {
   SharedDtor();
 }
 
-inline void PbsApplyParityDeltaRequest::SharedDtor() {
+inline void ParixReplayBatchRequest::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.parities_.~RepeatedPtrField();
-  _impl_.delta_.Destroy();
-  _impl_.new_range_payload_.Destroy();
-  _impl_.src_data_block_key_.Destroy();
-  _impl_.src_data_datanode_ip_.Destroy();
-  _impl_.data_range_old_snapshot_.Destroy();
 }
 
-void PbsApplyParityDeltaRequest::SetCachedSize(int size) const {
+void ParixReplayBatchRequest::SetCachedSize(int size) const {
   _impl_._cached_size_.Set(size);
 }
 
-void PbsApplyParityDeltaRequest::Clear() {
-// @@protoc_insertion_point(message_clear_start:proxy_proto.PbsApplyParityDeltaRequest)
+void ParixReplayBatchRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixReplayBatchRequest)
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  _impl_.parities_.Clear();
-  _impl_.delta_.ClearToEmpty();
-  _impl_.new_range_payload_.ClearToEmpty();
-  _impl_.src_data_block_key_.ClearToEmpty();
-  _impl_.src_data_datanode_ip_.ClearToEmpty();
-  _impl_.data_range_old_snapshot_.ClearToEmpty();
-  ::memset(&_impl_.stripe_id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.pbs_batch_total_) -
-      reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.pbs_batch_total_));
+  ::memset(&_impl_.batch_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.stripe_id_) -
+      reinterpret_cast<char*>(&_impl_.batch_id_)) + sizeof(_impl_.stripe_id_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-const char* PbsApplyParityDeltaRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+const char* ParixReplayBatchRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
     uint32_t tag;
@@ -9754,126 +12482,10 @@ const char* PbsApplyParityDeltaRequest::_InternalParse(const char* ptr, ::_pbi::
         } else
           goto handle_unusual;
         continue;
-      // int32 data_block_id = 2;
+      // uint64 batch_id = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
-          _impl_.data_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // int32 range_offset = 3;
-      case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
-          _impl_.range_offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // uint64 range_length = 4;
-      case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
-          _impl_.range_length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // bytes delta = 5;
-      case 5:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
-          auto str = _internal_mutable_delta();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // repeated .proxy_proto.PbsParityDeltaTarget parities = 6;
-      case 6:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
-          ptr -= 1;
-          do {
-            ptr += 1;
-            ptr = ctx->ParseMessage(_internal_add_parities(), ptr);
-            CHK_(ptr);
-            if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<50>(ptr));
-        } else
-          goto handle_unusual;
-        continue;
-      // bool use_new_payload = 7;
-      case 7:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
-          _impl_.use_new_payload_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // bytes new_range_payload = 8;
-      case 8:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
-          auto str = _internal_mutable_new_range_payload();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // string src_data_block_key = 9;
-      case 9:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 74)) {
-          auto str = _internal_mutable_src_data_block_key();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.PbsApplyParityDeltaRequest.src_data_block_key"));
-        } else
-          goto handle_unusual;
-        continue;
-      // string src_data_datanode_ip = 10;
-      case 10:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 82)) {
-          auto str = _internal_mutable_src_data_datanode_ip();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_ip"));
-        } else
-          goto handle_unusual;
-        continue;
-      // int32 src_data_datanode_port = 11;
-      case 11:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 88)) {
-          _impl_.src_data_datanode_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // uint64 pbs_batch_id = 12;
-      case 12:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 96)) {
-          _impl_.pbs_batch_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // uint32 pbs_batch_index = 13;
-      case 13:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 104)) {
-          _impl_.pbs_batch_index_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // uint32 pbs_batch_total = 14;
-      case 14:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 112)) {
-          _impl_.pbs_batch_total_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // bytes data_range_old_snapshot = 15;
-      case 15:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 122)) {
-          auto str = _internal_mutable_data_range_old_snapshot();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          _impl_.batch_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -9901,9 +12513,9 @@ failure:
 #undef CHK_
 }
 
-uint8_t* PbsApplyParityDeltaRequest::_InternalSerialize(
+uint8_t* ParixReplayBatchRequest::_InternalSerialize(
     uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.PbsApplyParityDeltaRequest)
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixReplayBatchRequest)
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -9913,156 +12525,31 @@ uint8_t* PbsApplyParityDeltaRequest::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
   }
 
-  // int32 data_block_id = 2;
-  if (this->_internal_data_block_id() != 0) {
+  // uint64 batch_id = 2;
+  if (this->_internal_batch_id() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_data_block_id(), target);
-  }
-
-  // int32 range_offset = 3;
-  if (this->_internal_range_offset() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_range_offset(), target);
-  }
-
-  // uint64 range_length = 4;
-  if (this->_internal_range_length() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(4, this->_internal_range_length(), target);
-  }
-
-  // bytes delta = 5;
-  if (!this->_internal_delta().empty()) {
-    target = stream->WriteBytesMaybeAliased(
-        5, this->_internal_delta(), target);
-  }
-
-  // repeated .proxy_proto.PbsParityDeltaTarget parities = 6;
-  for (unsigned i = 0,
-      n = static_cast<unsigned>(this->_internal_parities_size()); i < n; i++) {
-    const auto& repfield = this->_internal_parities(i);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-        InternalWriteMessage(6, repfield, repfield.GetCachedSize(), target, stream);
-  }
-
-  // bool use_new_payload = 7;
-  if (this->_internal_use_new_payload() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteBoolToArray(7, this->_internal_use_new_payload(), target);
-  }
-
-  // bytes new_range_payload = 8;
-  if (!this->_internal_new_range_payload().empty()) {
-    target = stream->WriteBytesMaybeAliased(
-        8, this->_internal_new_range_payload(), target);
-  }
-
-  // string src_data_block_key = 9;
-  if (!this->_internal_src_data_block_key().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_src_data_block_key().data(), static_cast<int>(this->_internal_src_data_block_key().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "proxy_proto.PbsApplyParityDeltaRequest.src_data_block_key");
-    target = stream->WriteStringMaybeAliased(
-        9, this->_internal_src_data_block_key(), target);
-  }
-
-  // string src_data_datanode_ip = 10;
-  if (!this->_internal_src_data_datanode_ip().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_src_data_datanode_ip().data(), static_cast<int>(this->_internal_src_data_datanode_ip().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_ip");
-    target = stream->WriteStringMaybeAliased(
-        10, this->_internal_src_data_datanode_ip(), target);
-  }
-
-  // int32 src_data_datanode_port = 11;
-  if (this->_internal_src_data_datanode_port() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(11, this->_internal_src_data_datanode_port(), target);
-  }
-
-  // uint64 pbs_batch_id = 12;
-  if (this->_internal_pbs_batch_id() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(12, this->_internal_pbs_batch_id(), target);
-  }
-
-  // uint32 pbs_batch_index = 13;
-  if (this->_internal_pbs_batch_index() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(13, this->_internal_pbs_batch_index(), target);
-  }
-
-  // uint32 pbs_batch_total = 14;
-  if (this->_internal_pbs_batch_total() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(14, this->_internal_pbs_batch_total(), target);
-  }
-
-  // bytes data_range_old_snapshot = 15;
-  if (!this->_internal_data_range_old_snapshot().empty()) {
-    target = stream->WriteBytesMaybeAliased(
-        15, this->_internal_data_range_old_snapshot(), target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(2, this->_internal_batch_id(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.PbsApplyParityDeltaRequest)
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixReplayBatchRequest)
   return target;
 }
 
-size_t PbsApplyParityDeltaRequest::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:proxy_proto.PbsApplyParityDeltaRequest)
+size_t ParixReplayBatchRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixReplayBatchRequest)
   size_t total_size = 0;
 
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated .proxy_proto.PbsParityDeltaTarget parities = 6;
-  total_size += 1UL * this->_internal_parities_size();
-  for (const auto& msg : this->_impl_.parities_) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
-  }
-
-  // bytes delta = 5;
-  if (!this->_internal_delta().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
-        this->_internal_delta());
-  }
-
-  // bytes new_range_payload = 8;
-  if (!this->_internal_new_range_payload().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
-        this->_internal_new_range_payload());
-  }
-
-  // string src_data_block_key = 9;
-  if (!this->_internal_src_data_block_key().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_src_data_block_key());
-  }
-
-  // string src_data_datanode_ip = 10;
-  if (!this->_internal_src_data_datanode_ip().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_src_data_datanode_ip());
-  }
-
-  // bytes data_range_old_snapshot = 15;
-  if (!this->_internal_data_range_old_snapshot().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
-        this->_internal_data_range_old_snapshot());
+  // uint64 batch_id = 2;
+  if (this->_internal_batch_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_batch_id());
   }
 
   // int32 stripe_id = 1;
@@ -10070,159 +12557,734 @@ size_t PbsApplyParityDeltaRequest::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
   }
 
-  // int32 data_block_id = 2;
-  if (this->_internal_data_block_id() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_data_block_id());
-  }
-
-  // uint64 range_length = 4;
-  if (this->_internal_range_length() != 0) {
-    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_range_length());
-  }
-
-  // int32 range_offset = 3;
-  if (this->_internal_range_offset() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_offset());
-  }
-
-  // bool use_new_payload = 7;
-  if (this->_internal_use_new_payload() != 0) {
-    total_size += 1 + 1;
-  }
-
-  // uint64 pbs_batch_id = 12;
-  if (this->_internal_pbs_batch_id() != 0) {
-    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_pbs_batch_id());
-  }
-
-  // int32 src_data_datanode_port = 11;
-  if (this->_internal_src_data_datanode_port() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_src_data_datanode_port());
-  }
-
-  // uint32 pbs_batch_index = 13;
-  if (this->_internal_pbs_batch_index() != 0) {
-    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_pbs_batch_index());
-  }
-
-  // uint32 pbs_batch_total = 14;
-  if (this->_internal_pbs_batch_total() != 0) {
-    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_pbs_batch_total());
-  }
-
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData PbsApplyParityDeltaRequest::_class_data_ = {
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixReplayBatchRequest::_class_data_ = {
     ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    PbsApplyParityDeltaRequest::MergeImpl
+    ParixReplayBatchRequest::MergeImpl
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*PbsApplyParityDeltaRequest::GetClassData() const { return &_class_data_; }
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixReplayBatchRequest::GetClassData() const { return &_class_data_; }
 
 
-void PbsApplyParityDeltaRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<PbsApplyParityDeltaRequest*>(&to_msg);
-  auto& from = static_cast<const PbsApplyParityDeltaRequest&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.PbsApplyParityDeltaRequest)
+void ParixReplayBatchRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixReplayBatchRequest*>(&to_msg);
+  auto& from = static_cast<const ParixReplayBatchRequest&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixReplayBatchRequest)
   GOOGLE_DCHECK_NE(&from, _this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  _this->_impl_.parities_.MergeFrom(from._impl_.parities_);
-  if (!from._internal_delta().empty()) {
-    _this->_internal_set_delta(from._internal_delta());
-  }
-  if (!from._internal_new_range_payload().empty()) {
-    _this->_internal_set_new_range_payload(from._internal_new_range_payload());
-  }
-  if (!from._internal_src_data_block_key().empty()) {
-    _this->_internal_set_src_data_block_key(from._internal_src_data_block_key());
-  }
-  if (!from._internal_src_data_datanode_ip().empty()) {
-    _this->_internal_set_src_data_datanode_ip(from._internal_src_data_datanode_ip());
-  }
-  if (!from._internal_data_range_old_snapshot().empty()) {
-    _this->_internal_set_data_range_old_snapshot(from._internal_data_range_old_snapshot());
+  if (from._internal_batch_id() != 0) {
+    _this->_internal_set_batch_id(from._internal_batch_id());
   }
   if (from._internal_stripe_id() != 0) {
     _this->_internal_set_stripe_id(from._internal_stripe_id());
   }
-  if (from._internal_data_block_id() != 0) {
-    _this->_internal_set_data_block_id(from._internal_data_block_id());
-  }
-  if (from._internal_range_length() != 0) {
-    _this->_internal_set_range_length(from._internal_range_length());
-  }
-  if (from._internal_range_offset() != 0) {
-    _this->_internal_set_range_offset(from._internal_range_offset());
-  }
-  if (from._internal_use_new_payload() != 0) {
-    _this->_internal_set_use_new_payload(from._internal_use_new_payload());
-  }
-  if (from._internal_pbs_batch_id() != 0) {
-    _this->_internal_set_pbs_batch_id(from._internal_pbs_batch_id());
-  }
-  if (from._internal_src_data_datanode_port() != 0) {
-    _this->_internal_set_src_data_datanode_port(from._internal_src_data_datanode_port());
-  }
-  if (from._internal_pbs_batch_index() != 0) {
-    _this->_internal_set_pbs_batch_index(from._internal_pbs_batch_index());
-  }
-  if (from._internal_pbs_batch_total() != 0) {
-    _this->_internal_set_pbs_batch_total(from._internal_pbs_batch_total());
-  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
-void PbsApplyParityDeltaRequest::CopyFrom(const PbsApplyParityDeltaRequest& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.PbsApplyParityDeltaRequest)
+void ParixReplayBatchRequest::CopyFrom(const ParixReplayBatchRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixReplayBatchRequest)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool PbsApplyParityDeltaRequest::IsInitialized() const {
+bool ParixReplayBatchRequest::IsInitialized() const {
   return true;
 }
 
-void PbsApplyParityDeltaRequest::InternalSwap(PbsApplyParityDeltaRequest* other) {
+void ParixReplayBatchRequest::InternalSwap(ParixReplayBatchRequest* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParixReplayBatchRequest, _impl_.stripe_id_)
+      + sizeof(ParixReplayBatchRequest::_impl_.stripe_id_)
+      - PROTOBUF_FIELD_OFFSET(ParixReplayBatchRequest, _impl_.batch_id_)>(
+          reinterpret_cast<char*>(&_impl_.batch_id_),
+          reinterpret_cast<char*>(&other->_impl_.batch_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParixReplayBatchRequest::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[30]);
+}
+
+// ===================================================================
+
+class ParixJournalInvalidationRange::_Internal {
+ public:
+};
+
+ParixJournalInvalidationRange::ParixJournalInvalidationRange(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixJournalInvalidationRange)
+}
+ParixJournalInvalidationRange::ParixJournalInvalidationRange(const ParixJournalInvalidationRange& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParixJournalInvalidationRange* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.data_block_id_){}
+    , decltype(_impl_.range_offset_){}
+    , decltype(_impl_.range_length_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.data_block_id_, &from._impl_.data_block_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.range_length_) -
+    reinterpret_cast<char*>(&_impl_.data_block_id_)) + sizeof(_impl_.range_length_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixJournalInvalidationRange)
+}
+
+inline void ParixJournalInvalidationRange::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.data_block_id_){0}
+    , decltype(_impl_.range_offset_){0}
+    , decltype(_impl_.range_length_){uint64_t{0u}}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+ParixJournalInvalidationRange::~ParixJournalInvalidationRange() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixJournalInvalidationRange)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParixJournalInvalidationRange::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void ParixJournalInvalidationRange::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParixJournalInvalidationRange::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixJournalInvalidationRange)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&_impl_.data_block_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.range_length_) -
+      reinterpret_cast<char*>(&_impl_.data_block_id_)) + sizeof(_impl_.range_length_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParixJournalInvalidationRange::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 data_block_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.data_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_offset = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.range_offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 range_length = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.range_length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParixJournalInvalidationRange::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixJournalInvalidationRange)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 data_block_id = 1;
+  if (this->_internal_data_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_data_block_id(), target);
+  }
+
+  // int32 range_offset = 2;
+  if (this->_internal_range_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_range_offset(), target);
+  }
+
+  // uint64 range_length = 3;
+  if (this->_internal_range_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(3, this->_internal_range_length(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixJournalInvalidationRange)
+  return target;
+}
+
+size_t ParixJournalInvalidationRange::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixJournalInvalidationRange)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // int32 data_block_id = 1;
+  if (this->_internal_data_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_data_block_id());
+  }
+
+  // int32 range_offset = 2;
+  if (this->_internal_range_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_offset());
+  }
+
+  // uint64 range_length = 3;
+  if (this->_internal_range_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_range_length());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixJournalInvalidationRange::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParixJournalInvalidationRange::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixJournalInvalidationRange::GetClassData() const { return &_class_data_; }
+
+
+void ParixJournalInvalidationRange::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixJournalInvalidationRange*>(&to_msg);
+  auto& from = static_cast<const ParixJournalInvalidationRange&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixJournalInvalidationRange)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_data_block_id() != 0) {
+    _this->_internal_set_data_block_id(from._internal_data_block_id());
+  }
+  if (from._internal_range_offset() != 0) {
+    _this->_internal_set_range_offset(from._internal_range_offset());
+  }
+  if (from._internal_range_length() != 0) {
+    _this->_internal_set_range_length(from._internal_range_length());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParixJournalInvalidationRange::CopyFrom(const ParixJournalInvalidationRange& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixJournalInvalidationRange)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParixJournalInvalidationRange::IsInitialized() const {
+  return true;
+}
+
+void ParixJournalInvalidationRange::InternalSwap(ParixJournalInvalidationRange* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParixJournalInvalidationRange, _impl_.range_length_)
+      + sizeof(ParixJournalInvalidationRange::_impl_.range_length_)
+      - PROTOBUF_FIELD_OFFSET(ParixJournalInvalidationRange, _impl_.data_block_id_)>(
+          reinterpret_cast<char*>(&_impl_.data_block_id_),
+          reinterpret_cast<char*>(&other->_impl_.data_block_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalInvalidationRange::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[31]);
+}
+
+// ===================================================================
+
+class ParixParityFullOverwriteRequest::_Internal {
+ public:
+};
+
+ParixParityFullOverwriteRequest::ParixParityFullOverwriteRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixParityFullOverwriteRequest)
+}
+ParixParityFullOverwriteRequest::ParixParityFullOverwriteRequest(const ParixParityFullOverwriteRequest& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParixParityFullOverwriteRequest* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.journal_invalidations_){from._impl_.journal_invalidations_}
+    , decltype(_impl_.parity_block_key_){}
+    , decltype(_impl_.full_parity_block_){}
+    , decltype(_impl_.datanode_ip_){}
+    , decltype(_impl_.new_write_generation_){}
+    , decltype(_impl_.stripe_id_){}
+    , decltype(_impl_.parity_block_id_){}
+    , decltype(_impl_.datanode_port_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.parity_block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_parity_block_key().empty()) {
+    _this->_impl_.parity_block_key_.Set(from._internal_parity_block_key(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.full_parity_block_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.full_parity_block_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_full_parity_block().empty()) {
+    _this->_impl_.full_parity_block_.Set(from._internal_full_parity_block(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_datanode_ip().empty()) {
+    _this->_impl_.datanode_ip_.Set(from._internal_datanode_ip(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.new_write_generation_, &from._impl_.new_write_generation_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.datanode_port_) -
+    reinterpret_cast<char*>(&_impl_.new_write_generation_)) + sizeof(_impl_.datanode_port_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixParityFullOverwriteRequest)
+}
+
+inline void ParixParityFullOverwriteRequest::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.journal_invalidations_){arena}
+    , decltype(_impl_.parity_block_key_){}
+    , decltype(_impl_.full_parity_block_){}
+    , decltype(_impl_.datanode_ip_){}
+    , decltype(_impl_.new_write_generation_){uint64_t{0u}}
+    , decltype(_impl_.stripe_id_){0}
+    , decltype(_impl_.parity_block_id_){0}
+    , decltype(_impl_.datanode_port_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.parity_block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.full_parity_block_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.full_parity_block_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+ParixParityFullOverwriteRequest::~ParixParityFullOverwriteRequest() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixParityFullOverwriteRequest)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParixParityFullOverwriteRequest::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.journal_invalidations_.~RepeatedPtrField();
+  _impl_.parity_block_key_.Destroy();
+  _impl_.full_parity_block_.Destroy();
+  _impl_.datanode_ip_.Destroy();
+}
+
+void ParixParityFullOverwriteRequest::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParixParityFullOverwriteRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixParityFullOverwriteRequest)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.journal_invalidations_.Clear();
+  _impl_.parity_block_key_.ClearToEmpty();
+  _impl_.full_parity_block_.ClearToEmpty();
+  _impl_.datanode_ip_.ClearToEmpty();
+  ::memset(&_impl_.new_write_generation_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.datanode_port_) -
+      reinterpret_cast<char*>(&_impl_.new_write_generation_)) + sizeof(_impl_.datanode_port_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParixParityFullOverwriteRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 new_write_generation = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.new_write_generation_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_block_id = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.parity_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string parity_block_key = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          auto str = _internal_mutable_parity_block_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.ParixParityFullOverwriteRequest.parity_block_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // bytes full_parity_block = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+          auto str = _internal_mutable_full_parity_block();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string datanode_ip = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
+          auto str = _internal_mutable_datanode_ip();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.ParixParityFullOverwriteRequest.datanode_ip"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 datanode_port = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
+          _impl_.datanode_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated .proxy_proto.ParixJournalInvalidationRange journal_invalidations = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_journal_invalidations(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<66>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParixParityFullOverwriteRequest::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixParityFullOverwriteRequest)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // uint64 new_write_generation = 2;
+  if (this->_internal_new_write_generation() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(2, this->_internal_new_write_generation(), target);
+  }
+
+  // int32 parity_block_id = 3;
+  if (this->_internal_parity_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_parity_block_id(), target);
+  }
+
+  // string parity_block_key = 4;
+  if (!this->_internal_parity_block_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_parity_block_key().data(), static_cast<int>(this->_internal_parity_block_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.ParixParityFullOverwriteRequest.parity_block_key");
+    target = stream->WriteStringMaybeAliased(
+        4, this->_internal_parity_block_key(), target);
+  }
+
+  // bytes full_parity_block = 5;
+  if (!this->_internal_full_parity_block().empty()) {
+    target = stream->WriteBytesMaybeAliased(
+        5, this->_internal_full_parity_block(), target);
+  }
+
+  // string datanode_ip = 6;
+  if (!this->_internal_datanode_ip().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_datanode_ip().data(), static_cast<int>(this->_internal_datanode_ip().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.ParixParityFullOverwriteRequest.datanode_ip");
+    target = stream->WriteStringMaybeAliased(
+        6, this->_internal_datanode_ip(), target);
+  }
+
+  // int32 datanode_port = 7;
+  if (this->_internal_datanode_port() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(7, this->_internal_datanode_port(), target);
+  }
+
+  // repeated .proxy_proto.ParixJournalInvalidationRange journal_invalidations = 8;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_journal_invalidations_size()); i < n; i++) {
+    const auto& repfield = this->_internal_journal_invalidations(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(8, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixParityFullOverwriteRequest)
+  return target;
+}
+
+size_t ParixParityFullOverwriteRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixParityFullOverwriteRequest)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated .proxy_proto.ParixJournalInvalidationRange journal_invalidations = 8;
+  total_size += 1UL * this->_internal_journal_invalidations_size();
+  for (const auto& msg : this->_impl_.journal_invalidations_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // string parity_block_key = 4;
+  if (!this->_internal_parity_block_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_parity_block_key());
+  }
+
+  // bytes full_parity_block = 5;
+  if (!this->_internal_full_parity_block().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+        this->_internal_full_parity_block());
+  }
+
+  // string datanode_ip = 6;
+  if (!this->_internal_datanode_ip().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_datanode_ip());
+  }
+
+  // uint64 new_write_generation = 2;
+  if (this->_internal_new_write_generation() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_new_write_generation());
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  // int32 parity_block_id = 3;
+  if (this->_internal_parity_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_block_id());
+  }
+
+  // int32 datanode_port = 7;
+  if (this->_internal_datanode_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_datanode_port());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixParityFullOverwriteRequest::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParixParityFullOverwriteRequest::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixParityFullOverwriteRequest::GetClassData() const { return &_class_data_; }
+
+
+void ParixParityFullOverwriteRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixParityFullOverwriteRequest*>(&to_msg);
+  auto& from = static_cast<const ParixParityFullOverwriteRequest&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixParityFullOverwriteRequest)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.journal_invalidations_.MergeFrom(from._impl_.journal_invalidations_);
+  if (!from._internal_parity_block_key().empty()) {
+    _this->_internal_set_parity_block_key(from._internal_parity_block_key());
+  }
+  if (!from._internal_full_parity_block().empty()) {
+    _this->_internal_set_full_parity_block(from._internal_full_parity_block());
+  }
+  if (!from._internal_datanode_ip().empty()) {
+    _this->_internal_set_datanode_ip(from._internal_datanode_ip());
+  }
+  if (from._internal_new_write_generation() != 0) {
+    _this->_internal_set_new_write_generation(from._internal_new_write_generation());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  if (from._internal_parity_block_id() != 0) {
+    _this->_internal_set_parity_block_id(from._internal_parity_block_id());
+  }
+  if (from._internal_datanode_port() != 0) {
+    _this->_internal_set_datanode_port(from._internal_datanode_port());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParixParityFullOverwriteRequest::CopyFrom(const ParixParityFullOverwriteRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixParityFullOverwriteRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParixParityFullOverwriteRequest::IsInitialized() const {
+  return true;
+}
+
+void ParixParityFullOverwriteRequest::InternalSwap(ParixParityFullOverwriteRequest* other) {
   using std::swap;
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  _impl_.parities_.InternalSwap(&other->_impl_.parities_);
+  _impl_.journal_invalidations_.InternalSwap(&other->_impl_.journal_invalidations_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.delta_, lhs_arena,
-      &other->_impl_.delta_, rhs_arena
+      &_impl_.parity_block_key_, lhs_arena,
+      &other->_impl_.parity_block_key_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.new_range_payload_, lhs_arena,
-      &other->_impl_.new_range_payload_, rhs_arena
+      &_impl_.full_parity_block_, lhs_arena,
+      &other->_impl_.full_parity_block_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.src_data_block_key_, lhs_arena,
-      &other->_impl_.src_data_block_key_, rhs_arena
-  );
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.src_data_datanode_ip_, lhs_arena,
-      &other->_impl_.src_data_datanode_ip_, rhs_arena
-  );
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.data_range_old_snapshot_, lhs_arena,
-      &other->_impl_.data_range_old_snapshot_, rhs_arena
+      &_impl_.datanode_ip_, lhs_arena,
+      &other->_impl_.datanode_ip_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(PbsApplyParityDeltaRequest, _impl_.pbs_batch_total_)
-      + sizeof(PbsApplyParityDeltaRequest::_impl_.pbs_batch_total_)
-      - PROTOBUF_FIELD_OFFSET(PbsApplyParityDeltaRequest, _impl_.stripe_id_)>(
-          reinterpret_cast<char*>(&_impl_.stripe_id_),
-          reinterpret_cast<char*>(&other->_impl_.stripe_id_));
+      PROTOBUF_FIELD_OFFSET(ParixParityFullOverwriteRequest, _impl_.datanode_port_)
+      + sizeof(ParixParityFullOverwriteRequest::_impl_.datanode_port_)
+      - PROTOBUF_FIELD_OFFSET(ParixParityFullOverwriteRequest, _impl_.new_write_generation_)>(
+          reinterpret_cast<char*>(&_impl_.new_write_generation_),
+          reinterpret_cast<char*>(&other->_impl_.new_write_generation_));
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata PbsApplyParityDeltaRequest::GetMetadata() const {
+::PROTOBUF_NAMESPACE_ID::Metadata ParixParityFullOverwriteRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[22]);
+      file_level_metadata_proxy_2eproto[32]);
 }
 
 // ===================================================================
@@ -10853,7 +13915,7 @@ void AppendStripeDataPlacement::InternalSwap(AppendStripeDataPlacement* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata AppendStripeDataPlacement::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[23]);
+      file_level_metadata_proxy_2eproto[33]);
 }
 
 // ===================================================================
@@ -11031,7 +14093,7 @@ void SetReply::InternalSwap(SetReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SetReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[24]);
+      file_level_metadata_proxy_2eproto[34]);
 }
 
 // ===================================================================
@@ -11209,7 +14271,7 @@ void GetReply::InternalSwap(GetReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata GetReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[25]);
+      file_level_metadata_proxy_2eproto[35]);
 }
 
 // ===================================================================
@@ -11658,7 +14720,7 @@ void StripeAndBlockIDs::InternalSwap(StripeAndBlockIDs* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata StripeAndBlockIDs::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[26]);
+      file_level_metadata_proxy_2eproto[36]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -11740,21 +14802,61 @@ template<> PROTOBUF_NOINLINE ::proxy_proto::RecoveryReply*
 Arena::CreateMaybeMessage< ::proxy_proto::RecoveryReply >(Arena* arena) {
   return Arena::CreateMessageInternal< ::proxy_proto::RecoveryReply >(arena);
 }
-template<> PROTOBUF_NOINLINE ::proxy_proto::PbsParityDeltaTarget*
-Arena::CreateMaybeMessage< ::proxy_proto::PbsParityDeltaTarget >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::proxy_proto::PbsParityDeltaTarget >(arena);
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixParityRpcTarget*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixParityRpcTarget >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixParityRpcTarget >(arena);
 }
-template<> PROTOBUF_NOINLINE ::proxy_proto::PbsParityForwardPlan*
-Arena::CreateMaybeMessage< ::proxy_proto::PbsParityForwardPlan >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::proxy_proto::PbsParityForwardPlan >(arena);
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixDataUpdatePlacement*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixDataUpdatePlacement >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixDataUpdatePlacement >(arena);
 }
-template<> PROTOBUF_NOINLINE ::proxy_proto::PbsDataUpdatePlacement*
-Arena::CreateMaybeMessage< ::proxy_proto::PbsDataUpdatePlacement >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::proxy_proto::PbsDataUpdatePlacement >(arena);
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixJournalAckItem*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixJournalAckItem >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixJournalAckItem >(arena);
 }
-template<> PROTOBUF_NOINLINE ::proxy_proto::PbsApplyParityDeltaRequest*
-Arena::CreateMaybeMessage< ::proxy_proto::PbsApplyParityDeltaRequest >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::proxy_proto::PbsApplyParityDeltaRequest >(arena);
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixScheduleDataUpdateReply*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixScheduleDataUpdateReply >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixScheduleDataUpdateReply >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixJournalAppendRequest*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixJournalAppendRequest >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixJournalAppendRequest >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixJournalAppendReply*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixJournalAppendReply >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixJournalAppendReply >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixJournalAppendBatchItem*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixJournalAppendBatchItem >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixJournalAppendBatchItem >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixJournalAppendBatchRequest*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixJournalAppendBatchRequest >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixJournalAppendBatchRequest >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixJournalAppendBatchAckItem*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixJournalAppendBatchAckItem >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixJournalAppendBatchAckItem >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixJournalAppendBatchReply*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixJournalAppendBatchReply >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixJournalAppendBatchReply >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixSupplyD0Request*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixSupplyD0Request >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixSupplyD0Request >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixReplayBatchRequest*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixReplayBatchRequest >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixReplayBatchRequest >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixJournalInvalidationRange*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixJournalInvalidationRange >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixJournalInvalidationRange >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixParityFullOverwriteRequest*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixParityFullOverwriteRequest >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixParityFullOverwriteRequest >(arena);
 }
 template<> PROTOBUF_NOINLINE ::proxy_proto::AppendStripeDataPlacement*
 Arena::CreateMaybeMessage< ::proxy_proto::AppendStripeDataPlacement >(Arena* arena) {

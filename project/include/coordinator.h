@@ -7,9 +7,11 @@
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/health_check_service_interface.h>
 #include <meta_definition.h>
+#include <atomic>
 #include <map>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <thread>
 #include <condition_variable>
@@ -67,14 +69,6 @@ namespace ECProject
     grpc::Status uploadAppendValue(
         grpc::ServerContext *context,
         const coordinator_proto::RequestProxyIPPort *keyValueSize,
-        coordinator_proto::ReplyProxyIPsPorts *proxyIPPort) override;
-    grpc::Status uploadPbsUpdate(
-        grpc::ServerContext *context,
-        const coordinator_proto::PbsUpdateRequest *request,
-        coordinator_proto::ReplyProxyIPsPorts *proxyIPPort) override;
-    grpc::Status uploadPbsFinalize(
-        grpc::ServerContext *context,
-        const coordinator_proto::PbsFinalizeRequest *request,
         coordinator_proto::ReplyProxyIPsPorts *proxyIPPort) override;
     // get
     grpc::Status getValue(
@@ -139,6 +133,18 @@ namespace ECProject
         grpc::ServerContext *context,
         const coordinator_proto::RequestToCoordinator *req,
         coordinator_proto::RepStripeIds *listReplyClient) override;
+    grpc::Status planParixPartial(
+        grpc::ServerContext *context,
+        const coordinator_proto::ParixPartialPlanRequest *request,
+        coordinator_proto::ParixPartialPlanReply *reply) override;
+    grpc::Status commitParixBatch(
+        grpc::ServerContext *context,
+        const coordinator_proto::ParixCommitBatchRequest *request,
+        coordinator_proto::ReplyFromCoordinator *reply) override;
+    grpc::Status planParixFullStripe(
+        grpc::ServerContext *context,
+        const coordinator_proto::ParixFullStripePlanRequest *request,
+        coordinator_proto::ParixFullStripePlanReply *reply) override;
 
     bool init_clusterinfo(std::string m_clusterinfo_path);
     bool init_proxyinfo();
@@ -168,9 +174,6 @@ namespace ECProject
     void update_stripe_info_in_node(int t_node_id, int stripe_id, int index);
     int getClusterAppendSize(Stripe *stripe, const std::map<int, std::pair<int, int>> &block_to_slice_sizes, int curr_group_id, int parity_slice_size);
     void notify_proxies_ready(const proxy_proto::AppendStripeDataPlacement &plan);
-    void notify_pbs_proxies_ready(const proxy_proto::PbsDataUpdatePlacement &placement);
-    /** 为一次数据块更新填充：所有全局校验 + 该数据块所在组的本地校验；按 proxy 去重 */
-    void fill_pbs_parity_forward(Stripe &stripe, const Block &data_blk, proxy_proto::PbsDataUpdatePlacement *pl);
     std::vector<int> get_recovery_group_ids(std::string code_type, int k, int r, int z, int failed_block_id);
     void init_recovery_group_lookup_table();
     void print_stripe_data_placement(Stripe &stripe);
@@ -203,6 +206,10 @@ namespace ECProject
     std::map<int, std::vector<int>> m_recovery_group_lookup_table;
     
     std::vector<int> get_data_block_num_per_group(int k, int r, int z, std::string code_type);
+
+    std::atomic<uint64_t> m_parix_batch_seq{1};
+    std::mutex m_parix_gen_mu;
+    std::unordered_map<int, uint64_t> m_parix_stripe_gen;
 
   private:
     std::mutex m_mutex;

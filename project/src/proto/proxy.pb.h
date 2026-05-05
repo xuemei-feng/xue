@@ -29,6 +29,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
+#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
@@ -75,21 +76,51 @@ extern NodeAndBlockDefaultTypeInternal _NodeAndBlock_default_instance_;
 class ObjectAndPlacement;
 struct ObjectAndPlacementDefaultTypeInternal;
 extern ObjectAndPlacementDefaultTypeInternal _ObjectAndPlacement_default_instance_;
+class ParixDataUpdatePlacement;
+struct ParixDataUpdatePlacementDefaultTypeInternal;
+extern ParixDataUpdatePlacementDefaultTypeInternal _ParixDataUpdatePlacement_default_instance_;
+class ParixJournalAckItem;
+struct ParixJournalAckItemDefaultTypeInternal;
+extern ParixJournalAckItemDefaultTypeInternal _ParixJournalAckItem_default_instance_;
+class ParixJournalAppendBatchAckItem;
+struct ParixJournalAppendBatchAckItemDefaultTypeInternal;
+extern ParixJournalAppendBatchAckItemDefaultTypeInternal _ParixJournalAppendBatchAckItem_default_instance_;
+class ParixJournalAppendBatchItem;
+struct ParixJournalAppendBatchItemDefaultTypeInternal;
+extern ParixJournalAppendBatchItemDefaultTypeInternal _ParixJournalAppendBatchItem_default_instance_;
+class ParixJournalAppendBatchReply;
+struct ParixJournalAppendBatchReplyDefaultTypeInternal;
+extern ParixJournalAppendBatchReplyDefaultTypeInternal _ParixJournalAppendBatchReply_default_instance_;
+class ParixJournalAppendBatchRequest;
+struct ParixJournalAppendBatchRequestDefaultTypeInternal;
+extern ParixJournalAppendBatchRequestDefaultTypeInternal _ParixJournalAppendBatchRequest_default_instance_;
+class ParixJournalAppendReply;
+struct ParixJournalAppendReplyDefaultTypeInternal;
+extern ParixJournalAppendReplyDefaultTypeInternal _ParixJournalAppendReply_default_instance_;
+class ParixJournalAppendRequest;
+struct ParixJournalAppendRequestDefaultTypeInternal;
+extern ParixJournalAppendRequestDefaultTypeInternal _ParixJournalAppendRequest_default_instance_;
+class ParixJournalInvalidationRange;
+struct ParixJournalInvalidationRangeDefaultTypeInternal;
+extern ParixJournalInvalidationRangeDefaultTypeInternal _ParixJournalInvalidationRange_default_instance_;
+class ParixParityFullOverwriteRequest;
+struct ParixParityFullOverwriteRequestDefaultTypeInternal;
+extern ParixParityFullOverwriteRequestDefaultTypeInternal _ParixParityFullOverwriteRequest_default_instance_;
+class ParixParityRpcTarget;
+struct ParixParityRpcTargetDefaultTypeInternal;
+extern ParixParityRpcTargetDefaultTypeInternal _ParixParityRpcTarget_default_instance_;
+class ParixReplayBatchRequest;
+struct ParixReplayBatchRequestDefaultTypeInternal;
+extern ParixReplayBatchRequestDefaultTypeInternal _ParixReplayBatchRequest_default_instance_;
+class ParixScheduleDataUpdateReply;
+struct ParixScheduleDataUpdateReplyDefaultTypeInternal;
+extern ParixScheduleDataUpdateReplyDefaultTypeInternal _ParixScheduleDataUpdateReply_default_instance_;
+class ParixSupplyD0Request;
+struct ParixSupplyD0RequestDefaultTypeInternal;
+extern ParixSupplyD0RequestDefaultTypeInternal _ParixSupplyD0Request_default_instance_;
 class PartialDecodingRequest;
 struct PartialDecodingRequestDefaultTypeInternal;
 extern PartialDecodingRequestDefaultTypeInternal _PartialDecodingRequest_default_instance_;
-class PbsApplyParityDeltaRequest;
-struct PbsApplyParityDeltaRequestDefaultTypeInternal;
-extern PbsApplyParityDeltaRequestDefaultTypeInternal _PbsApplyParityDeltaRequest_default_instance_;
-class PbsDataUpdatePlacement;
-struct PbsDataUpdatePlacementDefaultTypeInternal;
-extern PbsDataUpdatePlacementDefaultTypeInternal _PbsDataUpdatePlacement_default_instance_;
-class PbsParityDeltaTarget;
-struct PbsParityDeltaTargetDefaultTypeInternal;
-extern PbsParityDeltaTargetDefaultTypeInternal _PbsParityDeltaTarget_default_instance_;
-class PbsParityForwardPlan;
-struct PbsParityForwardPlanDefaultTypeInternal;
-extern PbsParityForwardPlanDefaultTypeInternal _PbsParityForwardPlan_default_instance_;
 class RecalReply;
 struct RecalReplyDefaultTypeInternal;
 extern RecalReplyDefaultTypeInternal _RecalReply_default_instance_;
@@ -138,11 +169,21 @@ template<> ::proxy_proto::GetReply* Arena::CreateMaybeMessage<::proxy_proto::Get
 template<> ::proxy_proto::MultipleRecoveryRequest* Arena::CreateMaybeMessage<::proxy_proto::MultipleRecoveryRequest>(Arena*);
 template<> ::proxy_proto::NodeAndBlock* Arena::CreateMaybeMessage<::proxy_proto::NodeAndBlock>(Arena*);
 template<> ::proxy_proto::ObjectAndPlacement* Arena::CreateMaybeMessage<::proxy_proto::ObjectAndPlacement>(Arena*);
+template<> ::proxy_proto::ParixDataUpdatePlacement* Arena::CreateMaybeMessage<::proxy_proto::ParixDataUpdatePlacement>(Arena*);
+template<> ::proxy_proto::ParixJournalAckItem* Arena::CreateMaybeMessage<::proxy_proto::ParixJournalAckItem>(Arena*);
+template<> ::proxy_proto::ParixJournalAppendBatchAckItem* Arena::CreateMaybeMessage<::proxy_proto::ParixJournalAppendBatchAckItem>(Arena*);
+template<> ::proxy_proto::ParixJournalAppendBatchItem* Arena::CreateMaybeMessage<::proxy_proto::ParixJournalAppendBatchItem>(Arena*);
+template<> ::proxy_proto::ParixJournalAppendBatchReply* Arena::CreateMaybeMessage<::proxy_proto::ParixJournalAppendBatchReply>(Arena*);
+template<> ::proxy_proto::ParixJournalAppendBatchRequest* Arena::CreateMaybeMessage<::proxy_proto::ParixJournalAppendBatchRequest>(Arena*);
+template<> ::proxy_proto::ParixJournalAppendReply* Arena::CreateMaybeMessage<::proxy_proto::ParixJournalAppendReply>(Arena*);
+template<> ::proxy_proto::ParixJournalAppendRequest* Arena::CreateMaybeMessage<::proxy_proto::ParixJournalAppendRequest>(Arena*);
+template<> ::proxy_proto::ParixJournalInvalidationRange* Arena::CreateMaybeMessage<::proxy_proto::ParixJournalInvalidationRange>(Arena*);
+template<> ::proxy_proto::ParixParityFullOverwriteRequest* Arena::CreateMaybeMessage<::proxy_proto::ParixParityFullOverwriteRequest>(Arena*);
+template<> ::proxy_proto::ParixParityRpcTarget* Arena::CreateMaybeMessage<::proxy_proto::ParixParityRpcTarget>(Arena*);
+template<> ::proxy_proto::ParixReplayBatchRequest* Arena::CreateMaybeMessage<::proxy_proto::ParixReplayBatchRequest>(Arena*);
+template<> ::proxy_proto::ParixScheduleDataUpdateReply* Arena::CreateMaybeMessage<::proxy_proto::ParixScheduleDataUpdateReply>(Arena*);
+template<> ::proxy_proto::ParixSupplyD0Request* Arena::CreateMaybeMessage<::proxy_proto::ParixSupplyD0Request>(Arena*);
 template<> ::proxy_proto::PartialDecodingRequest* Arena::CreateMaybeMessage<::proxy_proto::PartialDecodingRequest>(Arena*);
-template<> ::proxy_proto::PbsApplyParityDeltaRequest* Arena::CreateMaybeMessage<::proxy_proto::PbsApplyParityDeltaRequest>(Arena*);
-template<> ::proxy_proto::PbsDataUpdatePlacement* Arena::CreateMaybeMessage<::proxy_proto::PbsDataUpdatePlacement>(Arena*);
-template<> ::proxy_proto::PbsParityDeltaTarget* Arena::CreateMaybeMessage<::proxy_proto::PbsParityDeltaTarget>(Arena*);
-template<> ::proxy_proto::PbsParityForwardPlan* Arena::CreateMaybeMessage<::proxy_proto::PbsParityForwardPlan>(Arena*);
 template<> ::proxy_proto::RecalReply* Arena::CreateMaybeMessage<::proxy_proto::RecalReply>(Arena*);
 template<> ::proxy_proto::RecoveryReply* Arena::CreateMaybeMessage<::proxy_proto::RecoveryReply>(Arena*);
 template<> ::proxy_proto::RecoveryRequest* Arena::CreateMaybeMessage<::proxy_proto::RecoveryRequest>(Arena*);
@@ -158,6 +199,31 @@ template<> ::proxy_proto::mainRecalPlan* Arena::CreateMaybeMessage<::proxy_proto
 PROTOBUF_NAMESPACE_CLOSE
 namespace proxy_proto {
 
+enum ParixParityAck : int {
+  PARIX_ACK_SUCCESS = 0,
+  PARIX_ACK_NEED_D0 = 1,
+  ParixParityAck_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  ParixParityAck_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool ParixParityAck_IsValid(int value);
+constexpr ParixParityAck ParixParityAck_MIN = PARIX_ACK_SUCCESS;
+constexpr ParixParityAck ParixParityAck_MAX = PARIX_ACK_NEED_D0;
+constexpr int ParixParityAck_ARRAYSIZE = ParixParityAck_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ParixParityAck_descriptor();
+template<typename T>
+inline const std::string& ParixParityAck_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, ParixParityAck>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function ParixParityAck_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    ParixParityAck_descriptor(), enum_t_value);
+}
+inline bool ParixParityAck_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, ParixParityAck* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ParixParityAck>(
+    ParixParityAck_descriptor(), name, value);
+}
 // ===================================================================
 
 class locationInfo final :
@@ -4776,24 +4842,24 @@ class RecoveryReply final :
 };
 // -------------------------------------------------------------------
 
-class PbsParityDeltaTarget final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.PbsParityDeltaTarget) */ {
+class ParixParityRpcTarget final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixParityRpcTarget) */ {
  public:
-  inline PbsParityDeltaTarget() : PbsParityDeltaTarget(nullptr) {}
-  ~PbsParityDeltaTarget() override;
-  explicit PROTOBUF_CONSTEXPR PbsParityDeltaTarget(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  inline ParixParityRpcTarget() : ParixParityRpcTarget(nullptr) {}
+  ~ParixParityRpcTarget() override;
+  explicit PROTOBUF_CONSTEXPR ParixParityRpcTarget(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  PbsParityDeltaTarget(const PbsParityDeltaTarget& from);
-  PbsParityDeltaTarget(PbsParityDeltaTarget&& from) noexcept
-    : PbsParityDeltaTarget() {
+  ParixParityRpcTarget(const ParixParityRpcTarget& from);
+  ParixParityRpcTarget(ParixParityRpcTarget&& from) noexcept
+    : ParixParityRpcTarget() {
     *this = ::std::move(from);
   }
 
-  inline PbsParityDeltaTarget& operator=(const PbsParityDeltaTarget& from) {
+  inline ParixParityRpcTarget& operator=(const ParixParityRpcTarget& from) {
     CopyFrom(from);
     return *this;
   }
-  inline PbsParityDeltaTarget& operator=(PbsParityDeltaTarget&& from) noexcept {
+  inline ParixParityRpcTarget& operator=(ParixParityRpcTarget&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()
   #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
@@ -4816,20 +4882,20 @@ class PbsParityDeltaTarget final :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const PbsParityDeltaTarget& default_instance() {
+  static const ParixParityRpcTarget& default_instance() {
     return *internal_default_instance();
   }
-  static inline const PbsParityDeltaTarget* internal_default_instance() {
-    return reinterpret_cast<const PbsParityDeltaTarget*>(
-               &_PbsParityDeltaTarget_default_instance_);
+  static inline const ParixParityRpcTarget* internal_default_instance() {
+    return reinterpret_cast<const ParixParityRpcTarget*>(
+               &_ParixParityRpcTarget_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
     19;
 
-  friend void swap(PbsParityDeltaTarget& a, PbsParityDeltaTarget& b) {
+  friend void swap(ParixParityRpcTarget& a, ParixParityRpcTarget& b) {
     a.Swap(&b);
   }
-  inline void Swap(PbsParityDeltaTarget* other) {
+  inline void Swap(ParixParityRpcTarget* other) {
     if (other == this) return;
   #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
     if (GetOwningArena() != nullptr &&
@@ -4842,7 +4908,7 @@ class PbsParityDeltaTarget final :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(PbsParityDeltaTarget* other) {
+  void UnsafeArenaSwap(ParixParityRpcTarget* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -4850,14 +4916,14 @@ class PbsParityDeltaTarget final :
 
   // implements Message ----------------------------------------------
 
-  PbsParityDeltaTarget* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<PbsParityDeltaTarget>(arena);
+  ParixParityRpcTarget* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixParityRpcTarget>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const PbsParityDeltaTarget& from);
+  void CopyFrom(const ParixParityRpcTarget& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const PbsParityDeltaTarget& from) {
-    PbsParityDeltaTarget::MergeImpl(*this, from);
+  void MergeFrom( const ParixParityRpcTarget& from) {
+    ParixParityRpcTarget::MergeImpl(*this, from);
   }
   private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
@@ -4875,15 +4941,15 @@ class PbsParityDeltaTarget final :
   void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(PbsParityDeltaTarget* other);
+  void InternalSwap(ParixParityRpcTarget* other);
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "proxy_proto.PbsParityDeltaTarget";
+    return "proxy_proto.ParixParityRpcTarget";
   }
   protected:
-  explicit PbsParityDeltaTarget(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit ParixParityRpcTarget(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
   public:
 
@@ -4897,12 +4963,28 @@ class PbsParityDeltaTarget final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kParityBlockKeyFieldNumber = 1,
-    kDatanodeIpFieldNumber = 3,
-    kParityBlockIdFieldNumber = 2,
-    kDatanodePortFieldNumber = 4,
+    kProxyIpFieldNumber = 1,
+    kParityBlockKeyFieldNumber = 4,
+    kParityDatanodeIpFieldNumber = 5,
+    kProxyGrpcPortFieldNumber = 2,
+    kParityBlockIdFieldNumber = 3,
+    kParityDatanodePortFieldNumber = 6,
   };
-  // string parity_block_key = 1;
+  // string proxy_ip = 1;
+  void clear_proxy_ip();
+  const std::string& proxy_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_proxy_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_proxy_ip();
+  PROTOBUF_NODISCARD std::string* release_proxy_ip();
+  void set_allocated_proxy_ip(std::string* proxy_ip);
+  private:
+  const std::string& _internal_proxy_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_proxy_ip(const std::string& value);
+  std::string* _internal_mutable_proxy_ip();
+  public:
+
+  // string parity_block_key = 4;
   void clear_parity_block_key();
   const std::string& parity_block_key() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -4916,21 +4998,30 @@ class PbsParityDeltaTarget final :
   std::string* _internal_mutable_parity_block_key();
   public:
 
-  // string datanode_ip = 3;
-  void clear_datanode_ip();
-  const std::string& datanode_ip() const;
+  // string parity_datanode_ip = 5;
+  void clear_parity_datanode_ip();
+  const std::string& parity_datanode_ip() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_datanode_ip(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_datanode_ip();
-  PROTOBUF_NODISCARD std::string* release_datanode_ip();
-  void set_allocated_datanode_ip(std::string* datanode_ip);
+  void set_parity_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_parity_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_parity_datanode_ip();
+  void set_allocated_parity_datanode_ip(std::string* parity_datanode_ip);
   private:
-  const std::string& _internal_datanode_ip() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_datanode_ip(const std::string& value);
-  std::string* _internal_mutable_datanode_ip();
+  const std::string& _internal_parity_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_parity_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_parity_datanode_ip();
   public:
 
-  // int32 parity_block_id = 2;
+  // int32 proxy_grpc_port = 2;
+  void clear_proxy_grpc_port();
+  int32_t proxy_grpc_port() const;
+  void set_proxy_grpc_port(int32_t value);
+  private:
+  int32_t _internal_proxy_grpc_port() const;
+  void _internal_set_proxy_grpc_port(int32_t value);
+  public:
+
+  // int32 parity_block_id = 3;
   void clear_parity_block_id();
   int32_t parity_block_id() const;
   void set_parity_block_id(int32_t value);
@@ -4939,16 +5030,16 @@ class PbsParityDeltaTarget final :
   void _internal_set_parity_block_id(int32_t value);
   public:
 
-  // int32 datanode_port = 4;
-  void clear_datanode_port();
-  int32_t datanode_port() const;
-  void set_datanode_port(int32_t value);
+  // int32 parity_datanode_port = 6;
+  void clear_parity_datanode_port();
+  int32_t parity_datanode_port() const;
+  void set_parity_datanode_port(int32_t value);
   private:
-  int32_t _internal_datanode_port() const;
-  void _internal_set_datanode_port(int32_t value);
+  int32_t _internal_parity_datanode_port() const;
+  void _internal_set_parity_datanode_port(int32_t value);
   public:
 
-  // @@protoc_insertion_point(class_scope:proxy_proto.PbsParityDeltaTarget)
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixParityRpcTarget)
  private:
   class _Internal;
 
@@ -4956,10 +5047,12 @@ class PbsParityDeltaTarget final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr proxy_ip_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parity_block_key_;
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr datanode_ip_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parity_datanode_ip_;
+    int32_t proxy_grpc_port_;
     int32_t parity_block_id_;
-    int32_t datanode_port_;
+    int32_t parity_datanode_port_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -4967,24 +5060,24 @@ class PbsParityDeltaTarget final :
 };
 // -------------------------------------------------------------------
 
-class PbsParityForwardPlan final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.PbsParityForwardPlan) */ {
+class ParixDataUpdatePlacement final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixDataUpdatePlacement) */ {
  public:
-  inline PbsParityForwardPlan() : PbsParityForwardPlan(nullptr) {}
-  ~PbsParityForwardPlan() override;
-  explicit PROTOBUF_CONSTEXPR PbsParityForwardPlan(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  inline ParixDataUpdatePlacement() : ParixDataUpdatePlacement(nullptr) {}
+  ~ParixDataUpdatePlacement() override;
+  explicit PROTOBUF_CONSTEXPR ParixDataUpdatePlacement(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  PbsParityForwardPlan(const PbsParityForwardPlan& from);
-  PbsParityForwardPlan(PbsParityForwardPlan&& from) noexcept
-    : PbsParityForwardPlan() {
+  ParixDataUpdatePlacement(const ParixDataUpdatePlacement& from);
+  ParixDataUpdatePlacement(ParixDataUpdatePlacement&& from) noexcept
+    : ParixDataUpdatePlacement() {
     *this = ::std::move(from);
   }
 
-  inline PbsParityForwardPlan& operator=(const PbsParityForwardPlan& from) {
+  inline ParixDataUpdatePlacement& operator=(const ParixDataUpdatePlacement& from) {
     CopyFrom(from);
     return *this;
   }
-  inline PbsParityForwardPlan& operator=(PbsParityForwardPlan&& from) noexcept {
+  inline ParixDataUpdatePlacement& operator=(ParixDataUpdatePlacement&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()
   #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
@@ -5007,20 +5100,20 @@ class PbsParityForwardPlan final :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const PbsParityForwardPlan& default_instance() {
+  static const ParixDataUpdatePlacement& default_instance() {
     return *internal_default_instance();
   }
-  static inline const PbsParityForwardPlan* internal_default_instance() {
-    return reinterpret_cast<const PbsParityForwardPlan*>(
-               &_PbsParityForwardPlan_default_instance_);
+  static inline const ParixDataUpdatePlacement* internal_default_instance() {
+    return reinterpret_cast<const ParixDataUpdatePlacement*>(
+               &_ParixDataUpdatePlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
     20;
 
-  friend void swap(PbsParityForwardPlan& a, PbsParityForwardPlan& b) {
+  friend void swap(ParixDataUpdatePlacement& a, ParixDataUpdatePlacement& b) {
     a.Swap(&b);
   }
-  inline void Swap(PbsParityForwardPlan* other) {
+  inline void Swap(ParixDataUpdatePlacement* other) {
     if (other == this) return;
   #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
     if (GetOwningArena() != nullptr &&
@@ -5033,7 +5126,7 @@ class PbsParityForwardPlan final :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(PbsParityForwardPlan* other) {
+  void UnsafeArenaSwap(ParixDataUpdatePlacement* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -5041,14 +5134,14 @@ class PbsParityForwardPlan final :
 
   // implements Message ----------------------------------------------
 
-  PbsParityForwardPlan* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<PbsParityForwardPlan>(arena);
+  ParixDataUpdatePlacement* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixDataUpdatePlacement>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const PbsParityForwardPlan& from);
+  void CopyFrom(const ParixDataUpdatePlacement& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const PbsParityForwardPlan& from) {
-    PbsParityForwardPlan::MergeImpl(*this, from);
+  void MergeFrom( const ParixDataUpdatePlacement& from) {
+    ParixDataUpdatePlacement::MergeImpl(*this, from);
   }
   private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
@@ -5066,15 +5159,15 @@ class PbsParityForwardPlan final :
   void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(PbsParityForwardPlan* other);
+  void InternalSwap(ParixDataUpdatePlacement* other);
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "proxy_proto.PbsParityForwardPlan";
+    return "proxy_proto.ParixDataUpdatePlacement";
   }
   protected:
-  explicit PbsParityForwardPlan(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit ParixDataUpdatePlacement(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
   public:
 
@@ -5088,221 +5181,37 @@ class PbsParityForwardPlan final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kParitiesFieldNumber = 3,
-    kDestProxyIpFieldNumber = 1,
-    kDestProxyBasePortFieldNumber = 2,
-  };
-  // repeated .proxy_proto.PbsParityDeltaTarget parities = 3;
-  int parities_size() const;
-  private:
-  int _internal_parities_size() const;
-  public:
-  void clear_parities();
-  ::proxy_proto::PbsParityDeltaTarget* mutable_parities(int index);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >*
-      mutable_parities();
-  private:
-  const ::proxy_proto::PbsParityDeltaTarget& _internal_parities(int index) const;
-  ::proxy_proto::PbsParityDeltaTarget* _internal_add_parities();
-  public:
-  const ::proxy_proto::PbsParityDeltaTarget& parities(int index) const;
-  ::proxy_proto::PbsParityDeltaTarget* add_parities();
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >&
-      parities() const;
-
-  // string dest_proxy_ip = 1;
-  void clear_dest_proxy_ip();
-  const std::string& dest_proxy_ip() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_dest_proxy_ip(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_dest_proxy_ip();
-  PROTOBUF_NODISCARD std::string* release_dest_proxy_ip();
-  void set_allocated_dest_proxy_ip(std::string* dest_proxy_ip);
-  private:
-  const std::string& _internal_dest_proxy_ip() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_dest_proxy_ip(const std::string& value);
-  std::string* _internal_mutable_dest_proxy_ip();
-  public:
-
-  // int32 dest_proxy_base_port = 2;
-  void clear_dest_proxy_base_port();
-  int32_t dest_proxy_base_port() const;
-  void set_dest_proxy_base_port(int32_t value);
-  private:
-  int32_t _internal_dest_proxy_base_port() const;
-  void _internal_set_dest_proxy_base_port(int32_t value);
-  public:
-
-  // @@protoc_insertion_point(class_scope:proxy_proto.PbsParityForwardPlan)
- private:
-  class _Internal;
-
-  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  struct Impl_ {
-    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget > parities_;
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr dest_proxy_ip_;
-    int32_t dest_proxy_base_port_;
-    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  };
-  union { Impl_ _impl_; };
-  friend struct ::TableStruct_proxy_2eproto;
-};
-// -------------------------------------------------------------------
-
-class PbsDataUpdatePlacement final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.PbsDataUpdatePlacement) */ {
- public:
-  inline PbsDataUpdatePlacement() : PbsDataUpdatePlacement(nullptr) {}
-  ~PbsDataUpdatePlacement() override;
-  explicit PROTOBUF_CONSTEXPR PbsDataUpdatePlacement(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  PbsDataUpdatePlacement(const PbsDataUpdatePlacement& from);
-  PbsDataUpdatePlacement(PbsDataUpdatePlacement&& from) noexcept
-    : PbsDataUpdatePlacement() {
-    *this = ::std::move(from);
-  }
-
-  inline PbsDataUpdatePlacement& operator=(const PbsDataUpdatePlacement& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline PbsDataUpdatePlacement& operator=(PbsDataUpdatePlacement&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()
-  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
-        && GetOwningArena() != nullptr
-  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
-    ) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const PbsDataUpdatePlacement& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const PbsDataUpdatePlacement* internal_default_instance() {
-    return reinterpret_cast<const PbsDataUpdatePlacement*>(
-               &_PbsDataUpdatePlacement_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages =
-    21;
-
-  friend void swap(PbsDataUpdatePlacement& a, PbsDataUpdatePlacement& b) {
-    a.Swap(&b);
-  }
-  inline void Swap(PbsDataUpdatePlacement* other) {
-    if (other == this) return;
-  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() != nullptr &&
-        GetOwningArena() == other->GetOwningArena()) {
-   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() == other->GetOwningArena()) {
-  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(PbsDataUpdatePlacement* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  PbsDataUpdatePlacement* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<PbsDataUpdatePlacement>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const PbsDataUpdatePlacement& from);
-  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const PbsDataUpdatePlacement& from) {
-    PbsDataUpdatePlacement::MergeImpl(*this, from);
-  }
-  private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
-  public:
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  uint8_t* _InternalSerialize(
-      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
-
-  private:
-  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
-  void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(PbsDataUpdatePlacement* other);
-
-  private:
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "proxy_proto.PbsDataUpdatePlacement";
-  }
-  protected:
-  explicit PbsDataUpdatePlacement(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
-  public:
-
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  enum : int {
-    kParityForwardFieldNumber = 10,
+    kGlobalParitiesFieldNumber = 12,
     kKeyFieldNumber = 1,
-    kBlockKeyFieldNumber = 4,
-    kDatanodeIpFieldNumber = 8,
+    kBlockKeyFieldNumber = 6,
+    kDatanodeIpFieldNumber = 10,
+    kLocalParityFieldNumber = 13,
+    kBatchIdFieldNumber = 3,
     kStripeIdFieldNumber = 2,
-    kClusterIdFieldNumber = 3,
-    kBlockIdFieldNumber = 5,
-    kRangeOffsetFieldNumber = 6,
-    kRangeLengthFieldNumber = 7,
-    kDatanodePortFieldNumber = 9,
-    kPbsBatchIndexFieldNumber = 12,
-    kPbsBatchIdFieldNumber = 11,
-    kPbsBatchTotalFieldNumber = 13,
+    kClusterIdFieldNumber = 5,
+    kWriteGenerationFieldNumber = 4,
+    kBlockIdFieldNumber = 7,
+    kRangeOffsetFieldNumber = 8,
+    kRangeLengthFieldNumber = 9,
+    kDatanodePortFieldNumber = 11,
   };
-  // repeated .proxy_proto.PbsParityForwardPlan parity_forward = 10;
-  int parity_forward_size() const;
+  // repeated .proxy_proto.ParixParityRpcTarget global_parities = 12;
+  int global_parities_size() const;
   private:
-  int _internal_parity_forward_size() const;
+  int _internal_global_parities_size() const;
   public:
-  void clear_parity_forward();
-  ::proxy_proto::PbsParityForwardPlan* mutable_parity_forward(int index);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityForwardPlan >*
-      mutable_parity_forward();
+  void clear_global_parities();
+  ::proxy_proto::ParixParityRpcTarget* mutable_global_parities(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixParityRpcTarget >*
+      mutable_global_parities();
   private:
-  const ::proxy_proto::PbsParityForwardPlan& _internal_parity_forward(int index) const;
-  ::proxy_proto::PbsParityForwardPlan* _internal_add_parity_forward();
+  const ::proxy_proto::ParixParityRpcTarget& _internal_global_parities(int index) const;
+  ::proxy_proto::ParixParityRpcTarget* _internal_add_global_parities();
   public:
-  const ::proxy_proto::PbsParityForwardPlan& parity_forward(int index) const;
-  ::proxy_proto::PbsParityForwardPlan* add_parity_forward();
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityForwardPlan >&
-      parity_forward() const;
+  const ::proxy_proto::ParixParityRpcTarget& global_parities(int index) const;
+  ::proxy_proto::ParixParityRpcTarget* add_global_parities();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixParityRpcTarget >&
+      global_parities() const;
 
   // string key = 1;
   void clear_key();
@@ -5318,7 +5227,7 @@ class PbsDataUpdatePlacement final :
   std::string* _internal_mutable_key();
   public:
 
-  // string block_key = 4;
+  // string block_key = 6;
   void clear_block_key();
   const std::string& block_key() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -5332,7 +5241,7 @@ class PbsDataUpdatePlacement final :
   std::string* _internal_mutable_block_key();
   public:
 
-  // string datanode_ip = 8;
+  // string datanode_ip = 10;
   void clear_datanode_ip();
   const std::string& datanode_ip() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -5346,6 +5255,33 @@ class PbsDataUpdatePlacement final :
   std::string* _internal_mutable_datanode_ip();
   public:
 
+  // .proxy_proto.ParixParityRpcTarget local_parity = 13;
+  bool has_local_parity() const;
+  private:
+  bool _internal_has_local_parity() const;
+  public:
+  void clear_local_parity();
+  const ::proxy_proto::ParixParityRpcTarget& local_parity() const;
+  PROTOBUF_NODISCARD ::proxy_proto::ParixParityRpcTarget* release_local_parity();
+  ::proxy_proto::ParixParityRpcTarget* mutable_local_parity();
+  void set_allocated_local_parity(::proxy_proto::ParixParityRpcTarget* local_parity);
+  private:
+  const ::proxy_proto::ParixParityRpcTarget& _internal_local_parity() const;
+  ::proxy_proto::ParixParityRpcTarget* _internal_mutable_local_parity();
+  public:
+  void unsafe_arena_set_allocated_local_parity(
+      ::proxy_proto::ParixParityRpcTarget* local_parity);
+  ::proxy_proto::ParixParityRpcTarget* unsafe_arena_release_local_parity();
+
+  // uint64 batch_id = 3;
+  void clear_batch_id();
+  uint64_t batch_id() const;
+  void set_batch_id(uint64_t value);
+  private:
+  uint64_t _internal_batch_id() const;
+  void _internal_set_batch_id(uint64_t value);
+  public:
+
   // int32 stripe_id = 2;
   void clear_stripe_id();
   int32_t stripe_id() const;
@@ -5355,7 +5291,7 @@ class PbsDataUpdatePlacement final :
   void _internal_set_stripe_id(int32_t value);
   public:
 
-  // int32 cluster_id = 3;
+  // int32 cluster_id = 5;
   void clear_cluster_id();
   int32_t cluster_id() const;
   void set_cluster_id(int32_t value);
@@ -5364,13 +5300,1787 @@ class PbsDataUpdatePlacement final :
   void _internal_set_cluster_id(int32_t value);
   public:
 
-  // int32 block_id = 5;
+  // uint64 write_generation = 4;
+  void clear_write_generation();
+  uint64_t write_generation() const;
+  void set_write_generation(uint64_t value);
+  private:
+  uint64_t _internal_write_generation() const;
+  void _internal_set_write_generation(uint64_t value);
+  public:
+
+  // int32 block_id = 7;
   void clear_block_id();
   int32_t block_id() const;
   void set_block_id(int32_t value);
   private:
   int32_t _internal_block_id() const;
   void _internal_set_block_id(int32_t value);
+  public:
+
+  // int32 range_offset = 8;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // uint64 range_length = 9;
+  void clear_range_length();
+  uint64_t range_length() const;
+  void set_range_length(uint64_t value);
+  private:
+  uint64_t _internal_range_length() const;
+  void _internal_set_range_length(uint64_t value);
+  public:
+
+  // int32 datanode_port = 11;
+  void clear_datanode_port();
+  int32_t datanode_port() const;
+  void set_datanode_port(int32_t value);
+  private:
+  int32_t _internal_datanode_port() const;
+  void _internal_set_datanode_port(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixDataUpdatePlacement)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixParityRpcTarget > global_parities_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr block_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr datanode_ip_;
+    ::proxy_proto::ParixParityRpcTarget* local_parity_;
+    uint64_t batch_id_;
+    int32_t stripe_id_;
+    int32_t cluster_id_;
+    uint64_t write_generation_;
+    int32_t block_id_;
+    int32_t range_offset_;
+    uint64_t range_length_;
+    int32_t datanode_port_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParixJournalAckItem final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixJournalAckItem) */ {
+ public:
+  inline ParixJournalAckItem() : ParixJournalAckItem(nullptr) {}
+  ~ParixJournalAckItem() override;
+  explicit PROTOBUF_CONSTEXPR ParixJournalAckItem(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParixJournalAckItem(const ParixJournalAckItem& from);
+  ParixJournalAckItem(ParixJournalAckItem&& from) noexcept
+    : ParixJournalAckItem() {
+    *this = ::std::move(from);
+  }
+
+  inline ParixJournalAckItem& operator=(const ParixJournalAckItem& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParixJournalAckItem& operator=(ParixJournalAckItem&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParixJournalAckItem& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParixJournalAckItem* internal_default_instance() {
+    return reinterpret_cast<const ParixJournalAckItem*>(
+               &_ParixJournalAckItem_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    21;
+
+  friend void swap(ParixJournalAckItem& a, ParixJournalAckItem& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParixJournalAckItem* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParixJournalAckItem* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParixJournalAckItem* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixJournalAckItem>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParixJournalAckItem& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParixJournalAckItem& from) {
+    ParixJournalAckItem::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParixJournalAckItem* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.ParixJournalAckItem";
+  }
+  protected:
+  explicit ParixJournalAckItem(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kParityProxyIpFieldNumber = 1,
+    kParityProxyGrpcPortFieldNumber = 2,
+    kParityBlockIdFieldNumber = 3,
+    kAckFieldNumber = 4,
+  };
+  // string parity_proxy_ip = 1;
+  void clear_parity_proxy_ip();
+  const std::string& parity_proxy_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_parity_proxy_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_parity_proxy_ip();
+  PROTOBUF_NODISCARD std::string* release_parity_proxy_ip();
+  void set_allocated_parity_proxy_ip(std::string* parity_proxy_ip);
+  private:
+  const std::string& _internal_parity_proxy_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_parity_proxy_ip(const std::string& value);
+  std::string* _internal_mutable_parity_proxy_ip();
+  public:
+
+  // int32 parity_proxy_grpc_port = 2;
+  void clear_parity_proxy_grpc_port();
+  int32_t parity_proxy_grpc_port() const;
+  void set_parity_proxy_grpc_port(int32_t value);
+  private:
+  int32_t _internal_parity_proxy_grpc_port() const;
+  void _internal_set_parity_proxy_grpc_port(int32_t value);
+  public:
+
+  // int32 parity_block_id = 3;
+  void clear_parity_block_id();
+  int32_t parity_block_id() const;
+  void set_parity_block_id(int32_t value);
+  private:
+  int32_t _internal_parity_block_id() const;
+  void _internal_set_parity_block_id(int32_t value);
+  public:
+
+  // .proxy_proto.ParixParityAck ack = 4;
+  void clear_ack();
+  ::proxy_proto::ParixParityAck ack() const;
+  void set_ack(::proxy_proto::ParixParityAck value);
+  private:
+  ::proxy_proto::ParixParityAck _internal_ack() const;
+  void _internal_set_ack(::proxy_proto::ParixParityAck value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixJournalAckItem)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parity_proxy_ip_;
+    int32_t parity_proxy_grpc_port_;
+    int32_t parity_block_id_;
+    int ack_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParixScheduleDataUpdateReply final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixScheduleDataUpdateReply) */ {
+ public:
+  inline ParixScheduleDataUpdateReply() : ParixScheduleDataUpdateReply(nullptr) {}
+  ~ParixScheduleDataUpdateReply() override;
+  explicit PROTOBUF_CONSTEXPR ParixScheduleDataUpdateReply(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParixScheduleDataUpdateReply(const ParixScheduleDataUpdateReply& from);
+  ParixScheduleDataUpdateReply(ParixScheduleDataUpdateReply&& from) noexcept
+    : ParixScheduleDataUpdateReply() {
+    *this = ::std::move(from);
+  }
+
+  inline ParixScheduleDataUpdateReply& operator=(const ParixScheduleDataUpdateReply& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParixScheduleDataUpdateReply& operator=(ParixScheduleDataUpdateReply&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParixScheduleDataUpdateReply& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParixScheduleDataUpdateReply* internal_default_instance() {
+    return reinterpret_cast<const ParixScheduleDataUpdateReply*>(
+               &_ParixScheduleDataUpdateReply_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    22;
+
+  friend void swap(ParixScheduleDataUpdateReply& a, ParixScheduleDataUpdateReply& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParixScheduleDataUpdateReply* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParixScheduleDataUpdateReply* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParixScheduleDataUpdateReply* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixScheduleDataUpdateReply>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParixScheduleDataUpdateReply& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParixScheduleDataUpdateReply& from) {
+    ParixScheduleDataUpdateReply::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParixScheduleDataUpdateReply* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.ParixScheduleDataUpdateReply";
+  }
+  protected:
+  explicit ParixScheduleDataUpdateReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kJournalAcksFieldNumber = 2,
+    kIfcommitFieldNumber = 1,
+  };
+  // repeated .proxy_proto.ParixJournalAckItem journal_acks = 2;
+  int journal_acks_size() const;
+  private:
+  int _internal_journal_acks_size() const;
+  public:
+  void clear_journal_acks();
+  ::proxy_proto::ParixJournalAckItem* mutable_journal_acks(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAckItem >*
+      mutable_journal_acks();
+  private:
+  const ::proxy_proto::ParixJournalAckItem& _internal_journal_acks(int index) const;
+  ::proxy_proto::ParixJournalAckItem* _internal_add_journal_acks();
+  public:
+  const ::proxy_proto::ParixJournalAckItem& journal_acks(int index) const;
+  ::proxy_proto::ParixJournalAckItem* add_journal_acks();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAckItem >&
+      journal_acks() const;
+
+  // bool ifcommit = 1;
+  void clear_ifcommit();
+  bool ifcommit() const;
+  void set_ifcommit(bool value);
+  private:
+  bool _internal_ifcommit() const;
+  void _internal_set_ifcommit(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixScheduleDataUpdateReply)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAckItem > journal_acks_;
+    bool ifcommit_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParixJournalAppendRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixJournalAppendRequest) */ {
+ public:
+  inline ParixJournalAppendRequest() : ParixJournalAppendRequest(nullptr) {}
+  ~ParixJournalAppendRequest() override;
+  explicit PROTOBUF_CONSTEXPR ParixJournalAppendRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParixJournalAppendRequest(const ParixJournalAppendRequest& from);
+  ParixJournalAppendRequest(ParixJournalAppendRequest&& from) noexcept
+    : ParixJournalAppendRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline ParixJournalAppendRequest& operator=(const ParixJournalAppendRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParixJournalAppendRequest& operator=(ParixJournalAppendRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParixJournalAppendRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParixJournalAppendRequest* internal_default_instance() {
+    return reinterpret_cast<const ParixJournalAppendRequest*>(
+               &_ParixJournalAppendRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    23;
+
+  friend void swap(ParixJournalAppendRequest& a, ParixJournalAppendRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParixJournalAppendRequest* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParixJournalAppendRequest* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParixJournalAppendRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixJournalAppendRequest>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParixJournalAppendRequest& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParixJournalAppendRequest& from) {
+    ParixJournalAppendRequest::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParixJournalAppendRequest* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.ParixJournalAppendRequest";
+  }
+  protected:
+  explicit ParixJournalAppendRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kParityBlockKeyFieldNumber = 5,
+    kParityDatanodeIpFieldNumber = 6,
+    kNewPayloadFieldNumber = 11,
+    kBatchIdFieldNumber = 2,
+    kStripeIdFieldNumber = 1,
+    kParityBlockIdFieldNumber = 4,
+    kWriteGenerationFieldNumber = 3,
+    kParityDatanodePortFieldNumber = 7,
+    kDataBlockIdFieldNumber = 8,
+    kRangeLengthFieldNumber = 10,
+    kRangeOffsetFieldNumber = 9,
+  };
+  // string parity_block_key = 5;
+  void clear_parity_block_key();
+  const std::string& parity_block_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_parity_block_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_parity_block_key();
+  PROTOBUF_NODISCARD std::string* release_parity_block_key();
+  void set_allocated_parity_block_key(std::string* parity_block_key);
+  private:
+  const std::string& _internal_parity_block_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_parity_block_key(const std::string& value);
+  std::string* _internal_mutable_parity_block_key();
+  public:
+
+  // string parity_datanode_ip = 6;
+  void clear_parity_datanode_ip();
+  const std::string& parity_datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_parity_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_parity_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_parity_datanode_ip();
+  void set_allocated_parity_datanode_ip(std::string* parity_datanode_ip);
+  private:
+  const std::string& _internal_parity_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_parity_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_parity_datanode_ip();
+  public:
+
+  // bytes new_payload = 11;
+  void clear_new_payload();
+  const std::string& new_payload() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_new_payload(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_new_payload();
+  PROTOBUF_NODISCARD std::string* release_new_payload();
+  void set_allocated_new_payload(std::string* new_payload);
+  private:
+  const std::string& _internal_new_payload() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_new_payload(const std::string& value);
+  std::string* _internal_mutable_new_payload();
+  public:
+
+  // uint64 batch_id = 2;
+  void clear_batch_id();
+  uint64_t batch_id() const;
+  void set_batch_id(uint64_t value);
+  private:
+  uint64_t _internal_batch_id() const;
+  void _internal_set_batch_id(uint64_t value);
+  public:
+
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // int32 parity_block_id = 4;
+  void clear_parity_block_id();
+  int32_t parity_block_id() const;
+  void set_parity_block_id(int32_t value);
+  private:
+  int32_t _internal_parity_block_id() const;
+  void _internal_set_parity_block_id(int32_t value);
+  public:
+
+  // uint64 write_generation = 3;
+  void clear_write_generation();
+  uint64_t write_generation() const;
+  void set_write_generation(uint64_t value);
+  private:
+  uint64_t _internal_write_generation() const;
+  void _internal_set_write_generation(uint64_t value);
+  public:
+
+  // int32 parity_datanode_port = 7;
+  void clear_parity_datanode_port();
+  int32_t parity_datanode_port() const;
+  void set_parity_datanode_port(int32_t value);
+  private:
+  int32_t _internal_parity_datanode_port() const;
+  void _internal_set_parity_datanode_port(int32_t value);
+  public:
+
+  // int32 data_block_id = 8;
+  void clear_data_block_id();
+  int32_t data_block_id() const;
+  void set_data_block_id(int32_t value);
+  private:
+  int32_t _internal_data_block_id() const;
+  void _internal_set_data_block_id(int32_t value);
+  public:
+
+  // uint64 range_length = 10;
+  void clear_range_length();
+  uint64_t range_length() const;
+  void set_range_length(uint64_t value);
+  private:
+  uint64_t _internal_range_length() const;
+  void _internal_set_range_length(uint64_t value);
+  public:
+
+  // int32 range_offset = 9;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixJournalAppendRequest)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parity_block_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parity_datanode_ip_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr new_payload_;
+    uint64_t batch_id_;
+    int32_t stripe_id_;
+    int32_t parity_block_id_;
+    uint64_t write_generation_;
+    int32_t parity_datanode_port_;
+    int32_t data_block_id_;
+    uint64_t range_length_;
+    int32_t range_offset_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParixJournalAppendReply final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixJournalAppendReply) */ {
+ public:
+  inline ParixJournalAppendReply() : ParixJournalAppendReply(nullptr) {}
+  ~ParixJournalAppendReply() override;
+  explicit PROTOBUF_CONSTEXPR ParixJournalAppendReply(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParixJournalAppendReply(const ParixJournalAppendReply& from);
+  ParixJournalAppendReply(ParixJournalAppendReply&& from) noexcept
+    : ParixJournalAppendReply() {
+    *this = ::std::move(from);
+  }
+
+  inline ParixJournalAppendReply& operator=(const ParixJournalAppendReply& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParixJournalAppendReply& operator=(ParixJournalAppendReply&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParixJournalAppendReply& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParixJournalAppendReply* internal_default_instance() {
+    return reinterpret_cast<const ParixJournalAppendReply*>(
+               &_ParixJournalAppendReply_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    24;
+
+  friend void swap(ParixJournalAppendReply& a, ParixJournalAppendReply& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParixJournalAppendReply* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParixJournalAppendReply* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParixJournalAppendReply* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixJournalAppendReply>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParixJournalAppendReply& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParixJournalAppendReply& from) {
+    ParixJournalAppendReply::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParixJournalAppendReply* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.ParixJournalAppendReply";
+  }
+  protected:
+  explicit ParixJournalAppendReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kAckFieldNumber = 1,
+  };
+  // .proxy_proto.ParixParityAck ack = 1;
+  void clear_ack();
+  ::proxy_proto::ParixParityAck ack() const;
+  void set_ack(::proxy_proto::ParixParityAck value);
+  private:
+  ::proxy_proto::ParixParityAck _internal_ack() const;
+  void _internal_set_ack(::proxy_proto::ParixParityAck value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixJournalAppendReply)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int ack_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParixJournalAppendBatchItem final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixJournalAppendBatchItem) */ {
+ public:
+  inline ParixJournalAppendBatchItem() : ParixJournalAppendBatchItem(nullptr) {}
+  ~ParixJournalAppendBatchItem() override;
+  explicit PROTOBUF_CONSTEXPR ParixJournalAppendBatchItem(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParixJournalAppendBatchItem(const ParixJournalAppendBatchItem& from);
+  ParixJournalAppendBatchItem(ParixJournalAppendBatchItem&& from) noexcept
+    : ParixJournalAppendBatchItem() {
+    *this = ::std::move(from);
+  }
+
+  inline ParixJournalAppendBatchItem& operator=(const ParixJournalAppendBatchItem& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParixJournalAppendBatchItem& operator=(ParixJournalAppendBatchItem&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParixJournalAppendBatchItem& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParixJournalAppendBatchItem* internal_default_instance() {
+    return reinterpret_cast<const ParixJournalAppendBatchItem*>(
+               &_ParixJournalAppendBatchItem_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    25;
+
+  friend void swap(ParixJournalAppendBatchItem& a, ParixJournalAppendBatchItem& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParixJournalAppendBatchItem* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParixJournalAppendBatchItem* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParixJournalAppendBatchItem* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixJournalAppendBatchItem>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParixJournalAppendBatchItem& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParixJournalAppendBatchItem& from) {
+    ParixJournalAppendBatchItem::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParixJournalAppendBatchItem* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.ParixJournalAppendBatchItem";
+  }
+  protected:
+  explicit ParixJournalAppendBatchItem(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kParityBlockKeyFieldNumber = 2,
+    kParityDatanodeIpFieldNumber = 3,
+    kParityBlockIdFieldNumber = 1,
+    kParityDatanodePortFieldNumber = 4,
+  };
+  // string parity_block_key = 2;
+  void clear_parity_block_key();
+  const std::string& parity_block_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_parity_block_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_parity_block_key();
+  PROTOBUF_NODISCARD std::string* release_parity_block_key();
+  void set_allocated_parity_block_key(std::string* parity_block_key);
+  private:
+  const std::string& _internal_parity_block_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_parity_block_key(const std::string& value);
+  std::string* _internal_mutable_parity_block_key();
+  public:
+
+  // string parity_datanode_ip = 3;
+  void clear_parity_datanode_ip();
+  const std::string& parity_datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_parity_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_parity_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_parity_datanode_ip();
+  void set_allocated_parity_datanode_ip(std::string* parity_datanode_ip);
+  private:
+  const std::string& _internal_parity_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_parity_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_parity_datanode_ip();
+  public:
+
+  // int32 parity_block_id = 1;
+  void clear_parity_block_id();
+  int32_t parity_block_id() const;
+  void set_parity_block_id(int32_t value);
+  private:
+  int32_t _internal_parity_block_id() const;
+  void _internal_set_parity_block_id(int32_t value);
+  public:
+
+  // int32 parity_datanode_port = 4;
+  void clear_parity_datanode_port();
+  int32_t parity_datanode_port() const;
+  void set_parity_datanode_port(int32_t value);
+  private:
+  int32_t _internal_parity_datanode_port() const;
+  void _internal_set_parity_datanode_port(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixJournalAppendBatchItem)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parity_block_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parity_datanode_ip_;
+    int32_t parity_block_id_;
+    int32_t parity_datanode_port_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParixJournalAppendBatchRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixJournalAppendBatchRequest) */ {
+ public:
+  inline ParixJournalAppendBatchRequest() : ParixJournalAppendBatchRequest(nullptr) {}
+  ~ParixJournalAppendBatchRequest() override;
+  explicit PROTOBUF_CONSTEXPR ParixJournalAppendBatchRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParixJournalAppendBatchRequest(const ParixJournalAppendBatchRequest& from);
+  ParixJournalAppendBatchRequest(ParixJournalAppendBatchRequest&& from) noexcept
+    : ParixJournalAppendBatchRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline ParixJournalAppendBatchRequest& operator=(const ParixJournalAppendBatchRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParixJournalAppendBatchRequest& operator=(ParixJournalAppendBatchRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParixJournalAppendBatchRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParixJournalAppendBatchRequest* internal_default_instance() {
+    return reinterpret_cast<const ParixJournalAppendBatchRequest*>(
+               &_ParixJournalAppendBatchRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    26;
+
+  friend void swap(ParixJournalAppendBatchRequest& a, ParixJournalAppendBatchRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParixJournalAppendBatchRequest* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParixJournalAppendBatchRequest* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParixJournalAppendBatchRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixJournalAppendBatchRequest>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParixJournalAppendBatchRequest& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParixJournalAppendBatchRequest& from) {
+    ParixJournalAppendBatchRequest::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParixJournalAppendBatchRequest* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.ParixJournalAppendBatchRequest";
+  }
+  protected:
+  explicit ParixJournalAppendBatchRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kTargetsFieldNumber = 8,
+    kNewPayloadFieldNumber = 7,
+    kBatchIdFieldNumber = 2,
+    kStripeIdFieldNumber = 1,
+    kDataBlockIdFieldNumber = 4,
+    kWriteGenerationFieldNumber = 3,
+    kRangeLengthFieldNumber = 6,
+    kRangeOffsetFieldNumber = 5,
+  };
+  // repeated .proxy_proto.ParixJournalAppendBatchItem targets = 8;
+  int targets_size() const;
+  private:
+  int _internal_targets_size() const;
+  public:
+  void clear_targets();
+  ::proxy_proto::ParixJournalAppendBatchItem* mutable_targets(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAppendBatchItem >*
+      mutable_targets();
+  private:
+  const ::proxy_proto::ParixJournalAppendBatchItem& _internal_targets(int index) const;
+  ::proxy_proto::ParixJournalAppendBatchItem* _internal_add_targets();
+  public:
+  const ::proxy_proto::ParixJournalAppendBatchItem& targets(int index) const;
+  ::proxy_proto::ParixJournalAppendBatchItem* add_targets();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAppendBatchItem >&
+      targets() const;
+
+  // bytes new_payload = 7;
+  void clear_new_payload();
+  const std::string& new_payload() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_new_payload(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_new_payload();
+  PROTOBUF_NODISCARD std::string* release_new_payload();
+  void set_allocated_new_payload(std::string* new_payload);
+  private:
+  const std::string& _internal_new_payload() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_new_payload(const std::string& value);
+  std::string* _internal_mutable_new_payload();
+  public:
+
+  // uint64 batch_id = 2;
+  void clear_batch_id();
+  uint64_t batch_id() const;
+  void set_batch_id(uint64_t value);
+  private:
+  uint64_t _internal_batch_id() const;
+  void _internal_set_batch_id(uint64_t value);
+  public:
+
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // int32 data_block_id = 4;
+  void clear_data_block_id();
+  int32_t data_block_id() const;
+  void set_data_block_id(int32_t value);
+  private:
+  int32_t _internal_data_block_id() const;
+  void _internal_set_data_block_id(int32_t value);
+  public:
+
+  // uint64 write_generation = 3;
+  void clear_write_generation();
+  uint64_t write_generation() const;
+  void set_write_generation(uint64_t value);
+  private:
+  uint64_t _internal_write_generation() const;
+  void _internal_set_write_generation(uint64_t value);
+  public:
+
+  // uint64 range_length = 6;
+  void clear_range_length();
+  uint64_t range_length() const;
+  void set_range_length(uint64_t value);
+  private:
+  uint64_t _internal_range_length() const;
+  void _internal_set_range_length(uint64_t value);
+  public:
+
+  // int32 range_offset = 5;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixJournalAppendBatchRequest)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAppendBatchItem > targets_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr new_payload_;
+    uint64_t batch_id_;
+    int32_t stripe_id_;
+    int32_t data_block_id_;
+    uint64_t write_generation_;
+    uint64_t range_length_;
+    int32_t range_offset_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParixJournalAppendBatchAckItem final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixJournalAppendBatchAckItem) */ {
+ public:
+  inline ParixJournalAppendBatchAckItem() : ParixJournalAppendBatchAckItem(nullptr) {}
+  ~ParixJournalAppendBatchAckItem() override;
+  explicit PROTOBUF_CONSTEXPR ParixJournalAppendBatchAckItem(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParixJournalAppendBatchAckItem(const ParixJournalAppendBatchAckItem& from);
+  ParixJournalAppendBatchAckItem(ParixJournalAppendBatchAckItem&& from) noexcept
+    : ParixJournalAppendBatchAckItem() {
+    *this = ::std::move(from);
+  }
+
+  inline ParixJournalAppendBatchAckItem& operator=(const ParixJournalAppendBatchAckItem& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParixJournalAppendBatchAckItem& operator=(ParixJournalAppendBatchAckItem&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParixJournalAppendBatchAckItem& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParixJournalAppendBatchAckItem* internal_default_instance() {
+    return reinterpret_cast<const ParixJournalAppendBatchAckItem*>(
+               &_ParixJournalAppendBatchAckItem_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    27;
+
+  friend void swap(ParixJournalAppendBatchAckItem& a, ParixJournalAppendBatchAckItem& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParixJournalAppendBatchAckItem* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParixJournalAppendBatchAckItem* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParixJournalAppendBatchAckItem* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixJournalAppendBatchAckItem>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParixJournalAppendBatchAckItem& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParixJournalAppendBatchAckItem& from) {
+    ParixJournalAppendBatchAckItem::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParixJournalAppendBatchAckItem* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.ParixJournalAppendBatchAckItem";
+  }
+  protected:
+  explicit ParixJournalAppendBatchAckItem(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kParityBlockIdFieldNumber = 1,
+    kAckFieldNumber = 2,
+  };
+  // int32 parity_block_id = 1;
+  void clear_parity_block_id();
+  int32_t parity_block_id() const;
+  void set_parity_block_id(int32_t value);
+  private:
+  int32_t _internal_parity_block_id() const;
+  void _internal_set_parity_block_id(int32_t value);
+  public:
+
+  // .proxy_proto.ParixParityAck ack = 2;
+  void clear_ack();
+  ::proxy_proto::ParixParityAck ack() const;
+  void set_ack(::proxy_proto::ParixParityAck value);
+  private:
+  ::proxy_proto::ParixParityAck _internal_ack() const;
+  void _internal_set_ack(::proxy_proto::ParixParityAck value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixJournalAppendBatchAckItem)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int32_t parity_block_id_;
+    int ack_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParixJournalAppendBatchReply final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixJournalAppendBatchReply) */ {
+ public:
+  inline ParixJournalAppendBatchReply() : ParixJournalAppendBatchReply(nullptr) {}
+  ~ParixJournalAppendBatchReply() override;
+  explicit PROTOBUF_CONSTEXPR ParixJournalAppendBatchReply(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParixJournalAppendBatchReply(const ParixJournalAppendBatchReply& from);
+  ParixJournalAppendBatchReply(ParixJournalAppendBatchReply&& from) noexcept
+    : ParixJournalAppendBatchReply() {
+    *this = ::std::move(from);
+  }
+
+  inline ParixJournalAppendBatchReply& operator=(const ParixJournalAppendBatchReply& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParixJournalAppendBatchReply& operator=(ParixJournalAppendBatchReply&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParixJournalAppendBatchReply& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParixJournalAppendBatchReply* internal_default_instance() {
+    return reinterpret_cast<const ParixJournalAppendBatchReply*>(
+               &_ParixJournalAppendBatchReply_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    28;
+
+  friend void swap(ParixJournalAppendBatchReply& a, ParixJournalAppendBatchReply& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParixJournalAppendBatchReply* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParixJournalAppendBatchReply* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParixJournalAppendBatchReply* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixJournalAppendBatchReply>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParixJournalAppendBatchReply& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParixJournalAppendBatchReply& from) {
+    ParixJournalAppendBatchReply::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParixJournalAppendBatchReply* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.ParixJournalAppendBatchReply";
+  }
+  protected:
+  explicit ParixJournalAppendBatchReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kAcksFieldNumber = 1,
+  };
+  // repeated .proxy_proto.ParixJournalAppendBatchAckItem acks = 1;
+  int acks_size() const;
+  private:
+  int _internal_acks_size() const;
+  public:
+  void clear_acks();
+  ::proxy_proto::ParixJournalAppendBatchAckItem* mutable_acks(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAppendBatchAckItem >*
+      mutable_acks();
+  private:
+  const ::proxy_proto::ParixJournalAppendBatchAckItem& _internal_acks(int index) const;
+  ::proxy_proto::ParixJournalAppendBatchAckItem* _internal_add_acks();
+  public:
+  const ::proxy_proto::ParixJournalAppendBatchAckItem& acks(int index) const;
+  ::proxy_proto::ParixJournalAppendBatchAckItem* add_acks();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAppendBatchAckItem >&
+      acks() const;
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixJournalAppendBatchReply)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAppendBatchAckItem > acks_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParixSupplyD0Request final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixSupplyD0Request) */ {
+ public:
+  inline ParixSupplyD0Request() : ParixSupplyD0Request(nullptr) {}
+  ~ParixSupplyD0Request() override;
+  explicit PROTOBUF_CONSTEXPR ParixSupplyD0Request(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParixSupplyD0Request(const ParixSupplyD0Request& from);
+  ParixSupplyD0Request(ParixSupplyD0Request&& from) noexcept
+    : ParixSupplyD0Request() {
+    *this = ::std::move(from);
+  }
+
+  inline ParixSupplyD0Request& operator=(const ParixSupplyD0Request& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParixSupplyD0Request& operator=(ParixSupplyD0Request&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParixSupplyD0Request& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParixSupplyD0Request* internal_default_instance() {
+    return reinterpret_cast<const ParixSupplyD0Request*>(
+               &_ParixSupplyD0Request_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    29;
+
+  friend void swap(ParixSupplyD0Request& a, ParixSupplyD0Request& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParixSupplyD0Request* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParixSupplyD0Request* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParixSupplyD0Request* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixSupplyD0Request>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParixSupplyD0Request& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParixSupplyD0Request& from) {
+    ParixSupplyD0Request::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParixSupplyD0Request* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.ParixSupplyD0Request";
+  }
+  protected:
+  explicit ParixSupplyD0Request(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kOldPayloadFieldNumber = 8,
+    kBatchIdFieldNumber = 2,
+    kStripeIdFieldNumber = 1,
+    kParityBlockIdFieldNumber = 4,
+    kWriteGenerationFieldNumber = 3,
+    kDataBlockIdFieldNumber = 5,
+    kRangeOffsetFieldNumber = 6,
+    kRangeLengthFieldNumber = 7,
+  };
+  // bytes old_payload = 8;
+  void clear_old_payload();
+  const std::string& old_payload() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_old_payload(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_old_payload();
+  PROTOBUF_NODISCARD std::string* release_old_payload();
+  void set_allocated_old_payload(std::string* old_payload);
+  private:
+  const std::string& _internal_old_payload() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_old_payload(const std::string& value);
+  std::string* _internal_mutable_old_payload();
+  public:
+
+  // uint64 batch_id = 2;
+  void clear_batch_id();
+  uint64_t batch_id() const;
+  void set_batch_id(uint64_t value);
+  private:
+  uint64_t _internal_batch_id() const;
+  void _internal_set_batch_id(uint64_t value);
+  public:
+
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // int32 parity_block_id = 4;
+  void clear_parity_block_id();
+  int32_t parity_block_id() const;
+  void set_parity_block_id(int32_t value);
+  private:
+  int32_t _internal_parity_block_id() const;
+  void _internal_set_parity_block_id(int32_t value);
+  public:
+
+  // uint64 write_generation = 3;
+  void clear_write_generation();
+  uint64_t write_generation() const;
+  void set_write_generation(uint64_t value);
+  private:
+  uint64_t _internal_write_generation() const;
+  void _internal_set_write_generation(uint64_t value);
+  public:
+
+  // int32 data_block_id = 5;
+  void clear_data_block_id();
+  int32_t data_block_id() const;
+  void set_data_block_id(int32_t value);
+  private:
+  int32_t _internal_data_block_id() const;
+  void _internal_set_data_block_id(int32_t value);
   public:
 
   // int32 range_offset = 6;
@@ -5391,43 +7101,7 @@ class PbsDataUpdatePlacement final :
   void _internal_set_range_length(uint64_t value);
   public:
 
-  // int32 datanode_port = 9;
-  void clear_datanode_port();
-  int32_t datanode_port() const;
-  void set_datanode_port(int32_t value);
-  private:
-  int32_t _internal_datanode_port() const;
-  void _internal_set_datanode_port(int32_t value);
-  public:
-
-  // uint32 pbs_batch_index = 12;
-  void clear_pbs_batch_index();
-  uint32_t pbs_batch_index() const;
-  void set_pbs_batch_index(uint32_t value);
-  private:
-  uint32_t _internal_pbs_batch_index() const;
-  void _internal_set_pbs_batch_index(uint32_t value);
-  public:
-
-  // uint64 pbs_batch_id = 11;
-  void clear_pbs_batch_id();
-  uint64_t pbs_batch_id() const;
-  void set_pbs_batch_id(uint64_t value);
-  private:
-  uint64_t _internal_pbs_batch_id() const;
-  void _internal_set_pbs_batch_id(uint64_t value);
-  public:
-
-  // uint32 pbs_batch_total = 13;
-  void clear_pbs_batch_total();
-  uint32_t pbs_batch_total() const;
-  void set_pbs_batch_total(uint32_t value);
-  private:
-  uint32_t _internal_pbs_batch_total() const;
-  void _internal_set_pbs_batch_total(uint32_t value);
-  public:
-
-  // @@protoc_insertion_point(class_scope:proxy_proto.PbsDataUpdatePlacement)
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixSupplyD0Request)
  private:
   class _Internal;
 
@@ -5435,19 +7109,14 @@ class PbsDataUpdatePlacement final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
-    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityForwardPlan > parity_forward_;
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr block_key_;
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr datanode_ip_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr old_payload_;
+    uint64_t batch_id_;
     int32_t stripe_id_;
-    int32_t cluster_id_;
-    int32_t block_id_;
+    int32_t parity_block_id_;
+    uint64_t write_generation_;
+    int32_t data_block_id_;
     int32_t range_offset_;
     uint64_t range_length_;
-    int32_t datanode_port_;
-    uint32_t pbs_batch_index_;
-    uint64_t pbs_batch_id_;
-    uint32_t pbs_batch_total_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -5455,24 +7124,24 @@ class PbsDataUpdatePlacement final :
 };
 // -------------------------------------------------------------------
 
-class PbsApplyParityDeltaRequest final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.PbsApplyParityDeltaRequest) */ {
+class ParixReplayBatchRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixReplayBatchRequest) */ {
  public:
-  inline PbsApplyParityDeltaRequest() : PbsApplyParityDeltaRequest(nullptr) {}
-  ~PbsApplyParityDeltaRequest() override;
-  explicit PROTOBUF_CONSTEXPR PbsApplyParityDeltaRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  inline ParixReplayBatchRequest() : ParixReplayBatchRequest(nullptr) {}
+  ~ParixReplayBatchRequest() override;
+  explicit PROTOBUF_CONSTEXPR ParixReplayBatchRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  PbsApplyParityDeltaRequest(const PbsApplyParityDeltaRequest& from);
-  PbsApplyParityDeltaRequest(PbsApplyParityDeltaRequest&& from) noexcept
-    : PbsApplyParityDeltaRequest() {
+  ParixReplayBatchRequest(const ParixReplayBatchRequest& from);
+  ParixReplayBatchRequest(ParixReplayBatchRequest&& from) noexcept
+    : ParixReplayBatchRequest() {
     *this = ::std::move(from);
   }
 
-  inline PbsApplyParityDeltaRequest& operator=(const PbsApplyParityDeltaRequest& from) {
+  inline ParixReplayBatchRequest& operator=(const ParixReplayBatchRequest& from) {
     CopyFrom(from);
     return *this;
   }
-  inline PbsApplyParityDeltaRequest& operator=(PbsApplyParityDeltaRequest&& from) noexcept {
+  inline ParixReplayBatchRequest& operator=(ParixReplayBatchRequest&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()
   #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
@@ -5495,20 +7164,20 @@ class PbsApplyParityDeltaRequest final :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const PbsApplyParityDeltaRequest& default_instance() {
+  static const ParixReplayBatchRequest& default_instance() {
     return *internal_default_instance();
   }
-  static inline const PbsApplyParityDeltaRequest* internal_default_instance() {
-    return reinterpret_cast<const PbsApplyParityDeltaRequest*>(
-               &_PbsApplyParityDeltaRequest_default_instance_);
+  static inline const ParixReplayBatchRequest* internal_default_instance() {
+    return reinterpret_cast<const ParixReplayBatchRequest*>(
+               &_ParixReplayBatchRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    30;
 
-  friend void swap(PbsApplyParityDeltaRequest& a, PbsApplyParityDeltaRequest& b) {
+  friend void swap(ParixReplayBatchRequest& a, ParixReplayBatchRequest& b) {
     a.Swap(&b);
   }
-  inline void Swap(PbsApplyParityDeltaRequest* other) {
+  inline void Swap(ParixReplayBatchRequest* other) {
     if (other == this) return;
   #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
     if (GetOwningArena() != nullptr &&
@@ -5521,7 +7190,7 @@ class PbsApplyParityDeltaRequest final :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(PbsApplyParityDeltaRequest* other) {
+  void UnsafeArenaSwap(ParixReplayBatchRequest* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -5529,14 +7198,14 @@ class PbsApplyParityDeltaRequest final :
 
   // implements Message ----------------------------------------------
 
-  PbsApplyParityDeltaRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<PbsApplyParityDeltaRequest>(arena);
+  ParixReplayBatchRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixReplayBatchRequest>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const PbsApplyParityDeltaRequest& from);
+  void CopyFrom(const ParixReplayBatchRequest& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const PbsApplyParityDeltaRequest& from) {
-    PbsApplyParityDeltaRequest::MergeImpl(*this, from);
+  void MergeFrom( const ParixReplayBatchRequest& from) {
+    ParixReplayBatchRequest::MergeImpl(*this, from);
   }
   private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
@@ -5554,15 +7223,15 @@ class PbsApplyParityDeltaRequest final :
   void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(PbsApplyParityDeltaRequest* other);
+  void InternalSwap(ParixReplayBatchRequest* other);
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "proxy_proto.PbsApplyParityDeltaRequest";
+    return "proxy_proto.ParixReplayBatchRequest";
   }
   protected:
-  explicit PbsApplyParityDeltaRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit ParixReplayBatchRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
   public:
 
@@ -5576,108 +7245,16 @@ class PbsApplyParityDeltaRequest final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kParitiesFieldNumber = 6,
-    kDeltaFieldNumber = 5,
-    kNewRangePayloadFieldNumber = 8,
-    kSrcDataBlockKeyFieldNumber = 9,
-    kSrcDataDatanodeIpFieldNumber = 10,
-    kDataRangeOldSnapshotFieldNumber = 15,
+    kBatchIdFieldNumber = 2,
     kStripeIdFieldNumber = 1,
-    kDataBlockIdFieldNumber = 2,
-    kRangeLengthFieldNumber = 4,
-    kRangeOffsetFieldNumber = 3,
-    kUseNewPayloadFieldNumber = 7,
-    kPbsBatchIdFieldNumber = 12,
-    kSrcDataDatanodePortFieldNumber = 11,
-    kPbsBatchIndexFieldNumber = 13,
-    kPbsBatchTotalFieldNumber = 14,
   };
-  // repeated .proxy_proto.PbsParityDeltaTarget parities = 6;
-  int parities_size() const;
+  // uint64 batch_id = 2;
+  void clear_batch_id();
+  uint64_t batch_id() const;
+  void set_batch_id(uint64_t value);
   private:
-  int _internal_parities_size() const;
-  public:
-  void clear_parities();
-  ::proxy_proto::PbsParityDeltaTarget* mutable_parities(int index);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >*
-      mutable_parities();
-  private:
-  const ::proxy_proto::PbsParityDeltaTarget& _internal_parities(int index) const;
-  ::proxy_proto::PbsParityDeltaTarget* _internal_add_parities();
-  public:
-  const ::proxy_proto::PbsParityDeltaTarget& parities(int index) const;
-  ::proxy_proto::PbsParityDeltaTarget* add_parities();
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >&
-      parities() const;
-
-  // bytes delta = 5;
-  void clear_delta();
-  const std::string& delta() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_delta(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_delta();
-  PROTOBUF_NODISCARD std::string* release_delta();
-  void set_allocated_delta(std::string* delta);
-  private:
-  const std::string& _internal_delta() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_delta(const std::string& value);
-  std::string* _internal_mutable_delta();
-  public:
-
-  // bytes new_range_payload = 8;
-  void clear_new_range_payload();
-  const std::string& new_range_payload() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_new_range_payload(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_new_range_payload();
-  PROTOBUF_NODISCARD std::string* release_new_range_payload();
-  void set_allocated_new_range_payload(std::string* new_range_payload);
-  private:
-  const std::string& _internal_new_range_payload() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_new_range_payload(const std::string& value);
-  std::string* _internal_mutable_new_range_payload();
-  public:
-
-  // string src_data_block_key = 9;
-  void clear_src_data_block_key();
-  const std::string& src_data_block_key() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_src_data_block_key(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_src_data_block_key();
-  PROTOBUF_NODISCARD std::string* release_src_data_block_key();
-  void set_allocated_src_data_block_key(std::string* src_data_block_key);
-  private:
-  const std::string& _internal_src_data_block_key() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_src_data_block_key(const std::string& value);
-  std::string* _internal_mutable_src_data_block_key();
-  public:
-
-  // string src_data_datanode_ip = 10;
-  void clear_src_data_datanode_ip();
-  const std::string& src_data_datanode_ip() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_src_data_datanode_ip(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_src_data_datanode_ip();
-  PROTOBUF_NODISCARD std::string* release_src_data_datanode_ip();
-  void set_allocated_src_data_datanode_ip(std::string* src_data_datanode_ip);
-  private:
-  const std::string& _internal_src_data_datanode_ip() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_src_data_datanode_ip(const std::string& value);
-  std::string* _internal_mutable_src_data_datanode_ip();
-  public:
-
-  // bytes data_range_old_snapshot = 15;
-  void clear_data_range_old_snapshot();
-  const std::string& data_range_old_snapshot() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_data_range_old_snapshot(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_data_range_old_snapshot();
-  PROTOBUF_NODISCARD std::string* release_data_range_old_snapshot();
-  void set_allocated_data_range_old_snapshot(std::string* data_range_old_snapshot);
-  private:
-  const std::string& _internal_data_range_old_snapshot() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_data_range_old_snapshot(const std::string& value);
-  std::string* _internal_mutable_data_range_old_snapshot();
+  uint64_t _internal_batch_id() const;
+  void _internal_set_batch_id(uint64_t value);
   public:
 
   // int32 stripe_id = 1;
@@ -5689,7 +7266,149 @@ class PbsApplyParityDeltaRequest final :
   void _internal_set_stripe_id(int32_t value);
   public:
 
-  // int32 data_block_id = 2;
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixReplayBatchRequest)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    uint64_t batch_id_;
+    int32_t stripe_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParixJournalInvalidationRange final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixJournalInvalidationRange) */ {
+ public:
+  inline ParixJournalInvalidationRange() : ParixJournalInvalidationRange(nullptr) {}
+  ~ParixJournalInvalidationRange() override;
+  explicit PROTOBUF_CONSTEXPR ParixJournalInvalidationRange(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParixJournalInvalidationRange(const ParixJournalInvalidationRange& from);
+  ParixJournalInvalidationRange(ParixJournalInvalidationRange&& from) noexcept
+    : ParixJournalInvalidationRange() {
+    *this = ::std::move(from);
+  }
+
+  inline ParixJournalInvalidationRange& operator=(const ParixJournalInvalidationRange& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParixJournalInvalidationRange& operator=(ParixJournalInvalidationRange&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParixJournalInvalidationRange& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParixJournalInvalidationRange* internal_default_instance() {
+    return reinterpret_cast<const ParixJournalInvalidationRange*>(
+               &_ParixJournalInvalidationRange_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    31;
+
+  friend void swap(ParixJournalInvalidationRange& a, ParixJournalInvalidationRange& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParixJournalInvalidationRange* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParixJournalInvalidationRange* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParixJournalInvalidationRange* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixJournalInvalidationRange>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParixJournalInvalidationRange& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParixJournalInvalidationRange& from) {
+    ParixJournalInvalidationRange::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParixJournalInvalidationRange* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.ParixJournalInvalidationRange";
+  }
+  protected:
+  explicit ParixJournalInvalidationRange(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kDataBlockIdFieldNumber = 1,
+    kRangeOffsetFieldNumber = 2,
+    kRangeLengthFieldNumber = 3,
+  };
+  // int32 data_block_id = 1;
   void clear_data_block_id();
   int32_t data_block_id() const;
   void set_data_block_id(int32_t value);
@@ -5698,16 +7417,7 @@ class PbsApplyParityDeltaRequest final :
   void _internal_set_data_block_id(int32_t value);
   public:
 
-  // uint64 range_length = 4;
-  void clear_range_length();
-  uint64_t range_length() const;
-  void set_range_length(uint64_t value);
-  private:
-  uint64_t _internal_range_length() const;
-  void _internal_set_range_length(uint64_t value);
-  public:
-
-  // int32 range_offset = 3;
+  // int32 range_offset = 2;
   void clear_range_offset();
   int32_t range_offset() const;
   void set_range_offset(int32_t value);
@@ -5716,52 +7426,16 @@ class PbsApplyParityDeltaRequest final :
   void _internal_set_range_offset(int32_t value);
   public:
 
-  // bool use_new_payload = 7;
-  void clear_use_new_payload();
-  bool use_new_payload() const;
-  void set_use_new_payload(bool value);
+  // uint64 range_length = 3;
+  void clear_range_length();
+  uint64_t range_length() const;
+  void set_range_length(uint64_t value);
   private:
-  bool _internal_use_new_payload() const;
-  void _internal_set_use_new_payload(bool value);
+  uint64_t _internal_range_length() const;
+  void _internal_set_range_length(uint64_t value);
   public:
 
-  // uint64 pbs_batch_id = 12;
-  void clear_pbs_batch_id();
-  uint64_t pbs_batch_id() const;
-  void set_pbs_batch_id(uint64_t value);
-  private:
-  uint64_t _internal_pbs_batch_id() const;
-  void _internal_set_pbs_batch_id(uint64_t value);
-  public:
-
-  // int32 src_data_datanode_port = 11;
-  void clear_src_data_datanode_port();
-  int32_t src_data_datanode_port() const;
-  void set_src_data_datanode_port(int32_t value);
-  private:
-  int32_t _internal_src_data_datanode_port() const;
-  void _internal_set_src_data_datanode_port(int32_t value);
-  public:
-
-  // uint32 pbs_batch_index = 13;
-  void clear_pbs_batch_index();
-  uint32_t pbs_batch_index() const;
-  void set_pbs_batch_index(uint32_t value);
-  private:
-  uint32_t _internal_pbs_batch_index() const;
-  void _internal_set_pbs_batch_index(uint32_t value);
-  public:
-
-  // uint32 pbs_batch_total = 14;
-  void clear_pbs_batch_total();
-  uint32_t pbs_batch_total() const;
-  void set_pbs_batch_total(uint32_t value);
-  private:
-  uint32_t _internal_pbs_batch_total() const;
-  void _internal_set_pbs_batch_total(uint32_t value);
-  public:
-
-  // @@protoc_insertion_point(class_scope:proxy_proto.PbsApplyParityDeltaRequest)
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixJournalInvalidationRange)
  private:
   class _Internal;
 
@@ -5769,21 +7443,258 @@ class PbsApplyParityDeltaRequest final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
-    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget > parities_;
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr delta_;
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr new_range_payload_;
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr src_data_block_key_;
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr src_data_datanode_ip_;
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_range_old_snapshot_;
-    int32_t stripe_id_;
     int32_t data_block_id_;
-    uint64_t range_length_;
     int32_t range_offset_;
-    bool use_new_payload_;
-    uint64_t pbs_batch_id_;
-    int32_t src_data_datanode_port_;
-    uint32_t pbs_batch_index_;
-    uint32_t pbs_batch_total_;
+    uint64_t range_length_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParixParityFullOverwriteRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixParityFullOverwriteRequest) */ {
+ public:
+  inline ParixParityFullOverwriteRequest() : ParixParityFullOverwriteRequest(nullptr) {}
+  ~ParixParityFullOverwriteRequest() override;
+  explicit PROTOBUF_CONSTEXPR ParixParityFullOverwriteRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParixParityFullOverwriteRequest(const ParixParityFullOverwriteRequest& from);
+  ParixParityFullOverwriteRequest(ParixParityFullOverwriteRequest&& from) noexcept
+    : ParixParityFullOverwriteRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline ParixParityFullOverwriteRequest& operator=(const ParixParityFullOverwriteRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParixParityFullOverwriteRequest& operator=(ParixParityFullOverwriteRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParixParityFullOverwriteRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParixParityFullOverwriteRequest* internal_default_instance() {
+    return reinterpret_cast<const ParixParityFullOverwriteRequest*>(
+               &_ParixParityFullOverwriteRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    32;
+
+  friend void swap(ParixParityFullOverwriteRequest& a, ParixParityFullOverwriteRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParixParityFullOverwriteRequest* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParixParityFullOverwriteRequest* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParixParityFullOverwriteRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixParityFullOverwriteRequest>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParixParityFullOverwriteRequest& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParixParityFullOverwriteRequest& from) {
+    ParixParityFullOverwriteRequest::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParixParityFullOverwriteRequest* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.ParixParityFullOverwriteRequest";
+  }
+  protected:
+  explicit ParixParityFullOverwriteRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kJournalInvalidationsFieldNumber = 8,
+    kParityBlockKeyFieldNumber = 4,
+    kFullParityBlockFieldNumber = 5,
+    kDatanodeIpFieldNumber = 6,
+    kNewWriteGenerationFieldNumber = 2,
+    kStripeIdFieldNumber = 1,
+    kParityBlockIdFieldNumber = 3,
+    kDatanodePortFieldNumber = 7,
+  };
+  // repeated .proxy_proto.ParixJournalInvalidationRange journal_invalidations = 8;
+  int journal_invalidations_size() const;
+  private:
+  int _internal_journal_invalidations_size() const;
+  public:
+  void clear_journal_invalidations();
+  ::proxy_proto::ParixJournalInvalidationRange* mutable_journal_invalidations(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalInvalidationRange >*
+      mutable_journal_invalidations();
+  private:
+  const ::proxy_proto::ParixJournalInvalidationRange& _internal_journal_invalidations(int index) const;
+  ::proxy_proto::ParixJournalInvalidationRange* _internal_add_journal_invalidations();
+  public:
+  const ::proxy_proto::ParixJournalInvalidationRange& journal_invalidations(int index) const;
+  ::proxy_proto::ParixJournalInvalidationRange* add_journal_invalidations();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalInvalidationRange >&
+      journal_invalidations() const;
+
+  // string parity_block_key = 4;
+  void clear_parity_block_key();
+  const std::string& parity_block_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_parity_block_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_parity_block_key();
+  PROTOBUF_NODISCARD std::string* release_parity_block_key();
+  void set_allocated_parity_block_key(std::string* parity_block_key);
+  private:
+  const std::string& _internal_parity_block_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_parity_block_key(const std::string& value);
+  std::string* _internal_mutable_parity_block_key();
+  public:
+
+  // bytes full_parity_block = 5;
+  void clear_full_parity_block();
+  const std::string& full_parity_block() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_full_parity_block(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_full_parity_block();
+  PROTOBUF_NODISCARD std::string* release_full_parity_block();
+  void set_allocated_full_parity_block(std::string* full_parity_block);
+  private:
+  const std::string& _internal_full_parity_block() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_full_parity_block(const std::string& value);
+  std::string* _internal_mutable_full_parity_block();
+  public:
+
+  // string datanode_ip = 6;
+  void clear_datanode_ip();
+  const std::string& datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_datanode_ip();
+  void set_allocated_datanode_ip(std::string* datanode_ip);
+  private:
+  const std::string& _internal_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_datanode_ip();
+  public:
+
+  // uint64 new_write_generation = 2;
+  void clear_new_write_generation();
+  uint64_t new_write_generation() const;
+  void set_new_write_generation(uint64_t value);
+  private:
+  uint64_t _internal_new_write_generation() const;
+  void _internal_set_new_write_generation(uint64_t value);
+  public:
+
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // int32 parity_block_id = 3;
+  void clear_parity_block_id();
+  int32_t parity_block_id() const;
+  void set_parity_block_id(int32_t value);
+  private:
+  int32_t _internal_parity_block_id() const;
+  void _internal_set_parity_block_id(int32_t value);
+  public:
+
+  // int32 datanode_port = 7;
+  void clear_datanode_port();
+  int32_t datanode_port() const;
+  void set_datanode_port(int32_t value);
+  private:
+  int32_t _internal_datanode_port() const;
+  void _internal_set_datanode_port(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixParityFullOverwriteRequest)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalInvalidationRange > journal_invalidations_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parity_block_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr full_parity_block_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr datanode_ip_;
+    uint64_t new_write_generation_;
+    int32_t stripe_id_;
+    int32_t parity_block_id_;
+    int32_t datanode_port_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -5839,7 +7750,7 @@ class AppendStripeDataPlacement final :
                &_AppendStripeDataPlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    33;
 
   friend void swap(AppendStripeDataPlacement& a, AppendStripeDataPlacement& b) {
     a.Swap(&b);
@@ -6215,7 +8126,7 @@ class SetReply final :
                &_SetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    24;
+    34;
 
   friend void swap(SetReply& a, SetReply& b) {
     a.Swap(&b);
@@ -6363,7 +8274,7 @@ class GetReply final :
                &_GetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    25;
+    35;
 
   friend void swap(GetReply& a, GetReply& b) {
     a.Swap(&b);
@@ -6511,7 +8422,7 @@ class StripeAndBlockIDs final :
                &_StripeAndBlockIDs_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    26;
+    36;
 
   friend void swap(StripeAndBlockIDs& a, StripeAndBlockIDs& b) {
     a.Swap(&b);
@@ -11402,44 +13313,134 @@ inline void RecoveryReply::set_dest_data_node_disk_io_time(double value) {
 
 // -------------------------------------------------------------------
 
-// PbsParityDeltaTarget
+// ParixParityRpcTarget
 
-// string parity_block_key = 1;
-inline void PbsParityDeltaTarget::clear_parity_block_key() {
+// string proxy_ip = 1;
+inline void ParixParityRpcTarget::clear_proxy_ip() {
+  _impl_.proxy_ip_.ClearToEmpty();
+}
+inline const std::string& ParixParityRpcTarget::proxy_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityRpcTarget.proxy_ip)
+  return _internal_proxy_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ParixParityRpcTarget::set_proxy_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.proxy_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixParityRpcTarget.proxy_ip)
+}
+inline std::string* ParixParityRpcTarget::mutable_proxy_ip() {
+  std::string* _s = _internal_mutable_proxy_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixParityRpcTarget.proxy_ip)
+  return _s;
+}
+inline const std::string& ParixParityRpcTarget::_internal_proxy_ip() const {
+  return _impl_.proxy_ip_.Get();
+}
+inline void ParixParityRpcTarget::_internal_set_proxy_ip(const std::string& value) {
+  
+  _impl_.proxy_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ParixParityRpcTarget::_internal_mutable_proxy_ip() {
+  
+  return _impl_.proxy_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ParixParityRpcTarget::release_proxy_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixParityRpcTarget.proxy_ip)
+  return _impl_.proxy_ip_.Release();
+}
+inline void ParixParityRpcTarget::set_allocated_proxy_ip(std::string* proxy_ip) {
+  if (proxy_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.proxy_ip_.SetAllocated(proxy_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.proxy_ip_.IsDefault()) {
+    _impl_.proxy_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixParityRpcTarget.proxy_ip)
+}
+
+// int32 proxy_grpc_port = 2;
+inline void ParixParityRpcTarget::clear_proxy_grpc_port() {
+  _impl_.proxy_grpc_port_ = 0;
+}
+inline int32_t ParixParityRpcTarget::_internal_proxy_grpc_port() const {
+  return _impl_.proxy_grpc_port_;
+}
+inline int32_t ParixParityRpcTarget::proxy_grpc_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityRpcTarget.proxy_grpc_port)
+  return _internal_proxy_grpc_port();
+}
+inline void ParixParityRpcTarget::_internal_set_proxy_grpc_port(int32_t value) {
+  
+  _impl_.proxy_grpc_port_ = value;
+}
+inline void ParixParityRpcTarget::set_proxy_grpc_port(int32_t value) {
+  _internal_set_proxy_grpc_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixParityRpcTarget.proxy_grpc_port)
+}
+
+// int32 parity_block_id = 3;
+inline void ParixParityRpcTarget::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
+}
+inline int32_t ParixParityRpcTarget::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
+}
+inline int32_t ParixParityRpcTarget::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityRpcTarget.parity_block_id)
+  return _internal_parity_block_id();
+}
+inline void ParixParityRpcTarget::_internal_set_parity_block_id(int32_t value) {
+  
+  _impl_.parity_block_id_ = value;
+}
+inline void ParixParityRpcTarget::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixParityRpcTarget.parity_block_id)
+}
+
+// string parity_block_key = 4;
+inline void ParixParityRpcTarget::clear_parity_block_key() {
   _impl_.parity_block_key_.ClearToEmpty();
 }
-inline const std::string& PbsParityDeltaTarget::parity_block_key() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsParityDeltaTarget.parity_block_key)
+inline const std::string& ParixParityRpcTarget::parity_block_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityRpcTarget.parity_block_key)
   return _internal_parity_block_key();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void PbsParityDeltaTarget::set_parity_block_key(ArgT0&& arg0, ArgT... args) {
+void ParixParityRpcTarget::set_parity_block_key(ArgT0&& arg0, ArgT... args) {
  
  _impl_.parity_block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsParityDeltaTarget.parity_block_key)
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixParityRpcTarget.parity_block_key)
 }
-inline std::string* PbsParityDeltaTarget::mutable_parity_block_key() {
+inline std::string* ParixParityRpcTarget::mutable_parity_block_key() {
   std::string* _s = _internal_mutable_parity_block_key();
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsParityDeltaTarget.parity_block_key)
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixParityRpcTarget.parity_block_key)
   return _s;
 }
-inline const std::string& PbsParityDeltaTarget::_internal_parity_block_key() const {
+inline const std::string& ParixParityRpcTarget::_internal_parity_block_key() const {
   return _impl_.parity_block_key_.Get();
 }
-inline void PbsParityDeltaTarget::_internal_set_parity_block_key(const std::string& value) {
+inline void ParixParityRpcTarget::_internal_set_parity_block_key(const std::string& value) {
   
   _impl_.parity_block_key_.Set(value, GetArenaForAllocation());
 }
-inline std::string* PbsParityDeltaTarget::_internal_mutable_parity_block_key() {
+inline std::string* ParixParityRpcTarget::_internal_mutable_parity_block_key() {
   
   return _impl_.parity_block_key_.Mutable(GetArenaForAllocation());
 }
-inline std::string* PbsParityDeltaTarget::release_parity_block_key() {
-  // @@protoc_insertion_point(field_release:proxy_proto.PbsParityDeltaTarget.parity_block_key)
+inline std::string* ParixParityRpcTarget::release_parity_block_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixParityRpcTarget.parity_block_key)
   return _impl_.parity_block_key_.Release();
 }
-inline void PbsParityDeltaTarget::set_allocated_parity_block_key(std::string* parity_block_key) {
+inline void ParixParityRpcTarget::set_allocated_parity_block_key(std::string* parity_block_key) {
   if (parity_block_key != nullptr) {
     
   } else {
@@ -11451,253 +13452,119 @@ inline void PbsParityDeltaTarget::set_allocated_parity_block_key(std::string* pa
     _impl_.parity_block_key_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsParityDeltaTarget.parity_block_key)
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixParityRpcTarget.parity_block_key)
 }
 
-// int32 parity_block_id = 2;
-inline void PbsParityDeltaTarget::clear_parity_block_id() {
-  _impl_.parity_block_id_ = 0;
+// string parity_datanode_ip = 5;
+inline void ParixParityRpcTarget::clear_parity_datanode_ip() {
+  _impl_.parity_datanode_ip_.ClearToEmpty();
 }
-inline int32_t PbsParityDeltaTarget::_internal_parity_block_id() const {
-  return _impl_.parity_block_id_;
-}
-inline int32_t PbsParityDeltaTarget::parity_block_id() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsParityDeltaTarget.parity_block_id)
-  return _internal_parity_block_id();
-}
-inline void PbsParityDeltaTarget::_internal_set_parity_block_id(int32_t value) {
-  
-  _impl_.parity_block_id_ = value;
-}
-inline void PbsParityDeltaTarget::set_parity_block_id(int32_t value) {
-  _internal_set_parity_block_id(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsParityDeltaTarget.parity_block_id)
-}
-
-// string datanode_ip = 3;
-inline void PbsParityDeltaTarget::clear_datanode_ip() {
-  _impl_.datanode_ip_.ClearToEmpty();
-}
-inline const std::string& PbsParityDeltaTarget::datanode_ip() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsParityDeltaTarget.datanode_ip)
-  return _internal_datanode_ip();
+inline const std::string& ParixParityRpcTarget::parity_datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityRpcTarget.parity_datanode_ip)
+  return _internal_parity_datanode_ip();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void PbsParityDeltaTarget::set_datanode_ip(ArgT0&& arg0, ArgT... args) {
+void ParixParityRpcTarget::set_parity_datanode_ip(ArgT0&& arg0, ArgT... args) {
  
- _impl_.datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsParityDeltaTarget.datanode_ip)
+ _impl_.parity_datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixParityRpcTarget.parity_datanode_ip)
 }
-inline std::string* PbsParityDeltaTarget::mutable_datanode_ip() {
-  std::string* _s = _internal_mutable_datanode_ip();
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsParityDeltaTarget.datanode_ip)
+inline std::string* ParixParityRpcTarget::mutable_parity_datanode_ip() {
+  std::string* _s = _internal_mutable_parity_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixParityRpcTarget.parity_datanode_ip)
   return _s;
 }
-inline const std::string& PbsParityDeltaTarget::_internal_datanode_ip() const {
-  return _impl_.datanode_ip_.Get();
+inline const std::string& ParixParityRpcTarget::_internal_parity_datanode_ip() const {
+  return _impl_.parity_datanode_ip_.Get();
 }
-inline void PbsParityDeltaTarget::_internal_set_datanode_ip(const std::string& value) {
+inline void ParixParityRpcTarget::_internal_set_parity_datanode_ip(const std::string& value) {
   
-  _impl_.datanode_ip_.Set(value, GetArenaForAllocation());
+  _impl_.parity_datanode_ip_.Set(value, GetArenaForAllocation());
 }
-inline std::string* PbsParityDeltaTarget::_internal_mutable_datanode_ip() {
+inline std::string* ParixParityRpcTarget::_internal_mutable_parity_datanode_ip() {
   
-  return _impl_.datanode_ip_.Mutable(GetArenaForAllocation());
+  return _impl_.parity_datanode_ip_.Mutable(GetArenaForAllocation());
 }
-inline std::string* PbsParityDeltaTarget::release_datanode_ip() {
-  // @@protoc_insertion_point(field_release:proxy_proto.PbsParityDeltaTarget.datanode_ip)
-  return _impl_.datanode_ip_.Release();
+inline std::string* ParixParityRpcTarget::release_parity_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixParityRpcTarget.parity_datanode_ip)
+  return _impl_.parity_datanode_ip_.Release();
 }
-inline void PbsParityDeltaTarget::set_allocated_datanode_ip(std::string* datanode_ip) {
-  if (datanode_ip != nullptr) {
+inline void ParixParityRpcTarget::set_allocated_parity_datanode_ip(std::string* parity_datanode_ip) {
+  if (parity_datanode_ip != nullptr) {
     
   } else {
     
   }
-  _impl_.datanode_ip_.SetAllocated(datanode_ip, GetArenaForAllocation());
+  _impl_.parity_datanode_ip_.SetAllocated(parity_datanode_ip, GetArenaForAllocation());
 #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.datanode_ip_.IsDefault()) {
-    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  if (_impl_.parity_datanode_ip_.IsDefault()) {
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsParityDeltaTarget.datanode_ip)
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixParityRpcTarget.parity_datanode_ip)
 }
 
-// int32 datanode_port = 4;
-inline void PbsParityDeltaTarget::clear_datanode_port() {
-  _impl_.datanode_port_ = 0;
+// int32 parity_datanode_port = 6;
+inline void ParixParityRpcTarget::clear_parity_datanode_port() {
+  _impl_.parity_datanode_port_ = 0;
 }
-inline int32_t PbsParityDeltaTarget::_internal_datanode_port() const {
-  return _impl_.datanode_port_;
+inline int32_t ParixParityRpcTarget::_internal_parity_datanode_port() const {
+  return _impl_.parity_datanode_port_;
 }
-inline int32_t PbsParityDeltaTarget::datanode_port() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsParityDeltaTarget.datanode_port)
-  return _internal_datanode_port();
+inline int32_t ParixParityRpcTarget::parity_datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityRpcTarget.parity_datanode_port)
+  return _internal_parity_datanode_port();
 }
-inline void PbsParityDeltaTarget::_internal_set_datanode_port(int32_t value) {
+inline void ParixParityRpcTarget::_internal_set_parity_datanode_port(int32_t value) {
   
-  _impl_.datanode_port_ = value;
+  _impl_.parity_datanode_port_ = value;
 }
-inline void PbsParityDeltaTarget::set_datanode_port(int32_t value) {
-  _internal_set_datanode_port(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsParityDeltaTarget.datanode_port)
+inline void ParixParityRpcTarget::set_parity_datanode_port(int32_t value) {
+  _internal_set_parity_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixParityRpcTarget.parity_datanode_port)
 }
 
 // -------------------------------------------------------------------
 
-// PbsParityForwardPlan
-
-// string dest_proxy_ip = 1;
-inline void PbsParityForwardPlan::clear_dest_proxy_ip() {
-  _impl_.dest_proxy_ip_.ClearToEmpty();
-}
-inline const std::string& PbsParityForwardPlan::dest_proxy_ip() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsParityForwardPlan.dest_proxy_ip)
-  return _internal_dest_proxy_ip();
-}
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE
-void PbsParityForwardPlan::set_dest_proxy_ip(ArgT0&& arg0, ArgT... args) {
- 
- _impl_.dest_proxy_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsParityForwardPlan.dest_proxy_ip)
-}
-inline std::string* PbsParityForwardPlan::mutable_dest_proxy_ip() {
-  std::string* _s = _internal_mutable_dest_proxy_ip();
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsParityForwardPlan.dest_proxy_ip)
-  return _s;
-}
-inline const std::string& PbsParityForwardPlan::_internal_dest_proxy_ip() const {
-  return _impl_.dest_proxy_ip_.Get();
-}
-inline void PbsParityForwardPlan::_internal_set_dest_proxy_ip(const std::string& value) {
-  
-  _impl_.dest_proxy_ip_.Set(value, GetArenaForAllocation());
-}
-inline std::string* PbsParityForwardPlan::_internal_mutable_dest_proxy_ip() {
-  
-  return _impl_.dest_proxy_ip_.Mutable(GetArenaForAllocation());
-}
-inline std::string* PbsParityForwardPlan::release_dest_proxy_ip() {
-  // @@protoc_insertion_point(field_release:proxy_proto.PbsParityForwardPlan.dest_proxy_ip)
-  return _impl_.dest_proxy_ip_.Release();
-}
-inline void PbsParityForwardPlan::set_allocated_dest_proxy_ip(std::string* dest_proxy_ip) {
-  if (dest_proxy_ip != nullptr) {
-    
-  } else {
-    
-  }
-  _impl_.dest_proxy_ip_.SetAllocated(dest_proxy_ip, GetArenaForAllocation());
-#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.dest_proxy_ip_.IsDefault()) {
-    _impl_.dest_proxy_ip_.Set("", GetArenaForAllocation());
-  }
-#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsParityForwardPlan.dest_proxy_ip)
-}
-
-// int32 dest_proxy_base_port = 2;
-inline void PbsParityForwardPlan::clear_dest_proxy_base_port() {
-  _impl_.dest_proxy_base_port_ = 0;
-}
-inline int32_t PbsParityForwardPlan::_internal_dest_proxy_base_port() const {
-  return _impl_.dest_proxy_base_port_;
-}
-inline int32_t PbsParityForwardPlan::dest_proxy_base_port() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsParityForwardPlan.dest_proxy_base_port)
-  return _internal_dest_proxy_base_port();
-}
-inline void PbsParityForwardPlan::_internal_set_dest_proxy_base_port(int32_t value) {
-  
-  _impl_.dest_proxy_base_port_ = value;
-}
-inline void PbsParityForwardPlan::set_dest_proxy_base_port(int32_t value) {
-  _internal_set_dest_proxy_base_port(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsParityForwardPlan.dest_proxy_base_port)
-}
-
-// repeated .proxy_proto.PbsParityDeltaTarget parities = 3;
-inline int PbsParityForwardPlan::_internal_parities_size() const {
-  return _impl_.parities_.size();
-}
-inline int PbsParityForwardPlan::parities_size() const {
-  return _internal_parities_size();
-}
-inline void PbsParityForwardPlan::clear_parities() {
-  _impl_.parities_.Clear();
-}
-inline ::proxy_proto::PbsParityDeltaTarget* PbsParityForwardPlan::mutable_parities(int index) {
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsParityForwardPlan.parities)
-  return _impl_.parities_.Mutable(index);
-}
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >*
-PbsParityForwardPlan::mutable_parities() {
-  // @@protoc_insertion_point(field_mutable_list:proxy_proto.PbsParityForwardPlan.parities)
-  return &_impl_.parities_;
-}
-inline const ::proxy_proto::PbsParityDeltaTarget& PbsParityForwardPlan::_internal_parities(int index) const {
-  return _impl_.parities_.Get(index);
-}
-inline const ::proxy_proto::PbsParityDeltaTarget& PbsParityForwardPlan::parities(int index) const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsParityForwardPlan.parities)
-  return _internal_parities(index);
-}
-inline ::proxy_proto::PbsParityDeltaTarget* PbsParityForwardPlan::_internal_add_parities() {
-  return _impl_.parities_.Add();
-}
-inline ::proxy_proto::PbsParityDeltaTarget* PbsParityForwardPlan::add_parities() {
-  ::proxy_proto::PbsParityDeltaTarget* _add = _internal_add_parities();
-  // @@protoc_insertion_point(field_add:proxy_proto.PbsParityForwardPlan.parities)
-  return _add;
-}
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >&
-PbsParityForwardPlan::parities() const {
-  // @@protoc_insertion_point(field_list:proxy_proto.PbsParityForwardPlan.parities)
-  return _impl_.parities_;
-}
-
-// -------------------------------------------------------------------
-
-// PbsDataUpdatePlacement
+// ParixDataUpdatePlacement
 
 // string key = 1;
-inline void PbsDataUpdatePlacement::clear_key() {
+inline void ParixDataUpdatePlacement::clear_key() {
   _impl_.key_.ClearToEmpty();
 }
-inline const std::string& PbsDataUpdatePlacement::key() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.key)
+inline const std::string& ParixDataUpdatePlacement::key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataUpdatePlacement.key)
   return _internal_key();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void PbsDataUpdatePlacement::set_key(ArgT0&& arg0, ArgT... args) {
+void ParixDataUpdatePlacement::set_key(ArgT0&& arg0, ArgT... args) {
  
  _impl_.key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.key)
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixDataUpdatePlacement.key)
 }
-inline std::string* PbsDataUpdatePlacement::mutable_key() {
+inline std::string* ParixDataUpdatePlacement::mutable_key() {
   std::string* _s = _internal_mutable_key();
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsDataUpdatePlacement.key)
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixDataUpdatePlacement.key)
   return _s;
 }
-inline const std::string& PbsDataUpdatePlacement::_internal_key() const {
+inline const std::string& ParixDataUpdatePlacement::_internal_key() const {
   return _impl_.key_.Get();
 }
-inline void PbsDataUpdatePlacement::_internal_set_key(const std::string& value) {
+inline void ParixDataUpdatePlacement::_internal_set_key(const std::string& value) {
   
   _impl_.key_.Set(value, GetArenaForAllocation());
 }
-inline std::string* PbsDataUpdatePlacement::_internal_mutable_key() {
+inline std::string* ParixDataUpdatePlacement::_internal_mutable_key() {
   
   return _impl_.key_.Mutable(GetArenaForAllocation());
 }
-inline std::string* PbsDataUpdatePlacement::release_key() {
-  // @@protoc_insertion_point(field_release:proxy_proto.PbsDataUpdatePlacement.key)
+inline std::string* ParixDataUpdatePlacement::release_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixDataUpdatePlacement.key)
   return _impl_.key_.Release();
 }
-inline void PbsDataUpdatePlacement::set_allocated_key(std::string* key) {
+inline void ParixDataUpdatePlacement::set_allocated_key(std::string* key) {
   if (key != nullptr) {
     
   } else {
@@ -11709,85 +13576,125 @@ inline void PbsDataUpdatePlacement::set_allocated_key(std::string* key) {
     _impl_.key_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsDataUpdatePlacement.key)
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixDataUpdatePlacement.key)
 }
 
 // int32 stripe_id = 2;
-inline void PbsDataUpdatePlacement::clear_stripe_id() {
+inline void ParixDataUpdatePlacement::clear_stripe_id() {
   _impl_.stripe_id_ = 0;
 }
-inline int32_t PbsDataUpdatePlacement::_internal_stripe_id() const {
+inline int32_t ParixDataUpdatePlacement::_internal_stripe_id() const {
   return _impl_.stripe_id_;
 }
-inline int32_t PbsDataUpdatePlacement::stripe_id() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.stripe_id)
+inline int32_t ParixDataUpdatePlacement::stripe_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataUpdatePlacement.stripe_id)
   return _internal_stripe_id();
 }
-inline void PbsDataUpdatePlacement::_internal_set_stripe_id(int32_t value) {
+inline void ParixDataUpdatePlacement::_internal_set_stripe_id(int32_t value) {
   
   _impl_.stripe_id_ = value;
 }
-inline void PbsDataUpdatePlacement::set_stripe_id(int32_t value) {
+inline void ParixDataUpdatePlacement::set_stripe_id(int32_t value) {
   _internal_set_stripe_id(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.stripe_id)
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixDataUpdatePlacement.stripe_id)
 }
 
-// int32 cluster_id = 3;
-inline void PbsDataUpdatePlacement::clear_cluster_id() {
+// uint64 batch_id = 3;
+inline void ParixDataUpdatePlacement::clear_batch_id() {
+  _impl_.batch_id_ = uint64_t{0u};
+}
+inline uint64_t ParixDataUpdatePlacement::_internal_batch_id() const {
+  return _impl_.batch_id_;
+}
+inline uint64_t ParixDataUpdatePlacement::batch_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataUpdatePlacement.batch_id)
+  return _internal_batch_id();
+}
+inline void ParixDataUpdatePlacement::_internal_set_batch_id(uint64_t value) {
+  
+  _impl_.batch_id_ = value;
+}
+inline void ParixDataUpdatePlacement::set_batch_id(uint64_t value) {
+  _internal_set_batch_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixDataUpdatePlacement.batch_id)
+}
+
+// uint64 write_generation = 4;
+inline void ParixDataUpdatePlacement::clear_write_generation() {
+  _impl_.write_generation_ = uint64_t{0u};
+}
+inline uint64_t ParixDataUpdatePlacement::_internal_write_generation() const {
+  return _impl_.write_generation_;
+}
+inline uint64_t ParixDataUpdatePlacement::write_generation() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataUpdatePlacement.write_generation)
+  return _internal_write_generation();
+}
+inline void ParixDataUpdatePlacement::_internal_set_write_generation(uint64_t value) {
+  
+  _impl_.write_generation_ = value;
+}
+inline void ParixDataUpdatePlacement::set_write_generation(uint64_t value) {
+  _internal_set_write_generation(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixDataUpdatePlacement.write_generation)
+}
+
+// int32 cluster_id = 5;
+inline void ParixDataUpdatePlacement::clear_cluster_id() {
   _impl_.cluster_id_ = 0;
 }
-inline int32_t PbsDataUpdatePlacement::_internal_cluster_id() const {
+inline int32_t ParixDataUpdatePlacement::_internal_cluster_id() const {
   return _impl_.cluster_id_;
 }
-inline int32_t PbsDataUpdatePlacement::cluster_id() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.cluster_id)
+inline int32_t ParixDataUpdatePlacement::cluster_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataUpdatePlacement.cluster_id)
   return _internal_cluster_id();
 }
-inline void PbsDataUpdatePlacement::_internal_set_cluster_id(int32_t value) {
+inline void ParixDataUpdatePlacement::_internal_set_cluster_id(int32_t value) {
   
   _impl_.cluster_id_ = value;
 }
-inline void PbsDataUpdatePlacement::set_cluster_id(int32_t value) {
+inline void ParixDataUpdatePlacement::set_cluster_id(int32_t value) {
   _internal_set_cluster_id(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.cluster_id)
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixDataUpdatePlacement.cluster_id)
 }
 
-// string block_key = 4;
-inline void PbsDataUpdatePlacement::clear_block_key() {
+// string block_key = 6;
+inline void ParixDataUpdatePlacement::clear_block_key() {
   _impl_.block_key_.ClearToEmpty();
 }
-inline const std::string& PbsDataUpdatePlacement::block_key() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.block_key)
+inline const std::string& ParixDataUpdatePlacement::block_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataUpdatePlacement.block_key)
   return _internal_block_key();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void PbsDataUpdatePlacement::set_block_key(ArgT0&& arg0, ArgT... args) {
+void ParixDataUpdatePlacement::set_block_key(ArgT0&& arg0, ArgT... args) {
  
  _impl_.block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.block_key)
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixDataUpdatePlacement.block_key)
 }
-inline std::string* PbsDataUpdatePlacement::mutable_block_key() {
+inline std::string* ParixDataUpdatePlacement::mutable_block_key() {
   std::string* _s = _internal_mutable_block_key();
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsDataUpdatePlacement.block_key)
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixDataUpdatePlacement.block_key)
   return _s;
 }
-inline const std::string& PbsDataUpdatePlacement::_internal_block_key() const {
+inline const std::string& ParixDataUpdatePlacement::_internal_block_key() const {
   return _impl_.block_key_.Get();
 }
-inline void PbsDataUpdatePlacement::_internal_set_block_key(const std::string& value) {
+inline void ParixDataUpdatePlacement::_internal_set_block_key(const std::string& value) {
   
   _impl_.block_key_.Set(value, GetArenaForAllocation());
 }
-inline std::string* PbsDataUpdatePlacement::_internal_mutable_block_key() {
+inline std::string* ParixDataUpdatePlacement::_internal_mutable_block_key() {
   
   return _impl_.block_key_.Mutable(GetArenaForAllocation());
 }
-inline std::string* PbsDataUpdatePlacement::release_block_key() {
-  // @@protoc_insertion_point(field_release:proxy_proto.PbsDataUpdatePlacement.block_key)
+inline std::string* ParixDataUpdatePlacement::release_block_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixDataUpdatePlacement.block_key)
   return _impl_.block_key_.Release();
 }
-inline void PbsDataUpdatePlacement::set_allocated_block_key(std::string* block_key) {
+inline void ParixDataUpdatePlacement::set_allocated_block_key(std::string* block_key) {
   if (block_key != nullptr) {
     
   } else {
@@ -11799,105 +13706,105 @@ inline void PbsDataUpdatePlacement::set_allocated_block_key(std::string* block_k
     _impl_.block_key_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsDataUpdatePlacement.block_key)
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixDataUpdatePlacement.block_key)
 }
 
-// int32 block_id = 5;
-inline void PbsDataUpdatePlacement::clear_block_id() {
+// int32 block_id = 7;
+inline void ParixDataUpdatePlacement::clear_block_id() {
   _impl_.block_id_ = 0;
 }
-inline int32_t PbsDataUpdatePlacement::_internal_block_id() const {
+inline int32_t ParixDataUpdatePlacement::_internal_block_id() const {
   return _impl_.block_id_;
 }
-inline int32_t PbsDataUpdatePlacement::block_id() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.block_id)
+inline int32_t ParixDataUpdatePlacement::block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataUpdatePlacement.block_id)
   return _internal_block_id();
 }
-inline void PbsDataUpdatePlacement::_internal_set_block_id(int32_t value) {
+inline void ParixDataUpdatePlacement::_internal_set_block_id(int32_t value) {
   
   _impl_.block_id_ = value;
 }
-inline void PbsDataUpdatePlacement::set_block_id(int32_t value) {
+inline void ParixDataUpdatePlacement::set_block_id(int32_t value) {
   _internal_set_block_id(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.block_id)
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixDataUpdatePlacement.block_id)
 }
 
-// int32 range_offset = 6;
-inline void PbsDataUpdatePlacement::clear_range_offset() {
+// int32 range_offset = 8;
+inline void ParixDataUpdatePlacement::clear_range_offset() {
   _impl_.range_offset_ = 0;
 }
-inline int32_t PbsDataUpdatePlacement::_internal_range_offset() const {
+inline int32_t ParixDataUpdatePlacement::_internal_range_offset() const {
   return _impl_.range_offset_;
 }
-inline int32_t PbsDataUpdatePlacement::range_offset() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.range_offset)
+inline int32_t ParixDataUpdatePlacement::range_offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataUpdatePlacement.range_offset)
   return _internal_range_offset();
 }
-inline void PbsDataUpdatePlacement::_internal_set_range_offset(int32_t value) {
+inline void ParixDataUpdatePlacement::_internal_set_range_offset(int32_t value) {
   
   _impl_.range_offset_ = value;
 }
-inline void PbsDataUpdatePlacement::set_range_offset(int32_t value) {
+inline void ParixDataUpdatePlacement::set_range_offset(int32_t value) {
   _internal_set_range_offset(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.range_offset)
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixDataUpdatePlacement.range_offset)
 }
 
-// uint64 range_length = 7;
-inline void PbsDataUpdatePlacement::clear_range_length() {
+// uint64 range_length = 9;
+inline void ParixDataUpdatePlacement::clear_range_length() {
   _impl_.range_length_ = uint64_t{0u};
 }
-inline uint64_t PbsDataUpdatePlacement::_internal_range_length() const {
+inline uint64_t ParixDataUpdatePlacement::_internal_range_length() const {
   return _impl_.range_length_;
 }
-inline uint64_t PbsDataUpdatePlacement::range_length() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.range_length)
+inline uint64_t ParixDataUpdatePlacement::range_length() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataUpdatePlacement.range_length)
   return _internal_range_length();
 }
-inline void PbsDataUpdatePlacement::_internal_set_range_length(uint64_t value) {
+inline void ParixDataUpdatePlacement::_internal_set_range_length(uint64_t value) {
   
   _impl_.range_length_ = value;
 }
-inline void PbsDataUpdatePlacement::set_range_length(uint64_t value) {
+inline void ParixDataUpdatePlacement::set_range_length(uint64_t value) {
   _internal_set_range_length(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.range_length)
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixDataUpdatePlacement.range_length)
 }
 
-// string datanode_ip = 8;
-inline void PbsDataUpdatePlacement::clear_datanode_ip() {
+// string datanode_ip = 10;
+inline void ParixDataUpdatePlacement::clear_datanode_ip() {
   _impl_.datanode_ip_.ClearToEmpty();
 }
-inline const std::string& PbsDataUpdatePlacement::datanode_ip() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.datanode_ip)
+inline const std::string& ParixDataUpdatePlacement::datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataUpdatePlacement.datanode_ip)
   return _internal_datanode_ip();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void PbsDataUpdatePlacement::set_datanode_ip(ArgT0&& arg0, ArgT... args) {
+void ParixDataUpdatePlacement::set_datanode_ip(ArgT0&& arg0, ArgT... args) {
  
  _impl_.datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.datanode_ip)
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixDataUpdatePlacement.datanode_ip)
 }
-inline std::string* PbsDataUpdatePlacement::mutable_datanode_ip() {
+inline std::string* ParixDataUpdatePlacement::mutable_datanode_ip() {
   std::string* _s = _internal_mutable_datanode_ip();
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsDataUpdatePlacement.datanode_ip)
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixDataUpdatePlacement.datanode_ip)
   return _s;
 }
-inline const std::string& PbsDataUpdatePlacement::_internal_datanode_ip() const {
+inline const std::string& ParixDataUpdatePlacement::_internal_datanode_ip() const {
   return _impl_.datanode_ip_.Get();
 }
-inline void PbsDataUpdatePlacement::_internal_set_datanode_ip(const std::string& value) {
+inline void ParixDataUpdatePlacement::_internal_set_datanode_ip(const std::string& value) {
   
   _impl_.datanode_ip_.Set(value, GetArenaForAllocation());
 }
-inline std::string* PbsDataUpdatePlacement::_internal_mutable_datanode_ip() {
+inline std::string* ParixDataUpdatePlacement::_internal_mutable_datanode_ip() {
   
   return _impl_.datanode_ip_.Mutable(GetArenaForAllocation());
 }
-inline std::string* PbsDataUpdatePlacement::release_datanode_ip() {
-  // @@protoc_insertion_point(field_release:proxy_proto.PbsDataUpdatePlacement.datanode_ip)
+inline std::string* ParixDataUpdatePlacement::release_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixDataUpdatePlacement.datanode_ip)
   return _impl_.datanode_ip_.Release();
 }
-inline void PbsDataUpdatePlacement::set_allocated_datanode_ip(std::string* datanode_ip) {
+inline void ParixDataUpdatePlacement::set_allocated_datanode_ip(std::string* datanode_ip) {
   if (datanode_ip != nullptr) {
     
   } else {
@@ -11909,601 +13816,1695 @@ inline void PbsDataUpdatePlacement::set_allocated_datanode_ip(std::string* datan
     _impl_.datanode_ip_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsDataUpdatePlacement.datanode_ip)
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixDataUpdatePlacement.datanode_ip)
 }
 
-// int32 datanode_port = 9;
-inline void PbsDataUpdatePlacement::clear_datanode_port() {
+// int32 datanode_port = 11;
+inline void ParixDataUpdatePlacement::clear_datanode_port() {
   _impl_.datanode_port_ = 0;
 }
-inline int32_t PbsDataUpdatePlacement::_internal_datanode_port() const {
+inline int32_t ParixDataUpdatePlacement::_internal_datanode_port() const {
   return _impl_.datanode_port_;
 }
-inline int32_t PbsDataUpdatePlacement::datanode_port() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.datanode_port)
+inline int32_t ParixDataUpdatePlacement::datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataUpdatePlacement.datanode_port)
   return _internal_datanode_port();
 }
-inline void PbsDataUpdatePlacement::_internal_set_datanode_port(int32_t value) {
+inline void ParixDataUpdatePlacement::_internal_set_datanode_port(int32_t value) {
   
   _impl_.datanode_port_ = value;
 }
-inline void PbsDataUpdatePlacement::set_datanode_port(int32_t value) {
+inline void ParixDataUpdatePlacement::set_datanode_port(int32_t value) {
   _internal_set_datanode_port(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.datanode_port)
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixDataUpdatePlacement.datanode_port)
 }
 
-// repeated .proxy_proto.PbsParityForwardPlan parity_forward = 10;
-inline int PbsDataUpdatePlacement::_internal_parity_forward_size() const {
-  return _impl_.parity_forward_.size();
+// repeated .proxy_proto.ParixParityRpcTarget global_parities = 12;
+inline int ParixDataUpdatePlacement::_internal_global_parities_size() const {
+  return _impl_.global_parities_.size();
 }
-inline int PbsDataUpdatePlacement::parity_forward_size() const {
-  return _internal_parity_forward_size();
+inline int ParixDataUpdatePlacement::global_parities_size() const {
+  return _internal_global_parities_size();
 }
-inline void PbsDataUpdatePlacement::clear_parity_forward() {
-  _impl_.parity_forward_.Clear();
+inline void ParixDataUpdatePlacement::clear_global_parities() {
+  _impl_.global_parities_.Clear();
 }
-inline ::proxy_proto::PbsParityForwardPlan* PbsDataUpdatePlacement::mutable_parity_forward(int index) {
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsDataUpdatePlacement.parity_forward)
-  return _impl_.parity_forward_.Mutable(index);
+inline ::proxy_proto::ParixParityRpcTarget* ParixDataUpdatePlacement::mutable_global_parities(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixDataUpdatePlacement.global_parities)
+  return _impl_.global_parities_.Mutable(index);
 }
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityForwardPlan >*
-PbsDataUpdatePlacement::mutable_parity_forward() {
-  // @@protoc_insertion_point(field_mutable_list:proxy_proto.PbsDataUpdatePlacement.parity_forward)
-  return &_impl_.parity_forward_;
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixParityRpcTarget >*
+ParixDataUpdatePlacement::mutable_global_parities() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.ParixDataUpdatePlacement.global_parities)
+  return &_impl_.global_parities_;
 }
-inline const ::proxy_proto::PbsParityForwardPlan& PbsDataUpdatePlacement::_internal_parity_forward(int index) const {
-  return _impl_.parity_forward_.Get(index);
+inline const ::proxy_proto::ParixParityRpcTarget& ParixDataUpdatePlacement::_internal_global_parities(int index) const {
+  return _impl_.global_parities_.Get(index);
 }
-inline const ::proxy_proto::PbsParityForwardPlan& PbsDataUpdatePlacement::parity_forward(int index) const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.parity_forward)
-  return _internal_parity_forward(index);
+inline const ::proxy_proto::ParixParityRpcTarget& ParixDataUpdatePlacement::global_parities(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataUpdatePlacement.global_parities)
+  return _internal_global_parities(index);
 }
-inline ::proxy_proto::PbsParityForwardPlan* PbsDataUpdatePlacement::_internal_add_parity_forward() {
-  return _impl_.parity_forward_.Add();
+inline ::proxy_proto::ParixParityRpcTarget* ParixDataUpdatePlacement::_internal_add_global_parities() {
+  return _impl_.global_parities_.Add();
 }
-inline ::proxy_proto::PbsParityForwardPlan* PbsDataUpdatePlacement::add_parity_forward() {
-  ::proxy_proto::PbsParityForwardPlan* _add = _internal_add_parity_forward();
-  // @@protoc_insertion_point(field_add:proxy_proto.PbsDataUpdatePlacement.parity_forward)
+inline ::proxy_proto::ParixParityRpcTarget* ParixDataUpdatePlacement::add_global_parities() {
+  ::proxy_proto::ParixParityRpcTarget* _add = _internal_add_global_parities();
+  // @@protoc_insertion_point(field_add:proxy_proto.ParixDataUpdatePlacement.global_parities)
   return _add;
 }
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityForwardPlan >&
-PbsDataUpdatePlacement::parity_forward() const {
-  // @@protoc_insertion_point(field_list:proxy_proto.PbsDataUpdatePlacement.parity_forward)
-  return _impl_.parity_forward_;
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixParityRpcTarget >&
+ParixDataUpdatePlacement::global_parities() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.ParixDataUpdatePlacement.global_parities)
+  return _impl_.global_parities_;
 }
 
-// uint64 pbs_batch_id = 11;
-inline void PbsDataUpdatePlacement::clear_pbs_batch_id() {
-  _impl_.pbs_batch_id_ = uint64_t{0u};
+// .proxy_proto.ParixParityRpcTarget local_parity = 13;
+inline bool ParixDataUpdatePlacement::_internal_has_local_parity() const {
+  return this != internal_default_instance() && _impl_.local_parity_ != nullptr;
 }
-inline uint64_t PbsDataUpdatePlacement::_internal_pbs_batch_id() const {
-  return _impl_.pbs_batch_id_;
+inline bool ParixDataUpdatePlacement::has_local_parity() const {
+  return _internal_has_local_parity();
 }
-inline uint64_t PbsDataUpdatePlacement::pbs_batch_id() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.pbs_batch_id)
-  return _internal_pbs_batch_id();
+inline void ParixDataUpdatePlacement::clear_local_parity() {
+  if (GetArenaForAllocation() == nullptr && _impl_.local_parity_ != nullptr) {
+    delete _impl_.local_parity_;
+  }
+  _impl_.local_parity_ = nullptr;
 }
-inline void PbsDataUpdatePlacement::_internal_set_pbs_batch_id(uint64_t value) {
+inline const ::proxy_proto::ParixParityRpcTarget& ParixDataUpdatePlacement::_internal_local_parity() const {
+  const ::proxy_proto::ParixParityRpcTarget* p = _impl_.local_parity_;
+  return p != nullptr ? *p : reinterpret_cast<const ::proxy_proto::ParixParityRpcTarget&>(
+      ::proxy_proto::_ParixParityRpcTarget_default_instance_);
+}
+inline const ::proxy_proto::ParixParityRpcTarget& ParixDataUpdatePlacement::local_parity() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataUpdatePlacement.local_parity)
+  return _internal_local_parity();
+}
+inline void ParixDataUpdatePlacement::unsafe_arena_set_allocated_local_parity(
+    ::proxy_proto::ParixParityRpcTarget* local_parity) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.local_parity_);
+  }
+  _impl_.local_parity_ = local_parity;
+  if (local_parity) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:proxy_proto.ParixDataUpdatePlacement.local_parity)
+}
+inline ::proxy_proto::ParixParityRpcTarget* ParixDataUpdatePlacement::release_local_parity() {
   
-  _impl_.pbs_batch_id_ = value;
+  ::proxy_proto::ParixParityRpcTarget* temp = _impl_.local_parity_;
+  _impl_.local_parity_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
 }
-inline void PbsDataUpdatePlacement::set_pbs_batch_id(uint64_t value) {
-  _internal_set_pbs_batch_id(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.pbs_batch_id)
-}
-
-// uint32 pbs_batch_index = 12;
-inline void PbsDataUpdatePlacement::clear_pbs_batch_index() {
-  _impl_.pbs_batch_index_ = 0u;
-}
-inline uint32_t PbsDataUpdatePlacement::_internal_pbs_batch_index() const {
-  return _impl_.pbs_batch_index_;
-}
-inline uint32_t PbsDataUpdatePlacement::pbs_batch_index() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.pbs_batch_index)
-  return _internal_pbs_batch_index();
-}
-inline void PbsDataUpdatePlacement::_internal_set_pbs_batch_index(uint32_t value) {
+inline ::proxy_proto::ParixParityRpcTarget* ParixDataUpdatePlacement::unsafe_arena_release_local_parity() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixDataUpdatePlacement.local_parity)
   
-  _impl_.pbs_batch_index_ = value;
+  ::proxy_proto::ParixParityRpcTarget* temp = _impl_.local_parity_;
+  _impl_.local_parity_ = nullptr;
+  return temp;
 }
-inline void PbsDataUpdatePlacement::set_pbs_batch_index(uint32_t value) {
-  _internal_set_pbs_batch_index(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.pbs_batch_index)
-}
-
-// uint32 pbs_batch_total = 13;
-inline void PbsDataUpdatePlacement::clear_pbs_batch_total() {
-  _impl_.pbs_batch_total_ = 0u;
-}
-inline uint32_t PbsDataUpdatePlacement::_internal_pbs_batch_total() const {
-  return _impl_.pbs_batch_total_;
-}
-inline uint32_t PbsDataUpdatePlacement::pbs_batch_total() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsDataUpdatePlacement.pbs_batch_total)
-  return _internal_pbs_batch_total();
-}
-inline void PbsDataUpdatePlacement::_internal_set_pbs_batch_total(uint32_t value) {
+inline ::proxy_proto::ParixParityRpcTarget* ParixDataUpdatePlacement::_internal_mutable_local_parity() {
   
-  _impl_.pbs_batch_total_ = value;
+  if (_impl_.local_parity_ == nullptr) {
+    auto* p = CreateMaybeMessage<::proxy_proto::ParixParityRpcTarget>(GetArenaForAllocation());
+    _impl_.local_parity_ = p;
+  }
+  return _impl_.local_parity_;
 }
-inline void PbsDataUpdatePlacement::set_pbs_batch_total(uint32_t value) {
-  _internal_set_pbs_batch_total(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsDataUpdatePlacement.pbs_batch_total)
+inline ::proxy_proto::ParixParityRpcTarget* ParixDataUpdatePlacement::mutable_local_parity() {
+  ::proxy_proto::ParixParityRpcTarget* _msg = _internal_mutable_local_parity();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixDataUpdatePlacement.local_parity)
+  return _msg;
+}
+inline void ParixDataUpdatePlacement::set_allocated_local_parity(::proxy_proto::ParixParityRpcTarget* local_parity) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.local_parity_;
+  }
+  if (local_parity) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(local_parity);
+    if (message_arena != submessage_arena) {
+      local_parity = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, local_parity, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.local_parity_ = local_parity;
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixDataUpdatePlacement.local_parity)
 }
 
 // -------------------------------------------------------------------
 
-// PbsApplyParityDeltaRequest
+// ParixJournalAckItem
+
+// string parity_proxy_ip = 1;
+inline void ParixJournalAckItem::clear_parity_proxy_ip() {
+  _impl_.parity_proxy_ip_.ClearToEmpty();
+}
+inline const std::string& ParixJournalAckItem::parity_proxy_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAckItem.parity_proxy_ip)
+  return _internal_parity_proxy_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ParixJournalAckItem::set_parity_proxy_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.parity_proxy_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAckItem.parity_proxy_ip)
+}
+inline std::string* ParixJournalAckItem::mutable_parity_proxy_ip() {
+  std::string* _s = _internal_mutable_parity_proxy_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixJournalAckItem.parity_proxy_ip)
+  return _s;
+}
+inline const std::string& ParixJournalAckItem::_internal_parity_proxy_ip() const {
+  return _impl_.parity_proxy_ip_.Get();
+}
+inline void ParixJournalAckItem::_internal_set_parity_proxy_ip(const std::string& value) {
+  
+  _impl_.parity_proxy_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ParixJournalAckItem::_internal_mutable_parity_proxy_ip() {
+  
+  return _impl_.parity_proxy_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ParixJournalAckItem::release_parity_proxy_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixJournalAckItem.parity_proxy_ip)
+  return _impl_.parity_proxy_ip_.Release();
+}
+inline void ParixJournalAckItem::set_allocated_parity_proxy_ip(std::string* parity_proxy_ip) {
+  if (parity_proxy_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.parity_proxy_ip_.SetAllocated(parity_proxy_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.parity_proxy_ip_.IsDefault()) {
+    _impl_.parity_proxy_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixJournalAckItem.parity_proxy_ip)
+}
+
+// int32 parity_proxy_grpc_port = 2;
+inline void ParixJournalAckItem::clear_parity_proxy_grpc_port() {
+  _impl_.parity_proxy_grpc_port_ = 0;
+}
+inline int32_t ParixJournalAckItem::_internal_parity_proxy_grpc_port() const {
+  return _impl_.parity_proxy_grpc_port_;
+}
+inline int32_t ParixJournalAckItem::parity_proxy_grpc_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAckItem.parity_proxy_grpc_port)
+  return _internal_parity_proxy_grpc_port();
+}
+inline void ParixJournalAckItem::_internal_set_parity_proxy_grpc_port(int32_t value) {
+  
+  _impl_.parity_proxy_grpc_port_ = value;
+}
+inline void ParixJournalAckItem::set_parity_proxy_grpc_port(int32_t value) {
+  _internal_set_parity_proxy_grpc_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAckItem.parity_proxy_grpc_port)
+}
+
+// int32 parity_block_id = 3;
+inline void ParixJournalAckItem::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
+}
+inline int32_t ParixJournalAckItem::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
+}
+inline int32_t ParixJournalAckItem::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAckItem.parity_block_id)
+  return _internal_parity_block_id();
+}
+inline void ParixJournalAckItem::_internal_set_parity_block_id(int32_t value) {
+  
+  _impl_.parity_block_id_ = value;
+}
+inline void ParixJournalAckItem::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAckItem.parity_block_id)
+}
+
+// .proxy_proto.ParixParityAck ack = 4;
+inline void ParixJournalAckItem::clear_ack() {
+  _impl_.ack_ = 0;
+}
+inline ::proxy_proto::ParixParityAck ParixJournalAckItem::_internal_ack() const {
+  return static_cast< ::proxy_proto::ParixParityAck >(_impl_.ack_);
+}
+inline ::proxy_proto::ParixParityAck ParixJournalAckItem::ack() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAckItem.ack)
+  return _internal_ack();
+}
+inline void ParixJournalAckItem::_internal_set_ack(::proxy_proto::ParixParityAck value) {
+  
+  _impl_.ack_ = value;
+}
+inline void ParixJournalAckItem::set_ack(::proxy_proto::ParixParityAck value) {
+  _internal_set_ack(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAckItem.ack)
+}
+
+// -------------------------------------------------------------------
+
+// ParixScheduleDataUpdateReply
+
+// bool ifcommit = 1;
+inline void ParixScheduleDataUpdateReply::clear_ifcommit() {
+  _impl_.ifcommit_ = false;
+}
+inline bool ParixScheduleDataUpdateReply::_internal_ifcommit() const {
+  return _impl_.ifcommit_;
+}
+inline bool ParixScheduleDataUpdateReply::ifcommit() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixScheduleDataUpdateReply.ifcommit)
+  return _internal_ifcommit();
+}
+inline void ParixScheduleDataUpdateReply::_internal_set_ifcommit(bool value) {
+  
+  _impl_.ifcommit_ = value;
+}
+inline void ParixScheduleDataUpdateReply::set_ifcommit(bool value) {
+  _internal_set_ifcommit(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixScheduleDataUpdateReply.ifcommit)
+}
+
+// repeated .proxy_proto.ParixJournalAckItem journal_acks = 2;
+inline int ParixScheduleDataUpdateReply::_internal_journal_acks_size() const {
+  return _impl_.journal_acks_.size();
+}
+inline int ParixScheduleDataUpdateReply::journal_acks_size() const {
+  return _internal_journal_acks_size();
+}
+inline void ParixScheduleDataUpdateReply::clear_journal_acks() {
+  _impl_.journal_acks_.Clear();
+}
+inline ::proxy_proto::ParixJournalAckItem* ParixScheduleDataUpdateReply::mutable_journal_acks(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixScheduleDataUpdateReply.journal_acks)
+  return _impl_.journal_acks_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAckItem >*
+ParixScheduleDataUpdateReply::mutable_journal_acks() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.ParixScheduleDataUpdateReply.journal_acks)
+  return &_impl_.journal_acks_;
+}
+inline const ::proxy_proto::ParixJournalAckItem& ParixScheduleDataUpdateReply::_internal_journal_acks(int index) const {
+  return _impl_.journal_acks_.Get(index);
+}
+inline const ::proxy_proto::ParixJournalAckItem& ParixScheduleDataUpdateReply::journal_acks(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixScheduleDataUpdateReply.journal_acks)
+  return _internal_journal_acks(index);
+}
+inline ::proxy_proto::ParixJournalAckItem* ParixScheduleDataUpdateReply::_internal_add_journal_acks() {
+  return _impl_.journal_acks_.Add();
+}
+inline ::proxy_proto::ParixJournalAckItem* ParixScheduleDataUpdateReply::add_journal_acks() {
+  ::proxy_proto::ParixJournalAckItem* _add = _internal_add_journal_acks();
+  // @@protoc_insertion_point(field_add:proxy_proto.ParixScheduleDataUpdateReply.journal_acks)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAckItem >&
+ParixScheduleDataUpdateReply::journal_acks() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.ParixScheduleDataUpdateReply.journal_acks)
+  return _impl_.journal_acks_;
+}
+
+// -------------------------------------------------------------------
+
+// ParixJournalAppendRequest
 
 // int32 stripe_id = 1;
-inline void PbsApplyParityDeltaRequest::clear_stripe_id() {
+inline void ParixJournalAppendRequest::clear_stripe_id() {
   _impl_.stripe_id_ = 0;
 }
-inline int32_t PbsApplyParityDeltaRequest::_internal_stripe_id() const {
+inline int32_t ParixJournalAppendRequest::_internal_stripe_id() const {
   return _impl_.stripe_id_;
 }
-inline int32_t PbsApplyParityDeltaRequest::stripe_id() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.stripe_id)
+inline int32_t ParixJournalAppendRequest::stripe_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendRequest.stripe_id)
   return _internal_stripe_id();
 }
-inline void PbsApplyParityDeltaRequest::_internal_set_stripe_id(int32_t value) {
+inline void ParixJournalAppendRequest::_internal_set_stripe_id(int32_t value) {
   
   _impl_.stripe_id_ = value;
 }
-inline void PbsApplyParityDeltaRequest::set_stripe_id(int32_t value) {
+inline void ParixJournalAppendRequest::set_stripe_id(int32_t value) {
   _internal_set_stripe_id(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.stripe_id)
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendRequest.stripe_id)
 }
 
-// int32 data_block_id = 2;
-inline void PbsApplyParityDeltaRequest::clear_data_block_id() {
+// uint64 batch_id = 2;
+inline void ParixJournalAppendRequest::clear_batch_id() {
+  _impl_.batch_id_ = uint64_t{0u};
+}
+inline uint64_t ParixJournalAppendRequest::_internal_batch_id() const {
+  return _impl_.batch_id_;
+}
+inline uint64_t ParixJournalAppendRequest::batch_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendRequest.batch_id)
+  return _internal_batch_id();
+}
+inline void ParixJournalAppendRequest::_internal_set_batch_id(uint64_t value) {
+  
+  _impl_.batch_id_ = value;
+}
+inline void ParixJournalAppendRequest::set_batch_id(uint64_t value) {
+  _internal_set_batch_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendRequest.batch_id)
+}
+
+// uint64 write_generation = 3;
+inline void ParixJournalAppendRequest::clear_write_generation() {
+  _impl_.write_generation_ = uint64_t{0u};
+}
+inline uint64_t ParixJournalAppendRequest::_internal_write_generation() const {
+  return _impl_.write_generation_;
+}
+inline uint64_t ParixJournalAppendRequest::write_generation() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendRequest.write_generation)
+  return _internal_write_generation();
+}
+inline void ParixJournalAppendRequest::_internal_set_write_generation(uint64_t value) {
+  
+  _impl_.write_generation_ = value;
+}
+inline void ParixJournalAppendRequest::set_write_generation(uint64_t value) {
+  _internal_set_write_generation(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendRequest.write_generation)
+}
+
+// int32 parity_block_id = 4;
+inline void ParixJournalAppendRequest::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
+}
+inline int32_t ParixJournalAppendRequest::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
+}
+inline int32_t ParixJournalAppendRequest::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendRequest.parity_block_id)
+  return _internal_parity_block_id();
+}
+inline void ParixJournalAppendRequest::_internal_set_parity_block_id(int32_t value) {
+  
+  _impl_.parity_block_id_ = value;
+}
+inline void ParixJournalAppendRequest::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendRequest.parity_block_id)
+}
+
+// string parity_block_key = 5;
+inline void ParixJournalAppendRequest::clear_parity_block_key() {
+  _impl_.parity_block_key_.ClearToEmpty();
+}
+inline const std::string& ParixJournalAppendRequest::parity_block_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendRequest.parity_block_key)
+  return _internal_parity_block_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ParixJournalAppendRequest::set_parity_block_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.parity_block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendRequest.parity_block_key)
+}
+inline std::string* ParixJournalAppendRequest::mutable_parity_block_key() {
+  std::string* _s = _internal_mutable_parity_block_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixJournalAppendRequest.parity_block_key)
+  return _s;
+}
+inline const std::string& ParixJournalAppendRequest::_internal_parity_block_key() const {
+  return _impl_.parity_block_key_.Get();
+}
+inline void ParixJournalAppendRequest::_internal_set_parity_block_key(const std::string& value) {
+  
+  _impl_.parity_block_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ParixJournalAppendRequest::_internal_mutable_parity_block_key() {
+  
+  return _impl_.parity_block_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ParixJournalAppendRequest::release_parity_block_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixJournalAppendRequest.parity_block_key)
+  return _impl_.parity_block_key_.Release();
+}
+inline void ParixJournalAppendRequest::set_allocated_parity_block_key(std::string* parity_block_key) {
+  if (parity_block_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.parity_block_key_.SetAllocated(parity_block_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.parity_block_key_.IsDefault()) {
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixJournalAppendRequest.parity_block_key)
+}
+
+// string parity_datanode_ip = 6;
+inline void ParixJournalAppendRequest::clear_parity_datanode_ip() {
+  _impl_.parity_datanode_ip_.ClearToEmpty();
+}
+inline const std::string& ParixJournalAppendRequest::parity_datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendRequest.parity_datanode_ip)
+  return _internal_parity_datanode_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ParixJournalAppendRequest::set_parity_datanode_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.parity_datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendRequest.parity_datanode_ip)
+}
+inline std::string* ParixJournalAppendRequest::mutable_parity_datanode_ip() {
+  std::string* _s = _internal_mutable_parity_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixJournalAppendRequest.parity_datanode_ip)
+  return _s;
+}
+inline const std::string& ParixJournalAppendRequest::_internal_parity_datanode_ip() const {
+  return _impl_.parity_datanode_ip_.Get();
+}
+inline void ParixJournalAppendRequest::_internal_set_parity_datanode_ip(const std::string& value) {
+  
+  _impl_.parity_datanode_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ParixJournalAppendRequest::_internal_mutable_parity_datanode_ip() {
+  
+  return _impl_.parity_datanode_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ParixJournalAppendRequest::release_parity_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixJournalAppendRequest.parity_datanode_ip)
+  return _impl_.parity_datanode_ip_.Release();
+}
+inline void ParixJournalAppendRequest::set_allocated_parity_datanode_ip(std::string* parity_datanode_ip) {
+  if (parity_datanode_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.parity_datanode_ip_.SetAllocated(parity_datanode_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.parity_datanode_ip_.IsDefault()) {
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixJournalAppendRequest.parity_datanode_ip)
+}
+
+// int32 parity_datanode_port = 7;
+inline void ParixJournalAppendRequest::clear_parity_datanode_port() {
+  _impl_.parity_datanode_port_ = 0;
+}
+inline int32_t ParixJournalAppendRequest::_internal_parity_datanode_port() const {
+  return _impl_.parity_datanode_port_;
+}
+inline int32_t ParixJournalAppendRequest::parity_datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendRequest.parity_datanode_port)
+  return _internal_parity_datanode_port();
+}
+inline void ParixJournalAppendRequest::_internal_set_parity_datanode_port(int32_t value) {
+  
+  _impl_.parity_datanode_port_ = value;
+}
+inline void ParixJournalAppendRequest::set_parity_datanode_port(int32_t value) {
+  _internal_set_parity_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendRequest.parity_datanode_port)
+}
+
+// int32 data_block_id = 8;
+inline void ParixJournalAppendRequest::clear_data_block_id() {
   _impl_.data_block_id_ = 0;
 }
-inline int32_t PbsApplyParityDeltaRequest::_internal_data_block_id() const {
+inline int32_t ParixJournalAppendRequest::_internal_data_block_id() const {
   return _impl_.data_block_id_;
 }
-inline int32_t PbsApplyParityDeltaRequest::data_block_id() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.data_block_id)
+inline int32_t ParixJournalAppendRequest::data_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendRequest.data_block_id)
   return _internal_data_block_id();
 }
-inline void PbsApplyParityDeltaRequest::_internal_set_data_block_id(int32_t value) {
+inline void ParixJournalAppendRequest::_internal_set_data_block_id(int32_t value) {
   
   _impl_.data_block_id_ = value;
 }
-inline void PbsApplyParityDeltaRequest::set_data_block_id(int32_t value) {
+inline void ParixJournalAppendRequest::set_data_block_id(int32_t value) {
   _internal_set_data_block_id(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.data_block_id)
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendRequest.data_block_id)
 }
 
-// int32 range_offset = 3;
-inline void PbsApplyParityDeltaRequest::clear_range_offset() {
+// int32 range_offset = 9;
+inline void ParixJournalAppendRequest::clear_range_offset() {
   _impl_.range_offset_ = 0;
 }
-inline int32_t PbsApplyParityDeltaRequest::_internal_range_offset() const {
+inline int32_t ParixJournalAppendRequest::_internal_range_offset() const {
   return _impl_.range_offset_;
 }
-inline int32_t PbsApplyParityDeltaRequest::range_offset() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.range_offset)
+inline int32_t ParixJournalAppendRequest::range_offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendRequest.range_offset)
   return _internal_range_offset();
 }
-inline void PbsApplyParityDeltaRequest::_internal_set_range_offset(int32_t value) {
+inline void ParixJournalAppendRequest::_internal_set_range_offset(int32_t value) {
   
   _impl_.range_offset_ = value;
 }
-inline void PbsApplyParityDeltaRequest::set_range_offset(int32_t value) {
+inline void ParixJournalAppendRequest::set_range_offset(int32_t value) {
   _internal_set_range_offset(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.range_offset)
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendRequest.range_offset)
 }
 
-// uint64 range_length = 4;
-inline void PbsApplyParityDeltaRequest::clear_range_length() {
+// uint64 range_length = 10;
+inline void ParixJournalAppendRequest::clear_range_length() {
   _impl_.range_length_ = uint64_t{0u};
 }
-inline uint64_t PbsApplyParityDeltaRequest::_internal_range_length() const {
+inline uint64_t ParixJournalAppendRequest::_internal_range_length() const {
   return _impl_.range_length_;
 }
-inline uint64_t PbsApplyParityDeltaRequest::range_length() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.range_length)
+inline uint64_t ParixJournalAppendRequest::range_length() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendRequest.range_length)
   return _internal_range_length();
 }
-inline void PbsApplyParityDeltaRequest::_internal_set_range_length(uint64_t value) {
+inline void ParixJournalAppendRequest::_internal_set_range_length(uint64_t value) {
   
   _impl_.range_length_ = value;
 }
-inline void PbsApplyParityDeltaRequest::set_range_length(uint64_t value) {
+inline void ParixJournalAppendRequest::set_range_length(uint64_t value) {
   _internal_set_range_length(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.range_length)
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendRequest.range_length)
 }
 
-// bytes delta = 5;
-inline void PbsApplyParityDeltaRequest::clear_delta() {
-  _impl_.delta_.ClearToEmpty();
+// bytes new_payload = 11;
+inline void ParixJournalAppendRequest::clear_new_payload() {
+  _impl_.new_payload_.ClearToEmpty();
 }
-inline const std::string& PbsApplyParityDeltaRequest::delta() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.delta)
-  return _internal_delta();
+inline const std::string& ParixJournalAppendRequest::new_payload() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendRequest.new_payload)
+  return _internal_new_payload();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void PbsApplyParityDeltaRequest::set_delta(ArgT0&& arg0, ArgT... args) {
+void ParixJournalAppendRequest::set_new_payload(ArgT0&& arg0, ArgT... args) {
  
- _impl_.delta_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.delta)
+ _impl_.new_payload_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendRequest.new_payload)
 }
-inline std::string* PbsApplyParityDeltaRequest::mutable_delta() {
-  std::string* _s = _internal_mutable_delta();
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsApplyParityDeltaRequest.delta)
+inline std::string* ParixJournalAppendRequest::mutable_new_payload() {
+  std::string* _s = _internal_mutable_new_payload();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixJournalAppendRequest.new_payload)
   return _s;
 }
-inline const std::string& PbsApplyParityDeltaRequest::_internal_delta() const {
-  return _impl_.delta_.Get();
+inline const std::string& ParixJournalAppendRequest::_internal_new_payload() const {
+  return _impl_.new_payload_.Get();
 }
-inline void PbsApplyParityDeltaRequest::_internal_set_delta(const std::string& value) {
+inline void ParixJournalAppendRequest::_internal_set_new_payload(const std::string& value) {
   
-  _impl_.delta_.Set(value, GetArenaForAllocation());
+  _impl_.new_payload_.Set(value, GetArenaForAllocation());
 }
-inline std::string* PbsApplyParityDeltaRequest::_internal_mutable_delta() {
+inline std::string* ParixJournalAppendRequest::_internal_mutable_new_payload() {
   
-  return _impl_.delta_.Mutable(GetArenaForAllocation());
+  return _impl_.new_payload_.Mutable(GetArenaForAllocation());
 }
-inline std::string* PbsApplyParityDeltaRequest::release_delta() {
-  // @@protoc_insertion_point(field_release:proxy_proto.PbsApplyParityDeltaRequest.delta)
-  return _impl_.delta_.Release();
+inline std::string* ParixJournalAppendRequest::release_new_payload() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixJournalAppendRequest.new_payload)
+  return _impl_.new_payload_.Release();
 }
-inline void PbsApplyParityDeltaRequest::set_allocated_delta(std::string* delta) {
-  if (delta != nullptr) {
+inline void ParixJournalAppendRequest::set_allocated_new_payload(std::string* new_payload) {
+  if (new_payload != nullptr) {
     
   } else {
     
   }
-  _impl_.delta_.SetAllocated(delta, GetArenaForAllocation());
+  _impl_.new_payload_.SetAllocated(new_payload, GetArenaForAllocation());
 #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.delta_.IsDefault()) {
-    _impl_.delta_.Set("", GetArenaForAllocation());
+  if (_impl_.new_payload_.IsDefault()) {
+    _impl_.new_payload_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsApplyParityDeltaRequest.delta)
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixJournalAppendRequest.new_payload)
 }
 
-// repeated .proxy_proto.PbsParityDeltaTarget parities = 6;
-inline int PbsApplyParityDeltaRequest::_internal_parities_size() const {
-  return _impl_.parities_.size();
+// -------------------------------------------------------------------
+
+// ParixJournalAppendReply
+
+// .proxy_proto.ParixParityAck ack = 1;
+inline void ParixJournalAppendReply::clear_ack() {
+  _impl_.ack_ = 0;
 }
-inline int PbsApplyParityDeltaRequest::parities_size() const {
-  return _internal_parities_size();
+inline ::proxy_proto::ParixParityAck ParixJournalAppendReply::_internal_ack() const {
+  return static_cast< ::proxy_proto::ParixParityAck >(_impl_.ack_);
 }
-inline void PbsApplyParityDeltaRequest::clear_parities() {
-  _impl_.parities_.Clear();
+inline ::proxy_proto::ParixParityAck ParixJournalAppendReply::ack() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendReply.ack)
+  return _internal_ack();
 }
-inline ::proxy_proto::PbsParityDeltaTarget* PbsApplyParityDeltaRequest::mutable_parities(int index) {
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsApplyParityDeltaRequest.parities)
-  return _impl_.parities_.Mutable(index);
+inline void ParixJournalAppendReply::_internal_set_ack(::proxy_proto::ParixParityAck value) {
+  
+  _impl_.ack_ = value;
 }
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >*
-PbsApplyParityDeltaRequest::mutable_parities() {
-  // @@protoc_insertion_point(field_mutable_list:proxy_proto.PbsApplyParityDeltaRequest.parities)
-  return &_impl_.parities_;
+inline void ParixJournalAppendReply::set_ack(::proxy_proto::ParixParityAck value) {
+  _internal_set_ack(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendReply.ack)
 }
-inline const ::proxy_proto::PbsParityDeltaTarget& PbsApplyParityDeltaRequest::_internal_parities(int index) const {
-  return _impl_.parities_.Get(index);
+
+// -------------------------------------------------------------------
+
+// ParixJournalAppendBatchItem
+
+// int32 parity_block_id = 1;
+inline void ParixJournalAppendBatchItem::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
 }
-inline const ::proxy_proto::PbsParityDeltaTarget& PbsApplyParityDeltaRequest::parities(int index) const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.parities)
-  return _internal_parities(index);
+inline int32_t ParixJournalAppendBatchItem::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
 }
-inline ::proxy_proto::PbsParityDeltaTarget* PbsApplyParityDeltaRequest::_internal_add_parities() {
-  return _impl_.parities_.Add();
+inline int32_t ParixJournalAppendBatchItem::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchItem.parity_block_id)
+  return _internal_parity_block_id();
 }
-inline ::proxy_proto::PbsParityDeltaTarget* PbsApplyParityDeltaRequest::add_parities() {
-  ::proxy_proto::PbsParityDeltaTarget* _add = _internal_add_parities();
-  // @@protoc_insertion_point(field_add:proxy_proto.PbsApplyParityDeltaRequest.parities)
+inline void ParixJournalAppendBatchItem::_internal_set_parity_block_id(int32_t value) {
+  
+  _impl_.parity_block_id_ = value;
+}
+inline void ParixJournalAppendBatchItem::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendBatchItem.parity_block_id)
+}
+
+// string parity_block_key = 2;
+inline void ParixJournalAppendBatchItem::clear_parity_block_key() {
+  _impl_.parity_block_key_.ClearToEmpty();
+}
+inline const std::string& ParixJournalAppendBatchItem::parity_block_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchItem.parity_block_key)
+  return _internal_parity_block_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ParixJournalAppendBatchItem::set_parity_block_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.parity_block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendBatchItem.parity_block_key)
+}
+inline std::string* ParixJournalAppendBatchItem::mutable_parity_block_key() {
+  std::string* _s = _internal_mutable_parity_block_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixJournalAppendBatchItem.parity_block_key)
+  return _s;
+}
+inline const std::string& ParixJournalAppendBatchItem::_internal_parity_block_key() const {
+  return _impl_.parity_block_key_.Get();
+}
+inline void ParixJournalAppendBatchItem::_internal_set_parity_block_key(const std::string& value) {
+  
+  _impl_.parity_block_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ParixJournalAppendBatchItem::_internal_mutable_parity_block_key() {
+  
+  return _impl_.parity_block_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ParixJournalAppendBatchItem::release_parity_block_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixJournalAppendBatchItem.parity_block_key)
+  return _impl_.parity_block_key_.Release();
+}
+inline void ParixJournalAppendBatchItem::set_allocated_parity_block_key(std::string* parity_block_key) {
+  if (parity_block_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.parity_block_key_.SetAllocated(parity_block_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.parity_block_key_.IsDefault()) {
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixJournalAppendBatchItem.parity_block_key)
+}
+
+// string parity_datanode_ip = 3;
+inline void ParixJournalAppendBatchItem::clear_parity_datanode_ip() {
+  _impl_.parity_datanode_ip_.ClearToEmpty();
+}
+inline const std::string& ParixJournalAppendBatchItem::parity_datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchItem.parity_datanode_ip)
+  return _internal_parity_datanode_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ParixJournalAppendBatchItem::set_parity_datanode_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.parity_datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendBatchItem.parity_datanode_ip)
+}
+inline std::string* ParixJournalAppendBatchItem::mutable_parity_datanode_ip() {
+  std::string* _s = _internal_mutable_parity_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixJournalAppendBatchItem.parity_datanode_ip)
+  return _s;
+}
+inline const std::string& ParixJournalAppendBatchItem::_internal_parity_datanode_ip() const {
+  return _impl_.parity_datanode_ip_.Get();
+}
+inline void ParixJournalAppendBatchItem::_internal_set_parity_datanode_ip(const std::string& value) {
+  
+  _impl_.parity_datanode_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ParixJournalAppendBatchItem::_internal_mutable_parity_datanode_ip() {
+  
+  return _impl_.parity_datanode_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ParixJournalAppendBatchItem::release_parity_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixJournalAppendBatchItem.parity_datanode_ip)
+  return _impl_.parity_datanode_ip_.Release();
+}
+inline void ParixJournalAppendBatchItem::set_allocated_parity_datanode_ip(std::string* parity_datanode_ip) {
+  if (parity_datanode_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.parity_datanode_ip_.SetAllocated(parity_datanode_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.parity_datanode_ip_.IsDefault()) {
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixJournalAppendBatchItem.parity_datanode_ip)
+}
+
+// int32 parity_datanode_port = 4;
+inline void ParixJournalAppendBatchItem::clear_parity_datanode_port() {
+  _impl_.parity_datanode_port_ = 0;
+}
+inline int32_t ParixJournalAppendBatchItem::_internal_parity_datanode_port() const {
+  return _impl_.parity_datanode_port_;
+}
+inline int32_t ParixJournalAppendBatchItem::parity_datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchItem.parity_datanode_port)
+  return _internal_parity_datanode_port();
+}
+inline void ParixJournalAppendBatchItem::_internal_set_parity_datanode_port(int32_t value) {
+  
+  _impl_.parity_datanode_port_ = value;
+}
+inline void ParixJournalAppendBatchItem::set_parity_datanode_port(int32_t value) {
+  _internal_set_parity_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendBatchItem.parity_datanode_port)
+}
+
+// -------------------------------------------------------------------
+
+// ParixJournalAppendBatchRequest
+
+// int32 stripe_id = 1;
+inline void ParixJournalAppendBatchRequest::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t ParixJournalAppendBatchRequest::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t ParixJournalAppendBatchRequest::stripe_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchRequest.stripe_id)
+  return _internal_stripe_id();
+}
+inline void ParixJournalAppendBatchRequest::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void ParixJournalAppendBatchRequest::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendBatchRequest.stripe_id)
+}
+
+// uint64 batch_id = 2;
+inline void ParixJournalAppendBatchRequest::clear_batch_id() {
+  _impl_.batch_id_ = uint64_t{0u};
+}
+inline uint64_t ParixJournalAppendBatchRequest::_internal_batch_id() const {
+  return _impl_.batch_id_;
+}
+inline uint64_t ParixJournalAppendBatchRequest::batch_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchRequest.batch_id)
+  return _internal_batch_id();
+}
+inline void ParixJournalAppendBatchRequest::_internal_set_batch_id(uint64_t value) {
+  
+  _impl_.batch_id_ = value;
+}
+inline void ParixJournalAppendBatchRequest::set_batch_id(uint64_t value) {
+  _internal_set_batch_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendBatchRequest.batch_id)
+}
+
+// uint64 write_generation = 3;
+inline void ParixJournalAppendBatchRequest::clear_write_generation() {
+  _impl_.write_generation_ = uint64_t{0u};
+}
+inline uint64_t ParixJournalAppendBatchRequest::_internal_write_generation() const {
+  return _impl_.write_generation_;
+}
+inline uint64_t ParixJournalAppendBatchRequest::write_generation() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchRequest.write_generation)
+  return _internal_write_generation();
+}
+inline void ParixJournalAppendBatchRequest::_internal_set_write_generation(uint64_t value) {
+  
+  _impl_.write_generation_ = value;
+}
+inline void ParixJournalAppendBatchRequest::set_write_generation(uint64_t value) {
+  _internal_set_write_generation(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendBatchRequest.write_generation)
+}
+
+// int32 data_block_id = 4;
+inline void ParixJournalAppendBatchRequest::clear_data_block_id() {
+  _impl_.data_block_id_ = 0;
+}
+inline int32_t ParixJournalAppendBatchRequest::_internal_data_block_id() const {
+  return _impl_.data_block_id_;
+}
+inline int32_t ParixJournalAppendBatchRequest::data_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchRequest.data_block_id)
+  return _internal_data_block_id();
+}
+inline void ParixJournalAppendBatchRequest::_internal_set_data_block_id(int32_t value) {
+  
+  _impl_.data_block_id_ = value;
+}
+inline void ParixJournalAppendBatchRequest::set_data_block_id(int32_t value) {
+  _internal_set_data_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendBatchRequest.data_block_id)
+}
+
+// int32 range_offset = 5;
+inline void ParixJournalAppendBatchRequest::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t ParixJournalAppendBatchRequest::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t ParixJournalAppendBatchRequest::range_offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchRequest.range_offset)
+  return _internal_range_offset();
+}
+inline void ParixJournalAppendBatchRequest::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void ParixJournalAppendBatchRequest::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendBatchRequest.range_offset)
+}
+
+// uint64 range_length = 6;
+inline void ParixJournalAppendBatchRequest::clear_range_length() {
+  _impl_.range_length_ = uint64_t{0u};
+}
+inline uint64_t ParixJournalAppendBatchRequest::_internal_range_length() const {
+  return _impl_.range_length_;
+}
+inline uint64_t ParixJournalAppendBatchRequest::range_length() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchRequest.range_length)
+  return _internal_range_length();
+}
+inline void ParixJournalAppendBatchRequest::_internal_set_range_length(uint64_t value) {
+  
+  _impl_.range_length_ = value;
+}
+inline void ParixJournalAppendBatchRequest::set_range_length(uint64_t value) {
+  _internal_set_range_length(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendBatchRequest.range_length)
+}
+
+// bytes new_payload = 7;
+inline void ParixJournalAppendBatchRequest::clear_new_payload() {
+  _impl_.new_payload_.ClearToEmpty();
+}
+inline const std::string& ParixJournalAppendBatchRequest::new_payload() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchRequest.new_payload)
+  return _internal_new_payload();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ParixJournalAppendBatchRequest::set_new_payload(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.new_payload_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendBatchRequest.new_payload)
+}
+inline std::string* ParixJournalAppendBatchRequest::mutable_new_payload() {
+  std::string* _s = _internal_mutable_new_payload();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixJournalAppendBatchRequest.new_payload)
+  return _s;
+}
+inline const std::string& ParixJournalAppendBatchRequest::_internal_new_payload() const {
+  return _impl_.new_payload_.Get();
+}
+inline void ParixJournalAppendBatchRequest::_internal_set_new_payload(const std::string& value) {
+  
+  _impl_.new_payload_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ParixJournalAppendBatchRequest::_internal_mutable_new_payload() {
+  
+  return _impl_.new_payload_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ParixJournalAppendBatchRequest::release_new_payload() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixJournalAppendBatchRequest.new_payload)
+  return _impl_.new_payload_.Release();
+}
+inline void ParixJournalAppendBatchRequest::set_allocated_new_payload(std::string* new_payload) {
+  if (new_payload != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.new_payload_.SetAllocated(new_payload, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.new_payload_.IsDefault()) {
+    _impl_.new_payload_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixJournalAppendBatchRequest.new_payload)
+}
+
+// repeated .proxy_proto.ParixJournalAppendBatchItem targets = 8;
+inline int ParixJournalAppendBatchRequest::_internal_targets_size() const {
+  return _impl_.targets_.size();
+}
+inline int ParixJournalAppendBatchRequest::targets_size() const {
+  return _internal_targets_size();
+}
+inline void ParixJournalAppendBatchRequest::clear_targets() {
+  _impl_.targets_.Clear();
+}
+inline ::proxy_proto::ParixJournalAppendBatchItem* ParixJournalAppendBatchRequest::mutable_targets(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixJournalAppendBatchRequest.targets)
+  return _impl_.targets_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAppendBatchItem >*
+ParixJournalAppendBatchRequest::mutable_targets() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.ParixJournalAppendBatchRequest.targets)
+  return &_impl_.targets_;
+}
+inline const ::proxy_proto::ParixJournalAppendBatchItem& ParixJournalAppendBatchRequest::_internal_targets(int index) const {
+  return _impl_.targets_.Get(index);
+}
+inline const ::proxy_proto::ParixJournalAppendBatchItem& ParixJournalAppendBatchRequest::targets(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchRequest.targets)
+  return _internal_targets(index);
+}
+inline ::proxy_proto::ParixJournalAppendBatchItem* ParixJournalAppendBatchRequest::_internal_add_targets() {
+  return _impl_.targets_.Add();
+}
+inline ::proxy_proto::ParixJournalAppendBatchItem* ParixJournalAppendBatchRequest::add_targets() {
+  ::proxy_proto::ParixJournalAppendBatchItem* _add = _internal_add_targets();
+  // @@protoc_insertion_point(field_add:proxy_proto.ParixJournalAppendBatchRequest.targets)
   return _add;
 }
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::PbsParityDeltaTarget >&
-PbsApplyParityDeltaRequest::parities() const {
-  // @@protoc_insertion_point(field_list:proxy_proto.PbsApplyParityDeltaRequest.parities)
-  return _impl_.parities_;
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAppendBatchItem >&
+ParixJournalAppendBatchRequest::targets() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.ParixJournalAppendBatchRequest.targets)
+  return _impl_.targets_;
 }
 
-// bool use_new_payload = 7;
-inline void PbsApplyParityDeltaRequest::clear_use_new_payload() {
-  _impl_.use_new_payload_ = false;
+// -------------------------------------------------------------------
+
+// ParixJournalAppendBatchAckItem
+
+// int32 parity_block_id = 1;
+inline void ParixJournalAppendBatchAckItem::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
 }
-inline bool PbsApplyParityDeltaRequest::_internal_use_new_payload() const {
-  return _impl_.use_new_payload_;
+inline int32_t ParixJournalAppendBatchAckItem::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
 }
-inline bool PbsApplyParityDeltaRequest::use_new_payload() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.use_new_payload)
-  return _internal_use_new_payload();
+inline int32_t ParixJournalAppendBatchAckItem::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchAckItem.parity_block_id)
+  return _internal_parity_block_id();
 }
-inline void PbsApplyParityDeltaRequest::_internal_set_use_new_payload(bool value) {
+inline void ParixJournalAppendBatchAckItem::_internal_set_parity_block_id(int32_t value) {
   
-  _impl_.use_new_payload_ = value;
+  _impl_.parity_block_id_ = value;
 }
-inline void PbsApplyParityDeltaRequest::set_use_new_payload(bool value) {
-  _internal_set_use_new_payload(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.use_new_payload)
+inline void ParixJournalAppendBatchAckItem::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendBatchAckItem.parity_block_id)
 }
 
-// bytes new_range_payload = 8;
-inline void PbsApplyParityDeltaRequest::clear_new_range_payload() {
-  _impl_.new_range_payload_.ClearToEmpty();
+// .proxy_proto.ParixParityAck ack = 2;
+inline void ParixJournalAppendBatchAckItem::clear_ack() {
+  _impl_.ack_ = 0;
 }
-inline const std::string& PbsApplyParityDeltaRequest::new_range_payload() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.new_range_payload)
-  return _internal_new_range_payload();
+inline ::proxy_proto::ParixParityAck ParixJournalAppendBatchAckItem::_internal_ack() const {
+  return static_cast< ::proxy_proto::ParixParityAck >(_impl_.ack_);
+}
+inline ::proxy_proto::ParixParityAck ParixJournalAppendBatchAckItem::ack() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchAckItem.ack)
+  return _internal_ack();
+}
+inline void ParixJournalAppendBatchAckItem::_internal_set_ack(::proxy_proto::ParixParityAck value) {
+  
+  _impl_.ack_ = value;
+}
+inline void ParixJournalAppendBatchAckItem::set_ack(::proxy_proto::ParixParityAck value) {
+  _internal_set_ack(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAppendBatchAckItem.ack)
+}
+
+// -------------------------------------------------------------------
+
+// ParixJournalAppendBatchReply
+
+// repeated .proxy_proto.ParixJournalAppendBatchAckItem acks = 1;
+inline int ParixJournalAppendBatchReply::_internal_acks_size() const {
+  return _impl_.acks_.size();
+}
+inline int ParixJournalAppendBatchReply::acks_size() const {
+  return _internal_acks_size();
+}
+inline void ParixJournalAppendBatchReply::clear_acks() {
+  _impl_.acks_.Clear();
+}
+inline ::proxy_proto::ParixJournalAppendBatchAckItem* ParixJournalAppendBatchReply::mutable_acks(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixJournalAppendBatchReply.acks)
+  return _impl_.acks_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAppendBatchAckItem >*
+ParixJournalAppendBatchReply::mutable_acks() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.ParixJournalAppendBatchReply.acks)
+  return &_impl_.acks_;
+}
+inline const ::proxy_proto::ParixJournalAppendBatchAckItem& ParixJournalAppendBatchReply::_internal_acks(int index) const {
+  return _impl_.acks_.Get(index);
+}
+inline const ::proxy_proto::ParixJournalAppendBatchAckItem& ParixJournalAppendBatchReply::acks(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAppendBatchReply.acks)
+  return _internal_acks(index);
+}
+inline ::proxy_proto::ParixJournalAppendBatchAckItem* ParixJournalAppendBatchReply::_internal_add_acks() {
+  return _impl_.acks_.Add();
+}
+inline ::proxy_proto::ParixJournalAppendBatchAckItem* ParixJournalAppendBatchReply::add_acks() {
+  ::proxy_proto::ParixJournalAppendBatchAckItem* _add = _internal_add_acks();
+  // @@protoc_insertion_point(field_add:proxy_proto.ParixJournalAppendBatchReply.acks)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalAppendBatchAckItem >&
+ParixJournalAppendBatchReply::acks() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.ParixJournalAppendBatchReply.acks)
+  return _impl_.acks_;
+}
+
+// -------------------------------------------------------------------
+
+// ParixSupplyD0Request
+
+// int32 stripe_id = 1;
+inline void ParixSupplyD0Request::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t ParixSupplyD0Request::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t ParixSupplyD0Request::stripe_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixSupplyD0Request.stripe_id)
+  return _internal_stripe_id();
+}
+inline void ParixSupplyD0Request::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void ParixSupplyD0Request::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixSupplyD0Request.stripe_id)
+}
+
+// uint64 batch_id = 2;
+inline void ParixSupplyD0Request::clear_batch_id() {
+  _impl_.batch_id_ = uint64_t{0u};
+}
+inline uint64_t ParixSupplyD0Request::_internal_batch_id() const {
+  return _impl_.batch_id_;
+}
+inline uint64_t ParixSupplyD0Request::batch_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixSupplyD0Request.batch_id)
+  return _internal_batch_id();
+}
+inline void ParixSupplyD0Request::_internal_set_batch_id(uint64_t value) {
+  
+  _impl_.batch_id_ = value;
+}
+inline void ParixSupplyD0Request::set_batch_id(uint64_t value) {
+  _internal_set_batch_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixSupplyD0Request.batch_id)
+}
+
+// uint64 write_generation = 3;
+inline void ParixSupplyD0Request::clear_write_generation() {
+  _impl_.write_generation_ = uint64_t{0u};
+}
+inline uint64_t ParixSupplyD0Request::_internal_write_generation() const {
+  return _impl_.write_generation_;
+}
+inline uint64_t ParixSupplyD0Request::write_generation() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixSupplyD0Request.write_generation)
+  return _internal_write_generation();
+}
+inline void ParixSupplyD0Request::_internal_set_write_generation(uint64_t value) {
+  
+  _impl_.write_generation_ = value;
+}
+inline void ParixSupplyD0Request::set_write_generation(uint64_t value) {
+  _internal_set_write_generation(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixSupplyD0Request.write_generation)
+}
+
+// int32 parity_block_id = 4;
+inline void ParixSupplyD0Request::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
+}
+inline int32_t ParixSupplyD0Request::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
+}
+inline int32_t ParixSupplyD0Request::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixSupplyD0Request.parity_block_id)
+  return _internal_parity_block_id();
+}
+inline void ParixSupplyD0Request::_internal_set_parity_block_id(int32_t value) {
+  
+  _impl_.parity_block_id_ = value;
+}
+inline void ParixSupplyD0Request::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixSupplyD0Request.parity_block_id)
+}
+
+// int32 data_block_id = 5;
+inline void ParixSupplyD0Request::clear_data_block_id() {
+  _impl_.data_block_id_ = 0;
+}
+inline int32_t ParixSupplyD0Request::_internal_data_block_id() const {
+  return _impl_.data_block_id_;
+}
+inline int32_t ParixSupplyD0Request::data_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixSupplyD0Request.data_block_id)
+  return _internal_data_block_id();
+}
+inline void ParixSupplyD0Request::_internal_set_data_block_id(int32_t value) {
+  
+  _impl_.data_block_id_ = value;
+}
+inline void ParixSupplyD0Request::set_data_block_id(int32_t value) {
+  _internal_set_data_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixSupplyD0Request.data_block_id)
+}
+
+// int32 range_offset = 6;
+inline void ParixSupplyD0Request::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t ParixSupplyD0Request::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t ParixSupplyD0Request::range_offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixSupplyD0Request.range_offset)
+  return _internal_range_offset();
+}
+inline void ParixSupplyD0Request::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void ParixSupplyD0Request::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixSupplyD0Request.range_offset)
+}
+
+// uint64 range_length = 7;
+inline void ParixSupplyD0Request::clear_range_length() {
+  _impl_.range_length_ = uint64_t{0u};
+}
+inline uint64_t ParixSupplyD0Request::_internal_range_length() const {
+  return _impl_.range_length_;
+}
+inline uint64_t ParixSupplyD0Request::range_length() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixSupplyD0Request.range_length)
+  return _internal_range_length();
+}
+inline void ParixSupplyD0Request::_internal_set_range_length(uint64_t value) {
+  
+  _impl_.range_length_ = value;
+}
+inline void ParixSupplyD0Request::set_range_length(uint64_t value) {
+  _internal_set_range_length(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixSupplyD0Request.range_length)
+}
+
+// bytes old_payload = 8;
+inline void ParixSupplyD0Request::clear_old_payload() {
+  _impl_.old_payload_.ClearToEmpty();
+}
+inline const std::string& ParixSupplyD0Request::old_payload() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixSupplyD0Request.old_payload)
+  return _internal_old_payload();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void PbsApplyParityDeltaRequest::set_new_range_payload(ArgT0&& arg0, ArgT... args) {
+void ParixSupplyD0Request::set_old_payload(ArgT0&& arg0, ArgT... args) {
  
- _impl_.new_range_payload_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.new_range_payload)
+ _impl_.old_payload_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixSupplyD0Request.old_payload)
 }
-inline std::string* PbsApplyParityDeltaRequest::mutable_new_range_payload() {
-  std::string* _s = _internal_mutable_new_range_payload();
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsApplyParityDeltaRequest.new_range_payload)
+inline std::string* ParixSupplyD0Request::mutable_old_payload() {
+  std::string* _s = _internal_mutable_old_payload();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixSupplyD0Request.old_payload)
   return _s;
 }
-inline const std::string& PbsApplyParityDeltaRequest::_internal_new_range_payload() const {
-  return _impl_.new_range_payload_.Get();
+inline const std::string& ParixSupplyD0Request::_internal_old_payload() const {
+  return _impl_.old_payload_.Get();
 }
-inline void PbsApplyParityDeltaRequest::_internal_set_new_range_payload(const std::string& value) {
+inline void ParixSupplyD0Request::_internal_set_old_payload(const std::string& value) {
   
-  _impl_.new_range_payload_.Set(value, GetArenaForAllocation());
+  _impl_.old_payload_.Set(value, GetArenaForAllocation());
 }
-inline std::string* PbsApplyParityDeltaRequest::_internal_mutable_new_range_payload() {
+inline std::string* ParixSupplyD0Request::_internal_mutable_old_payload() {
   
-  return _impl_.new_range_payload_.Mutable(GetArenaForAllocation());
+  return _impl_.old_payload_.Mutable(GetArenaForAllocation());
 }
-inline std::string* PbsApplyParityDeltaRequest::release_new_range_payload() {
-  // @@protoc_insertion_point(field_release:proxy_proto.PbsApplyParityDeltaRequest.new_range_payload)
-  return _impl_.new_range_payload_.Release();
+inline std::string* ParixSupplyD0Request::release_old_payload() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixSupplyD0Request.old_payload)
+  return _impl_.old_payload_.Release();
 }
-inline void PbsApplyParityDeltaRequest::set_allocated_new_range_payload(std::string* new_range_payload) {
-  if (new_range_payload != nullptr) {
+inline void ParixSupplyD0Request::set_allocated_old_payload(std::string* old_payload) {
+  if (old_payload != nullptr) {
     
   } else {
     
   }
-  _impl_.new_range_payload_.SetAllocated(new_range_payload, GetArenaForAllocation());
+  _impl_.old_payload_.SetAllocated(old_payload, GetArenaForAllocation());
 #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.new_range_payload_.IsDefault()) {
-    _impl_.new_range_payload_.Set("", GetArenaForAllocation());
+  if (_impl_.old_payload_.IsDefault()) {
+    _impl_.old_payload_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsApplyParityDeltaRequest.new_range_payload)
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixSupplyD0Request.old_payload)
 }
 
-// string src_data_block_key = 9;
-inline void PbsApplyParityDeltaRequest::clear_src_data_block_key() {
-  _impl_.src_data_block_key_.ClearToEmpty();
+// -------------------------------------------------------------------
+
+// ParixReplayBatchRequest
+
+// int32 stripe_id = 1;
+inline void ParixReplayBatchRequest::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
 }
-inline const std::string& PbsApplyParityDeltaRequest::src_data_block_key() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.src_data_block_key)
-  return _internal_src_data_block_key();
+inline int32_t ParixReplayBatchRequest::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t ParixReplayBatchRequest::stripe_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixReplayBatchRequest.stripe_id)
+  return _internal_stripe_id();
+}
+inline void ParixReplayBatchRequest::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void ParixReplayBatchRequest::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixReplayBatchRequest.stripe_id)
+}
+
+// uint64 batch_id = 2;
+inline void ParixReplayBatchRequest::clear_batch_id() {
+  _impl_.batch_id_ = uint64_t{0u};
+}
+inline uint64_t ParixReplayBatchRequest::_internal_batch_id() const {
+  return _impl_.batch_id_;
+}
+inline uint64_t ParixReplayBatchRequest::batch_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixReplayBatchRequest.batch_id)
+  return _internal_batch_id();
+}
+inline void ParixReplayBatchRequest::_internal_set_batch_id(uint64_t value) {
+  
+  _impl_.batch_id_ = value;
+}
+inline void ParixReplayBatchRequest::set_batch_id(uint64_t value) {
+  _internal_set_batch_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixReplayBatchRequest.batch_id)
+}
+
+// -------------------------------------------------------------------
+
+// ParixJournalInvalidationRange
+
+// int32 data_block_id = 1;
+inline void ParixJournalInvalidationRange::clear_data_block_id() {
+  _impl_.data_block_id_ = 0;
+}
+inline int32_t ParixJournalInvalidationRange::_internal_data_block_id() const {
+  return _impl_.data_block_id_;
+}
+inline int32_t ParixJournalInvalidationRange::data_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalInvalidationRange.data_block_id)
+  return _internal_data_block_id();
+}
+inline void ParixJournalInvalidationRange::_internal_set_data_block_id(int32_t value) {
+  
+  _impl_.data_block_id_ = value;
+}
+inline void ParixJournalInvalidationRange::set_data_block_id(int32_t value) {
+  _internal_set_data_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalInvalidationRange.data_block_id)
+}
+
+// int32 range_offset = 2;
+inline void ParixJournalInvalidationRange::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t ParixJournalInvalidationRange::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t ParixJournalInvalidationRange::range_offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalInvalidationRange.range_offset)
+  return _internal_range_offset();
+}
+inline void ParixJournalInvalidationRange::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void ParixJournalInvalidationRange::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalInvalidationRange.range_offset)
+}
+
+// uint64 range_length = 3;
+inline void ParixJournalInvalidationRange::clear_range_length() {
+  _impl_.range_length_ = uint64_t{0u};
+}
+inline uint64_t ParixJournalInvalidationRange::_internal_range_length() const {
+  return _impl_.range_length_;
+}
+inline uint64_t ParixJournalInvalidationRange::range_length() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalInvalidationRange.range_length)
+  return _internal_range_length();
+}
+inline void ParixJournalInvalidationRange::_internal_set_range_length(uint64_t value) {
+  
+  _impl_.range_length_ = value;
+}
+inline void ParixJournalInvalidationRange::set_range_length(uint64_t value) {
+  _internal_set_range_length(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalInvalidationRange.range_length)
+}
+
+// -------------------------------------------------------------------
+
+// ParixParityFullOverwriteRequest
+
+// int32 stripe_id = 1;
+inline void ParixParityFullOverwriteRequest::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t ParixParityFullOverwriteRequest::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t ParixParityFullOverwriteRequest::stripe_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityFullOverwriteRequest.stripe_id)
+  return _internal_stripe_id();
+}
+inline void ParixParityFullOverwriteRequest::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void ParixParityFullOverwriteRequest::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixParityFullOverwriteRequest.stripe_id)
+}
+
+// uint64 new_write_generation = 2;
+inline void ParixParityFullOverwriteRequest::clear_new_write_generation() {
+  _impl_.new_write_generation_ = uint64_t{0u};
+}
+inline uint64_t ParixParityFullOverwriteRequest::_internal_new_write_generation() const {
+  return _impl_.new_write_generation_;
+}
+inline uint64_t ParixParityFullOverwriteRequest::new_write_generation() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityFullOverwriteRequest.new_write_generation)
+  return _internal_new_write_generation();
+}
+inline void ParixParityFullOverwriteRequest::_internal_set_new_write_generation(uint64_t value) {
+  
+  _impl_.new_write_generation_ = value;
+}
+inline void ParixParityFullOverwriteRequest::set_new_write_generation(uint64_t value) {
+  _internal_set_new_write_generation(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixParityFullOverwriteRequest.new_write_generation)
+}
+
+// int32 parity_block_id = 3;
+inline void ParixParityFullOverwriteRequest::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
+}
+inline int32_t ParixParityFullOverwriteRequest::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
+}
+inline int32_t ParixParityFullOverwriteRequest::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityFullOverwriteRequest.parity_block_id)
+  return _internal_parity_block_id();
+}
+inline void ParixParityFullOverwriteRequest::_internal_set_parity_block_id(int32_t value) {
+  
+  _impl_.parity_block_id_ = value;
+}
+inline void ParixParityFullOverwriteRequest::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixParityFullOverwriteRequest.parity_block_id)
+}
+
+// string parity_block_key = 4;
+inline void ParixParityFullOverwriteRequest::clear_parity_block_key() {
+  _impl_.parity_block_key_.ClearToEmpty();
+}
+inline const std::string& ParixParityFullOverwriteRequest::parity_block_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityFullOverwriteRequest.parity_block_key)
+  return _internal_parity_block_key();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void PbsApplyParityDeltaRequest::set_src_data_block_key(ArgT0&& arg0, ArgT... args) {
+void ParixParityFullOverwriteRequest::set_parity_block_key(ArgT0&& arg0, ArgT... args) {
  
- _impl_.src_data_block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.src_data_block_key)
+ _impl_.parity_block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixParityFullOverwriteRequest.parity_block_key)
 }
-inline std::string* PbsApplyParityDeltaRequest::mutable_src_data_block_key() {
-  std::string* _s = _internal_mutable_src_data_block_key();
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsApplyParityDeltaRequest.src_data_block_key)
+inline std::string* ParixParityFullOverwriteRequest::mutable_parity_block_key() {
+  std::string* _s = _internal_mutable_parity_block_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixParityFullOverwriteRequest.parity_block_key)
   return _s;
 }
-inline const std::string& PbsApplyParityDeltaRequest::_internal_src_data_block_key() const {
-  return _impl_.src_data_block_key_.Get();
+inline const std::string& ParixParityFullOverwriteRequest::_internal_parity_block_key() const {
+  return _impl_.parity_block_key_.Get();
 }
-inline void PbsApplyParityDeltaRequest::_internal_set_src_data_block_key(const std::string& value) {
+inline void ParixParityFullOverwriteRequest::_internal_set_parity_block_key(const std::string& value) {
   
-  _impl_.src_data_block_key_.Set(value, GetArenaForAllocation());
+  _impl_.parity_block_key_.Set(value, GetArenaForAllocation());
 }
-inline std::string* PbsApplyParityDeltaRequest::_internal_mutable_src_data_block_key() {
+inline std::string* ParixParityFullOverwriteRequest::_internal_mutable_parity_block_key() {
   
-  return _impl_.src_data_block_key_.Mutable(GetArenaForAllocation());
+  return _impl_.parity_block_key_.Mutable(GetArenaForAllocation());
 }
-inline std::string* PbsApplyParityDeltaRequest::release_src_data_block_key() {
-  // @@protoc_insertion_point(field_release:proxy_proto.PbsApplyParityDeltaRequest.src_data_block_key)
-  return _impl_.src_data_block_key_.Release();
+inline std::string* ParixParityFullOverwriteRequest::release_parity_block_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixParityFullOverwriteRequest.parity_block_key)
+  return _impl_.parity_block_key_.Release();
 }
-inline void PbsApplyParityDeltaRequest::set_allocated_src_data_block_key(std::string* src_data_block_key) {
-  if (src_data_block_key != nullptr) {
+inline void ParixParityFullOverwriteRequest::set_allocated_parity_block_key(std::string* parity_block_key) {
+  if (parity_block_key != nullptr) {
     
   } else {
     
   }
-  _impl_.src_data_block_key_.SetAllocated(src_data_block_key, GetArenaForAllocation());
+  _impl_.parity_block_key_.SetAllocated(parity_block_key, GetArenaForAllocation());
 #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.src_data_block_key_.IsDefault()) {
-    _impl_.src_data_block_key_.Set("", GetArenaForAllocation());
+  if (_impl_.parity_block_key_.IsDefault()) {
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsApplyParityDeltaRequest.src_data_block_key)
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixParityFullOverwriteRequest.parity_block_key)
 }
 
-// string src_data_datanode_ip = 10;
-inline void PbsApplyParityDeltaRequest::clear_src_data_datanode_ip() {
-  _impl_.src_data_datanode_ip_.ClearToEmpty();
+// bytes full_parity_block = 5;
+inline void ParixParityFullOverwriteRequest::clear_full_parity_block() {
+  _impl_.full_parity_block_.ClearToEmpty();
 }
-inline const std::string& PbsApplyParityDeltaRequest::src_data_datanode_ip() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_ip)
-  return _internal_src_data_datanode_ip();
+inline const std::string& ParixParityFullOverwriteRequest::full_parity_block() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityFullOverwriteRequest.full_parity_block)
+  return _internal_full_parity_block();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void PbsApplyParityDeltaRequest::set_src_data_datanode_ip(ArgT0&& arg0, ArgT... args) {
+void ParixParityFullOverwriteRequest::set_full_parity_block(ArgT0&& arg0, ArgT... args) {
  
- _impl_.src_data_datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_ip)
+ _impl_.full_parity_block_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixParityFullOverwriteRequest.full_parity_block)
 }
-inline std::string* PbsApplyParityDeltaRequest::mutable_src_data_datanode_ip() {
-  std::string* _s = _internal_mutable_src_data_datanode_ip();
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_ip)
+inline std::string* ParixParityFullOverwriteRequest::mutable_full_parity_block() {
+  std::string* _s = _internal_mutable_full_parity_block();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixParityFullOverwriteRequest.full_parity_block)
   return _s;
 }
-inline const std::string& PbsApplyParityDeltaRequest::_internal_src_data_datanode_ip() const {
-  return _impl_.src_data_datanode_ip_.Get();
+inline const std::string& ParixParityFullOverwriteRequest::_internal_full_parity_block() const {
+  return _impl_.full_parity_block_.Get();
 }
-inline void PbsApplyParityDeltaRequest::_internal_set_src_data_datanode_ip(const std::string& value) {
+inline void ParixParityFullOverwriteRequest::_internal_set_full_parity_block(const std::string& value) {
   
-  _impl_.src_data_datanode_ip_.Set(value, GetArenaForAllocation());
+  _impl_.full_parity_block_.Set(value, GetArenaForAllocation());
 }
-inline std::string* PbsApplyParityDeltaRequest::_internal_mutable_src_data_datanode_ip() {
+inline std::string* ParixParityFullOverwriteRequest::_internal_mutable_full_parity_block() {
   
-  return _impl_.src_data_datanode_ip_.Mutable(GetArenaForAllocation());
+  return _impl_.full_parity_block_.Mutable(GetArenaForAllocation());
 }
-inline std::string* PbsApplyParityDeltaRequest::release_src_data_datanode_ip() {
-  // @@protoc_insertion_point(field_release:proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_ip)
-  return _impl_.src_data_datanode_ip_.Release();
+inline std::string* ParixParityFullOverwriteRequest::release_full_parity_block() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixParityFullOverwriteRequest.full_parity_block)
+  return _impl_.full_parity_block_.Release();
 }
-inline void PbsApplyParityDeltaRequest::set_allocated_src_data_datanode_ip(std::string* src_data_datanode_ip) {
-  if (src_data_datanode_ip != nullptr) {
+inline void ParixParityFullOverwriteRequest::set_allocated_full_parity_block(std::string* full_parity_block) {
+  if (full_parity_block != nullptr) {
     
   } else {
     
   }
-  _impl_.src_data_datanode_ip_.SetAllocated(src_data_datanode_ip, GetArenaForAllocation());
+  _impl_.full_parity_block_.SetAllocated(full_parity_block, GetArenaForAllocation());
 #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.src_data_datanode_ip_.IsDefault()) {
-    _impl_.src_data_datanode_ip_.Set("", GetArenaForAllocation());
+  if (_impl_.full_parity_block_.IsDefault()) {
+    _impl_.full_parity_block_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_ip)
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixParityFullOverwriteRequest.full_parity_block)
 }
 
-// int32 src_data_datanode_port = 11;
-inline void PbsApplyParityDeltaRequest::clear_src_data_datanode_port() {
-  _impl_.src_data_datanode_port_ = 0;
+// string datanode_ip = 6;
+inline void ParixParityFullOverwriteRequest::clear_datanode_ip() {
+  _impl_.datanode_ip_.ClearToEmpty();
 }
-inline int32_t PbsApplyParityDeltaRequest::_internal_src_data_datanode_port() const {
-  return _impl_.src_data_datanode_port_;
-}
-inline int32_t PbsApplyParityDeltaRequest::src_data_datanode_port() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_port)
-  return _internal_src_data_datanode_port();
-}
-inline void PbsApplyParityDeltaRequest::_internal_set_src_data_datanode_port(int32_t value) {
-  
-  _impl_.src_data_datanode_port_ = value;
-}
-inline void PbsApplyParityDeltaRequest::set_src_data_datanode_port(int32_t value) {
-  _internal_set_src_data_datanode_port(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.src_data_datanode_port)
-}
-
-// uint64 pbs_batch_id = 12;
-inline void PbsApplyParityDeltaRequest::clear_pbs_batch_id() {
-  _impl_.pbs_batch_id_ = uint64_t{0u};
-}
-inline uint64_t PbsApplyParityDeltaRequest::_internal_pbs_batch_id() const {
-  return _impl_.pbs_batch_id_;
-}
-inline uint64_t PbsApplyParityDeltaRequest::pbs_batch_id() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.pbs_batch_id)
-  return _internal_pbs_batch_id();
-}
-inline void PbsApplyParityDeltaRequest::_internal_set_pbs_batch_id(uint64_t value) {
-  
-  _impl_.pbs_batch_id_ = value;
-}
-inline void PbsApplyParityDeltaRequest::set_pbs_batch_id(uint64_t value) {
-  _internal_set_pbs_batch_id(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.pbs_batch_id)
-}
-
-// uint32 pbs_batch_index = 13;
-inline void PbsApplyParityDeltaRequest::clear_pbs_batch_index() {
-  _impl_.pbs_batch_index_ = 0u;
-}
-inline uint32_t PbsApplyParityDeltaRequest::_internal_pbs_batch_index() const {
-  return _impl_.pbs_batch_index_;
-}
-inline uint32_t PbsApplyParityDeltaRequest::pbs_batch_index() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.pbs_batch_index)
-  return _internal_pbs_batch_index();
-}
-inline void PbsApplyParityDeltaRequest::_internal_set_pbs_batch_index(uint32_t value) {
-  
-  _impl_.pbs_batch_index_ = value;
-}
-inline void PbsApplyParityDeltaRequest::set_pbs_batch_index(uint32_t value) {
-  _internal_set_pbs_batch_index(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.pbs_batch_index)
-}
-
-// uint32 pbs_batch_total = 14;
-inline void PbsApplyParityDeltaRequest::clear_pbs_batch_total() {
-  _impl_.pbs_batch_total_ = 0u;
-}
-inline uint32_t PbsApplyParityDeltaRequest::_internal_pbs_batch_total() const {
-  return _impl_.pbs_batch_total_;
-}
-inline uint32_t PbsApplyParityDeltaRequest::pbs_batch_total() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.pbs_batch_total)
-  return _internal_pbs_batch_total();
-}
-inline void PbsApplyParityDeltaRequest::_internal_set_pbs_batch_total(uint32_t value) {
-  
-  _impl_.pbs_batch_total_ = value;
-}
-inline void PbsApplyParityDeltaRequest::set_pbs_batch_total(uint32_t value) {
-  _internal_set_pbs_batch_total(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.pbs_batch_total)
-}
-
-// bytes data_range_old_snapshot = 15;
-inline void PbsApplyParityDeltaRequest::clear_data_range_old_snapshot() {
-  _impl_.data_range_old_snapshot_.ClearToEmpty();
-}
-inline const std::string& PbsApplyParityDeltaRequest::data_range_old_snapshot() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PbsApplyParityDeltaRequest.data_range_old_snapshot)
-  return _internal_data_range_old_snapshot();
+inline const std::string& ParixParityFullOverwriteRequest::datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityFullOverwriteRequest.datanode_ip)
+  return _internal_datanode_ip();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void PbsApplyParityDeltaRequest::set_data_range_old_snapshot(ArgT0&& arg0, ArgT... args) {
+void ParixParityFullOverwriteRequest::set_datanode_ip(ArgT0&& arg0, ArgT... args) {
  
- _impl_.data_range_old_snapshot_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proxy_proto.PbsApplyParityDeltaRequest.data_range_old_snapshot)
+ _impl_.datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixParityFullOverwriteRequest.datanode_ip)
 }
-inline std::string* PbsApplyParityDeltaRequest::mutable_data_range_old_snapshot() {
-  std::string* _s = _internal_mutable_data_range_old_snapshot();
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PbsApplyParityDeltaRequest.data_range_old_snapshot)
+inline std::string* ParixParityFullOverwriteRequest::mutable_datanode_ip() {
+  std::string* _s = _internal_mutable_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixParityFullOverwriteRequest.datanode_ip)
   return _s;
 }
-inline const std::string& PbsApplyParityDeltaRequest::_internal_data_range_old_snapshot() const {
-  return _impl_.data_range_old_snapshot_.Get();
+inline const std::string& ParixParityFullOverwriteRequest::_internal_datanode_ip() const {
+  return _impl_.datanode_ip_.Get();
 }
-inline void PbsApplyParityDeltaRequest::_internal_set_data_range_old_snapshot(const std::string& value) {
+inline void ParixParityFullOverwriteRequest::_internal_set_datanode_ip(const std::string& value) {
   
-  _impl_.data_range_old_snapshot_.Set(value, GetArenaForAllocation());
+  _impl_.datanode_ip_.Set(value, GetArenaForAllocation());
 }
-inline std::string* PbsApplyParityDeltaRequest::_internal_mutable_data_range_old_snapshot() {
+inline std::string* ParixParityFullOverwriteRequest::_internal_mutable_datanode_ip() {
   
-  return _impl_.data_range_old_snapshot_.Mutable(GetArenaForAllocation());
+  return _impl_.datanode_ip_.Mutable(GetArenaForAllocation());
 }
-inline std::string* PbsApplyParityDeltaRequest::release_data_range_old_snapshot() {
-  // @@protoc_insertion_point(field_release:proxy_proto.PbsApplyParityDeltaRequest.data_range_old_snapshot)
-  return _impl_.data_range_old_snapshot_.Release();
+inline std::string* ParixParityFullOverwriteRequest::release_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.ParixParityFullOverwriteRequest.datanode_ip)
+  return _impl_.datanode_ip_.Release();
 }
-inline void PbsApplyParityDeltaRequest::set_allocated_data_range_old_snapshot(std::string* data_range_old_snapshot) {
-  if (data_range_old_snapshot != nullptr) {
+inline void ParixParityFullOverwriteRequest::set_allocated_datanode_ip(std::string* datanode_ip) {
+  if (datanode_ip != nullptr) {
     
   } else {
     
   }
-  _impl_.data_range_old_snapshot_.SetAllocated(data_range_old_snapshot, GetArenaForAllocation());
+  _impl_.datanode_ip_.SetAllocated(datanode_ip, GetArenaForAllocation());
 #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.data_range_old_snapshot_.IsDefault()) {
-    _impl_.data_range_old_snapshot_.Set("", GetArenaForAllocation());
+  if (_impl_.datanode_ip_.IsDefault()) {
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PbsApplyParityDeltaRequest.data_range_old_snapshot)
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixParityFullOverwriteRequest.datanode_ip)
+}
+
+// int32 datanode_port = 7;
+inline void ParixParityFullOverwriteRequest::clear_datanode_port() {
+  _impl_.datanode_port_ = 0;
+}
+inline int32_t ParixParityFullOverwriteRequest::_internal_datanode_port() const {
+  return _impl_.datanode_port_;
+}
+inline int32_t ParixParityFullOverwriteRequest::datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityFullOverwriteRequest.datanode_port)
+  return _internal_datanode_port();
+}
+inline void ParixParityFullOverwriteRequest::_internal_set_datanode_port(int32_t value) {
+  
+  _impl_.datanode_port_ = value;
+}
+inline void ParixParityFullOverwriteRequest::set_datanode_port(int32_t value) {
+  _internal_set_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixParityFullOverwriteRequest.datanode_port)
+}
+
+// repeated .proxy_proto.ParixJournalInvalidationRange journal_invalidations = 8;
+inline int ParixParityFullOverwriteRequest::_internal_journal_invalidations_size() const {
+  return _impl_.journal_invalidations_.size();
+}
+inline int ParixParityFullOverwriteRequest::journal_invalidations_size() const {
+  return _internal_journal_invalidations_size();
+}
+inline void ParixParityFullOverwriteRequest::clear_journal_invalidations() {
+  _impl_.journal_invalidations_.Clear();
+}
+inline ::proxy_proto::ParixJournalInvalidationRange* ParixParityFullOverwriteRequest::mutable_journal_invalidations(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixParityFullOverwriteRequest.journal_invalidations)
+  return _impl_.journal_invalidations_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalInvalidationRange >*
+ParixParityFullOverwriteRequest::mutable_journal_invalidations() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.ParixParityFullOverwriteRequest.journal_invalidations)
+  return &_impl_.journal_invalidations_;
+}
+inline const ::proxy_proto::ParixJournalInvalidationRange& ParixParityFullOverwriteRequest::_internal_journal_invalidations(int index) const {
+  return _impl_.journal_invalidations_.Get(index);
+}
+inline const ::proxy_proto::ParixJournalInvalidationRange& ParixParityFullOverwriteRequest::journal_invalidations(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityFullOverwriteRequest.journal_invalidations)
+  return _internal_journal_invalidations(index);
+}
+inline ::proxy_proto::ParixJournalInvalidationRange* ParixParityFullOverwriteRequest::_internal_add_journal_invalidations() {
+  return _impl_.journal_invalidations_.Add();
+}
+inline ::proxy_proto::ParixJournalInvalidationRange* ParixParityFullOverwriteRequest::add_journal_invalidations() {
+  ::proxy_proto::ParixJournalInvalidationRange* _add = _internal_add_journal_invalidations();
+  // @@protoc_insertion_point(field_add:proxy_proto.ParixParityFullOverwriteRequest.journal_invalidations)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixJournalInvalidationRange >&
+ParixParityFullOverwriteRequest::journal_invalidations() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.ParixParityFullOverwriteRequest.journal_invalidations)
+  return _impl_.journal_invalidations_;
 }
 
 // -------------------------------------------------------------------
@@ -13509,10 +16510,40 @@ StripeAndBlockIDs::mutable_datanodeports() {
 
 // -------------------------------------------------------------------
 
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 
 // @@protoc_insertion_point(namespace_scope)
 
 }  // namespace proxy_proto
+
+PROTOBUF_NAMESPACE_OPEN
+
+template <> struct is_proto_enum< ::proxy_proto::ParixParityAck> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::proxy_proto::ParixParityAck>() {
+  return ::proxy_proto::ParixParityAck_descriptor();
+}
+
+PROTOBUF_NAMESPACE_CLOSE
 
 // @@protoc_insertion_point(global_scope)
 

@@ -156,21 +156,49 @@ class proxyService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>> PrepareAsyncscheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>>(PrepareAsyncscheduleAppend2DatanodeRaw(context, request, cq));
     }
-    // PBS: partial overwrite of one data block range (client sends new bytes over TCP)
-    virtual ::grpc::Status pbsScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement& request, ::proxy_proto::SetReply* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>> AsyncpbsScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>>(AsyncpbsScheduleDataUpdateRaw(context, request, cq));
+    // Parix
+    virtual ::grpc::Status parixScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement& request, ::proxy_proto::ParixScheduleDataUpdateReply* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixScheduleDataUpdateReply>> AsyncparixScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixScheduleDataUpdateReply>>(AsyncparixScheduleDataUpdateRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>> PrepareAsyncpbsScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>>(PrepareAsyncpbsScheduleDataUpdateRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixScheduleDataUpdateReply>> PrepareAsyncparixScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixScheduleDataUpdateReply>>(PrepareAsyncparixScheduleDataUpdateRaw(context, request, cq));
     }
-    // PBS: apply data delta to one or more parity blocks on this proxy (same byte range XOR placeholder)
-    virtual ::grpc::Status pbsApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest& request, ::proxy_proto::SetReply* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>> AsyncpbsApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>>(AsyncpbsApplyParityDeltaRaw(context, request, cq));
+    virtual ::grpc::Status parixJournalAppend(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest& request, ::proxy_proto::ParixJournalAppendReply* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixJournalAppendReply>> AsyncparixJournalAppend(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixJournalAppendReply>>(AsyncparixJournalAppendRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>> PrepareAsyncpbsApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>>(PrepareAsyncpbsApplyParityDeltaRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixJournalAppendReply>> PrepareAsyncparixJournalAppend(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixJournalAppendReply>>(PrepareAsyncparixJournalAppendRaw(context, request, cq));
+    }
+    // 同一 parity proxy 上多个 parity_block 共享一次 new_payload，避免重复传输
+    virtual ::grpc::Status parixJournalAppendBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest& request, ::proxy_proto::ParixJournalAppendBatchReply* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixJournalAppendBatchReply>> AsyncparixJournalAppendBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixJournalAppendBatchReply>>(AsyncparixJournalAppendBatchRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixJournalAppendBatchReply>> PrepareAsyncparixJournalAppendBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixJournalAppendBatchReply>>(PrepareAsyncparixJournalAppendBatchRaw(context, request, cq));
+    }
+    virtual ::grpc::Status parixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::proxy_proto::SetReply* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>> AsyncparixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>>(AsyncparixSupplyD0Raw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>> PrepareAsyncparixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>>(PrepareAsyncparixSupplyD0Raw(context, request, cq));
+    }
+    virtual ::grpc::Status parixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::proxy_proto::SetReply* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>> AsyncparixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>>(AsyncparixReplayBatchRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>> PrepareAsyncparixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>>(PrepareAsyncparixReplayBatchRaw(context, request, cq));
+    }
+    virtual ::grpc::Status parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::proxy_proto::SetReply* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>> AsyncparixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>>(AsyncparixParityFullOverwriteRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>> PrepareAsyncparixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>>(PrepareAsyncparixParityFullOverwriteRaw(context, request, cq));
     }
     // get stripe
     virtual ::grpc::Status getBlocks(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs& request, ::proxy_proto::GetReply* response) = 0;
@@ -218,12 +246,20 @@ class proxyService final {
       // append
       virtual void scheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) = 0;
       virtual void scheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // PBS: partial overwrite of one data block range (client sends new bytes over TCP)
-      virtual void pbsScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void pbsScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // PBS: apply data delta to one or more parity blocks on this proxy (same byte range XOR placeholder)
-      virtual void pbsApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void pbsApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      // Parix
+      virtual void parixScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement* request, ::proxy_proto::ParixScheduleDataUpdateReply* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void parixScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement* request, ::proxy_proto::ParixScheduleDataUpdateReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void parixJournalAppend(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest* request, ::proxy_proto::ParixJournalAppendReply* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void parixJournalAppend(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest* request, ::proxy_proto::ParixJournalAppendReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      // 同一 parity proxy 上多个 parity_block 共享一次 new_payload，避免重复传输
+      virtual void parixJournalAppendBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest* request, ::proxy_proto::ParixJournalAppendBatchReply* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void parixJournalAppendBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest* request, ::proxy_proto::ParixJournalAppendBatchReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void parixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void parixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void parixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void parixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       // get stripe
       virtual void getBlocks(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)>) = 0;
       virtual void getBlocks(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
@@ -260,10 +296,18 @@ class proxyService final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::DelReply>* PrepareAsyncdeleteBlockRaw(::grpc::ClientContext* context, const ::proxy_proto::NodeAndBlock& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* AsyncscheduleAppend2DatanodeRaw(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* PrepareAsyncscheduleAppend2DatanodeRaw(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* AsyncpbsScheduleDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* PrepareAsyncpbsScheduleDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* AsyncpbsApplyParityDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* PrepareAsyncpbsApplyParityDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixScheduleDataUpdateReply>* AsyncparixScheduleDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixScheduleDataUpdateReply>* PrepareAsyncparixScheduleDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixJournalAppendReply>* AsyncparixJournalAppendRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixJournalAppendReply>* PrepareAsyncparixJournalAppendRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixJournalAppendBatchReply>* AsyncparixJournalAppendBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixJournalAppendBatchReply>* PrepareAsyncparixJournalAppendBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* AsyncparixSupplyD0Raw(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* PrepareAsyncparixSupplyD0Raw(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* AsyncparixReplayBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* PrepareAsyncparixReplayBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* AsyncparixParityFullOverwriteRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* PrepareAsyncparixParityFullOverwriteRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::GetReply>* AsyncgetBlocksRaw(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::GetReply>* PrepareAsyncgetBlocksRaw(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs& request, ::grpc::CompletionQueue* cq) = 0;
   };
@@ -368,19 +412,47 @@ class proxyService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>> PrepareAsyncscheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>>(PrepareAsyncscheduleAppend2DatanodeRaw(context, request, cq));
     }
-    ::grpc::Status pbsScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement& request, ::proxy_proto::SetReply* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>> AsyncpbsScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>>(AsyncpbsScheduleDataUpdateRaw(context, request, cq));
+    ::grpc::Status parixScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement& request, ::proxy_proto::ParixScheduleDataUpdateReply* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixScheduleDataUpdateReply>> AsyncparixScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixScheduleDataUpdateReply>>(AsyncparixScheduleDataUpdateRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>> PrepareAsyncpbsScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>>(PrepareAsyncpbsScheduleDataUpdateRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixScheduleDataUpdateReply>> PrepareAsyncparixScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixScheduleDataUpdateReply>>(PrepareAsyncparixScheduleDataUpdateRaw(context, request, cq));
     }
-    ::grpc::Status pbsApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest& request, ::proxy_proto::SetReply* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>> AsyncpbsApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>>(AsyncpbsApplyParityDeltaRaw(context, request, cq));
+    ::grpc::Status parixJournalAppend(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest& request, ::proxy_proto::ParixJournalAppendReply* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendReply>> AsyncparixJournalAppend(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendReply>>(AsyncparixJournalAppendRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>> PrepareAsyncpbsApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>>(PrepareAsyncpbsApplyParityDeltaRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendReply>> PrepareAsyncparixJournalAppend(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendReply>>(PrepareAsyncparixJournalAppendRaw(context, request, cq));
+    }
+    ::grpc::Status parixJournalAppendBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest& request, ::proxy_proto::ParixJournalAppendBatchReply* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendBatchReply>> AsyncparixJournalAppendBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendBatchReply>>(AsyncparixJournalAppendBatchRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendBatchReply>> PrepareAsyncparixJournalAppendBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendBatchReply>>(PrepareAsyncparixJournalAppendBatchRaw(context, request, cq));
+    }
+    ::grpc::Status parixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::proxy_proto::SetReply* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>> AsyncparixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>>(AsyncparixSupplyD0Raw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>> PrepareAsyncparixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>>(PrepareAsyncparixSupplyD0Raw(context, request, cq));
+    }
+    ::grpc::Status parixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::proxy_proto::SetReply* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>> AsyncparixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>>(AsyncparixReplayBatchRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>> PrepareAsyncparixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>>(PrepareAsyncparixReplayBatchRaw(context, request, cq));
+    }
+    ::grpc::Status parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::proxy_proto::SetReply* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>> AsyncparixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>>(AsyncparixParityFullOverwriteRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>> PrepareAsyncparixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>>(PrepareAsyncparixParityFullOverwriteRaw(context, request, cq));
     }
     ::grpc::Status getBlocks(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs& request, ::proxy_proto::GetReply* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>> AsyncgetBlocks(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs& request, ::grpc::CompletionQueue* cq) {
@@ -420,10 +492,18 @@ class proxyService final {
       void deleteBlock(::grpc::ClientContext* context, const ::proxy_proto::NodeAndBlock* request, ::proxy_proto::DelReply* response, ::grpc::ClientUnaryReactor* reactor) override;
       void scheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) override;
       void scheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void pbsScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) override;
-      void pbsScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void pbsApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) override;
-      void pbsApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void parixScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement* request, ::proxy_proto::ParixScheduleDataUpdateReply* response, std::function<void(::grpc::Status)>) override;
+      void parixScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement* request, ::proxy_proto::ParixScheduleDataUpdateReply* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void parixJournalAppend(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest* request, ::proxy_proto::ParixJournalAppendReply* response, std::function<void(::grpc::Status)>) override;
+      void parixJournalAppend(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest* request, ::proxy_proto::ParixJournalAppendReply* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void parixJournalAppendBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest* request, ::proxy_proto::ParixJournalAppendBatchReply* response, std::function<void(::grpc::Status)>) override;
+      void parixJournalAppendBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest* request, ::proxy_proto::ParixJournalAppendBatchReply* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void parixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) override;
+      void parixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void parixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) override;
+      void parixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) override;
+      void parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) override;
       void getBlocks(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)>) override;
       void getBlocks(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
@@ -465,10 +545,18 @@ class proxyService final {
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::DelReply>* PrepareAsyncdeleteBlockRaw(::grpc::ClientContext* context, const ::proxy_proto::NodeAndBlock& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* AsyncscheduleAppend2DatanodeRaw(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* PrepareAsyncscheduleAppend2DatanodeRaw(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* AsyncpbsScheduleDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* PrepareAsyncpbsScheduleDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* AsyncpbsApplyParityDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* PrepareAsyncpbsApplyParityDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixScheduleDataUpdateReply>* AsyncparixScheduleDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixScheduleDataUpdateReply>* PrepareAsyncparixScheduleDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendReply>* AsyncparixJournalAppendRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendReply>* PrepareAsyncparixJournalAppendRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendBatchReply>* AsyncparixJournalAppendBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendBatchReply>* PrepareAsyncparixJournalAppendBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* AsyncparixSupplyD0Raw(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* PrepareAsyncparixSupplyD0Raw(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* AsyncparixReplayBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* PrepareAsyncparixReplayBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* AsyncparixParityFullOverwriteRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* PrepareAsyncparixParityFullOverwriteRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* AsyncgetBlocksRaw(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* PrepareAsyncgetBlocksRaw(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_checkalive_;
@@ -485,8 +573,12 @@ class proxyService final {
     const ::grpc::internal::RpcMethod rpcmethod_multipleRecovery_;
     const ::grpc::internal::RpcMethod rpcmethod_deleteBlock_;
     const ::grpc::internal::RpcMethod rpcmethod_scheduleAppend2Datanode_;
-    const ::grpc::internal::RpcMethod rpcmethod_pbsScheduleDataUpdate_;
-    const ::grpc::internal::RpcMethod rpcmethod_pbsApplyParityDelta_;
+    const ::grpc::internal::RpcMethod rpcmethod_parixScheduleDataUpdate_;
+    const ::grpc::internal::RpcMethod rpcmethod_parixJournalAppend_;
+    const ::grpc::internal::RpcMethod rpcmethod_parixJournalAppendBatch_;
+    const ::grpc::internal::RpcMethod rpcmethod_parixSupplyD0_;
+    const ::grpc::internal::RpcMethod rpcmethod_parixReplayBatch_;
+    const ::grpc::internal::RpcMethod rpcmethod_parixParityFullOverwrite_;
     const ::grpc::internal::RpcMethod rpcmethod_getBlocks_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
@@ -516,10 +608,14 @@ class proxyService final {
     virtual ::grpc::Status deleteBlock(::grpc::ServerContext* context, const ::proxy_proto::NodeAndBlock* request, ::proxy_proto::DelReply* response);
     // append
     virtual ::grpc::Status scheduleAppend2Datanode(::grpc::ServerContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response);
-    // PBS: partial overwrite of one data block range (client sends new bytes over TCP)
-    virtual ::grpc::Status pbsScheduleDataUpdate(::grpc::ServerContext* context, const ::proxy_proto::PbsDataUpdatePlacement* request, ::proxy_proto::SetReply* response);
-    // PBS: apply data delta to one or more parity blocks on this proxy (same byte range XOR placeholder)
-    virtual ::grpc::Status pbsApplyParityDelta(::grpc::ServerContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest* request, ::proxy_proto::SetReply* response);
+    // Parix
+    virtual ::grpc::Status parixScheduleDataUpdate(::grpc::ServerContext* context, const ::proxy_proto::ParixDataUpdatePlacement* request, ::proxy_proto::ParixScheduleDataUpdateReply* response);
+    virtual ::grpc::Status parixJournalAppend(::grpc::ServerContext* context, const ::proxy_proto::ParixJournalAppendRequest* request, ::proxy_proto::ParixJournalAppendReply* response);
+    // 同一 parity proxy 上多个 parity_block 共享一次 new_payload，避免重复传输
+    virtual ::grpc::Status parixJournalAppendBatch(::grpc::ServerContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest* request, ::proxy_proto::ParixJournalAppendBatchReply* response);
+    virtual ::grpc::Status parixSupplyD0(::grpc::ServerContext* context, const ::proxy_proto::ParixSupplyD0Request* request, ::proxy_proto::SetReply* response);
+    virtual ::grpc::Status parixReplayBatch(::grpc::ServerContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response);
+    virtual ::grpc::Status parixParityFullOverwrite(::grpc::ServerContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response);
     // get stripe
     virtual ::grpc::Status getBlocks(::grpc::ServerContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response);
   };
@@ -804,43 +900,123 @@ class proxyService final {
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_pbsScheduleDataUpdate : public BaseClass {
+  class WithAsyncMethod_parixScheduleDataUpdate : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_pbsScheduleDataUpdate() {
+    WithAsyncMethod_parixScheduleDataUpdate() {
       ::grpc::Service::MarkMethodAsync(14);
     }
-    ~WithAsyncMethod_pbsScheduleDataUpdate() override {
+    ~WithAsyncMethod_parixScheduleDataUpdate() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status pbsScheduleDataUpdate(::grpc::ServerContext* /*context*/, const ::proxy_proto::PbsDataUpdatePlacement* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+    ::grpc::Status parixScheduleDataUpdate(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixDataUpdatePlacement* /*request*/, ::proxy_proto::ParixScheduleDataUpdateReply* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestpbsScheduleDataUpdate(::grpc::ServerContext* context, ::proxy_proto::PbsDataUpdatePlacement* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::SetReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestparixScheduleDataUpdate(::grpc::ServerContext* context, ::proxy_proto::ParixDataUpdatePlacement* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::ParixScheduleDataUpdateReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(14, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_pbsApplyParityDelta : public BaseClass {
+  class WithAsyncMethod_parixJournalAppend : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_pbsApplyParityDelta() {
+    WithAsyncMethod_parixJournalAppend() {
       ::grpc::Service::MarkMethodAsync(15);
     }
-    ~WithAsyncMethod_pbsApplyParityDelta() override {
+    ~WithAsyncMethod_parixJournalAppend() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status pbsApplyParityDelta(::grpc::ServerContext* /*context*/, const ::proxy_proto::PbsApplyParityDeltaRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+    ::grpc::Status parixJournalAppend(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixJournalAppendRequest* /*request*/, ::proxy_proto::ParixJournalAppendReply* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestpbsApplyParityDelta(::grpc::ServerContext* context, ::proxy_proto::PbsApplyParityDeltaRequest* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::SetReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestparixJournalAppend(::grpc::ServerContext* context, ::proxy_proto::ParixJournalAppendRequest* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::ParixJournalAppendReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(15, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_parixJournalAppendBatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_parixJournalAppendBatch() {
+      ::grpc::Service::MarkMethodAsync(16);
+    }
+    ~WithAsyncMethod_parixJournalAppendBatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixJournalAppendBatch(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixJournalAppendBatchRequest* /*request*/, ::proxy_proto::ParixJournalAppendBatchReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestparixJournalAppendBatch(::grpc::ServerContext* context, ::proxy_proto::ParixJournalAppendBatchRequest* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::ParixJournalAppendBatchReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(16, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_parixSupplyD0 : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_parixSupplyD0() {
+      ::grpc::Service::MarkMethodAsync(17);
+    }
+    ~WithAsyncMethod_parixSupplyD0() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixSupplyD0(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixSupplyD0Request* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestparixSupplyD0(::grpc::ServerContext* context, ::proxy_proto::ParixSupplyD0Request* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::SetReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(17, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_parixReplayBatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_parixReplayBatch() {
+      ::grpc::Service::MarkMethodAsync(18);
+    }
+    ~WithAsyncMethod_parixReplayBatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixReplayBatch(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestparixReplayBatch(::grpc::ServerContext* context, ::proxy_proto::ParixReplayBatchRequest* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::SetReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(18, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_parixParityFullOverwrite : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_parixParityFullOverwrite() {
+      ::grpc::Service::MarkMethodAsync(19);
+    }
+    ~WithAsyncMethod_parixParityFullOverwrite() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixParityFullOverwrite(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixParityFullOverwriteRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestparixParityFullOverwrite(::grpc::ServerContext* context, ::proxy_proto::ParixParityFullOverwriteRequest* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::SetReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(19, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -849,7 +1025,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_getBlocks() {
-      ::grpc::Service::MarkMethodAsync(16);
+      ::grpc::Service::MarkMethodAsync(20);
     }
     ~WithAsyncMethod_getBlocks() override {
       BaseClassMustBeDerivedFromService(this);
@@ -860,10 +1036,10 @@ class proxyService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestgetBlocks(::grpc::ServerContext* context, ::proxy_proto::StripeAndBlockIDs* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::GetReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(16, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(20, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_checkalive<WithAsyncMethod_encodeAndSetObject<WithAsyncMethod_decodeAndGetObject<WithAsyncMethod_degradedRead<WithAsyncMethod_degradedRead2Client<WithAsyncMethod_degradedReadBreakdown<WithAsyncMethod_degradedRead2ClientBreakdown<WithAsyncMethod_degradedReadWithBlockStripeID<WithAsyncMethod_partialDecoding<WithAsyncMethod_recovery<WithAsyncMethod_recoveryBreakdown<WithAsyncMethod_multipleRecovery<WithAsyncMethod_deleteBlock<WithAsyncMethod_scheduleAppend2Datanode<WithAsyncMethod_pbsScheduleDataUpdate<WithAsyncMethod_pbsApplyParityDelta<WithAsyncMethod_getBlocks<Service > > > > > > > > > > > > > > > > > AsyncService;
+  typedef WithAsyncMethod_checkalive<WithAsyncMethod_encodeAndSetObject<WithAsyncMethod_decodeAndGetObject<WithAsyncMethod_degradedRead<WithAsyncMethod_degradedRead2Client<WithAsyncMethod_degradedReadBreakdown<WithAsyncMethod_degradedRead2ClientBreakdown<WithAsyncMethod_degradedReadWithBlockStripeID<WithAsyncMethod_partialDecoding<WithAsyncMethod_recovery<WithAsyncMethod_recoveryBreakdown<WithAsyncMethod_multipleRecovery<WithAsyncMethod_deleteBlock<WithAsyncMethod_scheduleAppend2Datanode<WithAsyncMethod_parixScheduleDataUpdate<WithAsyncMethod_parixJournalAppend<WithAsyncMethod_parixJournalAppendBatch<WithAsyncMethod_parixSupplyD0<WithAsyncMethod_parixReplayBatch<WithAsyncMethod_parixParityFullOverwrite<WithAsyncMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_checkalive : public BaseClass {
    private:
@@ -1243,58 +1419,166 @@ class proxyService final {
       ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::AppendStripeDataPlacement* /*request*/, ::proxy_proto::SetReply* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_pbsScheduleDataUpdate : public BaseClass {
+  class WithCallbackMethod_parixScheduleDataUpdate : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_pbsScheduleDataUpdate() {
+    WithCallbackMethod_parixScheduleDataUpdate() {
       ::grpc::Service::MarkMethodCallback(14,
-          new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::PbsDataUpdatePlacement, ::proxy_proto::SetReply>(
+          new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixDataUpdatePlacement, ::proxy_proto::ParixScheduleDataUpdateReply>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::proxy_proto::PbsDataUpdatePlacement* request, ::proxy_proto::SetReply* response) { return this->pbsScheduleDataUpdate(context, request, response); }));}
-    void SetMessageAllocatorFor_pbsScheduleDataUpdate(
-        ::grpc::MessageAllocator< ::proxy_proto::PbsDataUpdatePlacement, ::proxy_proto::SetReply>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::proxy_proto::ParixDataUpdatePlacement* request, ::proxy_proto::ParixScheduleDataUpdateReply* response) { return this->parixScheduleDataUpdate(context, request, response); }));}
+    void SetMessageAllocatorFor_parixScheduleDataUpdate(
+        ::grpc::MessageAllocator< ::proxy_proto::ParixDataUpdatePlacement, ::proxy_proto::ParixScheduleDataUpdateReply>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(14);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::PbsDataUpdatePlacement, ::proxy_proto::SetReply>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixDataUpdatePlacement, ::proxy_proto::ParixScheduleDataUpdateReply>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_pbsScheduleDataUpdate() override {
+    ~WithCallbackMethod_parixScheduleDataUpdate() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status pbsScheduleDataUpdate(::grpc::ServerContext* /*context*/, const ::proxy_proto::PbsDataUpdatePlacement* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+    ::grpc::Status parixScheduleDataUpdate(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixDataUpdatePlacement* /*request*/, ::proxy_proto::ParixScheduleDataUpdateReply* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* pbsScheduleDataUpdate(
-      ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::PbsDataUpdatePlacement* /*request*/, ::proxy_proto::SetReply* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* parixScheduleDataUpdate(
+      ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::ParixDataUpdatePlacement* /*request*/, ::proxy_proto::ParixScheduleDataUpdateReply* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_pbsApplyParityDelta : public BaseClass {
+  class WithCallbackMethod_parixJournalAppend : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_pbsApplyParityDelta() {
+    WithCallbackMethod_parixJournalAppend() {
       ::grpc::Service::MarkMethodCallback(15,
-          new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::PbsApplyParityDeltaRequest, ::proxy_proto::SetReply>(
+          new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixJournalAppendRequest, ::proxy_proto::ParixJournalAppendReply>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest* request, ::proxy_proto::SetReply* response) { return this->pbsApplyParityDelta(context, request, response); }));}
-    void SetMessageAllocatorFor_pbsApplyParityDelta(
-        ::grpc::MessageAllocator< ::proxy_proto::PbsApplyParityDeltaRequest, ::proxy_proto::SetReply>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::proxy_proto::ParixJournalAppendRequest* request, ::proxy_proto::ParixJournalAppendReply* response) { return this->parixJournalAppend(context, request, response); }));}
+    void SetMessageAllocatorFor_parixJournalAppend(
+        ::grpc::MessageAllocator< ::proxy_proto::ParixJournalAppendRequest, ::proxy_proto::ParixJournalAppendReply>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(15);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::PbsApplyParityDeltaRequest, ::proxy_proto::SetReply>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixJournalAppendRequest, ::proxy_proto::ParixJournalAppendReply>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_pbsApplyParityDelta() override {
+    ~WithCallbackMethod_parixJournalAppend() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status pbsApplyParityDelta(::grpc::ServerContext* /*context*/, const ::proxy_proto::PbsApplyParityDeltaRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+    ::grpc::Status parixJournalAppend(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixJournalAppendRequest* /*request*/, ::proxy_proto::ParixJournalAppendReply* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* pbsApplyParityDelta(
-      ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::PbsApplyParityDeltaRequest* /*request*/, ::proxy_proto::SetReply* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* parixJournalAppend(
+      ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::ParixJournalAppendRequest* /*request*/, ::proxy_proto::ParixJournalAppendReply* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithCallbackMethod_parixJournalAppendBatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_parixJournalAppendBatch() {
+      ::grpc::Service::MarkMethodCallback(16,
+          new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixJournalAppendBatchRequest, ::proxy_proto::ParixJournalAppendBatchReply>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest* request, ::proxy_proto::ParixJournalAppendBatchReply* response) { return this->parixJournalAppendBatch(context, request, response); }));}
+    void SetMessageAllocatorFor_parixJournalAppendBatch(
+        ::grpc::MessageAllocator< ::proxy_proto::ParixJournalAppendBatchRequest, ::proxy_proto::ParixJournalAppendBatchReply>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(16);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixJournalAppendBatchRequest, ::proxy_proto::ParixJournalAppendBatchReply>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_parixJournalAppendBatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixJournalAppendBatch(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixJournalAppendBatchRequest* /*request*/, ::proxy_proto::ParixJournalAppendBatchReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* parixJournalAppendBatch(
+      ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::ParixJournalAppendBatchRequest* /*request*/, ::proxy_proto::ParixJournalAppendBatchReply* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithCallbackMethod_parixSupplyD0 : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_parixSupplyD0() {
+      ::grpc::Service::MarkMethodCallback(17,
+          new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixSupplyD0Request, ::proxy_proto::SetReply>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::proxy_proto::ParixSupplyD0Request* request, ::proxy_proto::SetReply* response) { return this->parixSupplyD0(context, request, response); }));}
+    void SetMessageAllocatorFor_parixSupplyD0(
+        ::grpc::MessageAllocator< ::proxy_proto::ParixSupplyD0Request, ::proxy_proto::SetReply>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(17);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixSupplyD0Request, ::proxy_proto::SetReply>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_parixSupplyD0() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixSupplyD0(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixSupplyD0Request* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* parixSupplyD0(
+      ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::ParixSupplyD0Request* /*request*/, ::proxy_proto::SetReply* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithCallbackMethod_parixReplayBatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_parixReplayBatch() {
+      ::grpc::Service::MarkMethodCallback(18,
+          new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::SetReply>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response) { return this->parixReplayBatch(context, request, response); }));}
+    void SetMessageAllocatorFor_parixReplayBatch(
+        ::grpc::MessageAllocator< ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::SetReply>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(18);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::SetReply>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_parixReplayBatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixReplayBatch(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* parixReplayBatch(
+      ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::SetReply* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithCallbackMethod_parixParityFullOverwrite : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_parixParityFullOverwrite() {
+      ::grpc::Service::MarkMethodCallback(19,
+          new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixParityFullOverwriteRequest, ::proxy_proto::SetReply>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response) { return this->parixParityFullOverwrite(context, request, response); }));}
+    void SetMessageAllocatorFor_parixParityFullOverwrite(
+        ::grpc::MessageAllocator< ::proxy_proto::ParixParityFullOverwriteRequest, ::proxy_proto::SetReply>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(19);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixParityFullOverwriteRequest, ::proxy_proto::SetReply>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_parixParityFullOverwrite() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixParityFullOverwrite(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixParityFullOverwriteRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* parixParityFullOverwrite(
+      ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::ParixParityFullOverwriteRequest* /*request*/, ::proxy_proto::SetReply* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
   class WithCallbackMethod_getBlocks : public BaseClass {
@@ -1302,13 +1586,13 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_getBlocks() {
-      ::grpc::Service::MarkMethodCallback(16,
+      ::grpc::Service::MarkMethodCallback(20,
           new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response) { return this->getBlocks(context, request, response); }));}
     void SetMessageAllocatorFor_getBlocks(
         ::grpc::MessageAllocator< ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(16);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(20);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -1323,7 +1607,7 @@ class proxyService final {
     virtual ::grpc::ServerUnaryReactor* getBlocks(
       ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::StripeAndBlockIDs* /*request*/, ::proxy_proto::GetReply* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_checkalive<WithCallbackMethod_encodeAndSetObject<WithCallbackMethod_decodeAndGetObject<WithCallbackMethod_degradedRead<WithCallbackMethod_degradedRead2Client<WithCallbackMethod_degradedReadBreakdown<WithCallbackMethod_degradedRead2ClientBreakdown<WithCallbackMethod_degradedReadWithBlockStripeID<WithCallbackMethod_partialDecoding<WithCallbackMethod_recovery<WithCallbackMethod_recoveryBreakdown<WithCallbackMethod_multipleRecovery<WithCallbackMethod_deleteBlock<WithCallbackMethod_scheduleAppend2Datanode<WithCallbackMethod_pbsScheduleDataUpdate<WithCallbackMethod_pbsApplyParityDelta<WithCallbackMethod_getBlocks<Service > > > > > > > > > > > > > > > > > CallbackService;
+  typedef WithCallbackMethod_checkalive<WithCallbackMethod_encodeAndSetObject<WithCallbackMethod_decodeAndGetObject<WithCallbackMethod_degradedRead<WithCallbackMethod_degradedRead2Client<WithCallbackMethod_degradedReadBreakdown<WithCallbackMethod_degradedRead2ClientBreakdown<WithCallbackMethod_degradedReadWithBlockStripeID<WithCallbackMethod_partialDecoding<WithCallbackMethod_recovery<WithCallbackMethod_recoveryBreakdown<WithCallbackMethod_multipleRecovery<WithCallbackMethod_deleteBlock<WithCallbackMethod_scheduleAppend2Datanode<WithCallbackMethod_parixScheduleDataUpdate<WithCallbackMethod_parixJournalAppend<WithCallbackMethod_parixJournalAppendBatch<WithCallbackMethod_parixSupplyD0<WithCallbackMethod_parixReplayBatch<WithCallbackMethod_parixParityFullOverwrite<WithCallbackMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_checkalive : public BaseClass {
@@ -1564,35 +1848,103 @@ class proxyService final {
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_pbsScheduleDataUpdate : public BaseClass {
+  class WithGenericMethod_parixScheduleDataUpdate : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_pbsScheduleDataUpdate() {
+    WithGenericMethod_parixScheduleDataUpdate() {
       ::grpc::Service::MarkMethodGeneric(14);
     }
-    ~WithGenericMethod_pbsScheduleDataUpdate() override {
+    ~WithGenericMethod_parixScheduleDataUpdate() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status pbsScheduleDataUpdate(::grpc::ServerContext* /*context*/, const ::proxy_proto::PbsDataUpdatePlacement* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+    ::grpc::Status parixScheduleDataUpdate(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixDataUpdatePlacement* /*request*/, ::proxy_proto::ParixScheduleDataUpdateReply* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_pbsApplyParityDelta : public BaseClass {
+  class WithGenericMethod_parixJournalAppend : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_pbsApplyParityDelta() {
+    WithGenericMethod_parixJournalAppend() {
       ::grpc::Service::MarkMethodGeneric(15);
     }
-    ~WithGenericMethod_pbsApplyParityDelta() override {
+    ~WithGenericMethod_parixJournalAppend() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status pbsApplyParityDelta(::grpc::ServerContext* /*context*/, const ::proxy_proto::PbsApplyParityDeltaRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+    ::grpc::Status parixJournalAppend(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixJournalAppendRequest* /*request*/, ::proxy_proto::ParixJournalAppendReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_parixJournalAppendBatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_parixJournalAppendBatch() {
+      ::grpc::Service::MarkMethodGeneric(16);
+    }
+    ~WithGenericMethod_parixJournalAppendBatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixJournalAppendBatch(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixJournalAppendBatchRequest* /*request*/, ::proxy_proto::ParixJournalAppendBatchReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_parixSupplyD0 : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_parixSupplyD0() {
+      ::grpc::Service::MarkMethodGeneric(17);
+    }
+    ~WithGenericMethod_parixSupplyD0() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixSupplyD0(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixSupplyD0Request* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_parixReplayBatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_parixReplayBatch() {
+      ::grpc::Service::MarkMethodGeneric(18);
+    }
+    ~WithGenericMethod_parixReplayBatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixReplayBatch(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_parixParityFullOverwrite : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_parixParityFullOverwrite() {
+      ::grpc::Service::MarkMethodGeneric(19);
+    }
+    ~WithGenericMethod_parixParityFullOverwrite() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixParityFullOverwrite(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixParityFullOverwriteRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -1603,7 +1955,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_getBlocks() {
-      ::grpc::Service::MarkMethodGeneric(16);
+      ::grpc::Service::MarkMethodGeneric(20);
     }
     ~WithGenericMethod_getBlocks() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1895,43 +2247,123 @@ class proxyService final {
     }
   };
   template <class BaseClass>
-  class WithRawMethod_pbsScheduleDataUpdate : public BaseClass {
+  class WithRawMethod_parixScheduleDataUpdate : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_pbsScheduleDataUpdate() {
+    WithRawMethod_parixScheduleDataUpdate() {
       ::grpc::Service::MarkMethodRaw(14);
     }
-    ~WithRawMethod_pbsScheduleDataUpdate() override {
+    ~WithRawMethod_parixScheduleDataUpdate() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status pbsScheduleDataUpdate(::grpc::ServerContext* /*context*/, const ::proxy_proto::PbsDataUpdatePlacement* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+    ::grpc::Status parixScheduleDataUpdate(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixDataUpdatePlacement* /*request*/, ::proxy_proto::ParixScheduleDataUpdateReply* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestpbsScheduleDataUpdate(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestparixScheduleDataUpdate(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(14, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawMethod_pbsApplyParityDelta : public BaseClass {
+  class WithRawMethod_parixJournalAppend : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_pbsApplyParityDelta() {
+    WithRawMethod_parixJournalAppend() {
       ::grpc::Service::MarkMethodRaw(15);
     }
-    ~WithRawMethod_pbsApplyParityDelta() override {
+    ~WithRawMethod_parixJournalAppend() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status pbsApplyParityDelta(::grpc::ServerContext* /*context*/, const ::proxy_proto::PbsApplyParityDeltaRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+    ::grpc::Status parixJournalAppend(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixJournalAppendRequest* /*request*/, ::proxy_proto::ParixJournalAppendReply* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestpbsApplyParityDelta(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestparixJournalAppend(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(15, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_parixJournalAppendBatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_parixJournalAppendBatch() {
+      ::grpc::Service::MarkMethodRaw(16);
+    }
+    ~WithRawMethod_parixJournalAppendBatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixJournalAppendBatch(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixJournalAppendBatchRequest* /*request*/, ::proxy_proto::ParixJournalAppendBatchReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestparixJournalAppendBatch(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(16, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_parixSupplyD0 : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_parixSupplyD0() {
+      ::grpc::Service::MarkMethodRaw(17);
+    }
+    ~WithRawMethod_parixSupplyD0() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixSupplyD0(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixSupplyD0Request* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestparixSupplyD0(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(17, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_parixReplayBatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_parixReplayBatch() {
+      ::grpc::Service::MarkMethodRaw(18);
+    }
+    ~WithRawMethod_parixReplayBatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixReplayBatch(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestparixReplayBatch(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(18, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_parixParityFullOverwrite : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_parixParityFullOverwrite() {
+      ::grpc::Service::MarkMethodRaw(19);
+    }
+    ~WithRawMethod_parixParityFullOverwrite() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixParityFullOverwrite(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixParityFullOverwriteRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestparixParityFullOverwrite(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(19, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -1940,7 +2372,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_getBlocks() {
-      ::grpc::Service::MarkMethodRaw(16);
+      ::grpc::Service::MarkMethodRaw(20);
     }
     ~WithRawMethod_getBlocks() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1951,7 +2383,7 @@ class proxyService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestgetBlocks(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(16, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(20, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2263,47 +2695,135 @@ class proxyService final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_pbsScheduleDataUpdate : public BaseClass {
+  class WithRawCallbackMethod_parixScheduleDataUpdate : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_pbsScheduleDataUpdate() {
+    WithRawCallbackMethod_parixScheduleDataUpdate() {
       ::grpc::Service::MarkMethodRawCallback(14,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->pbsScheduleDataUpdate(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->parixScheduleDataUpdate(context, request, response); }));
     }
-    ~WithRawCallbackMethod_pbsScheduleDataUpdate() override {
+    ~WithRawCallbackMethod_parixScheduleDataUpdate() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status pbsScheduleDataUpdate(::grpc::ServerContext* /*context*/, const ::proxy_proto::PbsDataUpdatePlacement* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+    ::grpc::Status parixScheduleDataUpdate(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixDataUpdatePlacement* /*request*/, ::proxy_proto::ParixScheduleDataUpdateReply* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* pbsScheduleDataUpdate(
+    virtual ::grpc::ServerUnaryReactor* parixScheduleDataUpdate(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_pbsApplyParityDelta : public BaseClass {
+  class WithRawCallbackMethod_parixJournalAppend : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_pbsApplyParityDelta() {
+    WithRawCallbackMethod_parixJournalAppend() {
       ::grpc::Service::MarkMethodRawCallback(15,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->pbsApplyParityDelta(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->parixJournalAppend(context, request, response); }));
     }
-    ~WithRawCallbackMethod_pbsApplyParityDelta() override {
+    ~WithRawCallbackMethod_parixJournalAppend() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status pbsApplyParityDelta(::grpc::ServerContext* /*context*/, const ::proxy_proto::PbsApplyParityDeltaRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+    ::grpc::Status parixJournalAppend(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixJournalAppendRequest* /*request*/, ::proxy_proto::ParixJournalAppendReply* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* pbsApplyParityDelta(
+    virtual ::grpc::ServerUnaryReactor* parixJournalAppend(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_parixJournalAppendBatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_parixJournalAppendBatch() {
+      ::grpc::Service::MarkMethodRawCallback(16,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->parixJournalAppendBatch(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_parixJournalAppendBatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixJournalAppendBatch(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixJournalAppendBatchRequest* /*request*/, ::proxy_proto::ParixJournalAppendBatchReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* parixJournalAppendBatch(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_parixSupplyD0 : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_parixSupplyD0() {
+      ::grpc::Service::MarkMethodRawCallback(17,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->parixSupplyD0(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_parixSupplyD0() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixSupplyD0(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixSupplyD0Request* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* parixSupplyD0(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_parixReplayBatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_parixReplayBatch() {
+      ::grpc::Service::MarkMethodRawCallback(18,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->parixReplayBatch(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_parixReplayBatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixReplayBatch(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* parixReplayBatch(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_parixParityFullOverwrite : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_parixParityFullOverwrite() {
+      ::grpc::Service::MarkMethodRawCallback(19,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->parixParityFullOverwrite(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_parixParityFullOverwrite() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixParityFullOverwrite(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixParityFullOverwriteRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* parixParityFullOverwrite(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -2312,7 +2832,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_getBlocks() {
-      ::grpc::Service::MarkMethodRawCallback(16,
+      ::grpc::Service::MarkMethodRawCallback(20,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->getBlocks(context, request, response); }));
@@ -2707,58 +3227,166 @@ class proxyService final {
     virtual ::grpc::Status StreamedscheduleAppend2Datanode(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::AppendStripeDataPlacement,::proxy_proto::SetReply>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_pbsScheduleDataUpdate : public BaseClass {
+  class WithStreamedUnaryMethod_parixScheduleDataUpdate : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_pbsScheduleDataUpdate() {
+    WithStreamedUnaryMethod_parixScheduleDataUpdate() {
       ::grpc::Service::MarkMethodStreamed(14,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::proxy_proto::PbsDataUpdatePlacement, ::proxy_proto::SetReply>(
+          ::proxy_proto::ParixDataUpdatePlacement, ::proxy_proto::ParixScheduleDataUpdateReply>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::proxy_proto::PbsDataUpdatePlacement, ::proxy_proto::SetReply>* streamer) {
-                       return this->StreamedpbsScheduleDataUpdate(context,
+                     ::proxy_proto::ParixDataUpdatePlacement, ::proxy_proto::ParixScheduleDataUpdateReply>* streamer) {
+                       return this->StreamedparixScheduleDataUpdate(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_pbsScheduleDataUpdate() override {
+    ~WithStreamedUnaryMethod_parixScheduleDataUpdate() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status pbsScheduleDataUpdate(::grpc::ServerContext* /*context*/, const ::proxy_proto::PbsDataUpdatePlacement* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+    ::grpc::Status parixScheduleDataUpdate(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixDataUpdatePlacement* /*request*/, ::proxy_proto::ParixScheduleDataUpdateReply* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedpbsScheduleDataUpdate(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::PbsDataUpdatePlacement,::proxy_proto::SetReply>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedparixScheduleDataUpdate(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::ParixDataUpdatePlacement,::proxy_proto::ParixScheduleDataUpdateReply>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_pbsApplyParityDelta : public BaseClass {
+  class WithStreamedUnaryMethod_parixJournalAppend : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_pbsApplyParityDelta() {
+    WithStreamedUnaryMethod_parixJournalAppend() {
       ::grpc::Service::MarkMethodStreamed(15,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::proxy_proto::PbsApplyParityDeltaRequest, ::proxy_proto::SetReply>(
+          ::proxy_proto::ParixJournalAppendRequest, ::proxy_proto::ParixJournalAppendReply>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::proxy_proto::PbsApplyParityDeltaRequest, ::proxy_proto::SetReply>* streamer) {
-                       return this->StreamedpbsApplyParityDelta(context,
+                     ::proxy_proto::ParixJournalAppendRequest, ::proxy_proto::ParixJournalAppendReply>* streamer) {
+                       return this->StreamedparixJournalAppend(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_pbsApplyParityDelta() override {
+    ~WithStreamedUnaryMethod_parixJournalAppend() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status pbsApplyParityDelta(::grpc::ServerContext* /*context*/, const ::proxy_proto::PbsApplyParityDeltaRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+    ::grpc::Status parixJournalAppend(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixJournalAppendRequest* /*request*/, ::proxy_proto::ParixJournalAppendReply* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedpbsApplyParityDelta(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::PbsApplyParityDeltaRequest,::proxy_proto::SetReply>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedparixJournalAppend(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::ParixJournalAppendRequest,::proxy_proto::ParixJournalAppendReply>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_parixJournalAppendBatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_parixJournalAppendBatch() {
+      ::grpc::Service::MarkMethodStreamed(16,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::proxy_proto::ParixJournalAppendBatchRequest, ::proxy_proto::ParixJournalAppendBatchReply>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::proxy_proto::ParixJournalAppendBatchRequest, ::proxy_proto::ParixJournalAppendBatchReply>* streamer) {
+                       return this->StreamedparixJournalAppendBatch(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_parixJournalAppendBatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status parixJournalAppendBatch(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixJournalAppendBatchRequest* /*request*/, ::proxy_proto::ParixJournalAppendBatchReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedparixJournalAppendBatch(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::ParixJournalAppendBatchRequest,::proxy_proto::ParixJournalAppendBatchReply>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_parixSupplyD0 : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_parixSupplyD0() {
+      ::grpc::Service::MarkMethodStreamed(17,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::proxy_proto::ParixSupplyD0Request, ::proxy_proto::SetReply>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::proxy_proto::ParixSupplyD0Request, ::proxy_proto::SetReply>* streamer) {
+                       return this->StreamedparixSupplyD0(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_parixSupplyD0() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status parixSupplyD0(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixSupplyD0Request* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedparixSupplyD0(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::ParixSupplyD0Request,::proxy_proto::SetReply>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_parixReplayBatch : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_parixReplayBatch() {
+      ::grpc::Service::MarkMethodStreamed(18,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::SetReply>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::SetReply>* streamer) {
+                       return this->StreamedparixReplayBatch(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_parixReplayBatch() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status parixReplayBatch(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedparixReplayBatch(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::ParixReplayBatchRequest,::proxy_proto::SetReply>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_parixParityFullOverwrite : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_parixParityFullOverwrite() {
+      ::grpc::Service::MarkMethodStreamed(19,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::proxy_proto::ParixParityFullOverwriteRequest, ::proxy_proto::SetReply>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::proxy_proto::ParixParityFullOverwriteRequest, ::proxy_proto::SetReply>* streamer) {
+                       return this->StreamedparixParityFullOverwrite(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_parixParityFullOverwrite() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status parixParityFullOverwrite(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixParityFullOverwriteRequest* /*request*/, ::proxy_proto::SetReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedparixParityFullOverwrite(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::ParixParityFullOverwriteRequest,::proxy_proto::SetReply>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
   class WithStreamedUnaryMethod_getBlocks : public BaseClass {
@@ -2766,7 +3394,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_getBlocks() {
-      ::grpc::Service::MarkMethodStreamed(16,
+      ::grpc::Service::MarkMethodStreamed(20,
         new ::grpc::internal::StreamedUnaryHandler<
           ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply>(
             [this](::grpc::ServerContext* context,
@@ -2787,9 +3415,9 @@ class proxyService final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedgetBlocks(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::StripeAndBlockIDs,::proxy_proto::GetReply>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_encodeAndSetObject<WithStreamedUnaryMethod_decodeAndGetObject<WithStreamedUnaryMethod_degradedRead<WithStreamedUnaryMethod_degradedRead2Client<WithStreamedUnaryMethod_degradedReadBreakdown<WithStreamedUnaryMethod_degradedRead2ClientBreakdown<WithStreamedUnaryMethod_degradedReadWithBlockStripeID<WithStreamedUnaryMethod_partialDecoding<WithStreamedUnaryMethod_recovery<WithStreamedUnaryMethod_recoveryBreakdown<WithStreamedUnaryMethod_multipleRecovery<WithStreamedUnaryMethod_deleteBlock<WithStreamedUnaryMethod_scheduleAppend2Datanode<WithStreamedUnaryMethod_pbsScheduleDataUpdate<WithStreamedUnaryMethod_pbsApplyParityDelta<WithStreamedUnaryMethod_getBlocks<Service > > > > > > > > > > > > > > > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_encodeAndSetObject<WithStreamedUnaryMethod_decodeAndGetObject<WithStreamedUnaryMethod_degradedRead<WithStreamedUnaryMethod_degradedRead2Client<WithStreamedUnaryMethod_degradedReadBreakdown<WithStreamedUnaryMethod_degradedRead2ClientBreakdown<WithStreamedUnaryMethod_degradedReadWithBlockStripeID<WithStreamedUnaryMethod_partialDecoding<WithStreamedUnaryMethod_recovery<WithStreamedUnaryMethod_recoveryBreakdown<WithStreamedUnaryMethod_multipleRecovery<WithStreamedUnaryMethod_deleteBlock<WithStreamedUnaryMethod_scheduleAppend2Datanode<WithStreamedUnaryMethod_parixScheduleDataUpdate<WithStreamedUnaryMethod_parixJournalAppend<WithStreamedUnaryMethod_parixJournalAppendBatch<WithStreamedUnaryMethod_parixSupplyD0<WithStreamedUnaryMethod_parixReplayBatch<WithStreamedUnaryMethod_parixParityFullOverwrite<WithStreamedUnaryMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_encodeAndSetObject<WithStreamedUnaryMethod_decodeAndGetObject<WithStreamedUnaryMethod_degradedRead<WithStreamedUnaryMethod_degradedRead2Client<WithStreamedUnaryMethod_degradedReadBreakdown<WithStreamedUnaryMethod_degradedRead2ClientBreakdown<WithStreamedUnaryMethod_degradedReadWithBlockStripeID<WithStreamedUnaryMethod_partialDecoding<WithStreamedUnaryMethod_recovery<WithStreamedUnaryMethod_recoveryBreakdown<WithStreamedUnaryMethod_multipleRecovery<WithStreamedUnaryMethod_deleteBlock<WithStreamedUnaryMethod_scheduleAppend2Datanode<WithStreamedUnaryMethod_pbsScheduleDataUpdate<WithStreamedUnaryMethod_pbsApplyParityDelta<WithStreamedUnaryMethod_getBlocks<Service > > > > > > > > > > > > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_encodeAndSetObject<WithStreamedUnaryMethod_decodeAndGetObject<WithStreamedUnaryMethod_degradedRead<WithStreamedUnaryMethod_degradedRead2Client<WithStreamedUnaryMethod_degradedReadBreakdown<WithStreamedUnaryMethod_degradedRead2ClientBreakdown<WithStreamedUnaryMethod_degradedReadWithBlockStripeID<WithStreamedUnaryMethod_partialDecoding<WithStreamedUnaryMethod_recovery<WithStreamedUnaryMethod_recoveryBreakdown<WithStreamedUnaryMethod_multipleRecovery<WithStreamedUnaryMethod_deleteBlock<WithStreamedUnaryMethod_scheduleAppend2Datanode<WithStreamedUnaryMethod_parixScheduleDataUpdate<WithStreamedUnaryMethod_parixJournalAppend<WithStreamedUnaryMethod_parixJournalAppendBatch<WithStreamedUnaryMethod_parixSupplyD0<WithStreamedUnaryMethod_parixReplayBatch<WithStreamedUnaryMethod_parixParityFullOverwrite<WithStreamedUnaryMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > > > > StreamedService;
 };
 
 }  // namespace proxy_proto

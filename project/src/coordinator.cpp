@@ -10,12 +10,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <numeric>
-#include <atomic>
 
-namespace
-{
-  std::atomic<uint64_t> g_pbs_upload_batch_seq{1};
-}
 
 template <typename T>
 inline T ceil(T const &A, T const &B)
@@ -745,89 +740,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
   }
 
-  void CoordinatorImpl::fill_pbs_parity_forward(Stripe &stripe, const Block &data_blk, proxy_proto::PbsDataUpdatePlacement *pl)
-  {
-    std::map<std::string, int> ep_index;
-    std::vector<proxy_proto::PbsParityForwardPlan> acc;
-    const int k = stripe.k;
-    const int r = stripe.r;
-    const int z = stripe.z;
-    const int n = stripe.n;
-
-    auto ensure_idx = [&](const std::string &ip, int base_port) -> int
-    {
-      const std::string ep = ip + ":" + std::to_string(base_port);
-      const auto it = ep_index.find(ep);
-      if (it == ep_index.end())
-      {
-        proxy_proto::PbsParityForwardPlan fw;
-        fw.set_dest_proxy_ip(ip);
-        fw.set_dest_proxy_base_port(base_port);
-        const int idx = static_cast<int>(acc.size());
-        acc.push_back(std::move(fw));
-        ep_index[ep] = idx;
-        return idx;
-      }
-      return it->second;
-    };
-
-    auto add_parity_block = [&](Block *pblk)
-    {
-      if (pblk == nullptr)
-      {
-        return;
-      }
-      Cluster &c = m_cluster_table.at(pblk->map2cluster);
-      const int ix = ensure_idx(c.proxy_ip, c.proxy_port);
-      proxy_proto::PbsParityDeltaTarget *t = acc[static_cast<size_t>(ix)].add_parities();
-      t->set_parity_block_key(pblk->block_key);
-      t->set_parity_block_id(pblk->block_id);
-      const Node &pn = m_node_table.at(pblk->map2node);
-      t->set_datanode_ip(pn.node_ip);
-      t->set_datanode_port(pn.node_port);
-    };
-
-    for (int pid = k; pid < k + r; ++pid)
-    {
-      add_parity_block(find_block_by_block_id(stripe, pid));
-    }
-    const int g = data_blk.map2group;
-    if (g >= 0 && g < z)
-    {
-      const int lid = k + r + g;
-      if (lid < n)
-      {
-        add_parity_block(find_block_by_block_id(stripe, lid));
-      }
-    }
-
-    for (const auto &fw : acc)
-    {
-      *pl->add_parity_forward() = fw;
-    }
-  }
-
-  void CoordinatorImpl::notify_pbs_proxies_ready(const proxy_proto::PbsDataUpdatePlacement &placement)
-  {
-    grpc::ClientContext cont;
-    proxy_proto::SetReply set_reply;
-    const int cid = placement.cluster_id();
-    std::string chosen_proxy = m_cluster_table.at(cid).proxy_ip + ":" + std::to_string(m_cluster_table.at(cid).proxy_port);
-    grpc::Status status = m_proxy_ptrs[chosen_proxy]->pbsScheduleDataUpdate(&cont, placement, &set_reply);
-    if (status.ok())
-    {
-      m_mutex.lock();
-      m_object_updating_table[placement.key()] = ObjectInfo(static_cast<int>(placement.range_length()), placement.stripe_id());
-      m_mutex.unlock();
-    }
-    else
-    {
-      std::cout << "[PBS] notify_pbs_proxies_ready failed for key " << placement.key() << std::endl;
-      std::lock_guard<std::mutex> lk(m_mutex);
-      m_commit_wait_failed_keys.insert(placement.key());
-      cv.notify_all();
-    }
-  }
 
   // Only processing the appending within a single stripe
   grpc::Status CoordinatorImpl::uploadAppendValue(
@@ -935,169 +847,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     return grpc::Status::OK;
   }
 
-  grpc::Status CoordinatorImpl::uploadPbsUpdate(
-      grpc::ServerContext *context,
-      const coordinator_proto::PbsUpdateRequest *request,
-      coordinator_proto::ReplyProxyIPsPorts *proxyIPPort)
-  {
-    (void)context;
-    proxyIPPort->clear_pbs_range_offs();
-    proxyIPPort->clear_append_keys();
-    proxyIPPort->clear_proxyips();
-    proxyIPPort->clear_proxyports();
-    proxyIPPort->clear_cluster_slice_sizes();
-    proxyIPPort->clear_group_ids();
 
-    const int stripe_id = request->stripe_id();
-    if (m_stripe_table.find(stripe_id) == m_stripe_table.end())
-    {
-      return grpc::Status(grpc::StatusCode::NOT_FOUND, "stripe_id not found");
-    }
-    Stripe &stripe = m_stripe_table[stripe_id];
-    const int bs = static_cast<int>(m_sys_config->BlockSize);
-    const int k = stripe.k;
-    const int64_t max_log = static_cast<int64_t>(k) * static_cast<int64_t>(bs);
-
-    struct Seg
-    {
-      int block_id;
-      int off_in_block;
-      int len;
-    };
-    std::vector<Seg> segments;
-    for (int ri = 0; ri < request->ranges_size(); ++ri)
-    {
-      const auto &lr = request->ranges(ri);
-      const int lo = lr.logical_offset_start();
-      const int hi = lr.logical_offset_end();
-      if (lo < 0 || hi <= lo || static_cast<int64_t>(hi) > max_log)
-      {
-        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid logical range for PBS");
-      }
-      for (int64_t p = lo; p < hi;)
-      {
-        const int bid = static_cast<int>(p / bs);
-        const int64_t next_block_end = (static_cast<int64_t>(bid) + 1) * bs;
-        const int64_t end = std::min<int64_t>(hi, next_block_end);
-        if (bid >= k)
-        {
-          return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "PBS update range overlaps non-data region");
-        }
-        segments.push_back(Seg{bid, static_cast<int>(p - static_cast<int64_t>(bid) * bs), static_cast<int>(end - p)});
-        p = end;
-      }
-    }
-    if (segments.empty())
-    {
-      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "no segments after expanding ranges");
-    }
-
-    uint64_t sum = 0;
-    std::vector<std::thread> threads;
-    const uint64_t pbs_batch_id = g_pbs_upload_batch_seq.fetch_add(1ULL, std::memory_order_relaxed);
-    const uint32_t pbs_batch_total = static_cast<uint32_t>(segments.size());
-    for (size_t si = 0; si < segments.size(); ++si)
-    {
-      const Seg &sg = segments[si];
-      Block *blk = find_block_by_block_id(stripe, sg.block_id);
-      if (blk == nullptr)
-      {
-        return grpc::Status(grpc::StatusCode::INTERNAL, "block not found in stripe");
-      }
-      const int cid = blk->map2cluster;
-      const Node &node = m_node_table[blk->map2node];
-      proxy_proto::PbsDataUpdatePlacement pl;
-      const std::string key = m_toolbox->gen_append_key(stripe_id, static_cast<int>(20000 + si));
-      pl.set_key(key);
-      pl.set_stripe_id(stripe_id);
-      pl.set_cluster_id(cid);
-      pl.set_block_key(blk->block_key);
-      pl.set_block_id(sg.block_id);
-      pl.set_range_offset(sg.off_in_block);
-      pl.set_range_length(static_cast<uint64_t>(sg.len));
-      pl.set_datanode_ip(node.node_ip);
-      pl.set_datanode_port(node.node_port);
-      pl.set_pbs_batch_id(pbs_batch_id);
-      pl.set_pbs_batch_index(static_cast<uint32_t>(si));
-      pl.set_pbs_batch_total(pbs_batch_total);
-      fill_pbs_parity_forward(stripe, *blk, &pl);
-
-      m_mutex.lock();
-      m_object_commit_table.erase(key);
-      m_mutex.unlock();
-
-      threads.push_back(std::thread(&CoordinatorImpl::notify_pbs_proxies_ready, this, pl));
-
-      proxyIPPort->add_append_keys(key);
-      proxyIPPort->add_proxyips(m_cluster_table[cid].proxy_ip);
-      proxyIPPort->add_proxyports(m_cluster_table[cid].proxy_port + ECProject::PROXY_PORT_SHIFT);
-      proxyIPPort->add_cluster_slice_sizes(static_cast<uint64_t>(sg.len));
-      proxyIPPort->add_group_ids(sg.block_id);
-      proxyIPPort->add_pbs_range_offs(sg.off_in_block);
-      sum += static_cast<uint64_t>(sg.len);
-    }
-    for (auto &t : threads)
-    {
-      t.join();
-    }
-    proxyIPPort->set_sum_append_size(sum);
-    return grpc::Status::OK;
-  }
-
-  grpc::Status CoordinatorImpl::uploadPbsFinalize(
-      grpc::ServerContext *context,
-      const coordinator_proto::PbsFinalizeRequest *request,
-      coordinator_proto::ReplyProxyIPsPorts *proxyIPPort)
-  {
-    (void)context;
-    proxyIPPort->clear_pbs_range_offs();
-    proxyIPPort->clear_append_keys();
-    proxyIPPort->clear_proxyips();
-    proxyIPPort->clear_proxyports();
-    proxyIPPort->clear_cluster_slice_sizes();
-    proxyIPPort->clear_group_ids();
-
-    const int stripe_id = request->stripe_id();
-    if (m_stripe_table.find(stripe_id) == m_stripe_table.end())
-    {
-      return grpc::Status(grpc::StatusCode::NOT_FOUND, "stripe_id not found");
-    }
-    Stripe &stripe = m_stripe_table[stripe_id];
-    const std::string code_type = m_sys_config->CodeType;
-    if (!is_azure_like_code(code_type) && code_type != "UniLRC" && code_type != "OptimalLRC" && code_type != "UniformLRC")
-    {
-      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "PBS finalize: unsupported CodeType for full parity refresh");
-    }
-
-    std::vector<proxy_proto::AppendStripeDataPlacement> plans = generate_add_plans(&stripe);
-    for (size_t i = 0; i < plans.size(); ++i)
-    {
-      plans[i].set_key(m_toolbox->gen_append_key(stripe_id, static_cast<int>(50000 + static_cast<int>(i))));
-    }
-    for (const auto &plan : plans)
-    {
-      m_mutex.lock();
-      m_object_commit_table.erase(plan.key());
-      m_mutex.unlock();
-    }
-    std::vector<std::thread> threads;
-    uint64_t sum_append = 0;
-    for (const auto &plan : plans)
-    {
-      threads.push_back(std::thread(&CoordinatorImpl::notify_proxies_ready, this, plan));
-      proxyIPPort->add_append_keys(plan.key());
-      proxyIPPort->add_proxyips(m_cluster_table[plan.cluster_id()].proxy_ip);
-      proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::PROXY_PORT_SHIFT);
-      proxyIPPort->add_cluster_slice_sizes(plan.append_size());
-      sum_append += plan.append_size();
-    }
-    for (auto &t : threads)
-    {
-      t.join();
-    }
-    proxyIPPort->set_sum_append_size(sum_append);
-    return grpc::Status::OK;
-  }
 
   std::vector<proxy_proto::AppendStripeDataPlacement> CoordinatorImpl::generate_add_plans(Stripe *stripe)
   {
@@ -3132,6 +2882,253 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       std::cerr << e.what() << '\n';
     }
 
+    return grpc::Status::OK;
+  }
+
+  grpc::Status CoordinatorImpl::planParixPartial(
+      grpc::ServerContext *context,
+      const coordinator_proto::ParixPartialPlanRequest *request,
+      coordinator_proto::ParixPartialPlanReply *reply)
+  {
+    (void)context;
+    try
+    {
+      const int stripe_id = request->stripe_id();
+      if (m_stripe_table.find(stripe_id) == m_stripe_table.end())
+      {
+        return grpc::Status(grpc::StatusCode::NOT_FOUND, "stripe not found");
+      }
+      Stripe &stripe = m_stripe_table[stripe_id];
+      const uint64_t batch_id = m_parix_batch_seq.fetch_add(1);
+      uint64_t write_gen = 1;
+      {
+        std::lock_guard<std::mutex> lk(m_parix_gen_mu);
+        const auto it = m_parix_stripe_gen.find(stripe_id);
+        if (it != m_parix_stripe_gen.end() && it->second > 0)
+        {
+          write_gen = it->second;
+        }
+      }
+      reply->set_batch_id(batch_id);
+
+      auto fill_ep = [&](Block *pb, coordinator_proto::ParixParityEndpoint *ep) {
+        const int cid = pb->map2cluster;
+        ep->set_proxy_ip(m_cluster_table.at(cid).proxy_ip);
+        ep->set_proxy_grpc_port(m_cluster_table.at(cid).proxy_port);
+        ep->set_parity_block_id(pb->block_id);
+        ep->set_parity_block_key(pb->block_key);
+        ep->set_parity_datanode_ip(m_node_table.at(pb->map2node).node_ip);
+        ep->set_parity_datanode_port(m_node_table.at(pb->map2node).node_port);
+      };
+
+      for (int rgi = 0; rgi < request->ranges_size(); ++rgi)
+      {
+        const auto &lr = request->ranges(rgi);
+        const int start = lr.logical_offset_start();
+        const int end = lr.logical_offset_end();
+        if (end <= start)
+        {
+          continue;
+        }
+        const int append_size = end - start;
+        std::map<int, std::pair<int, int>> block_to_slice_sizes;
+        int parity_slice_size = 0;
+        int parity_slice_offset = 0;
+        bool is_merge_parity = false;
+        std::string err;
+        if (!build_slice_plan_for_logical_range(&stripe, start, append_size, &block_to_slice_sizes, &parity_slice_size,
+                                                &parity_slice_offset, &is_merge_parity, &err))
+        {
+          return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, err);
+        }
+        for (const auto &kv : block_to_slice_sizes)
+        {
+          const int bid = kv.first;
+          if (bid >= stripe.k)
+          {
+            continue;
+          }
+          Block *db = find_block_by_block_id(stripe, bid);
+          if (db == nullptr)
+          {
+            continue;
+          }
+          const int ro = kv.second.second;
+          const int len = kv.second.first;
+          coordinator_proto::ParixDataSegmentPlan *seg = reply->add_segments();
+          const int z_group =
+              (stripe.z > 0 && stripe.k >= stripe.z) ? (bid / (stripe.k / stripe.z)) : 0;
+          seg->set_append_key(m_toolbox->gen_append_key(stripe_id, z_group));
+          seg->set_cluster_id(db->map2cluster);
+          seg->set_data_proxy_ip(m_cluster_table.at(db->map2cluster).proxy_ip);
+          seg->set_data_proxy_grpc_port(m_cluster_table.at(db->map2cluster).proxy_port);
+          seg->set_data_proxy_tcp_shift_port(m_cluster_table.at(db->map2cluster).proxy_port + ECProject::PROXY_PORT_SHIFT);
+          seg->set_block_key(db->block_key);
+          seg->set_block_id(bid);
+          seg->set_range_offset(ro);
+          seg->set_range_length(static_cast<uint64_t>(len));
+          seg->set_datanode_ip(m_node_table.at(db->map2node).node_ip);
+          seg->set_datanode_port(m_node_table.at(db->map2node).node_port);
+          seg->set_map2group(db->map2group);
+          seg->set_write_generation(write_gen);
+          for (int pid = stripe.k; pid < stripe.k + stripe.r; ++pid)
+          {
+            Block *pb = find_block_by_block_id(stripe, pid);
+            if (pb)
+            {
+              fill_ep(pb, seg->add_global_parities());
+            }
+          }
+          if (stripe.z > 0 && stripe.k >= stripe.z)
+          {
+            const int local_bid = stripe.k + stripe.r + z_group;
+            if (local_bid < stripe.n)
+            {
+              Block *lb = find_block_by_block_id(stripe, local_bid);
+              if (lb)
+              {
+                fill_ep(lb, seg->mutable_local_parity());
+              }
+            }
+          }
+        }
+      }
+    }
+    catch (const std::exception &e)
+    {
+      return grpc::Status(grpc::StatusCode::INTERNAL, e.what());
+    }
+    return grpc::Status::OK;
+  }
+
+  grpc::Status CoordinatorImpl::commitParixBatch(
+      grpc::ServerContext *context,
+      const coordinator_proto::ParixCommitBatchRequest *request,
+      coordinator_proto::ReplyFromCoordinator *reply)
+  {
+    (void)context;
+    (void)reply;
+    const int stripe_id = request->stripe_id();
+    const uint64_t batch_id = request->batch_id();
+    if (m_stripe_table.find(stripe_id) == m_stripe_table.end())
+    {
+      return grpc::Status(grpc::StatusCode::NOT_FOUND, "stripe not found");
+    }
+    Stripe &stripe = m_stripe_table[stripe_id];
+    std::set<std::pair<std::string, int>> seen;
+    for (int pid = stripe.k; pid < stripe.n; ++pid)
+    {
+      Block *pb = find_block_by_block_id(stripe, pid);
+      if (pb == nullptr)
+      {
+        continue;
+      }
+      const int cid = pb->map2cluster;
+      const std::string ip = m_cluster_table.at(cid).proxy_ip;
+      const int port = m_cluster_table.at(cid).proxy_port;
+      const auto pr = std::make_pair(ip, port);
+      if (!seen.insert(pr).second)
+      {
+        continue;
+      }
+      grpc::ClientContext ctx;
+      proxy_proto::ParixReplayBatchRequest rq;
+      rq.set_stripe_id(stripe_id);
+      rq.set_batch_id(batch_id);
+      proxy_proto::SetReply sr;
+      const std::string target = ip + ":" + std::to_string(port);
+      std::cout << "[Parix][Coordinator] commitParixBatch: stripe=" << stripe_id << " batch=" << batch_id << " -> parixReplayBatch @ " << target
+                << std::endl;
+      grpc::Status st = m_proxy_ptrs.at(target)->parixReplayBatch(&ctx, rq, &sr);
+      if (!st.ok() || !sr.ifcommit())
+      {
+        return grpc::Status(grpc::StatusCode::INTERNAL, "parixReplayBatch failed on " + target);
+      }
+    }
+    std::cout << "[Parix][Coordinator] commitParixBatch finished stripe=" << stripe_id << " batch=" << batch_id << std::endl;
+    return grpc::Status::OK;
+  }
+
+  grpc::Status CoordinatorImpl::planParixFullStripe(
+      grpc::ServerContext *context,
+      const coordinator_proto::ParixFullStripePlanRequest *request,
+      coordinator_proto::ParixFullStripePlanReply *reply)
+  {
+    (void)context;
+    const int stripe_id = request->stripe_id();
+    if (m_stripe_table.find(stripe_id) == m_stripe_table.end())
+    {
+      reply->set_ok(false);
+      reply->set_err("stripe not found");
+      return grpc::Status::OK;
+    }
+    Stripe &stripe = m_stripe_table[stripe_id];
+    uint64_t write_gen = 1;
+    {
+      std::lock_guard<std::mutex> lk(m_parix_gen_mu);
+      const auto it = m_parix_stripe_gen.find(stripe_id);
+      if (it != m_parix_stripe_gen.end() && it->second > 0)
+      {
+        write_gen = it->second;
+      }
+    }
+    const int master_bid = rand_num(stripe.k);
+    Block *mb = find_block_by_block_id(stripe, master_bid);
+    if (mb == nullptr)
+    {
+      reply->set_ok(false);
+      reply->set_err("master block missing");
+      return grpc::Status::OK;
+    }
+    const int z_key_group =
+        (stripe.z > 0 && stripe.k >= stripe.z) ? (master_bid / (stripe.k / stripe.z)) : 0;
+    reply->set_ok(true);
+    reply->set_master_append_key(m_toolbox->gen_append_key(stripe_id, z_key_group));
+    reply->set_master_proxy_ip(m_cluster_table.at(mb->map2cluster).proxy_ip);
+    reply->set_master_proxy_grpc_port(m_cluster_table.at(mb->map2cluster).proxy_port);
+    reply->set_master_proxy_tcp_shift_port(m_cluster_table.at(mb->map2cluster).proxy_port + ECProject::PROXY_PORT_SHIFT);
+    reply->set_new_write_generation(write_gen);
+
+    const unsigned int bs = m_sys_config->BlockSize;
+    if (request->covered_data_ranges_size() > 0)
+    {
+      for (int i = 0; i < request->covered_data_ranges_size(); ++i)
+      {
+        const auto &r = request->covered_data_ranges(i);
+        coordinator_proto::ParixJournalInvalidationRange *out = reply->add_journal_invalidations();
+        out->set_data_block_id(r.data_block_id());
+        out->set_range_offset(r.range_offset());
+        out->set_range_length(r.range_length());
+      }
+    }
+    else
+    {
+      for (int bid = 0; bid < stripe.k; ++bid)
+      {
+        coordinator_proto::ParixJournalInvalidationRange *out = reply->add_journal_invalidations();
+        out->set_data_block_id(bid);
+        out->set_range_offset(0);
+        out->set_range_length(static_cast<uint64_t>(bs));
+      }
+    }
+
+    auto fill_ep = [&](Block *pb, coordinator_proto::ParixParityEndpoint *ep) {
+      const int cid = pb->map2cluster;
+      ep->set_proxy_ip(m_cluster_table.at(cid).proxy_ip);
+      ep->set_proxy_grpc_port(m_cluster_table.at(cid).proxy_port);
+      ep->set_parity_block_id(pb->block_id);
+      ep->set_parity_block_key(pb->block_key);
+      ep->set_parity_datanode_ip(m_node_table.at(pb->map2node).node_ip);
+      ep->set_parity_datanode_port(m_node_table.at(pb->map2node).node_port);
+    };
+    for (int pid = stripe.k; pid < stripe.n; ++pid)
+    {
+      Block *pb = find_block_by_block_id(stripe, pid);
+      if (pb)
+      {
+        fill_ep(pb, reply->add_parity_targets());
+      }
+    }
     return grpc::Status::OK;
   }
 

@@ -36,8 +36,12 @@ static const char* proxyService_method_names[] = {
   "/proxy_proto.proxyService/multipleRecovery",
   "/proxy_proto.proxyService/deleteBlock",
   "/proxy_proto.proxyService/scheduleAppend2Datanode",
-  "/proxy_proto.proxyService/pbsScheduleDataUpdate",
-  "/proxy_proto.proxyService/pbsApplyParityDelta",
+  "/proxy_proto.proxyService/parixScheduleDataUpdate",
+  "/proxy_proto.proxyService/parixJournalAppend",
+  "/proxy_proto.proxyService/parixJournalAppendBatch",
+  "/proxy_proto.proxyService/parixSupplyD0",
+  "/proxy_proto.proxyService/parixReplayBatch",
+  "/proxy_proto.proxyService/parixParityFullOverwrite",
   "/proxy_proto.proxyService/getBlocks",
 };
 
@@ -62,9 +66,13 @@ proxyService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& chann
   , rpcmethod_multipleRecovery_(proxyService_method_names[11], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_deleteBlock_(proxyService_method_names[12], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_scheduleAppend2Datanode_(proxyService_method_names[13], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_pbsScheduleDataUpdate_(proxyService_method_names[14], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_pbsApplyParityDelta_(proxyService_method_names[15], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_getBlocks_(proxyService_method_names[16], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_parixScheduleDataUpdate_(proxyService_method_names[14], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_parixJournalAppend_(proxyService_method_names[15], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_parixJournalAppendBatch_(proxyService_method_names[16], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_parixSupplyD0_(proxyService_method_names[17], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_parixReplayBatch_(proxyService_method_names[18], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_parixParityFullOverwrite_(proxyService_method_names[19], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_getBlocks_(proxyService_method_names[20], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status proxyService::Stub::checkalive(::grpc::ClientContext* context, const ::proxy_proto::CheckaliveCMD& request, ::proxy_proto::RequestResult* response) {
@@ -389,48 +397,140 @@ void proxyService::Stub::async::scheduleAppend2Datanode(::grpc::ClientContext* c
   return result;
 }
 
-::grpc::Status proxyService::Stub::pbsScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::PbsDataUpdatePlacement, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_pbsScheduleDataUpdate_, context, request, response);
+::grpc::Status proxyService::Stub::parixScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement& request, ::proxy_proto::ParixScheduleDataUpdateReply* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::ParixDataUpdatePlacement, ::proxy_proto::ParixScheduleDataUpdateReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_parixScheduleDataUpdate_, context, request, response);
 }
 
-void proxyService::Stub::async::pbsScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::PbsDataUpdatePlacement, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_pbsScheduleDataUpdate_, context, request, response, std::move(f));
+void proxyService::Stub::async::parixScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement* request, ::proxy_proto::ParixScheduleDataUpdateReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::ParixDataUpdatePlacement, ::proxy_proto::ParixScheduleDataUpdateReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_parixScheduleDataUpdate_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::pbsScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_pbsScheduleDataUpdate_, context, request, response, reactor);
+void proxyService::Stub::async::parixScheduleDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement* request, ::proxy_proto::ParixScheduleDataUpdateReply* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_parixScheduleDataUpdate_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncpbsScheduleDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::PbsDataUpdatePlacement, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_pbsScheduleDataUpdate_, context, request);
+::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixScheduleDataUpdateReply>* proxyService::Stub::PrepareAsyncparixScheduleDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::ParixScheduleDataUpdateReply, ::proxy_proto::ParixDataUpdatePlacement, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_parixScheduleDataUpdate_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsyncpbsScheduleDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::PbsDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixScheduleDataUpdateReply>* proxyService::Stub::AsyncparixScheduleDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncpbsScheduleDataUpdateRaw(context, request, cq);
+    this->PrepareAsyncparixScheduleDataUpdateRaw(context, request, cq);
   result->StartCall();
   return result;
 }
 
-::grpc::Status proxyService::Stub::pbsApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::PbsApplyParityDeltaRequest, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_pbsApplyParityDelta_, context, request, response);
+::grpc::Status proxyService::Stub::parixJournalAppend(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest& request, ::proxy_proto::ParixJournalAppendReply* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::ParixJournalAppendRequest, ::proxy_proto::ParixJournalAppendReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_parixJournalAppend_, context, request, response);
 }
 
-void proxyService::Stub::async::pbsApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::PbsApplyParityDeltaRequest, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_pbsApplyParityDelta_, context, request, response, std::move(f));
+void proxyService::Stub::async::parixJournalAppend(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest* request, ::proxy_proto::ParixJournalAppendReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::ParixJournalAppendRequest, ::proxy_proto::ParixJournalAppendReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_parixJournalAppend_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::pbsApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_pbsApplyParityDelta_, context, request, response, reactor);
+void proxyService::Stub::async::parixJournalAppend(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest* request, ::proxy_proto::ParixJournalAppendReply* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_parixJournalAppend_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncpbsApplyParityDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::PbsApplyParityDeltaRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_pbsApplyParityDelta_, context, request);
+::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendReply>* proxyService::Stub::PrepareAsyncparixJournalAppendRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::ParixJournalAppendReply, ::proxy_proto::ParixJournalAppendRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_parixJournalAppend_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsyncpbsApplyParityDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendReply>* proxyService::Stub::AsyncparixJournalAppendRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendRequest& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncpbsApplyParityDeltaRaw(context, request, cq);
+    this->PrepareAsyncparixJournalAppendRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status proxyService::Stub::parixJournalAppendBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest& request, ::proxy_proto::ParixJournalAppendBatchReply* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::ParixJournalAppendBatchRequest, ::proxy_proto::ParixJournalAppendBatchReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_parixJournalAppendBatch_, context, request, response);
+}
+
+void proxyService::Stub::async::parixJournalAppendBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest* request, ::proxy_proto::ParixJournalAppendBatchReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::ParixJournalAppendBatchRequest, ::proxy_proto::ParixJournalAppendBatchReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_parixJournalAppendBatch_, context, request, response, std::move(f));
+}
+
+void proxyService::Stub::async::parixJournalAppendBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest* request, ::proxy_proto::ParixJournalAppendBatchReply* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_parixJournalAppendBatch_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendBatchReply>* proxyService::Stub::PrepareAsyncparixJournalAppendBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::ParixJournalAppendBatchReply, ::proxy_proto::ParixJournalAppendBatchRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_parixJournalAppendBatch_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixJournalAppendBatchReply>* proxyService::Stub::AsyncparixJournalAppendBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncparixJournalAppendBatchRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status proxyService::Stub::parixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::proxy_proto::SetReply* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::ParixSupplyD0Request, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_parixSupplyD0_, context, request, response);
+}
+
+void proxyService::Stub::async::parixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::ParixSupplyD0Request, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_parixSupplyD0_, context, request, response, std::move(f));
+}
+
+void proxyService::Stub::async::parixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_parixSupplyD0_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncparixSupplyD0Raw(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::ParixSupplyD0Request, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_parixSupplyD0_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsyncparixSupplyD0Raw(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncparixSupplyD0Raw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status proxyService::Stub::parixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::proxy_proto::SetReply* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_parixReplayBatch_, context, request, response);
+}
+
+void proxyService::Stub::async::parixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_parixReplayBatch_, context, request, response, std::move(f));
+}
+
+void proxyService::Stub::async::parixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_parixReplayBatch_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncparixReplayBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::ParixReplayBatchRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_parixReplayBatch_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsyncparixReplayBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncparixReplayBatchRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status proxyService::Stub::parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::proxy_proto::SetReply* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::ParixParityFullOverwriteRequest, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_parixParityFullOverwrite_, context, request, response);
+}
+
+void proxyService::Stub::async::parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::ParixParityFullOverwriteRequest, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_parixParityFullOverwrite_, context, request, response, std::move(f));
+}
+
+void proxyService::Stub::async::parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_parixParityFullOverwrite_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncparixParityFullOverwriteRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::ParixParityFullOverwriteRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_parixParityFullOverwrite_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsyncparixParityFullOverwriteRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncparixParityFullOverwriteRaw(context, request, cq);
   result->StartCall();
   return result;
 }
@@ -602,25 +702,65 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[14],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::PbsDataUpdatePlacement, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::ParixDataUpdatePlacement, ::proxy_proto::ParixScheduleDataUpdateReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](proxyService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::proxy_proto::PbsDataUpdatePlacement* req,
-             ::proxy_proto::SetReply* resp) {
-               return service->pbsScheduleDataUpdate(ctx, req, resp);
+             const ::proxy_proto::ParixDataUpdatePlacement* req,
+             ::proxy_proto::ParixScheduleDataUpdateReply* resp) {
+               return service->parixScheduleDataUpdate(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[15],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::PbsApplyParityDeltaRequest, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::ParixJournalAppendRequest, ::proxy_proto::ParixJournalAppendReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](proxyService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::proxy_proto::PbsApplyParityDeltaRequest* req,
-             ::proxy_proto::SetReply* resp) {
-               return service->pbsApplyParityDelta(ctx, req, resp);
+             const ::proxy_proto::ParixJournalAppendRequest* req,
+             ::proxy_proto::ParixJournalAppendReply* resp) {
+               return service->parixJournalAppend(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[16],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::ParixJournalAppendBatchRequest, ::proxy_proto::ParixJournalAppendBatchReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](proxyService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::proxy_proto::ParixJournalAppendBatchRequest* req,
+             ::proxy_proto::ParixJournalAppendBatchReply* resp) {
+               return service->parixJournalAppendBatch(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      proxyService_method_names[17],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::ParixSupplyD0Request, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](proxyService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::proxy_proto::ParixSupplyD0Request* req,
+             ::proxy_proto::SetReply* resp) {
+               return service->parixSupplyD0(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      proxyService_method_names[18],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](proxyService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::proxy_proto::ParixReplayBatchRequest* req,
+             ::proxy_proto::SetReply* resp) {
+               return service->parixReplayBatch(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      proxyService_method_names[19],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::ParixParityFullOverwriteRequest, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](proxyService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::proxy_proto::ParixParityFullOverwriteRequest* req,
+             ::proxy_proto::SetReply* resp) {
+               return service->parixParityFullOverwrite(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      proxyService_method_names[20],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](proxyService::Service* service,
@@ -732,14 +872,42 @@ proxyService::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status proxyService::Service::pbsScheduleDataUpdate(::grpc::ServerContext* context, const ::proxy_proto::PbsDataUpdatePlacement* request, ::proxy_proto::SetReply* response) {
+::grpc::Status proxyService::Service::parixScheduleDataUpdate(::grpc::ServerContext* context, const ::proxy_proto::ParixDataUpdatePlacement* request, ::proxy_proto::ParixScheduleDataUpdateReply* response) {
   (void) context;
   (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status proxyService::Service::pbsApplyParityDelta(::grpc::ServerContext* context, const ::proxy_proto::PbsApplyParityDeltaRequest* request, ::proxy_proto::SetReply* response) {
+::grpc::Status proxyService::Service::parixJournalAppend(::grpc::ServerContext* context, const ::proxy_proto::ParixJournalAppendRequest* request, ::proxy_proto::ParixJournalAppendReply* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status proxyService::Service::parixJournalAppendBatch(::grpc::ServerContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest* request, ::proxy_proto::ParixJournalAppendBatchReply* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status proxyService::Service::parixSupplyD0(::grpc::ServerContext* context, const ::proxy_proto::ParixSupplyD0Request* request, ::proxy_proto::SetReply* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status proxyService::Service::parixReplayBatch(::grpc::ServerContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status proxyService::Service::parixParityFullOverwrite(::grpc::ServerContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response) {
   (void) context;
   (void) request;
   (void) response;

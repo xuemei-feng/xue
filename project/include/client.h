@@ -3,8 +3,12 @@
 
 #ifdef BAZEL_BUILD
 #include "src/proto/coordinator.grpc.pb.h"
+#include "src/proto/proxy.grpc.pb.h"
+#include "src/proto/datanode.grpc.pb.h"
 #else
 #include "coordinator.grpc.pb.h"
+#include "proxy.grpc.pb.h"
+#include "datanode.grpc.pb.h"
 #endif
 
 #include "meta_definition.h"
@@ -71,8 +75,6 @@ namespace ECProject
     bool sub_append_in_rep_mode(int append_size);
     bool set();
     bool sub_set(int block_num);
-    /** PBS：同一条带内多个不连续逻辑区间 [start, end)；先增量写数据块，再拉取 k 块并重算校验后写回 */
-    bool pbs_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges);
     std::shared_ptr<char[]> get_degraded_read_block(int stripe_id, int failed_block_id);
     std::shared_ptr<char[]> get_degraded_read_block_breakdown(int stripe_id, int failed_block_id, double &total_time, double &disk_io_time, double &network_time, double &encode_time);
     bool recovery_breakdown(int stripe_id, int failed_block_id, double &disk_read_time, double &network_time, double &decode_time, double &disk_write_time);
@@ -99,6 +101,18 @@ namespace ECProject
     void cache_latest_parity_slices(std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array, const int parity_slice_size, const int parity_slice_offset);
     std::vector<int> get_parameters();
     bool decode_test(int stripe_id, int failed_block_id, std::string client_ip, int client_port, double &decode_time);
+
+    /** Parix：在条带逻辑字节区间 [logical_offset_start, logical_offset_end_exclusive) 写入 new_span_bytes，并提交批次。 */
+    bool parix_partial_update(int stripe_id, int logical_offset_start, int logical_offset_end_exclusive, const char *new_span_bytes);
+    /**
+     * Parix：同一条带多段互不重叠的逻辑区间 [start, end_exclusive)，按 ranges 顺序将各段新字节串联为 packed_new_bytes，
+     * 一次 plan / 同一 batch_id 提交（与单段 API 相同的 journal / 写盘 / commit 流程）。
+     */
+    bool parix_partial_update_ranges(int stripe_id, const std::vector<std::pair<int, int>> &ranges, const char *packed_new_bytes);
+    /** Parix：读取条带 k 个数据块、重算校验并全块覆盖各校验块（含日志失效）。 */
+    bool parix_full_stripe_rewrite(int stripe_id);
+    /** 若 ranges 为互不重叠的半开区间，且并集恰好为 [0, k*BlockSize)，则等价于整条带数据域被更新，可走 full rewrite。 */
+    bool parix_ranges_cover_full_stripe_data(const std::vector<std::pair<int, int>> &ranges) const;
 
   private:
     std::unique_ptr<coordinator_proto::coordinatorService::Stub> m_coordinator_ptr;

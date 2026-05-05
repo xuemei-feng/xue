@@ -40,10 +40,14 @@ service proxyService {
   rpc deleteBlock(NodeAndBlock) returns (DelReply);
   // append
   rpc scheduleAppend2Datanode(AppendStripeDataPlacement) returns (SetReply);
-  // PBS: partial overwrite of one data block range (client sends new bytes over TCP)
-  rpc pbsScheduleDataUpdate(PbsDataUpdatePlacement) returns (SetReply);
-  // PBS: apply data delta to one or more parity blocks on this proxy (same byte range XOR placeholder)
-  rpc pbsApplyParityDelta(PbsApplyParityDeltaRequest) returns (SetReply);
+  // Parix
+  rpc parixScheduleDataUpdate(ParixDataUpdatePlacement) returns (ParixScheduleDataUpdateReply);
+  rpc parixJournalAppend(ParixJournalAppendRequest) returns (ParixJournalAppendReply);
+  // 同一 parity proxy 上多个 parity_block 共享一次 new_payload，避免重复传输
+  rpc parixJournalAppendBatch(ParixJournalAppendBatchRequest) returns (ParixJournalAppendBatchReply);
+  rpc parixSupplyD0(ParixSupplyD0Request) returns (SetReply);
+  rpc parixReplayBatch(ParixReplayBatchRequest) returns (SetReply);
+  rpc parixParityFullOverwrite(ParixParityFullOverwriteRequest) returns (SetReply);
   // get stripe
   rpc getBlocks(StripeAndBlockIDs) returns (GetReply);
 }
@@ -237,59 +241,126 @@ message RecoveryReply {
   
 }
 
-// 某 proxy 上需要应用同一份数据增量 Δ 的校验块列表（同一 dest 只出现一次，实现去重）
-message PbsParityDeltaTarget {
-  string parity_block_key = 1;
-  int32 parity_block_id = 2;
-  string datanode_ip = 3;
-  int32 datanode_port = 4;
+enum ParixParityAck {
+  PARIX_ACK_SUCCESS = 0;
+  PARIX_ACK_NEED_D0 = 1;
 }
 
-message PbsParityForwardPlan {
-  string dest_proxy_ip = 1;
-  int32 dest_proxy_base_port = 2; // 与 clusterInformation 中 proxy 端口一致（gRPC 端口，非 PROXY_PORT_SHIFT）
-  repeated PbsParityDeltaTarget parities = 3;
+message ParixParityRpcTarget {
+  string proxy_ip = 1;
+  int32 proxy_grpc_port = 2;
+  int32 parity_block_id = 3;
+  string parity_block_key = 4;
+  string parity_datanode_ip = 5;
+  int32 parity_datanode_port = 6;
 }
 
-// PBS: single data-block range update (TCP carries range_length bytes of new payload)
-message PbsDataUpdatePlacement {
+message ParixDataUpdatePlacement {
   string key = 1;
   int32 stripe_id = 2;
-  int32 cluster_id = 3;
-  string block_key = 4;
-  int32 block_id = 5;
-  int32 range_offset = 6;   // byte offset inside block [0, block_size)
-  uint64 range_length = 7;
-  string datanode_ip = 8;
-  int32 datanode_port = 9;
-  // 去重后的校验转发：每个 dest 一条，parities 列出该 proxy 上要更新的所有全局/本地校验块
-  repeated PbsParityForwardPlan parity_forward = 10;
-  // 同一次 uploadPbsUpdate 内多段共享：校验 proxy 收齐 batch_total 份后再一次性更新全局/本地校验
-  uint64 pbs_batch_id = 11;
-  uint32 pbs_batch_index = 12;
-  uint32 pbs_batch_total = 13;
+  uint64 batch_id = 3;
+  uint64 write_generation = 4;
+  int32 cluster_id = 5;
+  string block_key = 6;
+  int32 block_id = 7;
+  int32 range_offset = 8;
+  uint64 range_length = 9;
+  string datanode_ip = 10;
+  int32 datanode_port = 11;
+  repeated ParixParityRpcTarget global_parities = 12;
+  ParixParityRpcTarget local_parity = 13;
 }
 
-// 校验侧：use_new_payload=1 时携带 new_range_payload + data_range_old_snapshot（写数据盘前截取）；优先用快照算 XOR。
-// 无快照时回退从 src_data_* 读整块再取区间（多段并行时可能已非旧值，仅单段场景可靠）
-// pbs_batch_total>0 时同一 pbs_batch_id 收齐所有分片后做一次校验盘写回（不再每收一片写一次）
-message PbsApplyParityDeltaRequest {
+message ParixJournalAckItem {
+  string parity_proxy_ip = 1;
+  int32 parity_proxy_grpc_port = 2;
+  int32 parity_block_id = 3;
+  ParixParityAck ack = 4;
+}
+
+message ParixScheduleDataUpdateReply {
+  bool ifcommit = 1;
+  repeated ParixJournalAckItem journal_acks = 2;
+}
+
+message ParixJournalAppendRequest {
   int32 stripe_id = 1;
-  int32 data_block_id = 2;
-  int32 range_offset = 3;
-  uint64 range_length = 4;
-  bytes delta = 5;
-  repeated PbsParityDeltaTarget parities = 6;
-  bool use_new_payload = 7;
-  bytes new_range_payload = 8;
-  string src_data_block_key = 9;
-  string src_data_datanode_ip = 10;
-  int32 src_data_datanode_port = 11;
-  uint64 pbs_batch_id = 12;
-  uint32 pbs_batch_index = 13;
-  uint32 pbs_batch_total = 14;
-  // 数据 proxy 写数据块前截取的该区间旧字节；batch flush 必须用此算 XOR，避免多段并行时从 DN 读到已被写坏的新值
-  bytes data_range_old_snapshot = 15;
+  uint64 batch_id = 2;
+  uint64 write_generation = 3;
+  int32 parity_block_id = 4;
+  string parity_block_key = 5;
+  string parity_datanode_ip = 6;
+  int32 parity_datanode_port = 7;
+  int32 data_block_id = 8;
+  int32 range_offset = 9;
+  uint64 range_length = 10;
+  bytes new_payload = 11;
+}
+
+message ParixJournalAppendReply {
+  ParixParityAck ack = 1;
+}
+
+message ParixJournalAppendBatchItem {
+  int32 parity_block_id = 1;
+  string parity_block_key = 2;
+  string parity_datanode_ip = 3;
+  int32 parity_datanode_port = 4;
+}
+
+message ParixJournalAppendBatchRequest {
+  int32 stripe_id = 1;
+  uint64 batch_id = 2;
+  uint64 write_generation = 3;
+  int32 data_block_id = 4;
+  int32 range_offset = 5;
+  uint64 range_length = 6;
+  bytes new_payload = 7;
+  repeated ParixJournalAppendBatchItem targets = 8;
+}
+
+message ParixJournalAppendBatchAckItem {
+  int32 parity_block_id = 1;
+  ParixParityAck ack = 2;
+}
+
+message ParixJournalAppendBatchReply {
+  // 与 request.targets 顺序一致
+  repeated ParixJournalAppendBatchAckItem acks = 1;
+}
+
+message ParixSupplyD0Request {
+  int32 stripe_id = 1;
+  uint64 batch_id = 2;
+  uint64 write_generation = 3;
+  int32 parity_block_id = 4;
+  int32 data_block_id = 5;
+  int32 range_offset = 6;
+  uint64 range_length = 7;
+  bytes old_payload = 8;
+}
+
+message ParixReplayBatchRequest {
+  int32 stripe_id = 1;
+  uint64 batch_id = 2;
+}
+
+message ParixJournalInvalidationRange {
+  int32 data_block_id = 1;
+  int32 range_offset = 2;
+  uint64 range_length = 3;
+}
+
+message ParixParityFullOverwriteRequest {
+  int32 stripe_id = 1;
+  uint64 new_write_generation = 2;
+  int32 parity_block_id = 3;
+  string parity_block_key = 4;
+  bytes full_parity_block = 5;
+  string datanode_ip = 6;
+  int32 datanode_port = 7;
+  // 仅删除与该列表中任一区间相交的日志；为空则只写校验块、不删任何日志。
+  repeated ParixJournalInvalidationRange journal_invalidations = 8;
 }
 
 // append
