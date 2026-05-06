@@ -1553,37 +1553,39 @@ namespace ECProject
     {
       return false;
     }
-    if (!parix_ranges_disjoint_half_open(ranges))
-    {
-      return false;
-    }
     const long long k = m_sys_config->k;
     const long long bs = m_sys_config->BlockSize;
     const long long total = k * bs;
-    std::vector<std::pair<int, int>> sorted = ranges;
-    std::sort(sorted.begin(), sorted.end(), [](const std::pair<int, int> &a, const std::pair<int, int> &b) {
-      return a.first < b.first;
-    });
-    long long expected_next = 0;
-    for (const auto &pr : sorted)
+    for (const auto &pr : ranges)
     {
       const long long lo = pr.first;
       const long long hi = pr.second;
-      if (hi <= lo)
+      if (hi <= lo || lo < 0 || hi > total)
       {
         return false;
       }
-      if (lo != expected_next)
-      {
-        return false;
-      }
-      if (hi > total)
-      {
-        return false;
-      }
-      expected_next = hi;
     }
-    return expected_next == total;
+    for (long long bi = 0; bi < k; ++bi)
+    {
+      const long long b_lo = bi * bs;
+      const long long b_hi = (bi + 1) * bs;
+      bool hit = false;
+      for (const auto &pr : ranges)
+      {
+        const long long lo = pr.first;
+        const long long hi = pr.second;
+        if (lo < b_hi && hi > b_lo)
+        {
+          hit = true;
+          break;
+        }
+      }
+      if (!hit)
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   bool Client::parix_partial_update_ranges(int stripe_id, const std::vector<std::pair<int, int>> &ranges, const char *packed_new_bytes)
@@ -1777,9 +1779,9 @@ namespace ECProject
     return true;
   }
 
-  bool Client::parix_full_stripe_rewrite(int stripe_id)
+  bool Client::parix_full_stripe_rewrite(int stripe_id, const char *new_stripe_data)
   {
-    if (!m_sys_config)
+    if (!m_sys_config || !new_stripe_data)
     {
       return false;
     }
@@ -1787,18 +1789,11 @@ namespace ECProject
     const int r = m_sys_config->r;
     const int z = m_sys_config->z;
     const int bs = m_sys_config->BlockSize;
-    const int start_gid = stripe_id * k;
-    std::shared_ptr<char[]> stripe_data = get_blocks(start_gid, start_gid + k - 1);
-    if (!stripe_data)
-    {
-      std::cout << "[Client][Parix] full stripe: get_blocks failed" << std::endl;
-      return false;
-    }
 
     std::vector<char *> data_ptrs(static_cast<size_t>(k));
     for (int i = 0; i < k; ++i)
     {
-      data_ptrs[static_cast<size_t>(i)] = stripe_data.get() + static_cast<size_t>(i) * static_cast<size_t>(bs);
+      data_ptrs[static_cast<size_t>(i)] = const_cast<char *>(new_stripe_data) + static_cast<size_t>(i) * static_cast<size_t>(bs);
     }
     std::vector<std::vector<char>> parity_store(static_cast<size_t>(r + z));
     std::vector<char *> parity_ptrs;

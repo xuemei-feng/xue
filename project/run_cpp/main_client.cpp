@@ -72,11 +72,11 @@ int main(int argc, char **argv)
     {
             int stripe_id = 0;
             int num_ranges = 1;
-            std::cout << "Parix update: enter stripe_id num_ranges (num_ranges>=1), then num_ranges lines of logical_start logical_end_exclusive.\n"
-                         "Logical offsets are within stripe data [0, k*BlockSize). If the disjoint ranges exactly cover that full interval, "
-                         "full-stripe rewrite is used; otherwise partial update (packed payload) is used.\n"
-                         "Example partial: 0 2 / 0 512 / 8192 8704\n"
-                         "Example full (single range): 0 1 / 0 67108864   (when k*BlockSize==67108864)" << std::endl;
+            std::cout << "Parix update: stripe_id num_ranges, then num_ranges pairs logical_start logical_end_exclusive (whitespace only).\n"
+                         "Offsets are stripe-global in [0, k*BlockSize). Partial path requires pairwise disjoint ranges.\n"
+                         "Full-stripe rewrite if every data block [b*BlockSize,(b+1)*BlockSize) intersects some range (need not cover whole stripe).\n"
+                         "Example partial: 0 2\n0 512\n8192 8704\n"
+                         "Example full (one span covering all k blocks): 0 1\n0 <k*BlockSize>" << std::endl;
             std::cin >> stripe_id >> num_ranges;
             if (num_ranges < 1)
             {
@@ -105,24 +105,37 @@ int main(int argc, char **argv)
                 {
                     const std::chrono::high_resolution_clock::time_point req_start = std::chrono::high_resolution_clock::now();
                     bool parix_ok = false;
+                    auto randomize_buffer = [](std::vector<char> &buf) {
+                        std::mt19937 rng(std::random_device{}());
+                        std::uniform_int_distribution<int> byte_dist(0, 255);
+                        for (size_t i = 0; i < buf.size(); ++i)
+                        {
+                            buf[i] = static_cast<char>(byte_dist(rng));
+                        }
+                    };
                     if (client.parix_ranges_cover_full_stripe_data(ranges))
                     {
-                        std::cout << "[Parix auto] ranges cover full stripe data -> parix_full_stripe_rewrite (reads data from cluster; "
-                                     "no packed payload)" << std::endl;
-                        parix_ok = client.parix_full_stripe_rewrite(stripe_id);
+                        std::vector<int> params = client.get_parameters();
+                        if (params.size() < 4)
+                        {
+                            std::cout << "[Parix auto] get_parameters failed (code type?)" << std::endl;
+                            parix_ok = false;
+                        }
+                        else
+                        {
+                            const int pk = params[0];
+                            const int pbs = params[3];
+                            std::vector<char> new_stripe(static_cast<size_t>(pk) * static_cast<size_t>(pbs));
+                            randomize_buffer(new_stripe);
+                            std::cout << "[Parix auto] full stripe new data in memory -> parix_full_stripe_rewrite (no read of old data blocks)"
+                                      << std::endl;
+                            parix_ok = client.parix_full_stripe_rewrite(stripe_id, new_stripe.data());
+                        }
                     }
                     else
                     {
                         std::vector<char> packed(static_cast<size_t>(total_span));
-                        auto randomize_preallocated_ranges = [&packed]() {
-                            std::mt19937 rng(std::random_device{}());
-                            std::uniform_int_distribution<int> byte_dist(0, 255);
-                            for (size_t i = 0; i < packed.size(); ++i)
-                            {
-                                packed[i] = static_cast<char>(byte_dist(rng));
-                            }
-                        };
-                        randomize_preallocated_ranges();
+                        randomize_buffer(packed);
                         std::cout << "[Parix auto] partial path -> parix_partial_update_ranges(stripe_id, ranges, packed.data())" << std::endl;
                         parix_ok = client.parix_partial_update_ranges(stripe_id, ranges, packed.data());
                     }

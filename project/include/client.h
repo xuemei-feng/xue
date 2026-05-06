@@ -109,9 +109,12 @@ namespace ECProject
      * 一次 plan / 同一 batch_id 提交（与单段 API 相同的 journal / 写盘 / commit 流程）。
      */
     bool parix_partial_update_ranges(int stripe_id, const std::vector<std::pair<int, int>> &ranges, const char *packed_new_bytes);
-    /** Parix：读取条带 k 个数据块、重算校验并全块覆盖各校验块（含日志失效）。 */
-    bool parix_full_stripe_rewrite(int stripe_id);
-    /** 若 ranges 为互不重叠的半开区间，且并集恰好为 [0, k*BlockSize)，则等价于整条带数据域被更新，可走 full rewrite。 */
+    /**
+     * Parix 全条带：调用方提供 k 个数据块的完整新内容（按块顺序拼接为 k*BlockSize 字节），
+     * 在 Primary 侧用现有编码器从 Di_new 计算全局/局部校验块新值并分发覆盖写入；不读取盘上旧数据。
+     */
+    bool parix_full_stripe_rewrite(int stripe_id, const char *new_stripe_data);
+    /** 若各区间为半开 [lo,hi) 且落在 [0, k*BlockSize)，并与全部 k 个数据块各自的逻辑区间都有交集，则走 full rewrite（不要求并集铺满条带）。 */
     bool parix_ranges_cover_full_stripe_data(const std::vector<std::pair<int, int>> &ranges) const;
 
   private:

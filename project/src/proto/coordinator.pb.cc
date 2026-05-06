@@ -377,6 +377,22 @@ struct ParixParityEndpointDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixParityEndpointDefaultTypeInternal _ParixParityEndpoint_default_instance_;
+PROTOBUF_CONSTEXPR ParixDataBlockEndpoint::ParixDataBlockEndpoint(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.datanode_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.data_block_id_)*/0
+  , /*decltype(_impl_.datanode_port_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParixDataBlockEndpointDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixDataBlockEndpointDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParixDataBlockEndpointDefaultTypeInternal() {}
+  union {
+    ParixDataBlockEndpoint _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixDataBlockEndpointDefaultTypeInternal _ParixDataBlockEndpoint_default_instance_;
 PROTOBUF_CONSTEXPR ParixDataSegmentPlan::ParixDataSegmentPlan(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.global_parities_)*/{}
@@ -465,6 +481,7 @@ PROTOBUF_CONSTEXPR ParixFullStripePlanReply::ParixFullStripePlanReply(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.parity_targets_)*/{}
   , /*decltype(_impl_.journal_invalidations_)*/{}
+  , /*decltype(_impl_.data_block_targets_)*/{}
   , /*decltype(_impl_.err_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.master_append_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.master_proxy_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
@@ -500,7 +517,7 @@ struct RecoveryReplyDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 RecoveryReplyDefaultTypeInternal _RecoveryReply_default_instance_;
 }  // namespace coordinator_proto
-static ::_pb::Metadata file_level_metadata_coordinator_2eproto[31];
+static ::_pb::Metadata file_level_metadata_coordinator_2eproto[32];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_coordinator_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_coordinator_2eproto = nullptr;
 
@@ -713,6 +730,16 @@ const uint32_t TableStruct_coordinator_2eproto::offsets[] PROTOBUF_SECTION_VARIA
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::ParixParityEndpoint, _impl_.parity_datanode_ip_),
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::ParixParityEndpoint, _impl_.parity_datanode_port_),
   ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::ParixDataBlockEndpoint, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::ParixDataBlockEndpoint, _impl_.data_block_id_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::ParixDataBlockEndpoint, _impl_.block_key_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::ParixDataBlockEndpoint, _impl_.datanode_ip_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::ParixDataBlockEndpoint, _impl_.datanode_port_),
+  ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::ParixDataSegmentPlan, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -781,6 +808,7 @@ const uint32_t TableStruct_coordinator_2eproto::offsets[] PROTOBUF_SECTION_VARIA
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::ParixFullStripePlanReply, _impl_.new_write_generation_),
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::ParixFullStripePlanReply, _impl_.parity_targets_),
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::ParixFullStripePlanReply, _impl_.journal_invalidations_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::ParixFullStripePlanReply, _impl_.data_block_targets_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::RecoveryReply, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -818,13 +846,14 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 179, -1, -1, sizeof(::coordinator_proto::ParixLogicalRange)},
   { 187, -1, -1, sizeof(::coordinator_proto::ParixPartialPlanRequest)},
   { 195, -1, -1, sizeof(::coordinator_proto::ParixParityEndpoint)},
-  { 207, -1, -1, sizeof(::coordinator_proto::ParixDataSegmentPlan)},
-  { 228, -1, -1, sizeof(::coordinator_proto::ParixPartialPlanReply)},
-  { 236, -1, -1, sizeof(::coordinator_proto::ParixCommitBatchRequest)},
-  { 244, -1, -1, sizeof(::coordinator_proto::ParixJournalInvalidationRange)},
-  { 253, -1, -1, sizeof(::coordinator_proto::ParixFullStripePlanRequest)},
-  { 261, -1, -1, sizeof(::coordinator_proto::ParixFullStripePlanReply)},
-  { 276, -1, -1, sizeof(::coordinator_proto::RecoveryReply)},
+  { 207, -1, -1, sizeof(::coordinator_proto::ParixDataBlockEndpoint)},
+  { 217, -1, -1, sizeof(::coordinator_proto::ParixDataSegmentPlan)},
+  { 238, -1, -1, sizeof(::coordinator_proto::ParixPartialPlanReply)},
+  { 246, -1, -1, sizeof(::coordinator_proto::ParixCommitBatchRequest)},
+  { 254, -1, -1, sizeof(::coordinator_proto::ParixJournalInvalidationRange)},
+  { 263, -1, -1, sizeof(::coordinator_proto::ParixFullStripePlanRequest)},
+  { 271, -1, -1, sizeof(::coordinator_proto::ParixFullStripePlanReply)},
+  { 287, -1, -1, sizeof(::coordinator_proto::RecoveryReply)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -852,6 +881,7 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::coordinator_proto::_ParixLogicalRange_default_instance_._instance,
   &::coordinator_proto::_ParixPartialPlanRequest_default_instance_._instance,
   &::coordinator_proto::_ParixParityEndpoint_default_instance_._instance,
+  &::coordinator_proto::_ParixDataBlockEndpoint_default_instance_._instance,
   &::coordinator_proto::_ParixDataSegmentPlan_default_instance_._instance,
   &::coordinator_proto::_ParixPartialPlanReply_default_instance_._instance,
   &::coordinator_proto::_ParixCommitBatchRequest_default_instance_._instance,
@@ -909,110 +939,115 @@ const char descriptor_table_protodef_coordinator_2eproto[] PROTOBUF_SECTION_VARI
   "t\022\020\n\010proxy_ip\030\001 \001(\t\022\027\n\017proxy_grpc_port\030\002"
   " \001(\005\022\027\n\017parity_block_id\030\003 \001(\005\022\030\n\020parity_"
   "block_key\030\004 \001(\t\022\032\n\022parity_datanode_ip\030\005 "
-  "\001(\t\022\034\n\024parity_datanode_port\030\006 \001(\005\"\277\003\n\024Pa"
-  "rixDataSegmentPlan\022\022\n\nappend_key\030\001 \001(\t\022\022"
-  "\n\ncluster_id\030\002 \001(\005\022\025\n\rdata_proxy_ip\030\003 \001("
-  "\t\022\034\n\024data_proxy_grpc_port\030\004 \001(\005\022!\n\031data_"
-  "proxy_tcp_shift_port\030\005 \001(\005\022\021\n\tblock_key\030"
-  "\006 \001(\t\022\020\n\010block_id\030\007 \001(\005\022\024\n\014range_offset\030"
-  "\010 \001(\005\022\024\n\014range_length\030\t \001(\004\022\023\n\013datanode_"
-  "ip\030\n \001(\t\022\025\n\rdatanode_port\030\013 \001(\005\022\021\n\tmap2g"
-  "roup\030\014 \001(\005\022\030\n\020write_generation\030\r \001(\004\022\?\n\017"
-  "global_parities\030\016 \003(\0132&.coordinator_prot"
-  "o.ParixParityEndpoint\022<\n\014local_parity\030\017 "
-  "\001(\0132&.coordinator_proto.ParixParityEndpo"
-  "int\"d\n\025ParixPartialPlanReply\022\020\n\010batch_id"
-  "\030\001 \001(\004\0229\n\010segments\030\002 \003(\0132\'.coordinator_p"
-  "roto.ParixDataSegmentPlan\">\n\027ParixCommit"
-  "BatchRequest\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010batch"
-  "_id\030\002 \001(\004\"b\n\035ParixJournalInvalidationRan"
-  "ge\022\025\n\rdata_block_id\030\001 \001(\005\022\024\n\014range_offse"
-  "t\030\002 \001(\005\022\024\n\014range_length\030\003 \001(\004\"~\n\032ParixFu"
-  "llStripePlanRequest\022\021\n\tstripe_id\030\001 \001(\005\022M"
-  "\n\023covered_data_ranges\030\002 \003(\01320.coordinato"
-  "r_proto.ParixJournalInvalidationRange\"\333\002"
-  "\n\030ParixFullStripePlanReply\022\n\n\002ok\030\001 \001(\010\022\013"
-  "\n\003err\030\002 \001(\t\022\031\n\021master_append_key\030\003 \001(\t\022\027"
-  "\n\017master_proxy_ip\030\004 \001(\t\022\036\n\026master_proxy_"
-  "grpc_port\030\005 \001(\005\022#\n\033master_proxy_tcp_shif"
-  "t_port\030\006 \001(\005\022\034\n\024new_write_generation\030\007 \001"
-  "(\004\022>\n\016parity_targets\030\010 \003(\0132&.coordinator"
-  "_proto.ParixParityEndpoint\022O\n\025journal_in"
-  "validations\030\t \003(\01320.coordinator_proto.Pa"
-  "rixJournalInvalidationRange\"\204\001\n\rRecovery"
-  "Reply\022\026\n\016disk_read_time\030\001 \001(\001\022\024\n\014network"
-  "_time\030\002 \001(\001\022\023\n\013decode_time\030\003 \001(\001\022\027\n\017disk"
-  "_write_time\030\004 \001(\001\022\027\n\017grpc_start_time\030\005 \001"
-  "(\0012\361\023\n\022coordinatorService\022k\n\025sayHelloToC"
-  "oordinator\022\'.coordinator_proto.RequestTo"
-  "Coordinator\032\'.coordinator_proto.ReplyFro"
-  "mCoordinator\"\000\022`\n\ncheckalive\022\'.coordinat"
-  "or_proto.RequestToCoordinator\032\'.coordina"
-  "tor_proto.ReplyFromCoordinator\"\000\022V\n\014setP"
-  "arameter\022\034.coordinator_proto.Parameter\032&"
-  ".coordinator_proto.RepIfSetParaSuccess\"\000"
-  "\022d\n\024uploadOriginKeyValue\022%.coordinator_p"
-  "roto.RequestProxyIPPort\032#.coordinator_pr"
-  "oto.ReplyProxyIPPort\"\000\022a\n\021reportCommitAb"
-  "ort\022!.coordinator_proto.CommitAbortKey\032\'"
-  ".coordinator_proto.ReplyFromCoordinator\""
-  "\000\022V\n\020checkCommitAbort\022\037.coordinator_prot"
-  "o.AskIfSuccess\032\037.coordinator_proto.RepIf"
-  "Success\"\000\022`\n\016uploadSetValue\022%.coordinato"
-  "r_proto.RequestProxyIPPort\032%.coordinator"
-  "_proto.ReplyProxyIPsPorts\"\000\022c\n\021uploadSub"
-  "setValue\022%.coordinator_proto.RequestProx"
-  "yIPPort\032%.coordinator_proto.ReplyProxyIP"
-  "sPorts\"\000\022c\n\021uploadAppendValue\022%.coordina"
-  "tor_proto.RequestProxyIPPort\032%.coordinat"
-  "or_proto.ReplyProxyIPsPorts\"\000\022S\n\010getValu"
-  "e\022!.coordinator_proto.KeyAndClientIP\032\".c"
-  "oordinator_proto.RepIfGetSuccess\"\000\022W\n\tge"
-  "tStripe\022!.coordinator_proto.KeyAndClient"
-  "IP\032%.coordinator_proto.ReplyProxyIPsPort"
-  "s\"\000\022\\\n\tgetBlocks\022&.coordinator_proto.Blo"
-  "ckIDsAndClientIP\032%.coordinator_proto.Rep"
-  "lyProxyIPsPorts\"\000\022h\n\025getDegradedReadBloc"
-  "ks\022&.coordinator_proto.BlockIDsAndClient"
-  "IP\032%.coordinator_proto.ReplyProxyIPsPort"
-  "s\"\000\022a\n\024getDegradedReadBlock\022!.coordinato"
-  "r_proto.KeyAndClientIP\032$.coordinator_pro"
-  "to.DegradedReadReply\"\000\022j\n\035getDegradedRea"
-  "dBlockBreakdown\022!.coordinator_proto.KeyA"
-  "ndClientIP\032$.coordinator_proto.DegradedR"
-  "eadReply\"\000\022T\n\013getRecovery\022!.coordinator_"
-  "proto.KeyAndClientIP\032 .coordinator_proto"
-  ".RecoveryReply\"\000\022]\n\024getRecoveryBreakdown"
-  "\022!.coordinator_proto.KeyAndClientIP\032 .co"
-  "ordinator_proto.RecoveryReply\"\000\022Y\n\020fullN"
-  "odeRecovery\022#.coordinator_proto.NodeIdFr"
-  "omClient\032\036.coordinator_proto.RepBlockNum"
-  "\"\000\022j\n\022multiBlockRecovery\0220.coordinator_p"
-  "roto.StripeIdAndBlockIDsFromClient\032 .coo"
-  "rdinator_proto.RecoveryReply\"\000\022N\n\010delByK"
-  "ey\022 .coordinator_proto.KeyFromClient\032\036.c"
-  "oordinator_proto.RepIfDeling\"\000\022V\n\013delByS"
-  "tripe\022%.coordinator_proto.StripeIdFromCl"
-  "ient\032\036.coordinator_proto.RepIfDeling\"\000\022Y"
-  "\n\013listStripes\022\'.coordinator_proto.Reques"
-  "tToCoordinator\032\037.coordinator_proto.RepSt"
-  "ripeIds\"\000\022W\n\ndecodeTest\022!.coordinator_pr"
-  "oto.KeyAndClientIP\032$.coordinator_proto.D"
-  "egradedReadReply\"\000\022j\n\020planParixPartial\022*"
-  ".coordinator_proto.ParixPartialPlanReque"
-  "st\032(.coordinator_proto.ParixPartialPlanR"
-  "eply\"\000\022i\n\020commitParixBatch\022*.coordinator"
-  "_proto.ParixCommitBatchRequest\032\'.coordin"
-  "ator_proto.ReplyFromCoordinator\"\000\022s\n\023pla"
-  "nParixFullStripe\022-.coordinator_proto.Par"
-  "ixFullStripePlanRequest\032+.coordinator_pr"
-  "oto.ParixFullStripePlanReply\"\000b\006proto3"
+  "\001(\t\022\034\n\024parity_datanode_port\030\006 \001(\005\"n\n\026Par"
+  "ixDataBlockEndpoint\022\025\n\rdata_block_id\030\001 \001"
+  "(\005\022\021\n\tblock_key\030\002 \001(\t\022\023\n\013datanode_ip\030\003 \001"
+  "(\t\022\025\n\rdatanode_port\030\004 \001(\005\"\277\003\n\024ParixDataS"
+  "egmentPlan\022\022\n\nappend_key\030\001 \001(\t\022\022\n\ncluste"
+  "r_id\030\002 \001(\005\022\025\n\rdata_proxy_ip\030\003 \001(\t\022\034\n\024dat"
+  "a_proxy_grpc_port\030\004 \001(\005\022!\n\031data_proxy_tc"
+  "p_shift_port\030\005 \001(\005\022\021\n\tblock_key\030\006 \001(\t\022\020\n"
+  "\010block_id\030\007 \001(\005\022\024\n\014range_offset\030\010 \001(\005\022\024\n"
+  "\014range_length\030\t \001(\004\022\023\n\013datanode_ip\030\n \001(\t"
+  "\022\025\n\rdatanode_port\030\013 \001(\005\022\021\n\tmap2group\030\014 \001"
+  "(\005\022\030\n\020write_generation\030\r \001(\004\022\?\n\017global_p"
+  "arities\030\016 \003(\0132&.coordinator_proto.ParixP"
+  "arityEndpoint\022<\n\014local_parity\030\017 \001(\0132&.co"
+  "ordinator_proto.ParixParityEndpoint\"d\n\025P"
+  "arixPartialPlanReply\022\020\n\010batch_id\030\001 \001(\004\0229"
+  "\n\010segments\030\002 \003(\0132\'.coordinator_proto.Par"
+  "ixDataSegmentPlan\">\n\027ParixCommitBatchReq"
+  "uest\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010batch_id\030\002 \001("
+  "\004\"b\n\035ParixJournalInvalidationRange\022\025\n\rda"
+  "ta_block_id\030\001 \001(\005\022\024\n\014range_offset\030\002 \001(\005\022"
+  "\024\n\014range_length\030\003 \001(\004\"~\n\032ParixFullStripe"
+  "PlanRequest\022\021\n\tstripe_id\030\001 \001(\005\022M\n\023covere"
+  "d_data_ranges\030\002 \003(\01320.coordinator_proto."
+  "ParixJournalInvalidationRange\"\242\003\n\030ParixF"
+  "ullStripePlanReply\022\n\n\002ok\030\001 \001(\010\022\013\n\003err\030\002 "
+  "\001(\t\022\031\n\021master_append_key\030\003 \001(\t\022\027\n\017master"
+  "_proxy_ip\030\004 \001(\t\022\036\n\026master_proxy_grpc_por"
+  "t\030\005 \001(\005\022#\n\033master_proxy_tcp_shift_port\030\006"
+  " \001(\005\022\034\n\024new_write_generation\030\007 \001(\004\022>\n\016pa"
+  "rity_targets\030\010 \003(\0132&.coordinator_proto.P"
+  "arixParityEndpoint\022O\n\025journal_invalidati"
+  "ons\030\t \003(\01320.coordinator_proto.ParixJourn"
+  "alInvalidationRange\022E\n\022data_block_target"
+  "s\030\n \003(\0132).coordinator_proto.ParixDataBlo"
+  "ckEndpoint\"\204\001\n\rRecoveryReply\022\026\n\016disk_rea"
+  "d_time\030\001 \001(\001\022\024\n\014network_time\030\002 \001(\001\022\023\n\013de"
+  "code_time\030\003 \001(\001\022\027\n\017disk_write_time\030\004 \001(\001"
+  "\022\027\n\017grpc_start_time\030\005 \001(\0012\361\023\n\022coordinato"
+  "rService\022k\n\025sayHelloToCoordinator\022\'.coor"
+  "dinator_proto.RequestToCoordinator\032\'.coo"
+  "rdinator_proto.ReplyFromCoordinator\"\000\022`\n"
+  "\ncheckalive\022\'.coordinator_proto.RequestT"
+  "oCoordinator\032\'.coordinator_proto.ReplyFr"
+  "omCoordinator\"\000\022V\n\014setParameter\022\034.coordi"
+  "nator_proto.Parameter\032&.coordinator_prot"
+  "o.RepIfSetParaSuccess\"\000\022d\n\024uploadOriginK"
+  "eyValue\022%.coordinator_proto.RequestProxy"
+  "IPPort\032#.coordinator_proto.ReplyProxyIPP"
+  "ort\"\000\022a\n\021reportCommitAbort\022!.coordinator"
+  "_proto.CommitAbortKey\032\'.coordinator_prot"
+  "o.ReplyFromCoordinator\"\000\022V\n\020checkCommitA"
+  "bort\022\037.coordinator_proto.AskIfSuccess\032\037."
+  "coordinator_proto.RepIfSuccess\"\000\022`\n\016uplo"
+  "adSetValue\022%.coordinator_proto.RequestPr"
+  "oxyIPPort\032%.coordinator_proto.ReplyProxy"
+  "IPsPorts\"\000\022c\n\021uploadSubsetValue\022%.coordi"
+  "nator_proto.RequestProxyIPPort\032%.coordin"
+  "ator_proto.ReplyProxyIPsPorts\"\000\022c\n\021uploa"
+  "dAppendValue\022%.coordinator_proto.Request"
+  "ProxyIPPort\032%.coordinator_proto.ReplyPro"
+  "xyIPsPorts\"\000\022S\n\010getValue\022!.coordinator_p"
+  "roto.KeyAndClientIP\032\".coordinator_proto."
+  "RepIfGetSuccess\"\000\022W\n\tgetStripe\022!.coordin"
+  "ator_proto.KeyAndClientIP\032%.coordinator_"
+  "proto.ReplyProxyIPsPorts\"\000\022\\\n\tgetBlocks\022"
+  "&.coordinator_proto.BlockIDsAndClientIP\032"
+  "%.coordinator_proto.ReplyProxyIPsPorts\"\000"
+  "\022h\n\025getDegradedReadBlocks\022&.coordinator_"
+  "proto.BlockIDsAndClientIP\032%.coordinator_"
+  "proto.ReplyProxyIPsPorts\"\000\022a\n\024getDegrade"
+  "dReadBlock\022!.coordinator_proto.KeyAndCli"
+  "entIP\032$.coordinator_proto.DegradedReadRe"
+  "ply\"\000\022j\n\035getDegradedReadBlockBreakdown\022!"
+  ".coordinator_proto.KeyAndClientIP\032$.coor"
+  "dinator_proto.DegradedReadReply\"\000\022T\n\013get"
+  "Recovery\022!.coordinator_proto.KeyAndClien"
+  "tIP\032 .coordinator_proto.RecoveryReply\"\000\022"
+  "]\n\024getRecoveryBreakdown\022!.coordinator_pr"
+  "oto.KeyAndClientIP\032 .coordinator_proto.R"
+  "ecoveryReply\"\000\022Y\n\020fullNodeRecovery\022#.coo"
+  "rdinator_proto.NodeIdFromClient\032\036.coordi"
+  "nator_proto.RepBlockNum\"\000\022j\n\022multiBlockR"
+  "ecovery\0220.coordinator_proto.StripeIdAndB"
+  "lockIDsFromClient\032 .coordinator_proto.Re"
+  "coveryReply\"\000\022N\n\010delByKey\022 .coordinator_"
+  "proto.KeyFromClient\032\036.coordinator_proto."
+  "RepIfDeling\"\000\022V\n\013delByStripe\022%.coordinat"
+  "or_proto.StripeIdFromClient\032\036.coordinato"
+  "r_proto.RepIfDeling\"\000\022Y\n\013listStripes\022\'.c"
+  "oordinator_proto.RequestToCoordinator\032\037."
+  "coordinator_proto.RepStripeIds\"\000\022W\n\ndeco"
+  "deTest\022!.coordinator_proto.KeyAndClientI"
+  "P\032$.coordinator_proto.DegradedReadReply\""
+  "\000\022j\n\020planParixPartial\022*.coordinator_prot"
+  "o.ParixPartialPlanRequest\032(.coordinator_"
+  "proto.ParixPartialPlanReply\"\000\022i\n\020commitP"
+  "arixBatch\022*.coordinator_proto.ParixCommi"
+  "tBatchRequest\032\'.coordinator_proto.ReplyF"
+  "romCoordinator\"\000\022s\n\023planParixFullStripe\022"
+  "-.coordinator_proto.ParixFullStripePlanR"
+  "equest\032+.coordinator_proto.ParixFullStri"
+  "pePlanReply\"\000b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_coordinator_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_coordinator_2eproto = {
-    false, false, 5798, descriptor_table_protodef_coordinator_2eproto,
+    false, false, 5981, descriptor_table_protodef_coordinator_2eproto,
     "coordinator.proto",
-    &descriptor_table_coordinator_2eproto_once, nullptr, 0, 31,
+    &descriptor_table_coordinator_2eproto_once, nullptr, 0, 32,
     schemas, file_default_instances, TableStruct_coordinator_2eproto::offsets,
     file_level_metadata_coordinator_2eproto, file_level_enum_descriptors_coordinator_2eproto,
     file_level_service_descriptors_coordinator_2eproto,
@@ -6857,6 +6892,319 @@ void ParixParityEndpoint::InternalSwap(ParixParityEndpoint* other) {
 
 // ===================================================================
 
+class ParixDataBlockEndpoint::_Internal {
+ public:
+};
+
+ParixDataBlockEndpoint::ParixDataBlockEndpoint(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.ParixDataBlockEndpoint)
+}
+ParixDataBlockEndpoint::ParixDataBlockEndpoint(const ParixDataBlockEndpoint& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParixDataBlockEndpoint* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.block_key_){}
+    , decltype(_impl_.datanode_ip_){}
+    , decltype(_impl_.data_block_id_){}
+    , decltype(_impl_.datanode_port_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_block_key().empty()) {
+    _this->_impl_.block_key_.Set(from._internal_block_key(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_datanode_ip().empty()) {
+    _this->_impl_.datanode_ip_.Set(from._internal_datanode_ip(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.data_block_id_, &from._impl_.data_block_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.datanode_port_) -
+    reinterpret_cast<char*>(&_impl_.data_block_id_)) + sizeof(_impl_.datanode_port_));
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.ParixDataBlockEndpoint)
+}
+
+inline void ParixDataBlockEndpoint::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.block_key_){}
+    , decltype(_impl_.datanode_ip_){}
+    , decltype(_impl_.data_block_id_){0}
+    , decltype(_impl_.datanode_port_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+ParixDataBlockEndpoint::~ParixDataBlockEndpoint() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.ParixDataBlockEndpoint)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParixDataBlockEndpoint::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.block_key_.Destroy();
+  _impl_.datanode_ip_.Destroy();
+}
+
+void ParixDataBlockEndpoint::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParixDataBlockEndpoint::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.ParixDataBlockEndpoint)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.block_key_.ClearToEmpty();
+  _impl_.datanode_ip_.ClearToEmpty();
+  ::memset(&_impl_.data_block_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.datanode_port_) -
+      reinterpret_cast<char*>(&_impl_.data_block_id_)) + sizeof(_impl_.datanode_port_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParixDataBlockEndpoint::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 data_block_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.data_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string block_key = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          auto str = _internal_mutable_block_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coordinator_proto.ParixDataBlockEndpoint.block_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string datanode_ip = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          auto str = _internal_mutable_datanode_ip();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coordinator_proto.ParixDataBlockEndpoint.datanode_ip"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 datanode_port = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.datanode_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParixDataBlockEndpoint::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.ParixDataBlockEndpoint)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 data_block_id = 1;
+  if (this->_internal_data_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_data_block_id(), target);
+  }
+
+  // string block_key = 2;
+  if (!this->_internal_block_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_block_key().data(), static_cast<int>(this->_internal_block_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coordinator_proto.ParixDataBlockEndpoint.block_key");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_block_key(), target);
+  }
+
+  // string datanode_ip = 3;
+  if (!this->_internal_datanode_ip().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_datanode_ip().data(), static_cast<int>(this->_internal_datanode_ip().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coordinator_proto.ParixDataBlockEndpoint.datanode_ip");
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_datanode_ip(), target);
+  }
+
+  // int32 datanode_port = 4;
+  if (this->_internal_datanode_port() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_datanode_port(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.ParixDataBlockEndpoint)
+  return target;
+}
+
+size_t ParixDataBlockEndpoint::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.ParixDataBlockEndpoint)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string block_key = 2;
+  if (!this->_internal_block_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_block_key());
+  }
+
+  // string datanode_ip = 3;
+  if (!this->_internal_datanode_ip().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_datanode_ip());
+  }
+
+  // int32 data_block_id = 1;
+  if (this->_internal_data_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_data_block_id());
+  }
+
+  // int32 datanode_port = 4;
+  if (this->_internal_datanode_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_datanode_port());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixDataBlockEndpoint::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParixDataBlockEndpoint::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixDataBlockEndpoint::GetClassData() const { return &_class_data_; }
+
+
+void ParixDataBlockEndpoint::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixDataBlockEndpoint*>(&to_msg);
+  auto& from = static_cast<const ParixDataBlockEndpoint&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.ParixDataBlockEndpoint)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_block_key().empty()) {
+    _this->_internal_set_block_key(from._internal_block_key());
+  }
+  if (!from._internal_datanode_ip().empty()) {
+    _this->_internal_set_datanode_ip(from._internal_datanode_ip());
+  }
+  if (from._internal_data_block_id() != 0) {
+    _this->_internal_set_data_block_id(from._internal_data_block_id());
+  }
+  if (from._internal_datanode_port() != 0) {
+    _this->_internal_set_datanode_port(from._internal_datanode_port());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParixDataBlockEndpoint::CopyFrom(const ParixDataBlockEndpoint& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.ParixDataBlockEndpoint)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParixDataBlockEndpoint::IsInitialized() const {
+  return true;
+}
+
+void ParixDataBlockEndpoint::InternalSwap(ParixDataBlockEndpoint* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.block_key_, lhs_arena,
+      &other->_impl_.block_key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.datanode_ip_, lhs_arena,
+      &other->_impl_.datanode_ip_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParixDataBlockEndpoint, _impl_.datanode_port_)
+      + sizeof(ParixDataBlockEndpoint::_impl_.datanode_port_)
+      - PROTOBUF_FIELD_OFFSET(ParixDataBlockEndpoint, _impl_.data_block_id_)>(
+          reinterpret_cast<char*>(&_impl_.data_block_id_),
+          reinterpret_cast<char*>(&other->_impl_.data_block_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParixDataBlockEndpoint::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[24]);
+}
+
+// ===================================================================
+
 class ParixDataSegmentPlan::_Internal {
  public:
   static const ::coordinator_proto::ParixParityEndpoint& local_parity(const ParixDataSegmentPlan* msg);
@@ -7508,7 +7856,7 @@ void ParixDataSegmentPlan::InternalSwap(ParixDataSegmentPlan* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixDataSegmentPlan::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[24]);
+      file_level_metadata_coordinator_2eproto[25]);
 }
 
 // ===================================================================
@@ -7720,7 +8068,7 @@ void ParixPartialPlanReply::InternalSwap(ParixPartialPlanReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixPartialPlanReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[25]);
+      file_level_metadata_coordinator_2eproto[26]);
 }
 
 // ===================================================================
@@ -7931,7 +8279,7 @@ void ParixCommitBatchRequest::InternalSwap(ParixCommitBatchRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixCommitBatchRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[26]);
+      file_level_metadata_coordinator_2eproto[27]);
 }
 
 // ===================================================================
@@ -8166,7 +8514,7 @@ void ParixJournalInvalidationRange::InternalSwap(ParixJournalInvalidationRange* 
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalInvalidationRange::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[27]);
+      file_level_metadata_coordinator_2eproto[28]);
 }
 
 // ===================================================================
@@ -8378,7 +8726,7 @@ void ParixFullStripePlanRequest::InternalSwap(ParixFullStripePlanRequest* other)
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixFullStripePlanRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[28]);
+      file_level_metadata_coordinator_2eproto[29]);
 }
 
 // ===================================================================
@@ -8399,6 +8747,7 @@ ParixFullStripePlanReply::ParixFullStripePlanReply(const ParixFullStripePlanRepl
   new (&_impl_) Impl_{
       decltype(_impl_.parity_targets_){from._impl_.parity_targets_}
     , decltype(_impl_.journal_invalidations_){from._impl_.journal_invalidations_}
+    , decltype(_impl_.data_block_targets_){from._impl_.data_block_targets_}
     , decltype(_impl_.err_){}
     , decltype(_impl_.master_append_key_){}
     , decltype(_impl_.master_proxy_ip_){}
@@ -8446,6 +8795,7 @@ inline void ParixFullStripePlanReply::SharedCtor(
   new (&_impl_) Impl_{
       decltype(_impl_.parity_targets_){arena}
     , decltype(_impl_.journal_invalidations_){arena}
+    , decltype(_impl_.data_block_targets_){arena}
     , decltype(_impl_.err_){}
     , decltype(_impl_.master_append_key_){}
     , decltype(_impl_.master_proxy_ip_){}
@@ -8482,6 +8832,7 @@ inline void ParixFullStripePlanReply::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.parity_targets_.~RepeatedPtrField();
   _impl_.journal_invalidations_.~RepeatedPtrField();
+  _impl_.data_block_targets_.~RepeatedPtrField();
   _impl_.err_.Destroy();
   _impl_.master_append_key_.Destroy();
   _impl_.master_proxy_ip_.Destroy();
@@ -8499,6 +8850,7 @@ void ParixFullStripePlanReply::Clear() {
 
   _impl_.parity_targets_.Clear();
   _impl_.journal_invalidations_.Clear();
+  _impl_.data_block_targets_.Clear();
   _impl_.err_.ClearToEmpty();
   _impl_.master_append_key_.ClearToEmpty();
   _impl_.master_proxy_ip_.ClearToEmpty();
@@ -8602,6 +8954,19 @@ const char* ParixFullStripePlanReply::_InternalParse(const char* ptr, ::_pbi::Pa
         } else
           goto handle_unusual;
         continue;
+      // repeated .coordinator_proto.ParixDataBlockEndpoint data_block_targets = 10;
+      case 10:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 82)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_data_block_targets(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<82>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
       default:
         goto handle_unusual;
     }  // switch
@@ -8701,6 +9066,14 @@ uint8_t* ParixFullStripePlanReply::_InternalSerialize(
         InternalWriteMessage(9, repfield, repfield.GetCachedSize(), target, stream);
   }
 
+  // repeated .coordinator_proto.ParixDataBlockEndpoint data_block_targets = 10;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_data_block_targets_size()); i < n; i++) {
+    const auto& repfield = this->_internal_data_block_targets(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(10, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -8727,6 +9100,13 @@ size_t ParixFullStripePlanReply::ByteSizeLong() const {
   // repeated .coordinator_proto.ParixJournalInvalidationRange journal_invalidations = 9;
   total_size += 1UL * this->_internal_journal_invalidations_size();
   for (const auto& msg : this->_impl_.journal_invalidations_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // repeated .coordinator_proto.ParixDataBlockEndpoint data_block_targets = 10;
+  total_size += 1UL * this->_internal_data_block_targets_size();
+  for (const auto& msg : this->_impl_.data_block_targets_) {
     total_size +=
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
   }
@@ -8792,6 +9172,7 @@ void ParixFullStripePlanReply::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_ms
 
   _this->_impl_.parity_targets_.MergeFrom(from._impl_.parity_targets_);
   _this->_impl_.journal_invalidations_.MergeFrom(from._impl_.journal_invalidations_);
+  _this->_impl_.data_block_targets_.MergeFrom(from._impl_.data_block_targets_);
   if (!from._internal_err().empty()) {
     _this->_internal_set_err(from._internal_err());
   }
@@ -8834,6 +9215,7 @@ void ParixFullStripePlanReply::InternalSwap(ParixFullStripePlanReply* other) {
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   _impl_.parity_targets_.InternalSwap(&other->_impl_.parity_targets_);
   _impl_.journal_invalidations_.InternalSwap(&other->_impl_.journal_invalidations_);
+  _impl_.data_block_targets_.InternalSwap(&other->_impl_.data_block_targets_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.err_, lhs_arena,
       &other->_impl_.err_, rhs_arena
@@ -8857,7 +9239,7 @@ void ParixFullStripePlanReply::InternalSwap(ParixFullStripePlanReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixFullStripePlanReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[29]);
+      file_level_metadata_coordinator_2eproto[30]);
 }
 
 // ===================================================================
@@ -9200,7 +9582,7 @@ void RecoveryReply::InternalSwap(RecoveryReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RecoveryReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[30]);
+      file_level_metadata_coordinator_2eproto[31]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -9301,6 +9683,10 @@ Arena::CreateMaybeMessage< ::coordinator_proto::ParixPartialPlanRequest >(Arena*
 template<> PROTOBUF_NOINLINE ::coordinator_proto::ParixParityEndpoint*
 Arena::CreateMaybeMessage< ::coordinator_proto::ParixParityEndpoint >(Arena* arena) {
   return Arena::CreateMessageInternal< ::coordinator_proto::ParixParityEndpoint >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::ParixDataBlockEndpoint*
+Arena::CreateMaybeMessage< ::coordinator_proto::ParixDataBlockEndpoint >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::ParixDataBlockEndpoint >(arena);
 }
 template<> PROTOBUF_NOINLINE ::coordinator_proto::ParixDataSegmentPlan*
 Arena::CreateMaybeMessage< ::coordinator_proto::ParixDataSegmentPlan >(Arena* arena) {
