@@ -2,6 +2,8 @@
 #include "coordinator.grpc.pb.h"
 
 #include <asio.hpp>
+#include <algorithm>
+#include <numeric>
 #include <thread>
 #include <assert.h>
 #include <chrono>
@@ -816,15 +818,38 @@ namespace ECProject
       return false;
     }
 
-    std::vector<std::thread> threads;
+    const int n_append = reply.append_keys_size();
+    if (n_append > 0 && reply.xue_transmit_phase_size() != n_append)
+    {
+      std::cout << "[XUE_UPDATE] missing or mismatched xue_transmit_phase: got "
+                << reply.xue_transmit_phase_size() << " entries, require " << n_append
+                << " (one per append_keys)." << std::endl;
+      return false;
+    }
+
     std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
     std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
     std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
 
-    for (int i = 0; i < reply.append_keys_size(); i++)
+    std::vector<int> order(static_cast<size_t>(n_append));
+    std::iota(order.begin(), order.end(), 0);
+    std::sort(order.begin(), order.end(), [&](int a, int b) {
+      const uint32_t pa = reply.xue_transmit_phase(a);
+      const uint32_t pb = reply.xue_transmit_phase(b);
+      if (pa != pb)
+      {
+        return pa < pb;
+      }
+      return a < b;
+    });
+
+    std::vector<std::thread> threads;
+    threads.reserve(static_cast<size_t>(n_append));
+    for (int idx : order)
     {
-      threads.push_back(std::thread(&Client::async_append_to_proxies,
-                                    this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get()));
+      threads.emplace_back(&Client::async_append_to_proxies,
+                           this, cluster_slice_data[idx], reply.append_keys(idx), reply.cluster_slice_sizes(idx),
+                           reply.proxyips(idx), reply.proxyports(idx), idx, if_commit_arr.get());
     }
     for (auto &thread : threads)
     {

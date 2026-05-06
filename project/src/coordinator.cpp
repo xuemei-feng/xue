@@ -13,6 +13,9 @@
 #include <iomanip>
 #include <sstream>
 #include <numeric>
+#include <map>
+#include <tuple>
+#include "unilrc_encoder.h"
 
 template <typename T>
 inline T ceil(T const &A, T const &B)
@@ -46,6 +49,92 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     bool is_azure_like_code(const std::string &code_type) // 辅助函数：判断是否为 Azure或xue类型的编码
     {
       return code_type == "AzureLRC" || code_type == "XueLRC";
+    }
+
+    /** Data clusters whose updated columns have non-zero coefficient for this Azure LRC parity row. */
+    std::set<int> xue_azure_parity_contributor_clusters(
+        const Stripe *stripe,
+        int parity_block_id,
+        const std::map<int, std::vector<std::pair<int, int>>> &block_to_slices,
+        int k,
+        int r,
+        int z)
+    {
+      std::set<int> out;
+      const int row = parity_block_id - k;
+      if (stripe == nullptr || row < 0 || row >= r + z)
+      {
+        return out;
+      }
+      const int m = k + r;
+      std::vector<unsigned char> enc(static_cast<size_t>((m + z) * k));
+      gen_azure_lrc_matrix(enc.data(), k, r, z);
+      for (const auto &kv : block_to_slices)
+      {
+        const int col = kv.first;
+        if (col < 0 || col >= k)
+        {
+          continue;
+        }
+        if (enc[static_cast<size_t>((k + row) * k + col)] == 0)
+        {
+          continue;
+        }
+        out.insert(stripe->blocks[col]->map2cluster);
+      }
+      return out;
+    }
+
+    /** How many remote partial parity batches this parity cluster must recv (other clusters send). */
+    int xue_remote_parity_forward_batches(
+        const Stripe *stripe,
+        int parity_block_id,
+        int parity_cluster,
+        const std::map<int, std::vector<std::pair<int, int>>> &block_to_slices,
+        int k,
+        int r,
+        int z)
+    {
+      const std::set<int> contrib =
+          xue_azure_parity_contributor_clusters(stripe, parity_block_id, block_to_slices, k, r, z);
+      int n = static_cast<int>(contrib.size());
+      if (contrib.count(parity_cluster))
+      {
+        n -= 1;
+      }
+      return n;
+    }
+
+    bool cluster_has_xue_data_update(
+        const Stripe *stripe,
+        int cluster_id,
+        const std::map<int, std::vector<std::pair<int, int>>> &block_to_slices)
+    {
+      for (const auto &kv : block_to_slices)
+      {
+        if (kv.first < 0 || kv.first >= stripe->k)
+        {
+          continue;
+        }
+        if (stripe->blocks[kv.first]->map2cluster == cluster_id)
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    bool azure_parity_depends_on_data_column(int parity_block_id, int data_col, int k, int r, int z)
+    {
+      const int row = parity_block_id - k;
+      if (row < 0 || row >= r + z || data_col < 0 || data_col >= k)
+      {
+        return false;
+      }
+      const int m = k + r;
+      std::vector<unsigned char> enc(static_cast<size_t>((m + z) * k));
+      gen_azure_lrc_matrix(enc.data(), k, r, z);
+      return enc[static_cast<size_t>((k + row) * k + data_col)] != 0;
     }
       // 强类型枚举：定义数据更新的分类
     enum class DataUpdateClass
@@ -246,6 +335,70 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                   << "，内容: " << t.path_desc << std::endl;
       }
       return;
+    }
+
+    /** Map each cluster (in clusters_sorted order) to a transmit wave 0..P-1 from xue_update_sparse schedule (start_time tiers). */
+    std::vector<uint32_t> xue_transmit_phases_for_clusters(const std::vector<int> &clusters_sorted,
+                                                           const std::vector<ScheduledTask> &scheduled_tasks)
+    {
+      const int nc = static_cast<int>(clusters_sorted.size());
+      std::vector<uint32_t> phases(static_cast<size_t>(nc), 0u);
+      if (scheduled_tasks.empty() || nc <= 0)
+      {
+        return phases;
+      }
+      std::vector<double> ordered_starts;
+      ordered_starts.reserve(scheduled_tasks.size());
+      for (const auto &t : scheduled_tasks)
+      {
+        ordered_starts.push_back(t.start_time);
+      }
+      std::sort(ordered_starts.begin(), ordered_starts.end());
+      std::vector<double> distinct_starts;
+      for (double s : ordered_starts)
+      {
+        if (distinct_starts.empty() || std::abs(s - distinct_starts.back()) > 1e-9)
+        {
+          distinct_starts.push_back(s);
+        }
+      }
+      auto rank_of_start = [&](double st) -> uint32_t {
+        for (size_t i = 0; i < distinct_starts.size(); ++i)
+        {
+          if (std::abs(distinct_starts[i] - st) <= 1e-9)
+          {
+            return static_cast<uint32_t>(i);
+          }
+        }
+        return 0u;
+      };
+      std::map<int, double> first_involve;
+      for (const auto &t : scheduled_tasks)
+      {
+        auto relax = [&](int c) {
+          if (c < 0)
+          {
+            return;
+          }
+          auto it = first_involve.find(c);
+          if (it == first_involve.end() || t.start_time < it->second)
+          {
+            first_involve[c] = t.start_time;
+          }
+        };
+        relax(t.from_cluster);
+        relax(t.to_cluster);
+      }
+      for (int i = 0; i < nc; ++i)
+      {
+        const int cid = clusters_sorted[static_cast<size_t>(i)];
+        auto it = first_involve.find(cid);
+        if (it != first_involve.end())
+        {
+          phases[static_cast<size_t>(i)] = rank_of_start(it->second);
+        }
+      }
+      return phases;
     }
 
     std::vector<ScheduledTask> schedule_transfer_steps(const std::vector<TransferPlanDecision> &decisions) // 调度传输步骤
@@ -2478,66 +2631,190 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     // 在 uploadXueUpdate 入口处显式输出传输时间窗，避免依赖下层函数打印行为。
     log_append_schedule_visual(scheduled_tasks);
     std::cout << "end log_append_schedule_visual" << std::endl;
-    std::vector<proxy_proto::AppendStripeDataPlacement> append_plans;
-    for (int i = 0; i < stripe->z; i++)
+    if (!is_azure_like_code(m_sys_config->CodeType))
+    {
+      return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
+                          "uploadXueUpdate with delta forwarding requires AzureLRC or XueLRC");
+    }
+
+    bool any_data_touched = false;
+    for (const auto &kv : block_to_slices)
+    {
+      if (kv.first >= 0 && kv.first < stripe->k)
+      {
+        any_data_touched = true;
+        break;
+      }
+    }
+    if (!any_data_touched)
+    {
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "no data block touched in xue update");
+    }
+
+    const int k_dim = stripe->k;
+    const int r_dim = m_sys_config->r;
+    const int z_dim = m_sys_config->z;
+
+    std::set<int> clusters_involved;
+    for (const auto &kv : block_to_slices)
+    {
+      clusters_involved.insert(stripe->blocks[kv.first]->map2cluster);
+    }
+    std::vector<int> clusters_sorted(clusters_involved.begin(), clusters_involved.end());
+    std::sort(clusters_sorted.begin(), clusters_sorted.end());
+
+    std::vector<int> block_ids_sorted;
+    block_ids_sorted.reserve(block_to_slices.size());
+    for (const auto &kv : block_to_slices)
+    {
+      block_ids_sorted.push_back(kv.first);
+    }
+    std::sort(block_ids_sorted.begin(), block_ids_sorted.end());
+
+    std::map<int, proxy_proto::AppendStripeDataPlacement> plan_by_cluster;
+    for (int c : clusters_sorted)
     {
       proxy_proto::AppendStripeDataPlacement plan;
-      plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, i));
+      plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, c));
       plan.set_stripe_id(stripe->stripe_id);
-      plan.set_is_merge_parity(is_merge_parity);
-      auto ingress_it = group_to_ingress_cluster.find(i);
-      if (ingress_it != group_to_ingress_cluster.end())
-      {
-        plan.set_cluster_id(ingress_it->second);
-      }
-      else
-      {
-        plan.set_cluster_id(stripe->blocks[stripe->group_to_blocks[i][0]]->map2cluster);
-      }
+      plan.set_cluster_id(c);
       plan.set_append_mode("XUE_UPDATE");
-      plan.set_is_serialized(true);
-      int plan_append_size = 0;
+      plan.set_is_merge_parity(is_merge_parity);
+      plan.set_is_serialized(false);
 
-      for (int j = i * stripe->k / stripe->z;
-           j < (i + 1) * stripe->k / stripe->z; j++)
+      uint64_t total_sz = 0;
+      uint64_t client_sz = 0;
+      uint32_t merge_rounds_max = 0;
+      for (int bid : block_ids_sorted)
       {
-        auto it = block_to_slices.find(j);
-        if (it != block_to_slices.end())
+        if (stripe->blocks[bid]->map2cluster != c)
         {
-          for (const auto &slice : it->second)
+          continue;
+        }
+        auto it_bs = block_to_slices.find(bid);
+        if (it_bs == block_to_slices.end())
+        {
+          continue;
+        }
+        for (const auto &slice : it_bs->second)
+        {
+          addBlockToAppendPlan(plan, stripe->blocks[bid], m_node_table[stripe->blocks[bid]->map2node], slice);
+          total_sz += static_cast<uint64_t>(slice.first);
+          if (bid < stripe->k)
           {
-            addBlockToAppendPlan(plan, stripe->blocks[j],
-                                 m_node_table[stripe->blocks[j]->map2node], slice);
-            plan_append_size += slice.first;
+            plan.add_xue_slice_source(0u);
+            client_sz += static_cast<uint64_t>(slice.first);
+          }
+          else
+          {
+            const int remote_batches =
+                xue_remote_parity_forward_batches(stripe, bid, c, block_to_slices, k_dim, r_dim, z_dim);
+            if (remote_batches <= 0)
+            {
+              plan.add_xue_slice_source(2u);
+            }
+            else
+            {
+              plan.add_xue_slice_source(1u);
+              merge_rounds_max =
+                  std::max(merge_rounds_max, static_cast<uint32_t>(remote_batches));
+            }
           }
         }
       }
-      for (int j = stripe->k + i * stripe->r / stripe->z;
-           j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
+      plan.set_append_size(total_sz);
+      plan.set_client_payload_size(client_sz);
+      plan.set_xue_forward_merge_rounds(merge_rounds_max);
+      plan_by_cluster[c] = std::move(plan);
+    }
+
+    // Proxy→proxy: send data increments ΔD for columns this cluster updated to clusters that host
+    // affected parity blocks (coordinator-planned; receiver derives ΔP locally).
+    for (int sc : clusters_sorted)
+    {
+      if (!cluster_has_xue_data_update(stripe, sc, block_to_slices))
       {
-        auto it = block_to_slices.find(j);
-        if (it == block_to_slices.end()) continue;
-        for (const auto &slice : it->second)
+        continue;
+      }
+      auto &src_plan_ref = plan_by_cluster[sc];
+      for (int pc : clusters_sorted)
+      {
+        if (pc == sc)
         {
-          addBlockToAppendPlan(plan, stripe->blocks[j],
-                               m_node_table[stripe->blocks[j]->map2node], slice);
-          plan_append_size += slice.first;
+          continue;
+        }
+        std::set<std::tuple<int, int32_t, int32_t>> seen;
+        std::vector<std::tuple<int, int32_t, int32_t>> recs;
+        for (const auto &kv : block_to_slices)
+        {
+          const int bid = kv.first;
+          if (bid < 0 || bid >= stripe->k)
+          {
+            continue;
+          }
+          if (stripe->blocks[bid]->map2cluster != sc)
+          {
+            continue;
+          }
+          for (const auto &slice : kv.second)
+          {
+            const int32_t data_off = static_cast<int32_t>(slice.second);
+            const int32_t data_len = static_cast<int32_t>(slice.first);
+            bool affects_pc = false;
+            for (int pbid = stripe->k; pbid < stripe->n; ++pbid)
+            {
+              if (stripe->blocks[pbid]->map2cluster != pc)
+              {
+                continue;
+              }
+              if (block_to_slices.find(pbid) == block_to_slices.end())
+              {
+                continue;
+              }
+              if (!azure_parity_depends_on_data_column(pbid, bid, k_dim, r_dim, z_dim))
+              {
+                continue;
+              }
+              affects_pc = true;
+              break;
+            }
+            if (!affects_pc)
+            {
+              continue;
+            }
+            const auto dedupe = std::make_tuple(bid, data_off, data_len);
+            if (seen.count(dedupe))
+            {
+              continue;
+            }
+            seen.insert(dedupe);
+            recs.emplace_back(bid, data_off, data_len);
+          }
+        }
+        if (recs.empty())
+        {
+          continue;
+        }
+        auto *t = src_plan_ref.add_xue_forward_targets();
+        t->set_dst_proxy_ip(m_cluster_table[pc].proxy_ip);
+        t->set_dst_base_proxy_port(m_cluster_table[pc].proxy_port);
+        t->set_dst_append_key(plan_by_cluster[pc].key());
+        t->set_dst_cluster_id(pc);
+        for (const auto &rec : recs)
+        {
+          t->add_rec_block_ids(std::get<0>(rec));
+          t->add_rec_offsets(std::get<1>(rec));
+          t->add_rec_sizes(std::get<2>(rec));
+          t->add_rec_payload_kind(1u);
         }
       }
-      for (int j = stripe->k + stripe->r + i * stripe->z / stripe->z;
-           j < stripe->k + stripe->r + (i + 1) * stripe->z / stripe->z; j++)
-      {
-        auto it = block_to_slices.find(j);
-        if (it == block_to_slices.end()) continue;
-        for (const auto &slice : it->second)
-        {
-          addBlockToAppendPlan(plan, stripe->blocks[j],
-                               m_node_table[stripe->blocks[j]->map2node], slice);
-          plan_append_size += slice.first;
-        }
-      }
-      plan.set_append_size(plan_append_size);
-      append_plans.push_back(plan);
+    }
+
+    std::vector<proxy_proto::AppendStripeDataPlacement> append_plans;
+    append_plans.reserve(plan_by_cluster.size());
+    for (int c : clusters_sorted)
+    {
+      append_plans.push_back(std::move(plan_by_cluster[c]));
     }
 
     for (const auto &plan : append_plans)
@@ -2547,16 +2824,27 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       m_mutex.unlock();
     }
 
+    const std::vector<uint32_t> xue_phases = xue_transmit_phases_for_clusters(clusters_sorted, scheduled_tasks);
+    std::cout << "[XUE_UPDATE_PHASES] stripe=" << stripe_id;
+    for (size_t xi = 0; xi < clusters_sorted.size(); ++xi)
+    {
+      std::cout << " c" << clusters_sorted[xi] << "->" << (xi < xue_phases.size() ? xue_phases[xi] : 0u);
+    }
+    std::cout << std::endl;
+
     std::vector<std::thread> threads;
     int sum_append_size = 0;
-    for (const auto &plan : append_plans)
+    for (size_t pi = 0; pi < append_plans.size(); ++pi)
     {
+      const auto &plan = append_plans[pi];
       threads.push_back(std::thread(&CoordinatorImpl::notify_proxies_ready, this, plan));
       proxyIPPort->add_append_keys(plan.key());
       proxyIPPort->add_proxyips(m_cluster_table[plan.cluster_id()].proxy_ip);
       proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::PROXY_PORT_SHIFT);
-      proxyIPPort->add_cluster_slice_sizes(plan.append_size());
-      sum_append_size += plan.append_size();
+      const uint64_t client_slice = plan.client_payload_size() > 0 ? plan.client_payload_size() : plan.append_size();
+      proxyIPPort->add_cluster_slice_sizes(client_slice);
+      proxyIPPort->add_xue_transmit_phase(pi < xue_phases.size() ? xue_phases[pi] : 0u);
+      sum_append_size += static_cast<int>(client_slice);
     }
     for (auto &thread : threads)
     {

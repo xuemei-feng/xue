@@ -1494,6 +1494,7 @@ class ReplyProxyIPsPorts final :
     kProxyportsFieldNumber = 4,
     kClusterSliceSizesFieldNumber = 5,
     kGroupIdsFieldNumber = 6,
+    kXueTransmitPhaseFieldNumber = 7,
     kSumAppendSizeFieldNumber = 1,
   };
   // repeated string append_keys = 2;
@@ -1610,6 +1611,28 @@ class ReplyProxyIPsPorts final :
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
       mutable_group_ids();
 
+  // repeated uint32 xue_transmit_phase = 7;
+  int xue_transmit_phase_size() const;
+  private:
+  int _internal_xue_transmit_phase_size() const;
+  public:
+  void clear_xue_transmit_phase();
+  private:
+  uint32_t _internal_xue_transmit_phase(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+      _internal_xue_transmit_phase() const;
+  void _internal_add_xue_transmit_phase(uint32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+      _internal_mutable_xue_transmit_phase();
+  public:
+  uint32_t xue_transmit_phase(int index) const;
+  void set_xue_transmit_phase(int index, uint32_t value);
+  void add_xue_transmit_phase(uint32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+      xue_transmit_phase() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+      mutable_xue_transmit_phase();
+
   // uint64 sum_append_size = 1;
   void clear_sum_append_size();
   uint64_t sum_append_size() const;
@@ -1635,6 +1658,8 @@ class ReplyProxyIPsPorts final :
     mutable std::atomic<int> _cluster_slice_sizes_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > group_ids_;
     mutable std::atomic<int> _group_ids_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t > xue_transmit_phase_;
+    mutable std::atomic<int> _xue_transmit_phase_cached_byte_size_;
     uint64_t sum_append_size_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -5244,6 +5269,53 @@ inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
 ReplyProxyIPsPorts::mutable_group_ids() {
   // @@protoc_insertion_point(field_mutable_list:coordinator_proto.ReplyProxyIPsPorts.group_ids)
   return _internal_mutable_group_ids();
+}
+
+// repeated uint32 xue_transmit_phase = 7;
+inline int ReplyProxyIPsPorts::_internal_xue_transmit_phase_size() const {
+  return _impl_.xue_transmit_phase_.size();
+}
+inline int ReplyProxyIPsPorts::xue_transmit_phase_size() const {
+  return _internal_xue_transmit_phase_size();
+}
+inline void ReplyProxyIPsPorts::clear_xue_transmit_phase() {
+  _impl_.xue_transmit_phase_.Clear();
+}
+inline uint32_t ReplyProxyIPsPorts::_internal_xue_transmit_phase(int index) const {
+  return _impl_.xue_transmit_phase_.Get(index);
+}
+inline uint32_t ReplyProxyIPsPorts::xue_transmit_phase(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.ReplyProxyIPsPorts.xue_transmit_phase)
+  return _internal_xue_transmit_phase(index);
+}
+inline void ReplyProxyIPsPorts::set_xue_transmit_phase(int index, uint32_t value) {
+  _impl_.xue_transmit_phase_.Set(index, value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.ReplyProxyIPsPorts.xue_transmit_phase)
+}
+inline void ReplyProxyIPsPorts::_internal_add_xue_transmit_phase(uint32_t value) {
+  _impl_.xue_transmit_phase_.Add(value);
+}
+inline void ReplyProxyIPsPorts::add_xue_transmit_phase(uint32_t value) {
+  _internal_add_xue_transmit_phase(value);
+  // @@protoc_insertion_point(field_add:coordinator_proto.ReplyProxyIPsPorts.xue_transmit_phase)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+ReplyProxyIPsPorts::_internal_xue_transmit_phase() const {
+  return _impl_.xue_transmit_phase_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+ReplyProxyIPsPorts::xue_transmit_phase() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.ReplyProxyIPsPorts.xue_transmit_phase)
+  return _internal_xue_transmit_phase();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+ReplyProxyIPsPorts::_internal_mutable_xue_transmit_phase() {
+  return &_impl_.xue_transmit_phase_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+ReplyProxyIPsPorts::mutable_xue_transmit_phase() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.ReplyProxyIPsPorts.xue_transmit_phase)
+  return _internal_mutable_xue_transmit_phase();
 }
 
 // -------------------------------------------------------------------

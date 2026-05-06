@@ -114,6 +114,9 @@ message ReplyProxyIPsPorts {
   repeated int32 proxyports = 4;
   repeated uint64 cluster_slice_sizes = 5;
   repeated int32 group_ids = 6;
+  // XUE_UPDATE: required when append_keys non-empty; same length as append_keys. Lower phase = earlier coordinator tier;
+  // client starts transfers in phase order without waiting for an entire earlier phase to finish (overlapped like DES).
+  repeated uint32 xue_transmit_phase = 7;
 }
 
 // set, del, merge

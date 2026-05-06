@@ -12,11 +12,277 @@
 #include "unilrc_encoder.h"
 #include <chrono>
 #include <cstring>
+#include <map>
+#include <tuple>
+#include <algorithm>
+#include <cstdint>
 template <typename T>
 inline T ceil(T const &A, T const &B)
 {
   return T((A + B - 1) / B);
 };
+
+namespace
+{
+  constexpr uint32_t kXueFwdMagic = 0x58455846u;
+  constexpr uint32_t kXuePayloadParityDelta = 0u;
+  constexpr uint32_t kXuePayloadDataDelta = 1u;
+
+  using XueParityAccKey = std::tuple<int, int, int>;
+  using XueDataDeltaKey = std::tuple<int, int, int>;
+
+  void xue_merge_data_delta_into_map(std::map<XueDataDeltaKey, std::vector<char>> &m, const XueDataDeltaKey &key,
+                                     const char *payload, size_t nbytes)
+  {
+    auto it = m.find(key);
+    if (it == m.end())
+    {
+      m[key].assign(payload, payload + nbytes);
+      return;
+    }
+    if (it->second.size() != nbytes)
+    {
+      return;
+    }
+    for (size_t i = 0; i < nbytes; ++i)
+    {
+      it->second[i] = static_cast<char>(static_cast<unsigned char>(it->second[i]) ^
+                                        static_cast<unsigned char>(payload[i]));
+    }
+  }
+
+  void xue_parity_acc_from_data_delta_map(const std::map<XueDataDeltaKey, std::vector<char>> &data_deltas,
+                                          std::map<XueParityAccKey, std::vector<char>> &parity_acc, int k, int r, int z,
+                                          int unit_sz, int blk_sz)
+  {
+    for (const auto &ent : data_deltas)
+    {
+      const int bid = std::get<0>(ent.first);
+      const int off = std::get<1>(ent.first);
+      const int sz = static_cast<int>(ent.second.size());
+      if (bid < 0 || bid >= k || sz <= 0)
+      {
+        continue;
+      }
+      const std::vector<char> &delta = ent.second;
+      const int u0 = off / unit_sz;
+      const int u1 = static_cast<int>(off + sz - 1) / unit_sz;
+      const int parity_off = u0 * unit_sz;
+      const int parity_end = std::min(blk_sz - 1, (u1 + 1) * unit_sz - 1);
+      const int parity_len = parity_end - parity_off + 1;
+      std::vector<char> col(static_cast<size_t>(parity_len), 0);
+      std::memcpy(col.data() + (off - parity_off), delta.data(), static_cast<size_t>(sz));
+      std::vector<int> cols = {bid};
+      unsigned char *dptrs[1] = {reinterpret_cast<unsigned char *>(col.data())};
+      std::vector<std::vector<unsigned char>> pbufs(r + z, std::vector<unsigned char>(static_cast<size_t>(parity_len)));
+      std::vector<unsigned char *> pptr(r + z);
+      for (int pi = 0; pi < r + z; ++pi)
+      {
+        pptr[static_cast<size_t>(pi)] = pbufs[static_cast<size_t>(pi)].data();
+      }
+      ECProject::partial_encode_azure_lrc_selected_cols(k, r, z, cols, dptrs, pptr.data(), parity_len);
+      for (int pi = 0; pi < r + z; ++pi)
+      {
+        const int pbid = k + pi;
+        const XueParityAccKey pkey = std::make_tuple(pbid, parity_off, parity_len);
+        auto &acc_vec = parity_acc[pkey];
+        if (acc_vec.empty())
+        {
+          acc_vec.assign(static_cast<size_t>(parity_len), 0);
+        }
+        for (int t = 0; t < parity_len; ++t)
+        {
+          acc_vec[static_cast<size_t>(t)] ^= pbufs[static_cast<size_t>(pi)][static_cast<size_t>(t)];
+        }
+      }
+    }
+  }
+
+  bool placement_xue_has_forward_in(const proxy_proto::AppendStripeDataPlacement &p)
+  {
+    for (int j = 0; j < p.xue_slice_source_size(); ++j)
+    {
+      if (p.xue_slice_source(j) == 1u)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool recv_xue_forward_payloads(asio::io_context &io_ctx, asio::ip::tcp::acceptor &fwd_acc, char *append_base,
+                               const std::vector<size_t> &slice_off, const proxy_proto::AppendStripeDataPlacement &pl,
+                               std::map<XueDataDeltaKey, std::vector<char>> *data_delta_in, bool xor_into_existing)
+  {
+    asio::ip::tcp::socket sock(io_ctx);
+    fwd_acc.accept(sock);
+    asio::error_code ec;
+    uint32_t magic = 0;
+    uint32_t nrec = 0;
+    asio::read(sock, asio::buffer(&magic, sizeof(magic)), ec);
+    if (ec || magic != kXueFwdMagic)
+    {
+      return false;
+    }
+    asio::read(sock, asio::buffer(&nrec, sizeof(nrec)), ec);
+    if (ec)
+    {
+      return false;
+    }
+    for (uint32_t ri = 0; ri < nrec; ++ri)
+    {
+      uint32_t kind = kXuePayloadParityDelta;
+      asio::read(sock, asio::buffer(&kind, sizeof(kind)), ec);
+      if (ec)
+      {
+        return false;
+      }
+      int32_t bid = 0;
+      int32_t off = 0;
+      int32_t len = 0;
+      asio::read(sock, asio::buffer(&bid, sizeof(bid)), ec);
+      asio::read(sock, asio::buffer(&off, sizeof(off)), ec);
+      asio::read(sock, asio::buffer(&len, sizeof(len)), ec);
+      if (ec || len < 0)
+      {
+        return false;
+      }
+      const size_t nbytes = static_cast<size_t>(len);
+      if (kind == kXuePayloadDataDelta)
+      {
+        if (data_delta_in == nullptr)
+        {
+          return false;
+        }
+        std::vector<char> payload(nbytes);
+        asio::read(sock, asio::buffer(payload.data(), nbytes), ec);
+        if (ec)
+        {
+          return false;
+        }
+        xue_merge_data_delta_into_map(*data_delta_in, std::make_tuple(static_cast<int>(bid), static_cast<int>(off),
+                                                                     static_cast<int>(len)),
+                                      payload.data(), nbytes);
+        continue;
+      }
+      int j_match = -1;
+      for (int j = 0; j < pl.blockids_size(); ++j)
+      {
+        if (pl.xue_slice_source(j) != 1u)
+        {
+          continue;
+        }
+        if (pl.blockids(j) != bid)
+        {
+          continue;
+        }
+        if (static_cast<int32_t>(pl.offsets(j)) != off)
+        {
+          continue;
+        }
+        if (static_cast<int32_t>(pl.sizes(j)) != len)
+        {
+          continue;
+        }
+        j_match = j;
+        break;
+      }
+      if (j_match < 0)
+      {
+        return false;
+      }
+      char *dest = append_base + slice_off[static_cast<size_t>(j_match)];
+      if (!xor_into_existing)
+      {
+        asio::read(sock, asio::buffer(dest, nbytes), ec);
+      }
+      else
+      {
+        std::vector<char> tmp(nbytes);
+        asio::read(sock, asio::buffer(tmp.data(), nbytes), ec);
+        if (!ec)
+        {
+          for (size_t i = 0; i < nbytes; ++i)
+          {
+            dest[i] = static_cast<char>(static_cast<unsigned char>(dest[i]) ^
+                                        static_cast<unsigned char>(tmp[i]));
+          }
+        }
+      }
+      if (ec)
+      {
+        return false;
+      }
+    }
+    asio::error_code iec;
+    sock.shutdown(asio::ip::tcp::socket::shutdown_both, iec);
+    sock.close(iec);
+    return true;
+  }
+
+  bool send_xue_forward_batch(asio::io_context &io_ctx, const std::string &ip, int base_port,
+                              const proxy_proto::XueForwardTarget &ft,
+                              const std::map<XueParityAccKey, std::vector<char>> &parity_acc,
+                              const std::map<XueDataDeltaKey, std::vector<char>> &data_delta_acc)
+  {
+    asio::ip::tcp::socket sock(io_ctx);
+    asio::ip::tcp::resolver resolver(io_ctx);
+    asio::error_code ec;
+    asio::connect(sock, resolver.resolve({ip, std::to_string(base_port + ECProject::PROXY_XUE_FORWARD_PORT_SHIFT)}), ec);
+    if (ec)
+    {
+      return false;
+    }
+    uint32_t magic = kXueFwdMagic;
+    uint32_t nrec = static_cast<uint32_t>(ft.rec_block_ids_size());
+    asio::write(sock, asio::buffer(&magic, sizeof(magic)), ec);
+    asio::write(sock, asio::buffer(&nrec, sizeof(nrec)), ec);
+    for (int i = 0; i < ft.rec_block_ids_size(); ++i)
+    {
+      const int bid = ft.rec_block_ids(i);
+      const int off = ft.rec_offsets(i);
+      const int len = ft.rec_sizes(i);
+      uint32_t kind =
+          (i < ft.rec_payload_kind_size() && ft.rec_payload_kind(i) != 0u) ? kXuePayloadDataDelta : kXuePayloadParityDelta;
+      asio::write(sock, asio::buffer(&kind, sizeof(kind)), ec);
+      int32_t ib = bid;
+      int32_t io = off;
+      int32_t il = len;
+      asio::write(sock, asio::buffer(&ib, sizeof(ib)), ec);
+      asio::write(sock, asio::buffer(&io, sizeof(io)), ec);
+      asio::write(sock, asio::buffer(&il, sizeof(il)), ec);
+      const XueParityAccKey pkey = std::make_tuple(bid, off, len);
+      const XueDataDeltaKey dkey = std::make_tuple(bid, off, len);
+      if (kind == kXuePayloadDataDelta)
+      {
+        auto it = data_delta_acc.find(dkey);
+        if (it == data_delta_acc.end() || static_cast<int>(it->second.size()) != len)
+        {
+          return false;
+        }
+        asio::write(sock, asio::buffer(it->second.data(), it->second.size()), ec);
+      }
+      else
+      {
+        auto it = parity_acc.find(pkey);
+        if (it == parity_acc.end() || static_cast<int>(it->second.size()) != len)
+        {
+          return false;
+        }
+        asio::write(sock, asio::buffer(it->second.data(), it->second.size()), ec);
+      }
+      if (ec)
+      {
+        return false;
+      }
+    }
+    asio::error_code iec;
+    sock.shutdown(asio::ip::tcp::socket::shutdown_both, iec);
+    sock.close(iec);
+    return true;
+  }
+} // namespace
+
 namespace ECProject
 {
   bool ProxyImpl::init_coordinator()
@@ -662,14 +928,88 @@ namespace ECProject
         // memset(append_buf, 0, cluster_append_size);
         // std::shared_ptr<char> append_buf_ptr(append_buf, [](char* p) { delete[] p; }); // 使用智能指针管理内存
         std::vector<char> append_buf(cluster_append_size, 0);
-        asio::read(socket_data, asio::buffer(append_buf.data(), cluster_append_size), error);
-        if (error == asio::error::eof)
+        std::map<XueDataDeltaKey, std::vector<char>> xue_recv_data_deltas;
+        const bool xue_plan = placement_copy->append_mode() == "XUE_UPDATE" &&
+                              placement_copy->xue_slice_source_size() == slice_num && slice_num > 0;
+
+        if (!xue_plan)
         {
-          std::cout << "error == asio::error::eof" << std::endl;
+          asio::read(socket_data, asio::buffer(append_buf.data(), cluster_append_size), error);
+          if (error == asio::error::eof)
+          {
+            std::cout << "error == asio::error::eof" << std::endl;
+          }
+          else if (error)
+          {
+            throw asio::system_error(error);
+          }
         }
-        else if (error)
+        else
         {
-          throw asio::system_error(error);
+          const size_t fc = placement_copy->client_payload_size() > 0
+                                ? static_cast<size_t>(placement_copy->client_payload_size())
+                                : 0;
+          std::vector<char> client_chunk(fc);
+          if (fc > 0)
+          {
+            asio::read(socket_data, asio::buffer(client_chunk.data(), fc), error);
+            if (error == asio::error::eof)
+            {
+              std::cout << "error == asio::error::eof" << std::endl;
+            }
+            else if (error)
+            {
+              throw asio::system_error(error);
+            }
+          }
+          else
+          {
+            error.clear();
+          }
+
+          std::vector<size_t> slice_off(static_cast<size_t>(slice_num) + 1);
+          slice_off[0] = 0;
+          for (int j = 0; j < slice_num; ++j)
+          {
+            slice_off[static_cast<size_t>(j) + 1] = slice_off[static_cast<size_t>(j)] + placement_copy->sizes(j);
+          }
+
+          size_t cpos = 0;
+          for (int j = 0; j < slice_num; ++j)
+          {
+            if (placement_copy->xue_slice_source(j) != 0u)
+            {
+              continue;
+            }
+            const size_t sz = placement_copy->sizes(j);
+            std::memcpy(append_buf.data() + slice_off[static_cast<size_t>(j)], client_chunk.data() + cpos, sz);
+            cpos += sz;
+          }
+          bool any_src1_in = false;
+          for (int j = 0; j < slice_num; ++j)
+          {
+            if (placement_copy->xue_slice_source(j) == 1u)
+            {
+              any_src1_in = true;
+              break;
+            }
+          }
+          uint32_t merge_rounds_eff = placement_copy->xue_forward_merge_rounds();
+          if (any_src1_in && merge_rounds_eff == 0)
+          {
+            merge_rounds_eff = 1;
+          }
+          if (placement_xue_has_forward_in(*placement_copy))
+          {
+            for (uint32_t ri = 0; ri < merge_rounds_eff; ++ri)
+            {
+              if (!recv_xue_forward_payloads(io_context, xue_forward_acceptor, append_buf.data(), slice_off,
+                                             *placement_copy, &xue_recv_data_deltas, ri > 0))
+              {
+                std::cerr << "[Proxy] XUE forward receive failed" << std::endl;
+              }
+            }
+          }
         }
 
         if (IF_DEBUG)
@@ -682,61 +1022,323 @@ namespace ECProject
         socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
         socket_data.close(ignore_ec);
 
-        std::vector<char *> slices = m_toolbox->splitCharPointer(append_buf.data(), placement_copy);
-
-        auto append_to_datanode = [this](const char *block_key, int block_id, size_t slice_size, const char *slice_buf, int slice_offset, const char *ip, int port, bool is_serialized)
+        bool xue_dst_parity_only = false;
+        if (xue_plan)
         {
-          if (IF_DEBUG)
+          xue_dst_parity_only = true;
+          for (int j = 0; j < slice_num; ++j)
           {
-            std::cout << "[Proxy" << m_self_cluster_id << "][Append353]"
-                      << "Append to Block " << block_key << " of block_id " << block_id << " at the offset of " << slice_offset << " with length of " << slice_size << std::endl;
-          }
-          AppendToDatanode(block_key, block_id, slice_size, slice_buf, slice_offset, ip, port, is_serialized);
-        };
-
-        const std::string append_mode_str = placement_copy->append_mode();
-        std::vector<std::thread> senders;
-        for (int j = 0; j < slice_num; j++)
-        {
-          const int bid = placement_copy->blockids(j);
-          const bool xue_data_path =
-              (append_mode_str == "XUE_UPDATE" && bid >= 0 && bid < m_sys_config->k);
-          if (xue_data_path)
-          {
-            senders.push_back(std::thread(
-                [this, placement_copy, slices, j]() {
-                  const std::string bk = placement_copy->blockkeys(j);
-                  const int block_id = placement_copy->blockids(j);
-                  const size_t sz = placement_copy->sizes(j);
-                  const int off = static_cast<int>(placement_copy->offsets(j));
-                  const std::string dip = placement_copy->datanodeip(j);
-                  const int dport = placement_copy->datanodeport(j);
-                  std::vector<char> oldbuf(sz);
-                  if (!ReadRangeFromDatanode(bk.c_str(), block_id, off, static_cast<int>(sz), oldbuf.data(), dip.c_str(), dport))
-                  {
-                    std::memset(oldbuf.data(), 0, sz);
-                  }
-                  std::vector<char> newbuf(sz);
-                  std::memcpy(newbuf.data(), slices[j], sz);
-                  for (size_t i = 0; i < sz; ++i)
-                  {
-                    slices[j][i] = static_cast<char>(
-                        static_cast<unsigned char>(newbuf[i]) ^ static_cast<unsigned char>(oldbuf[i]));
-                  }
-                  if (!WriteRangeToDatanode(bk.c_str(), block_id, off, newbuf.data(), static_cast<int>(sz), dip.c_str(), dport))
-                  {
-                    std::cerr << "[Proxy] XUE_UPDATE WriteRangeToDatanode failed block " << bk << std::endl;
-                  }
-                }));
-          }
-          else
-          {
-            senders.push_back(std::thread(append_to_datanode, placement_copy->blockkeys(j).c_str(), bid, placement_copy->sizes(j), slices[j], placement_copy->offsets(j), placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j), is_serialized));
+            if (placement_copy->xue_slice_source(j) != 1u)
+            {
+              xue_dst_parity_only = false;
+              break;
+            }
           }
         }
-        for (int j = 0; j < int(senders.size()); j++)
+
+        if (xue_plan && !xue_dst_parity_only)
         {
-          senders[j].join();
+          using ParityKey = XueParityAccKey;
+          std::map<ParityKey, std::vector<char>> parity_acc;
+          std::map<XueDataDeltaKey, std::vector<char>> data_delta_acc_send;
+          const int k = m_sys_config->k;
+          const int r = m_sys_config->r;
+          const int z = m_sys_config->z;
+          const int unit_sz = static_cast<int>(m_sys_config->UnitSize);
+          const int blk_sz = static_cast<int>(m_sys_config->BlockSize);
+
+          std::vector<size_t> slice_off_home(static_cast<size_t>(slice_num) + 1);
+          slice_off_home[0] = 0;
+          for (int j = 0; j < slice_num; ++j)
+          {
+            slice_off_home[static_cast<size_t>(j) + 1] = slice_off_home[static_cast<size_t>(j)] + placement_copy->sizes(j);
+          }
+
+          for (int j = 0; j < slice_num; ++j)
+          {
+            if (placement_copy->xue_slice_source(j) != 0u)
+            {
+              continue;
+            }
+            const int bid = placement_copy->blockids(j);
+            if (bid < 0 || bid >= k)
+            {
+              continue;
+            }
+            const std::string bk = placement_copy->blockkeys(j);
+            const size_t sz = placement_copy->sizes(j);
+            const int off = static_cast<int>(placement_copy->offsets(j));
+            const std::string dip = placement_copy->datanodeip(j);
+            const int dport = placement_copy->datanodeport(j);
+            std::vector<char> old_d(sz);
+            if (!ReadRangeFromDatanode(bk.c_str(), bid, off, static_cast<int>(sz), old_d.data(), dip.c_str(), dport))
+            {
+              std::memset(old_d.data(), 0, sz);
+            }
+            std::vector<char> new_d(sz);
+            std::memcpy(new_d.data(), append_buf.data() + slice_off_home[static_cast<size_t>(j)], sz);
+            if (!WriteRangeToDatanode(bk.c_str(), bid, off, new_d.data(), static_cast<int>(sz), dip.c_str(), dport))
+            {
+              std::cerr << "[Proxy] XUE home WriteRange data failed " << bk << std::endl;
+            }
+            std::vector<char> delta(sz);
+            for (size_t i = 0; i < sz; ++i)
+            {
+              delta[i] = static_cast<char>(static_cast<unsigned char>(new_d[i]) ^
+                                            static_cast<unsigned char>(old_d[i]));
+            }
+            data_delta_acc_send[std::make_tuple(bid, off, static_cast<int>(sz))] = delta;
+            const int u0 = off / unit_sz;
+            const int u1 = static_cast<int>(off + static_cast<int>(sz) - 1) / unit_sz;
+            const int parity_off = u0 * unit_sz;
+            const int parity_end = std::min(blk_sz - 1, (u1 + 1) * unit_sz - 1);
+            const int parity_len = parity_end - parity_off + 1;
+            std::vector<char> col(static_cast<size_t>(parity_len), 0);
+            std::memcpy(col.data() + (off - parity_off), delta.data(), sz);
+            std::vector<int> cols = {bid};
+            unsigned char *dptrs[1] = {reinterpret_cast<unsigned char *>(col.data())};
+            std::vector<std::vector<unsigned char>> pbufs(r + z, std::vector<unsigned char>(static_cast<size_t>(parity_len)));
+            std::vector<unsigned char *> pptr(r + z);
+            for (int pi = 0; pi < r + z; ++pi)
+            {
+              pptr[static_cast<size_t>(pi)] = pbufs[static_cast<size_t>(pi)].data();
+            }
+            ECProject::partial_encode_azure_lrc_selected_cols(k, r, z, cols, dptrs, pptr.data(), parity_len);
+            for (int pi = 0; pi < r + z; ++pi)
+            {
+              const int pbid = k + pi;
+              const ParityKey pkey = std::make_tuple(pbid, parity_off, parity_len);
+              auto &acc_vec = parity_acc[pkey];
+              if (acc_vec.empty())
+              {
+                acc_vec.assign(static_cast<size_t>(parity_len), 0);
+              }
+              for (int t = 0; t < parity_len; ++t)
+              {
+                acc_vec[static_cast<size_t>(t)] ^= pbufs[static_cast<size_t>(pi)][static_cast<size_t>(t)];
+              }
+            }
+          }
+
+          std::map<ParityKey, std::vector<char>> parity_from_remote_data;
+          xue_parity_acc_from_data_delta_map(xue_recv_data_deltas, parity_from_remote_data, k, r, z, unit_sz, blk_sz);
+
+          for (int j = 0; j < slice_num; ++j)
+          {
+            if (placement_copy->xue_slice_source(j) != 1u)
+            {
+              continue;
+            }
+            const int pbid = placement_copy->blockids(j);
+            const int poff = static_cast<int>(placement_copy->offsets(j));
+            const int plen = static_cast<int>(placement_copy->sizes(j));
+            const ParityKey pkey = std::make_tuple(pbid, poff, plen);
+            auto it_acc = parity_acc.find(pkey);
+            char *buf_sl = append_buf.data() + slice_off_home[static_cast<size_t>(j)];
+            auto it_rd = parity_from_remote_data.find(pkey);
+            if (it_rd != parity_from_remote_data.end())
+            {
+              for (int t = 0; t < plen; ++t)
+              {
+                buf_sl[t] = static_cast<char>(static_cast<unsigned char>(buf_sl[t]) ^
+                                               static_cast<unsigned char>(it_rd->second[static_cast<size_t>(t)]));
+              }
+            }
+            if (it_acc != parity_acc.end())
+            {
+              for (int t = 0; t < plen; ++t)
+              {
+                buf_sl[t] = static_cast<char>(static_cast<unsigned char>(buf_sl[t]) ^
+                                               static_cast<unsigned char>(it_acc->second[static_cast<size_t>(t)]));
+              }
+            }
+            const std::string pbk = placement_copy->blockkeys(j);
+            const std::string pdip = placement_copy->datanodeip(j);
+            const int pdport = placement_copy->datanodeport(j);
+            std::vector<char> old_p(static_cast<size_t>(plen));
+            if (!ReadRangeFromDatanode(pbk.c_str(), pbid, poff, plen, old_p.data(), pdip.c_str(), pdport))
+            {
+              std::memset(old_p.data(), 0, static_cast<size_t>(plen));
+            }
+            std::vector<char> new_p(static_cast<size_t>(plen));
+            for (int t = 0; t < plen; ++t)
+            {
+              new_p[static_cast<size_t>(t)] = static_cast<char>(
+                  static_cast<unsigned char>(old_p[static_cast<size_t>(t)]) ^
+                  static_cast<unsigned char>(buf_sl[t]));
+            }
+            if (!WriteRangeToDatanode(pbk.c_str(), pbid, poff, new_p.data(), plen, pdip.c_str(), pdport))
+            {
+              std::cerr << "[Proxy] XUE merged parity WriteRange failed " << pbk << std::endl;
+            }
+          }
+
+          for (int j = 0; j < slice_num; ++j)
+          {
+            if (placement_copy->xue_slice_source(j) != 2u)
+            {
+              continue;
+            }
+            const int pbid = placement_copy->blockids(j);
+            const int poff = static_cast<int>(placement_copy->offsets(j));
+            const int plen = static_cast<int>(placement_copy->sizes(j));
+            const ParityKey pkey = std::make_tuple(pbid, poff, plen);
+            auto it_acc = parity_acc.find(pkey);
+            if (it_acc == parity_acc.end())
+            {
+              continue;
+            }
+            const std::string pbk = placement_copy->blockkeys(j);
+            const std::string pdip = placement_copy->datanodeip(j);
+            const int pdport = placement_copy->datanodeport(j);
+            std::vector<char> old_p(static_cast<size_t>(plen));
+            if (!ReadRangeFromDatanode(pbk.c_str(), pbid, poff, plen, old_p.data(), pdip.c_str(), pdport))
+            {
+              std::memset(old_p.data(), 0, static_cast<size_t>(plen));
+            }
+            std::vector<char> new_p(static_cast<size_t>(plen));
+            for (int t = 0; t < plen; ++t)
+            {
+              new_p[static_cast<size_t>(t)] = static_cast<char>(
+                  static_cast<unsigned char>(old_p[static_cast<size_t>(t)]) ^
+                  static_cast<unsigned char>(it_acc->second[static_cast<size_t>(t)]));
+            }
+            if (!WriteRangeToDatanode(pbk.c_str(), pbid, poff, new_p.data(), plen, pdip.c_str(), pdport))
+            {
+              std::cerr << "[Proxy] XUE local parity WriteRange failed " << pbk << std::endl;
+            }
+          }
+
+          for (int ti = 0; ti < placement_copy->xue_forward_targets_size(); ++ti)
+          {
+            const auto &ft = placement_copy->xue_forward_targets(ti);
+            if (ft.rec_block_ids_size() <= 0)
+            {
+              continue;
+            }
+            if (!send_xue_forward_batch(io_context, ft.dst_proxy_ip(), ft.dst_base_proxy_port(), ft, parity_acc,
+                                        data_delta_acc_send))
+            {
+              std::cerr << "[Proxy] XUE forward batch to " << ft.dst_proxy_ip() << " failed" << std::endl;
+            }
+          }
+        }
+        else if (xue_plan && xue_dst_parity_only)
+        {
+          std::vector<size_t> slice_off_dst(static_cast<size_t>(slice_num) + 1);
+          slice_off_dst[0] = 0;
+          for (int j = 0; j < slice_num; ++j)
+          {
+            slice_off_dst[static_cast<size_t>(j) + 1] = slice_off_dst[static_cast<size_t>(j)] + placement_copy->sizes(j);
+          }
+          const int k0 = m_sys_config->k;
+          const int r0 = m_sys_config->r;
+          const int z0 = m_sys_config->z;
+          const int unit0 = static_cast<int>(m_sys_config->UnitSize);
+          const int blk0 = static_cast<int>(m_sys_config->BlockSize);
+          std::map<XueParityAccKey, std::vector<char>> parity_from_remote_data_only;
+          xue_parity_acc_from_data_delta_map(xue_recv_data_deltas, parity_from_remote_data_only, k0, r0, z0, unit0,
+                                             blk0);
+          for (int j = 0; j < slice_num; ++j)
+          {
+            if (placement_copy->xue_slice_source(j) != 1u)
+            {
+              continue;
+            }
+            const int pbid = placement_copy->blockids(j);
+            if (pbid < m_sys_config->k)
+            {
+              continue;
+            }
+            const int poff = static_cast<int>(placement_copy->offsets(j));
+            const int plen = static_cast<int>(placement_copy->sizes(j));
+            const std::string pbk = placement_copy->blockkeys(j);
+            const std::string pdip = placement_copy->datanodeip(j);
+            const int pdport = placement_copy->datanodeport(j);
+            std::vector<char> old_p(static_cast<size_t>(plen));
+            if (!ReadRangeFromDatanode(pbk.c_str(), pbid, poff, plen, old_p.data(), pdip.c_str(), pdport))
+            {
+              std::memset(old_p.data(), 0, static_cast<size_t>(plen));
+            }
+            std::vector<char> new_p(static_cast<size_t>(plen));
+            const char *src = append_buf.data() + slice_off_dst[static_cast<size_t>(j)];
+            const XueParityAccKey pkey = std::make_tuple(pbid, poff, plen);
+            auto it_rd = parity_from_remote_data_only.find(pkey);
+            for (int t = 0; t < plen; ++t)
+            {
+              unsigned char x = static_cast<unsigned char>(src[static_cast<size_t>(t)]);
+              if (it_rd != parity_from_remote_data_only.end())
+              {
+                x = static_cast<unsigned char>(static_cast<unsigned char>(x ^ static_cast<unsigned char>(
+                                                                             it_rd->second[static_cast<size_t>(t)])));
+              }
+              new_p[static_cast<size_t>(t)] =
+                  static_cast<char>(static_cast<unsigned char>(old_p[static_cast<size_t>(t)]) ^ x);
+            }
+            if (!WriteRangeToDatanode(pbk.c_str(), pbid, poff, new_p.data(), plen, pdip.c_str(), pdport))
+            {
+              std::cerr << "[Proxy] XUE remote parity WriteRange failed " << pbk << std::endl;
+            }
+          }
+        }
+        else
+        {
+          std::vector<char *> slices = m_toolbox->splitCharPointer(append_buf.data(), placement_copy);
+
+          auto append_to_datanode = [this](const char *block_key, int block_id, size_t slice_size, const char *slice_buf, int slice_offset, const char *ip, int port, bool is_ser)
+          {
+            if (IF_DEBUG)
+            {
+              std::cout << "[Proxy" << m_self_cluster_id << "][Append353]"
+                        << "Append to Block " << block_key << " of block_id " << block_id << " at the offset of " << slice_offset << " with length of " << slice_size << std::endl;
+            }
+            AppendToDatanode(block_key, block_id, slice_size, slice_buf, slice_offset, ip, port, is_ser);
+          };
+
+          const std::string append_mode_str = placement_copy->append_mode();
+          std::vector<std::thread> senders;
+          for (int j = 0; j < slice_num; j++)
+          {
+            const int bid = placement_copy->blockids(j);
+            const bool xue_data_path =
+                (append_mode_str == "XUE_UPDATE" && bid >= 0 && bid < m_sys_config->k);
+            if (xue_data_path)
+            {
+              senders.push_back(std::thread(
+                  [this, placement_copy, slices, j]() {
+                    const std::string bk = placement_copy->blockkeys(j);
+                    const int block_id = placement_copy->blockids(j);
+                    const size_t sz = placement_copy->sizes(j);
+                    const int off = static_cast<int>(placement_copy->offsets(j));
+                    const std::string dip = placement_copy->datanodeip(j);
+                    const int dport = placement_copy->datanodeport(j);
+                    std::vector<char> oldbuf(sz);
+                    if (!ReadRangeFromDatanode(bk.c_str(), block_id, off, static_cast<int>(sz), oldbuf.data(), dip.c_str(), dport))
+                    {
+                      std::memset(oldbuf.data(), 0, sz);
+                    }
+                    std::vector<char> newbuf(sz);
+                    std::memcpy(newbuf.data(), slices[j], sz);
+                    for (size_t i = 0; i < sz; ++i)
+                    {
+                      slices[j][i] = static_cast<char>(
+                          static_cast<unsigned char>(newbuf[i]) ^ static_cast<unsigned char>(oldbuf[i]));
+                    }
+                    if (!WriteRangeToDatanode(bk.c_str(), block_id, off, newbuf.data(), static_cast<int>(sz), dip.c_str(), dport))
+                    {
+                      std::cerr << "[Proxy] XUE_UPDATE WriteRangeToDatanode failed block " << bk << std::endl;
+                    }
+                  }));
+            }
+            else
+            {
+              senders.push_back(std::thread(append_to_datanode, placement_copy->blockkeys(j).c_str(), bid, placement_copy->sizes(j), slices[j], placement_copy->offsets(j), placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j), is_serialized));
+            }
+          }
+          for (int j = 0; j < int(senders.size()); j++)
+          {
+            senders[j].join();
+          }
         }
 
         if (IF_DEBUG)

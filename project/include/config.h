@@ -6,7 +6,9 @@
 namespace ECProject
 {
   const int DATANODE_PORT_SHIFT = 500;
-  const int PROXY_PORT_SHIFT = 100; 
+  const int PROXY_PORT_SHIFT = 100;
+  /** XeUpdate: peer proxy connects here to deliver parity/data deltas (client uses PROXY_PORT_SHIFT). */
+  const int PROXY_XUE_FORWARD_PORT_SHIFT = 300; 
 
   class Config
   {

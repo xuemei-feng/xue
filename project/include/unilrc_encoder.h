@@ -58,6 +58,10 @@ namespace ECProject
 
     void partial_encode_azure_lrc(int k, int r, int z, int data_block_num, unsigned char **data_ptrs, unsigned char **parity_ptrs, int block_size);
 
+    /** ΔP = A_S * ΔD where S lists data column indices (0..k-1); data_ptrs[i] has length block_size. */
+    void partial_encode_azure_lrc_selected_cols(int k, int r, int z, const std::vector<int> &col_indices,
+                                                unsigned char **data_delta_ptrs, unsigned char **parity_delta_ptrs, int block_size);
+
     void partial_encode_optimal_lrc(int k, int r, int z, int data_block_num, unsigned char **data_ptrs, unsigned char **parity_ptrs, int block_size);
 
     void partial_encode_uniform_lrc(int k, int r, int z, int data_block_num, unsigned char **data_ptrs, unsigned char **parity_ptrs, int block_size);

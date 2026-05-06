@@ -250,6 +250,28 @@ message AppendStripeDataPlacement{
   bool is_merge_parity = 11;
   string append_mode = 12;
   bool is_serialized = 13;
+  // --- XUE_UPDATE: client only sends new data to data-home; other clusters receive forwarded deltas ---
+  uint64 client_payload_size = 14;
+  // 0 = new data from client; 1 = parity delta from peer forward; 2 = parity delta computed locally on home
+  repeated uint32 xue_slice_source = 15;
+  repeated XueForwardTarget xue_forward_targets = 16;
+  // Parity slices with source==1: accept this many forward TCP batches (partial ΔP) and XOR-merge before applying.
+  // 0 = unset / legacy (proxy treats as 1 when any source==1).
+  uint32 xue_forward_merge_rounds = 17;
+}
+
+// Sender proxy connects to dst_proxy_ip : dst_base_proxy_port + PROXY_XUE_FORWARD_PORT_SHIFT.
+// rec_* lists only planned payloads (no zero-fill). rec_payload_kind[i] aligns with rec_*[i].
+// 0 = parity ΔP (legacy); 1 = data ΔD (xor of new vs old for data block column).
+message XueForwardTarget {
+  string dst_proxy_ip = 1;
+  int32 dst_base_proxy_port = 2;
+  string dst_append_key = 3;
+  int32 dst_cluster_id = 4;
+  repeated int32 rec_block_ids = 5;
+  repeated int32 rec_offsets = 6;
+  repeated int32 rec_sizes = 7;
+  repeated uint32 rec_payload_kind = 8;
 }
 
 message SetReply {

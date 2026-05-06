@@ -99,6 +99,9 @@ extern SetReplyDefaultTypeInternal _SetReply_default_instance_;
 class StripeAndBlockIDs;
 struct StripeAndBlockIDsDefaultTypeInternal;
 extern StripeAndBlockIDsDefaultTypeInternal _StripeAndBlockIDs_default_instance_;
+class XueForwardTarget;
+struct XueForwardTargetDefaultTypeInternal;
+extern XueForwardTargetDefaultTypeInternal _XueForwardTarget_default_instance_;
 class blockRelocPlan;
 struct blockRelocPlanDefaultTypeInternal;
 extern blockRelocPlanDefaultTypeInternal _blockRelocPlan_default_instance_;
@@ -134,6 +137,7 @@ template<> ::proxy_proto::RepIfSuccess* Arena::CreateMaybeMessage<::proxy_proto:
 template<> ::proxy_proto::RequestResult* Arena::CreateMaybeMessage<::proxy_proto::RequestResult>(Arena*);
 template<> ::proxy_proto::SetReply* Arena::CreateMaybeMessage<::proxy_proto::SetReply>(Arena*);
 template<> ::proxy_proto::StripeAndBlockIDs* Arena::CreateMaybeMessage<::proxy_proto::StripeAndBlockIDs>(Arena*);
+template<> ::proxy_proto::XueForwardTarget* Arena::CreateMaybeMessage<::proxy_proto::XueForwardTarget>(Arena*);
 template<> ::proxy_proto::blockRelocPlan* Arena::CreateMaybeMessage<::proxy_proto::blockRelocPlan>(Arena*);
 template<> ::proxy_proto::blockRelocReply* Arena::CreateMaybeMessage<::proxy_proto::blockRelocReply>(Arena*);
 template<> ::proxy_proto::helpRecalPlan* Arena::CreateMaybeMessage<::proxy_proto::helpRecalPlan>(Arena*);
@@ -4887,6 +4891,8 @@ class AppendStripeDataPlacement final :
     kBlockidsFieldNumber = 8,
     kOffsetsFieldNumber = 9,
     kSizesFieldNumber = 10,
+    kXueSliceSourceFieldNumber = 15,
+    kXueForwardTargetsFieldNumber = 16,
     kKeyFieldNumber = 1,
     kAppendModeFieldNumber = 12,
     kClusterIdFieldNumber = 2,
@@ -4894,6 +4900,8 @@ class AppendStripeDataPlacement final :
     kAppendSizeFieldNumber = 4,
     kIsMergeParityFieldNumber = 11,
     kIsSerializedFieldNumber = 13,
+    kXueForwardMergeRoundsFieldNumber = 17,
+    kClientPayloadSizeFieldNumber = 14,
   };
   // repeated string datanodeip = 5;
   int datanodeip_size() const;
@@ -5031,6 +5039,46 @@ class AppendStripeDataPlacement final :
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t >*
       mutable_sizes();
 
+  // repeated uint32 xue_slice_source = 15;
+  int xue_slice_source_size() const;
+  private:
+  int _internal_xue_slice_source_size() const;
+  public:
+  void clear_xue_slice_source();
+  private:
+  uint32_t _internal_xue_slice_source(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+      _internal_xue_slice_source() const;
+  void _internal_add_xue_slice_source(uint32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+      _internal_mutable_xue_slice_source();
+  public:
+  uint32_t xue_slice_source(int index) const;
+  void set_xue_slice_source(int index, uint32_t value);
+  void add_xue_slice_source(uint32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+      xue_slice_source() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+      mutable_xue_slice_source();
+
+  // repeated .proxy_proto.XueForwardTarget xue_forward_targets = 16;
+  int xue_forward_targets_size() const;
+  private:
+  int _internal_xue_forward_targets_size() const;
+  public:
+  void clear_xue_forward_targets();
+  ::proxy_proto::XueForwardTarget* mutable_xue_forward_targets(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueForwardTarget >*
+      mutable_xue_forward_targets();
+  private:
+  const ::proxy_proto::XueForwardTarget& _internal_xue_forward_targets(int index) const;
+  ::proxy_proto::XueForwardTarget* _internal_add_xue_forward_targets();
+  public:
+  const ::proxy_proto::XueForwardTarget& xue_forward_targets(int index) const;
+  ::proxy_proto::XueForwardTarget* add_xue_forward_targets();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueForwardTarget >&
+      xue_forward_targets() const;
+
   // string key = 1;
   void clear_key();
   const std::string& key() const;
@@ -5104,6 +5152,24 @@ class AppendStripeDataPlacement final :
   void _internal_set_is_serialized(bool value);
   public:
 
+  // uint32 xue_forward_merge_rounds = 17;
+  void clear_xue_forward_merge_rounds();
+  uint32_t xue_forward_merge_rounds() const;
+  void set_xue_forward_merge_rounds(uint32_t value);
+  private:
+  uint32_t _internal_xue_forward_merge_rounds() const;
+  void _internal_set_xue_forward_merge_rounds(uint32_t value);
+  public:
+
+  // uint64 client_payload_size = 14;
+  void clear_client_payload_size();
+  uint64_t client_payload_size() const;
+  void set_client_payload_size(uint64_t value);
+  private:
+  uint64_t _internal_client_payload_size() const;
+  void _internal_set_client_payload_size(uint64_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:proxy_proto.AppendStripeDataPlacement)
  private:
   class _Internal;
@@ -5122,6 +5188,9 @@ class AppendStripeDataPlacement final :
     mutable std::atomic<int> _offsets_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t > sizes_;
     mutable std::atomic<int> _sizes_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t > xue_slice_source_;
+    mutable std::atomic<int> _xue_slice_source_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueForwardTarget > xue_forward_targets_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr append_mode_;
     int32_t cluster_id_;
@@ -5129,6 +5198,299 @@ class AppendStripeDataPlacement final :
     uint64_t append_size_;
     bool is_merge_parity_;
     bool is_serialized_;
+    uint32_t xue_forward_merge_rounds_;
+    uint64_t client_payload_size_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class XueForwardTarget final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.XueForwardTarget) */ {
+ public:
+  inline XueForwardTarget() : XueForwardTarget(nullptr) {}
+  ~XueForwardTarget() override;
+  explicit PROTOBUF_CONSTEXPR XueForwardTarget(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  XueForwardTarget(const XueForwardTarget& from);
+  XueForwardTarget(XueForwardTarget&& from) noexcept
+    : XueForwardTarget() {
+    *this = ::std::move(from);
+  }
+
+  inline XueForwardTarget& operator=(const XueForwardTarget& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline XueForwardTarget& operator=(XueForwardTarget&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const XueForwardTarget& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const XueForwardTarget* internal_default_instance() {
+    return reinterpret_cast<const XueForwardTarget*>(
+               &_XueForwardTarget_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    20;
+
+  friend void swap(XueForwardTarget& a, XueForwardTarget& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(XueForwardTarget* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(XueForwardTarget* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  XueForwardTarget* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<XueForwardTarget>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const XueForwardTarget& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const XueForwardTarget& from) {
+    XueForwardTarget::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(XueForwardTarget* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.XueForwardTarget";
+  }
+  protected:
+  explicit XueForwardTarget(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kRecBlockIdsFieldNumber = 5,
+    kRecOffsetsFieldNumber = 6,
+    kRecSizesFieldNumber = 7,
+    kRecPayloadKindFieldNumber = 8,
+    kDstProxyIpFieldNumber = 1,
+    kDstAppendKeyFieldNumber = 3,
+    kDstBaseProxyPortFieldNumber = 2,
+    kDstClusterIdFieldNumber = 4,
+  };
+  // repeated int32 rec_block_ids = 5;
+  int rec_block_ids_size() const;
+  private:
+  int _internal_rec_block_ids_size() const;
+  public:
+  void clear_rec_block_ids();
+  private:
+  int32_t _internal_rec_block_ids(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_rec_block_ids() const;
+  void _internal_add_rec_block_ids(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_rec_block_ids();
+  public:
+  int32_t rec_block_ids(int index) const;
+  void set_rec_block_ids(int index, int32_t value);
+  void add_rec_block_ids(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      rec_block_ids() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_rec_block_ids();
+
+  // repeated int32 rec_offsets = 6;
+  int rec_offsets_size() const;
+  private:
+  int _internal_rec_offsets_size() const;
+  public:
+  void clear_rec_offsets();
+  private:
+  int32_t _internal_rec_offsets(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_rec_offsets() const;
+  void _internal_add_rec_offsets(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_rec_offsets();
+  public:
+  int32_t rec_offsets(int index) const;
+  void set_rec_offsets(int index, int32_t value);
+  void add_rec_offsets(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      rec_offsets() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_rec_offsets();
+
+  // repeated int32 rec_sizes = 7;
+  int rec_sizes_size() const;
+  private:
+  int _internal_rec_sizes_size() const;
+  public:
+  void clear_rec_sizes();
+  private:
+  int32_t _internal_rec_sizes(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_rec_sizes() const;
+  void _internal_add_rec_sizes(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_rec_sizes();
+  public:
+  int32_t rec_sizes(int index) const;
+  void set_rec_sizes(int index, int32_t value);
+  void add_rec_sizes(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      rec_sizes() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_rec_sizes();
+
+  // repeated uint32 rec_payload_kind = 8;
+  int rec_payload_kind_size() const;
+  private:
+  int _internal_rec_payload_kind_size() const;
+  public:
+  void clear_rec_payload_kind();
+  private:
+  uint32_t _internal_rec_payload_kind(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+      _internal_rec_payload_kind() const;
+  void _internal_add_rec_payload_kind(uint32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+      _internal_mutable_rec_payload_kind();
+  public:
+  uint32_t rec_payload_kind(int index) const;
+  void set_rec_payload_kind(int index, uint32_t value);
+  void add_rec_payload_kind(uint32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+      rec_payload_kind() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+      mutable_rec_payload_kind();
+
+  // string dst_proxy_ip = 1;
+  void clear_dst_proxy_ip();
+  const std::string& dst_proxy_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_dst_proxy_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_dst_proxy_ip();
+  PROTOBUF_NODISCARD std::string* release_dst_proxy_ip();
+  void set_allocated_dst_proxy_ip(std::string* dst_proxy_ip);
+  private:
+  const std::string& _internal_dst_proxy_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_dst_proxy_ip(const std::string& value);
+  std::string* _internal_mutable_dst_proxy_ip();
+  public:
+
+  // string dst_append_key = 3;
+  void clear_dst_append_key();
+  const std::string& dst_append_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_dst_append_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_dst_append_key();
+  PROTOBUF_NODISCARD std::string* release_dst_append_key();
+  void set_allocated_dst_append_key(std::string* dst_append_key);
+  private:
+  const std::string& _internal_dst_append_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_dst_append_key(const std::string& value);
+  std::string* _internal_mutable_dst_append_key();
+  public:
+
+  // int32 dst_base_proxy_port = 2;
+  void clear_dst_base_proxy_port();
+  int32_t dst_base_proxy_port() const;
+  void set_dst_base_proxy_port(int32_t value);
+  private:
+  int32_t _internal_dst_base_proxy_port() const;
+  void _internal_set_dst_base_proxy_port(int32_t value);
+  public:
+
+  // int32 dst_cluster_id = 4;
+  void clear_dst_cluster_id();
+  int32_t dst_cluster_id() const;
+  void set_dst_cluster_id(int32_t value);
+  private:
+  int32_t _internal_dst_cluster_id() const;
+  void _internal_set_dst_cluster_id(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.XueForwardTarget)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > rec_block_ids_;
+    mutable std::atomic<int> _rec_block_ids_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > rec_offsets_;
+    mutable std::atomic<int> _rec_offsets_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > rec_sizes_;
+    mutable std::atomic<int> _rec_sizes_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t > rec_payload_kind_;
+    mutable std::atomic<int> _rec_payload_kind_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr dst_proxy_ip_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr dst_append_key_;
+    int32_t dst_base_proxy_port_;
+    int32_t dst_cluster_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -5184,7 +5546,7 @@ class SetReply final :
                &_SetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    21;
 
   friend void swap(SetReply& a, SetReply& b) {
     a.Swap(&b);
@@ -5332,7 +5694,7 @@ class GetReply final :
                &_GetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    22;
 
   friend void swap(GetReply& a, GetReply& b) {
     a.Swap(&b);
@@ -5480,7 +5842,7 @@ class StripeAndBlockIDs final :
                &_StripeAndBlockIDs_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    23;
 
   friend void swap(StripeAndBlockIDs& a, StripeAndBlockIDs& b) {
     a.Swap(&b);
@@ -10911,6 +11273,465 @@ inline void AppendStripeDataPlacement::set_is_serialized(bool value) {
   // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.is_serialized)
 }
 
+// uint64 client_payload_size = 14;
+inline void AppendStripeDataPlacement::clear_client_payload_size() {
+  _impl_.client_payload_size_ = uint64_t{0u};
+}
+inline uint64_t AppendStripeDataPlacement::_internal_client_payload_size() const {
+  return _impl_.client_payload_size_;
+}
+inline uint64_t AppendStripeDataPlacement::client_payload_size() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.client_payload_size)
+  return _internal_client_payload_size();
+}
+inline void AppendStripeDataPlacement::_internal_set_client_payload_size(uint64_t value) {
+  
+  _impl_.client_payload_size_ = value;
+}
+inline void AppendStripeDataPlacement::set_client_payload_size(uint64_t value) {
+  _internal_set_client_payload_size(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.client_payload_size)
+}
+
+// repeated uint32 xue_slice_source = 15;
+inline int AppendStripeDataPlacement::_internal_xue_slice_source_size() const {
+  return _impl_.xue_slice_source_.size();
+}
+inline int AppendStripeDataPlacement::xue_slice_source_size() const {
+  return _internal_xue_slice_source_size();
+}
+inline void AppendStripeDataPlacement::clear_xue_slice_source() {
+  _impl_.xue_slice_source_.Clear();
+}
+inline uint32_t AppendStripeDataPlacement::_internal_xue_slice_source(int index) const {
+  return _impl_.xue_slice_source_.Get(index);
+}
+inline uint32_t AppendStripeDataPlacement::xue_slice_source(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.xue_slice_source)
+  return _internal_xue_slice_source(index);
+}
+inline void AppendStripeDataPlacement::set_xue_slice_source(int index, uint32_t value) {
+  _impl_.xue_slice_source_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.xue_slice_source)
+}
+inline void AppendStripeDataPlacement::_internal_add_xue_slice_source(uint32_t value) {
+  _impl_.xue_slice_source_.Add(value);
+}
+inline void AppendStripeDataPlacement::add_xue_slice_source(uint32_t value) {
+  _internal_add_xue_slice_source(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.AppendStripeDataPlacement.xue_slice_source)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+AppendStripeDataPlacement::_internal_xue_slice_source() const {
+  return _impl_.xue_slice_source_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+AppendStripeDataPlacement::xue_slice_source() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.AppendStripeDataPlacement.xue_slice_source)
+  return _internal_xue_slice_source();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+AppendStripeDataPlacement::_internal_mutable_xue_slice_source() {
+  return &_impl_.xue_slice_source_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+AppendStripeDataPlacement::mutable_xue_slice_source() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.AppendStripeDataPlacement.xue_slice_source)
+  return _internal_mutable_xue_slice_source();
+}
+
+// repeated .proxy_proto.XueForwardTarget xue_forward_targets = 16;
+inline int AppendStripeDataPlacement::_internal_xue_forward_targets_size() const {
+  return _impl_.xue_forward_targets_.size();
+}
+inline int AppendStripeDataPlacement::xue_forward_targets_size() const {
+  return _internal_xue_forward_targets_size();
+}
+inline void AppendStripeDataPlacement::clear_xue_forward_targets() {
+  _impl_.xue_forward_targets_.Clear();
+}
+inline ::proxy_proto::XueForwardTarget* AppendStripeDataPlacement::mutable_xue_forward_targets(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.AppendStripeDataPlacement.xue_forward_targets)
+  return _impl_.xue_forward_targets_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueForwardTarget >*
+AppendStripeDataPlacement::mutable_xue_forward_targets() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.AppendStripeDataPlacement.xue_forward_targets)
+  return &_impl_.xue_forward_targets_;
+}
+inline const ::proxy_proto::XueForwardTarget& AppendStripeDataPlacement::_internal_xue_forward_targets(int index) const {
+  return _impl_.xue_forward_targets_.Get(index);
+}
+inline const ::proxy_proto::XueForwardTarget& AppendStripeDataPlacement::xue_forward_targets(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.xue_forward_targets)
+  return _internal_xue_forward_targets(index);
+}
+inline ::proxy_proto::XueForwardTarget* AppendStripeDataPlacement::_internal_add_xue_forward_targets() {
+  return _impl_.xue_forward_targets_.Add();
+}
+inline ::proxy_proto::XueForwardTarget* AppendStripeDataPlacement::add_xue_forward_targets() {
+  ::proxy_proto::XueForwardTarget* _add = _internal_add_xue_forward_targets();
+  // @@protoc_insertion_point(field_add:proxy_proto.AppendStripeDataPlacement.xue_forward_targets)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueForwardTarget >&
+AppendStripeDataPlacement::xue_forward_targets() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.AppendStripeDataPlacement.xue_forward_targets)
+  return _impl_.xue_forward_targets_;
+}
+
+// uint32 xue_forward_merge_rounds = 17;
+inline void AppendStripeDataPlacement::clear_xue_forward_merge_rounds() {
+  _impl_.xue_forward_merge_rounds_ = 0u;
+}
+inline uint32_t AppendStripeDataPlacement::_internal_xue_forward_merge_rounds() const {
+  return _impl_.xue_forward_merge_rounds_;
+}
+inline uint32_t AppendStripeDataPlacement::xue_forward_merge_rounds() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.xue_forward_merge_rounds)
+  return _internal_xue_forward_merge_rounds();
+}
+inline void AppendStripeDataPlacement::_internal_set_xue_forward_merge_rounds(uint32_t value) {
+  
+  _impl_.xue_forward_merge_rounds_ = value;
+}
+inline void AppendStripeDataPlacement::set_xue_forward_merge_rounds(uint32_t value) {
+  _internal_set_xue_forward_merge_rounds(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.xue_forward_merge_rounds)
+}
+
+// -------------------------------------------------------------------
+
+// XueForwardTarget
+
+// string dst_proxy_ip = 1;
+inline void XueForwardTarget::clear_dst_proxy_ip() {
+  _impl_.dst_proxy_ip_.ClearToEmpty();
+}
+inline const std::string& XueForwardTarget::dst_proxy_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueForwardTarget.dst_proxy_ip)
+  return _internal_dst_proxy_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void XueForwardTarget::set_dst_proxy_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.dst_proxy_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.XueForwardTarget.dst_proxy_ip)
+}
+inline std::string* XueForwardTarget::mutable_dst_proxy_ip() {
+  std::string* _s = _internal_mutable_dst_proxy_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.XueForwardTarget.dst_proxy_ip)
+  return _s;
+}
+inline const std::string& XueForwardTarget::_internal_dst_proxy_ip() const {
+  return _impl_.dst_proxy_ip_.Get();
+}
+inline void XueForwardTarget::_internal_set_dst_proxy_ip(const std::string& value) {
+  
+  _impl_.dst_proxy_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* XueForwardTarget::_internal_mutable_dst_proxy_ip() {
+  
+  return _impl_.dst_proxy_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* XueForwardTarget::release_dst_proxy_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.XueForwardTarget.dst_proxy_ip)
+  return _impl_.dst_proxy_ip_.Release();
+}
+inline void XueForwardTarget::set_allocated_dst_proxy_ip(std::string* dst_proxy_ip) {
+  if (dst_proxy_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.dst_proxy_ip_.SetAllocated(dst_proxy_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.dst_proxy_ip_.IsDefault()) {
+    _impl_.dst_proxy_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.XueForwardTarget.dst_proxy_ip)
+}
+
+// int32 dst_base_proxy_port = 2;
+inline void XueForwardTarget::clear_dst_base_proxy_port() {
+  _impl_.dst_base_proxy_port_ = 0;
+}
+inline int32_t XueForwardTarget::_internal_dst_base_proxy_port() const {
+  return _impl_.dst_base_proxy_port_;
+}
+inline int32_t XueForwardTarget::dst_base_proxy_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueForwardTarget.dst_base_proxy_port)
+  return _internal_dst_base_proxy_port();
+}
+inline void XueForwardTarget::_internal_set_dst_base_proxy_port(int32_t value) {
+  
+  _impl_.dst_base_proxy_port_ = value;
+}
+inline void XueForwardTarget::set_dst_base_proxy_port(int32_t value) {
+  _internal_set_dst_base_proxy_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueForwardTarget.dst_base_proxy_port)
+}
+
+// string dst_append_key = 3;
+inline void XueForwardTarget::clear_dst_append_key() {
+  _impl_.dst_append_key_.ClearToEmpty();
+}
+inline const std::string& XueForwardTarget::dst_append_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueForwardTarget.dst_append_key)
+  return _internal_dst_append_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void XueForwardTarget::set_dst_append_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.dst_append_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.XueForwardTarget.dst_append_key)
+}
+inline std::string* XueForwardTarget::mutable_dst_append_key() {
+  std::string* _s = _internal_mutable_dst_append_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.XueForwardTarget.dst_append_key)
+  return _s;
+}
+inline const std::string& XueForwardTarget::_internal_dst_append_key() const {
+  return _impl_.dst_append_key_.Get();
+}
+inline void XueForwardTarget::_internal_set_dst_append_key(const std::string& value) {
+  
+  _impl_.dst_append_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* XueForwardTarget::_internal_mutable_dst_append_key() {
+  
+  return _impl_.dst_append_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* XueForwardTarget::release_dst_append_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.XueForwardTarget.dst_append_key)
+  return _impl_.dst_append_key_.Release();
+}
+inline void XueForwardTarget::set_allocated_dst_append_key(std::string* dst_append_key) {
+  if (dst_append_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.dst_append_key_.SetAllocated(dst_append_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.dst_append_key_.IsDefault()) {
+    _impl_.dst_append_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.XueForwardTarget.dst_append_key)
+}
+
+// int32 dst_cluster_id = 4;
+inline void XueForwardTarget::clear_dst_cluster_id() {
+  _impl_.dst_cluster_id_ = 0;
+}
+inline int32_t XueForwardTarget::_internal_dst_cluster_id() const {
+  return _impl_.dst_cluster_id_;
+}
+inline int32_t XueForwardTarget::dst_cluster_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueForwardTarget.dst_cluster_id)
+  return _internal_dst_cluster_id();
+}
+inline void XueForwardTarget::_internal_set_dst_cluster_id(int32_t value) {
+  
+  _impl_.dst_cluster_id_ = value;
+}
+inline void XueForwardTarget::set_dst_cluster_id(int32_t value) {
+  _internal_set_dst_cluster_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueForwardTarget.dst_cluster_id)
+}
+
+// repeated int32 rec_block_ids = 5;
+inline int XueForwardTarget::_internal_rec_block_ids_size() const {
+  return _impl_.rec_block_ids_.size();
+}
+inline int XueForwardTarget::rec_block_ids_size() const {
+  return _internal_rec_block_ids_size();
+}
+inline void XueForwardTarget::clear_rec_block_ids() {
+  _impl_.rec_block_ids_.Clear();
+}
+inline int32_t XueForwardTarget::_internal_rec_block_ids(int index) const {
+  return _impl_.rec_block_ids_.Get(index);
+}
+inline int32_t XueForwardTarget::rec_block_ids(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueForwardTarget.rec_block_ids)
+  return _internal_rec_block_ids(index);
+}
+inline void XueForwardTarget::set_rec_block_ids(int index, int32_t value) {
+  _impl_.rec_block_ids_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueForwardTarget.rec_block_ids)
+}
+inline void XueForwardTarget::_internal_add_rec_block_ids(int32_t value) {
+  _impl_.rec_block_ids_.Add(value);
+}
+inline void XueForwardTarget::add_rec_block_ids(int32_t value) {
+  _internal_add_rec_block_ids(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.XueForwardTarget.rec_block_ids)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+XueForwardTarget::_internal_rec_block_ids() const {
+  return _impl_.rec_block_ids_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+XueForwardTarget::rec_block_ids() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.XueForwardTarget.rec_block_ids)
+  return _internal_rec_block_ids();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+XueForwardTarget::_internal_mutable_rec_block_ids() {
+  return &_impl_.rec_block_ids_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+XueForwardTarget::mutable_rec_block_ids() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.XueForwardTarget.rec_block_ids)
+  return _internal_mutable_rec_block_ids();
+}
+
+// repeated int32 rec_offsets = 6;
+inline int XueForwardTarget::_internal_rec_offsets_size() const {
+  return _impl_.rec_offsets_.size();
+}
+inline int XueForwardTarget::rec_offsets_size() const {
+  return _internal_rec_offsets_size();
+}
+inline void XueForwardTarget::clear_rec_offsets() {
+  _impl_.rec_offsets_.Clear();
+}
+inline int32_t XueForwardTarget::_internal_rec_offsets(int index) const {
+  return _impl_.rec_offsets_.Get(index);
+}
+inline int32_t XueForwardTarget::rec_offsets(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueForwardTarget.rec_offsets)
+  return _internal_rec_offsets(index);
+}
+inline void XueForwardTarget::set_rec_offsets(int index, int32_t value) {
+  _impl_.rec_offsets_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueForwardTarget.rec_offsets)
+}
+inline void XueForwardTarget::_internal_add_rec_offsets(int32_t value) {
+  _impl_.rec_offsets_.Add(value);
+}
+inline void XueForwardTarget::add_rec_offsets(int32_t value) {
+  _internal_add_rec_offsets(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.XueForwardTarget.rec_offsets)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+XueForwardTarget::_internal_rec_offsets() const {
+  return _impl_.rec_offsets_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+XueForwardTarget::rec_offsets() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.XueForwardTarget.rec_offsets)
+  return _internal_rec_offsets();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+XueForwardTarget::_internal_mutable_rec_offsets() {
+  return &_impl_.rec_offsets_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+XueForwardTarget::mutable_rec_offsets() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.XueForwardTarget.rec_offsets)
+  return _internal_mutable_rec_offsets();
+}
+
+// repeated int32 rec_sizes = 7;
+inline int XueForwardTarget::_internal_rec_sizes_size() const {
+  return _impl_.rec_sizes_.size();
+}
+inline int XueForwardTarget::rec_sizes_size() const {
+  return _internal_rec_sizes_size();
+}
+inline void XueForwardTarget::clear_rec_sizes() {
+  _impl_.rec_sizes_.Clear();
+}
+inline int32_t XueForwardTarget::_internal_rec_sizes(int index) const {
+  return _impl_.rec_sizes_.Get(index);
+}
+inline int32_t XueForwardTarget::rec_sizes(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueForwardTarget.rec_sizes)
+  return _internal_rec_sizes(index);
+}
+inline void XueForwardTarget::set_rec_sizes(int index, int32_t value) {
+  _impl_.rec_sizes_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueForwardTarget.rec_sizes)
+}
+inline void XueForwardTarget::_internal_add_rec_sizes(int32_t value) {
+  _impl_.rec_sizes_.Add(value);
+}
+inline void XueForwardTarget::add_rec_sizes(int32_t value) {
+  _internal_add_rec_sizes(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.XueForwardTarget.rec_sizes)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+XueForwardTarget::_internal_rec_sizes() const {
+  return _impl_.rec_sizes_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+XueForwardTarget::rec_sizes() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.XueForwardTarget.rec_sizes)
+  return _internal_rec_sizes();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+XueForwardTarget::_internal_mutable_rec_sizes() {
+  return &_impl_.rec_sizes_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+XueForwardTarget::mutable_rec_sizes() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.XueForwardTarget.rec_sizes)
+  return _internal_mutable_rec_sizes();
+}
+
+// repeated uint32 rec_payload_kind = 8;
+inline int XueForwardTarget::_internal_rec_payload_kind_size() const {
+  return _impl_.rec_payload_kind_.size();
+}
+inline int XueForwardTarget::rec_payload_kind_size() const {
+  return _internal_rec_payload_kind_size();
+}
+inline void XueForwardTarget::clear_rec_payload_kind() {
+  _impl_.rec_payload_kind_.Clear();
+}
+inline uint32_t XueForwardTarget::_internal_rec_payload_kind(int index) const {
+  return _impl_.rec_payload_kind_.Get(index);
+}
+inline uint32_t XueForwardTarget::rec_payload_kind(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueForwardTarget.rec_payload_kind)
+  return _internal_rec_payload_kind(index);
+}
+inline void XueForwardTarget::set_rec_payload_kind(int index, uint32_t value) {
+  _impl_.rec_payload_kind_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueForwardTarget.rec_payload_kind)
+}
+inline void XueForwardTarget::_internal_add_rec_payload_kind(uint32_t value) {
+  _impl_.rec_payload_kind_.Add(value);
+}
+inline void XueForwardTarget::add_rec_payload_kind(uint32_t value) {
+  _internal_add_rec_payload_kind(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.XueForwardTarget.rec_payload_kind)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+XueForwardTarget::_internal_rec_payload_kind() const {
+  return _impl_.rec_payload_kind_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+XueForwardTarget::rec_payload_kind() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.XueForwardTarget.rec_payload_kind)
+  return _internal_rec_payload_kind();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+XueForwardTarget::_internal_mutable_rec_payload_kind() {
+  return &_impl_.rec_payload_kind_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+XueForwardTarget::mutable_rec_payload_kind() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.XueForwardTarget.rec_payload_kind)
+  return _internal_mutable_rec_payload_kind();
+}
+
 // -------------------------------------------------------------------
 
 // SetReply
@@ -11320,6 +12141,8 @@ StripeAndBlockIDs::mutable_datanodeports() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

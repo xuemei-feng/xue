@@ -1,6 +1,8 @@
 #include "unilrc_encoder.h"
 #include <iostream>
 #include <unordered_map>
+#include <vector>
+#include <cstring>
 
 extern "C" {
     void gf_vect_dot_prod_avx2(int len, int vec, unsigned char *g_tbls, unsigned char **buffs, unsigned char*dests);
@@ -235,6 +237,42 @@ void ECProject::partial_encode_azure_lrc(int k, int r, int z, int data_block_num
                         g_tbls, 
                         data_ptrs,       
                         parity_ptrs);
+
+    delete[] encode_matrix;
+    delete[] sub_matrix;
+    delete[] g_tbls;
+}
+
+void ECProject::partial_encode_azure_lrc_selected_cols(int k, int r, int z, const std::vector<int> &col_indices,
+                                                       unsigned char **data_delta_ptrs, unsigned char **parity_delta_ptrs, int block_size)
+{
+    const int num_cols = static_cast<int>(col_indices.size());
+    for (int i = 0; i < r + z; i++)
+    {
+        std::memset(parity_delta_ptrs[i], 0, block_size);
+    }
+    if (num_cols <= 0 || block_size <= 0)
+    {
+        return;
+    }
+    int m = k + r;
+    unsigned char *encode_matrix = new unsigned char[(m + z) * k];
+    gen_azure_lrc_matrix(encode_matrix, k, r, z);
+
+    unsigned char *sub_matrix = new unsigned char[(r + z) * num_cols];
+    for (int row = 0; row < r + z; row++)
+    {
+        for (int j = 0; j < num_cols; j++)
+        {
+            const int col = col_indices[static_cast<size_t>(j)];
+            sub_matrix[row * num_cols + j] = encode_matrix[(k + row) * k + col];
+        }
+    }
+
+    unsigned char *g_tbls = new unsigned char[num_cols * (r + z) * 32];
+    ec_init_tables(num_cols, r + z, sub_matrix, g_tbls);
+
+    ec_encode_data_avx2(block_size, num_cols, r + z, g_tbls, data_delta_ptrs, parity_delta_ptrs);
 
     delete[] encode_matrix;
     delete[] sub_matrix;
