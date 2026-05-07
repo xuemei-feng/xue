@@ -5,10 +5,11 @@ fi
 set -euo pipefail
 
 # Real bandwidth shaping by tc/htb (egress).
-# Matrix: /users/xue/xue/project/config/BW_limit (get_bw_mbps, Mbps).
-# 输出：默认一行摘要；BW_MATRIX_VERBOSE=1 打印每条 dst；=2 再 dump tc。
+# Matrix: project/config/BW_limit — BW_MATRIX_MB_PER_SEC in MB/s; tc uses Mbit/s via get_bw_tc_mbit_rate.
+# 输出：默认一行摘要；BW_MATRIX_VERBOSE=1 打印 matrix=…MB/s 与 tc=…mbit；=2 再 dump tc。
 
-BW_FILE="/users/xue/xue/project/config/BW_limit"
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BW_FILE="${_SCRIPT_DIR}/project/config/BW_limit"
 if [[ ! -f "$BW_FILE" ]]; then
   echo "Error: bandwidth file not found: $BW_FILE" >&2
   exit 1
@@ -85,7 +86,7 @@ detect_local_cluster() {
   return 1
 }
 
-mbps_to_tc_mbit() {
+float3() {
   awk -v m="$1" 'BEGIN { printf "%.3f", m + 0.0 }'
 }
 
@@ -119,24 +120,25 @@ main() {
   tc class add dev "$iface" parent 1: classid 1:1 htb rate 10000mbit ceil 10000mbit
   tc class add dev "$iface" parent 1: classid 1:999 htb rate 10000mbit ceil 10000mbit
 
-  local idx dst_ip bw_mbps bw_mbit class_minor classid rules=0
+  local idx dst_ip bw_mb_per_sec bw_mbit_rate class_minor classid rules=0
   for idx in "${!CLUSTER_IPS[@]}"; do
     if [[ "$idx" == "$src_cluster" ]]; then
       continue
     fi
     dst_ip="${CLUSTER_IPS[$idx]}"
-    bw_mbps="$(get_bw_mbps "$src_cluster" "$idx")"
-    if [[ -z "$bw_mbps" || "$bw_mbps" == "0" ]]; then
+    bw_mb_per_sec="$(get_bw_matrix_mb_per_sec "$src_cluster" "$idx")"
+    bw_mbit_rate="$(get_bw_tc_mbit_rate "$src_cluster" "$idx")"
+    if [[ -z "$bw_mbit_rate" || "$bw_mbit_rate" == "0" ]]; then
       ((v >= 1)) && echo "Skip $src_cluster->$idx (no bandwidth entry)"
       continue
     fi
-    bw_mbit="$(mbps_to_tc_mbit "$bw_mbps")"
+    bw_mbit="$(float3 "$bw_mbit_rate")"
     class_minor=$((100 + idx))
     classid="1:${class_minor}"
     tc class add dev "$iface" parent 1: classid "$classid" htb rate "${bw_mbit}mbit" ceil "${bw_mbit}mbit"
     tc filter add dev "$iface" protocol ip parent 1:0 prio 1 u32 match ip dst "${dst_ip}/32" flowid "$classid"
     ((rules++)) || true
-    ((v >= 1)) && echo "Limit dst=${dst_ip} cluster=${idx} bw=${bw_mbps}Mbps (${bw_mbit}mbit)"
+    ((v >= 1)) && echo "Limit dst=${dst_ip} cluster=${idx} matrix=${bw_mb_per_sec}MB/s tc=${bw_mbit}mbit"
   done
 
   echo "OK bw-matrix dev=${iface} host=${CLUSTER_IPS[$src_cluster]} cluster_id=${src_cluster} dst_rules=${rules}"
