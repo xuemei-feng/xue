@@ -15,3 +15,5 @@ logs/*
 project/build/*
 project/cmake/*
 project/cache/*
+project/build_opt/*
+

@@ -552,6 +552,8 @@ class SetInfo final :
     kBlockIdFieldNumber = 3,
     kProxyPortFieldNumber = 5,
     kIspullFieldNumber = 6,
+    kRangeOffsetFieldNumber = 7,
+    kRangeLengthFieldNumber = 8,
   };
   // string block_key = 1;
   void clear_block_key();
@@ -617,6 +619,24 @@ class SetInfo final :
   void _internal_set_ispull(bool value);
   public:
 
+  // int32 range_offset = 7;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // int32 range_length = 8;
+  void clear_range_length();
+  int32_t range_length() const;
+  void set_range_length(int32_t value);
+  private:
+  int32_t _internal_range_length() const;
+  void _internal_set_range_length(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:datanode_proto.SetInfo)
  private:
   class _Internal;
@@ -631,6 +651,8 @@ class SetInfo final :
     int32_t block_id_;
     int32_t proxy_port_;
     bool ispull_;
+    int32_t range_offset_;
+    int32_t range_length_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1125,6 +1147,8 @@ class GetInfo final :
     kBlockSizeFieldNumber = 2,
     kBlockIdFieldNumber = 3,
     kProxyPortFieldNumber = 5,
+    kRangeOffsetFieldNumber = 6,
+    kRangeLengthFieldNumber = 7,
   };
   // string block_key = 1;
   void clear_block_key();
@@ -1181,6 +1205,24 @@ class GetInfo final :
   void _internal_set_proxy_port(int32_t value);
   public:
 
+  // int32 range_offset = 6;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // int32 range_length = 7;
+  void clear_range_length();
+  int32_t range_length() const;
+  void set_range_length(int32_t value);
+  private:
+  int32_t _internal_range_length() const;
+  void _internal_set_range_length(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:datanode_proto.GetInfo)
  private:
   class _Internal;
@@ -1194,6 +1236,8 @@ class GetInfo final :
     int32_t block_size_;
     int32_t block_id_;
     int32_t proxy_port_;
+    int32_t range_offset_;
+    int32_t range_length_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1701,6 +1745,46 @@ inline void SetInfo::set_ispull(bool value) {
   // @@protoc_insertion_point(field_set:datanode_proto.SetInfo.ispull)
 }
 
+// int32 range_offset = 7;
+inline void SetInfo::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t SetInfo::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t SetInfo::range_offset() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.SetInfo.range_offset)
+  return _internal_range_offset();
+}
+inline void SetInfo::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void SetInfo::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.SetInfo.range_offset)
+}
+
+// int32 range_length = 8;
+inline void SetInfo::clear_range_length() {
+  _impl_.range_length_ = 0;
+}
+inline int32_t SetInfo::_internal_range_length() const {
+  return _impl_.range_length_;
+}
+inline int32_t SetInfo::range_length() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.SetInfo.range_length)
+  return _internal_range_length();
+}
+inline void SetInfo::_internal_set_range_length(int32_t value) {
+  
+  _impl_.range_length_ = value;
+}
+inline void SetInfo::set_range_length(int32_t value) {
+  _internal_set_range_length(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.SetInfo.range_length)
+}
+
 // -------------------------------------------------------------------
 
 // AppendInfo
@@ -2071,6 +2155,46 @@ inline void GetInfo::_internal_set_proxy_port(int32_t value) {
 inline void GetInfo::set_proxy_port(int32_t value) {
   _internal_set_proxy_port(value);
   // @@protoc_insertion_point(field_set:datanode_proto.GetInfo.proxy_port)
+}
+
+// int32 range_offset = 6;
+inline void GetInfo::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t GetInfo::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t GetInfo::range_offset() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.GetInfo.range_offset)
+  return _internal_range_offset();
+}
+inline void GetInfo::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void GetInfo::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.GetInfo.range_offset)
+}
+
+// int32 range_length = 7;
+inline void GetInfo::clear_range_length() {
+  _impl_.range_length_ = 0;
+}
+inline int32_t GetInfo::_internal_range_length() const {
+  return _impl_.range_length_;
+}
+inline int32_t GetInfo::range_length() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.GetInfo.range_length)
+  return _internal_range_length();
+}
+inline void GetInfo::_internal_set_range_length(int32_t value) {
+  
+  _impl_.range_length_ = value;
+}
+inline void GetInfo::set_range_length(int32_t value) {
+  _internal_set_range_length(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.GetInfo.range_length)
 }
 
 // -------------------------------------------------------------------

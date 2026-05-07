@@ -6,6 +6,7 @@
 #include "toolbox.h"
 #include "lrc.h"
 #include <thread>
+#include <mutex>
 #include <cassert>
 #include <string>
 #include <fstream>

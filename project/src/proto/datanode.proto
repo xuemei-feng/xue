@@ -59,6 +59,9 @@ message SetInfo {
     string proxy_ip = 4;
     int32 proxy_port = 5;
     bool ispull = 6;
+    // Parix/partial: range_length>0 means TCP carries range_length bytes written at range_offset; range_length==0 keeps legacy full replace (block_size bytes).
+    int32 range_offset = 7;
+    int32 range_length = 8;
 }
 
 message AppendInfo {
@@ -80,6 +83,9 @@ message GetInfo {
     int32 block_id = 3;
     string proxy_ip = 4;
     int32 proxy_port = 5;
+    // Partial read: range_length>0 reads [range_offset, range_offset+range_length); range_length==0 reads full block_size bytes from offset 0.
+    int32 range_offset = 6;
+    int32 range_length = 7;
 }
 
 message DelInfo {

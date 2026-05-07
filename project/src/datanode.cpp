@@ -529,17 +529,25 @@ namespace ECProject
         std::string proxy_ip = set_info->proxy_ip();
         int proxy_port = set_info->proxy_port();
         bool ispull = set_info->ispull();
-        auto handler1 = [this](std::string block_key, int block_size) mutable
+        const int set_range_offset = set_info->range_offset();
+        const int set_range_length = set_info->range_length();
+        auto handler1 = [this, set_range_offset, set_range_length](std::string block_key, int block_size) mutable
         {
             try
             {
-                // char *buf = new char[block_size];
-                std::vector<char> buf(block_size);
-                // only send data
+                const bool partial = (set_range_length > 0);
+                const int nbytes = partial ? set_range_length : block_size;
+                if (partial && (set_range_offset < 0 || nbytes <= 0 || set_range_offset + nbytes > block_size))
+                {
+                    std::cerr << "[Datanode] partial set invalid range offset=" << set_range_offset << " len=" << nbytes
+                              << " block_size=" << block_size << std::endl;
+                    return;
+                }
+                std::vector<char> buf(static_cast<size_t>(nbytes));
                 asio::error_code ec;
                 asio::ip::tcp::socket socket(io_context);
                 acceptor.accept(socket);
-                asio::read(socket, asio::buffer(buf.data(), block_size), ec);
+                asio::read(socket, asio::buffer(buf.data(), static_cast<size_t>(nbytes)), ec);
 
                 asio::error_code ignore_ec;
                 socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
@@ -552,15 +560,36 @@ namespace ECProject
                     mkdir(targetdir.c_str(), S_IRWXU);
                 }
 
-                // write the data to the disk using pagecache
-                std::ofstream ofs(writepath, std::ios::binary | std::ios::out | std::ios::trunc);
-                ofs.write(buf.data(), block_size);
-                if (IF_DEBUG)
+                if (partial)
                 {
-                    std::cout << "[Datanode" << m_port << "][Write] successfully write " << block_key << " with " << ofs.tellp() << "bytes" << std::endl;
+                    std::fstream ofs(writepath, std::ios::binary | std::ios::in | std::ios::out);
+                    if (!ofs.is_open())
+                    {
+                        std::cerr << "[Datanode" << m_port << "] partial set cannot open " << writepath << std::endl;
+                        return;
+                    }
+                    ofs.seekp(set_range_offset);
+                    ofs.write(buf.data(), nbytes);
+                    if (IF_DEBUG)
+                    {
+                        std::cout << "[Datanode" << m_port << "][Write][partial] " << block_key << " off=" << set_range_offset
+                                  << " len=" << nbytes << std::endl;
+                    }
+                    ofs.flush();
+                    ofs.close();
                 }
-                ofs.flush();
-                ofs.close();
+                else
+                {
+                    std::ofstream ofs(writepath, std::ios::binary | std::ios::out | std::ios::trunc);
+                    ofs.write(buf.data(), static_cast<size_t>(block_size));
+                    if (IF_DEBUG)
+                    {
+                        std::cout << "[Datanode" << m_port << "][Write] successfully write " << block_key << " with " << ofs.tellp()
+                                  << "bytes" << std::endl;
+                    }
+                    ofs.flush();
+                    ofs.close();
+                }
             }
             catch (const std::exception &e)
             {
@@ -713,9 +742,21 @@ namespace ECProject
         int block_size = get_info->block_size();
         std::string proxy_ip = get_info->proxy_ip();
         int proxy_port = get_info->proxy_port();
+        const int range_offset = get_info->range_offset();
+        const int range_length = get_info->range_length();
+        const bool partial = (range_length > 0);
+        const int nbytes = partial ? range_length : block_size;
+        const int read_off = partial ? range_offset : 0;
+        if (partial && (range_offset < 0 || nbytes <= 0 || range_offset + nbytes > block_size))
+        {
+            std::cout << "[Datanode] partial get invalid range off=" << range_offset << " len=" << nbytes << " block_size=" << block_size
+                      << std::endl;
+            response->set_message(false);
+            return grpc::Status::OK;
+        }
         std::string targetdir = "./storage/" + std::to_string(m_port) + "/";
         std::string readpath = targetdir + block_key;
-        char *buf = new char[block_size];
+        char *buf = new char[static_cast<size_t>(nbytes)];
         if (access(readpath.c_str(), 0) == -1)
         {
             std::cout << "[Datanode" << m_port << "][Read] file does not exist!" << readpath << std::endl;
@@ -726,16 +767,20 @@ namespace ECProject
             {
                 std::cout << "[Datanode" << m_port << "][GET] read from the disk and write to socket with port " << m_port + ECProject::DATANODE_PORT_SHIFT << std::endl;
             }
-            std::ifstream ifs(readpath);
-            ifs.read(buf, block_size);
+            std::ifstream ifs(readpath, std::ios::binary);
+            if (partial)
+            {
+                ifs.seekg(static_cast<std::streamoff>(read_off));
+            }
+            ifs.read(buf, nbytes);
             ifs.close();
         }
-        auto handler = [this](std::string block_key, int block_size, std::string proxy_ip, int proxy_port, char* buf) mutable
+        auto handler = [this](std::string block_key, int nbytes_tx, std::string proxy_ip, int proxy_port, char *buf) mutable
         {
             asio::error_code error;
             asio::ip::tcp::socket socket(io_context);
             acceptor.accept(socket);
-            asio::write(socket, asio::buffer(buf, block_size), error);
+            asio::write(socket, asio::buffer(buf, static_cast<size_t>(nbytes_tx)), error);
             asio::error_code ignore_ec;
             socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
             socket.close(ignore_ec);
@@ -751,7 +796,7 @@ namespace ECProject
             {
                 std::cout << "[Datanode" << m_port << "][GET] ready to handle get!" << std::endl;
             }
-            std::thread my_thread(handler, block_key, block_size, proxy_ip, proxy_port, buf);
+            std::thread my_thread(handler, block_key, nbytes, proxy_ip, proxy_port, buf);
             my_thread.detach();
             response->set_message(true);
         }

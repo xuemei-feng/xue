@@ -10,6 +10,8 @@
 #include <cmath>
 #include <stdexcept>
 #include <numeric>
+#include <mutex>
+#include <thread>
 
 
 template <typename T>
@@ -3016,6 +3018,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     Stripe &stripe = m_stripe_table[stripe_id];
     std::set<std::pair<std::string, int>> seen;
+    std::vector<std::string> replay_targets;
+    replay_targets.reserve(static_cast<size_t>(stripe.n - stripe.k));
     for (int pid = stripe.k; pid < stripe.n; ++pid)
     {
       Block *pb = find_block_by_block_id(stripe, pid);
@@ -3031,19 +3035,40 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       {
         continue;
       }
-      grpc::ClientContext ctx;
-      proxy_proto::ParixReplayBatchRequest rq;
-      rq.set_stripe_id(stripe_id);
-      rq.set_batch_id(batch_id);
-      proxy_proto::SetReply sr;
-      const std::string target = ip + ":" + std::to_string(port);
-      std::cout << "[Parix][Coordinator] commitParixBatch: stripe=" << stripe_id << " batch=" << batch_id << " -> parixReplayBatch @ " << target
-                << std::endl;
-      grpc::Status st = m_proxy_ptrs.at(target)->parixReplayBatch(&ctx, rq, &sr);
-      if (!st.ok() || !sr.ifcommit())
-      {
-        return grpc::Status(grpc::StatusCode::INTERNAL, "parixReplayBatch failed on " + target);
-      }
+      replay_targets.push_back(ip + ":" + std::to_string(port));
+    }
+
+    std::mutex replay_mu;
+    bool failed = false;
+    std::string fail_target;
+    std::vector<std::thread> replay_workers;
+    replay_workers.reserve(replay_targets.size());
+    for (const std::string &tgt : replay_targets)
+    {
+      replay_workers.emplace_back([this, stripe_id, batch_id, tgt, &failed, &fail_target, &replay_mu]() {
+        grpc::ClientContext ctx;
+        proxy_proto::ParixReplayBatchRequest rq;
+        rq.set_stripe_id(stripe_id);
+        rq.set_batch_id(batch_id);
+        proxy_proto::SetReply sr;
+        std::cout << "[Parix][Coordinator] commitParixBatch: stripe=" << stripe_id << " batch=" << batch_id << " -> parixReplayBatch @ " << tgt
+                  << std::endl;
+        grpc::Status st = m_proxy_ptrs.at(tgt)->parixReplayBatch(&ctx, rq, &sr);
+        if (!st.ok() || !sr.ifcommit())
+        {
+          std::lock_guard<std::mutex> lk(replay_mu);
+          failed = true;
+          fail_target = tgt;
+        }
+      });
+    }
+    for (std::thread &w : replay_workers)
+    {
+      w.join();
+    }
+    if (failed)
+    {
+      return grpc::Status(grpc::StatusCode::INTERNAL, "parixReplayBatch failed on " + fail_target);
     }
     std::cout << "[Parix][Coordinator] commitParixBatch finished stripe=" << stripe_id << " batch=" << batch_id << std::endl;
     return grpc::Status::OK;

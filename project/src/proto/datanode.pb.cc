@@ -59,6 +59,8 @@ PROTOBUF_CONSTEXPR SetInfo::SetInfo(
   , /*decltype(_impl_.block_id_)*/0
   , /*decltype(_impl_.proxy_port_)*/0
   , /*decltype(_impl_.ispull_)*/false
+  , /*decltype(_impl_.range_offset_)*/0
+  , /*decltype(_impl_.range_length_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct SetInfoDefaultTypeInternal {
   PROTOBUF_CONSTEXPR SetInfoDefaultTypeInternal()
@@ -107,6 +109,8 @@ PROTOBUF_CONSTEXPR GetInfo::GetInfo(
   , /*decltype(_impl_.block_size_)*/0
   , /*decltype(_impl_.block_id_)*/0
   , /*decltype(_impl_.proxy_port_)*/0
+  , /*decltype(_impl_.range_offset_)*/0
+  , /*decltype(_impl_.range_length_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct GetInfoDefaultTypeInternal {
   PROTOBUF_CONSTEXPR GetInfoDefaultTypeInternal()
@@ -166,6 +170,8 @@ const uint32_t TableStruct_datanode_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE
   PROTOBUF_FIELD_OFFSET(::datanode_proto::SetInfo, _impl_.proxy_ip_),
   PROTOBUF_FIELD_OFFSET(::datanode_proto::SetInfo, _impl_.proxy_port_),
   PROTOBUF_FIELD_OFFSET(::datanode_proto::SetInfo, _impl_.ispull_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::SetInfo, _impl_.range_offset_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::SetInfo, _impl_.range_length_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::datanode_proto::AppendInfo, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -196,6 +202,8 @@ const uint32_t TableStruct_datanode_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE
   PROTOBUF_FIELD_OFFSET(::datanode_proto::GetInfo, _impl_.block_id_),
   PROTOBUF_FIELD_OFFSET(::datanode_proto::GetInfo, _impl_.proxy_ip_),
   PROTOBUF_FIELD_OFFSET(::datanode_proto::GetInfo, _impl_.proxy_port_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::GetInfo, _impl_.range_offset_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::GetInfo, _impl_.range_length_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::datanode_proto::DelInfo, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -208,10 +216,10 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 0, -1, -1, sizeof(::datanode_proto::CheckaliveCMD)},
   { 7, -1, -1, sizeof(::datanode_proto::RequestResult)},
   { 18, -1, -1, sizeof(::datanode_proto::SetInfo)},
-  { 30, -1, -1, sizeof(::datanode_proto::AppendInfo)},
-  { 41, -1, -1, sizeof(::datanode_proto::MergeParityInfo)},
-  { 49, -1, -1, sizeof(::datanode_proto::GetInfo)},
-  { 60, -1, -1, sizeof(::datanode_proto::DelInfo)},
+  { 32, -1, -1, sizeof(::datanode_proto::AppendInfo)},
+  { 43, -1, -1, sizeof(::datanode_proto::MergeParityInfo)},
+  { 51, -1, -1, sizeof(::datanode_proto::GetInfo)},
+  { 64, -1, -1, sizeof(::datanode_proto::DelInfo)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -230,42 +238,44 @@ const char descriptor_table_protodef_datanode_2eproto[] PROTOBUF_SECTION_VARIABL
   "t\022\017\n\007message\030\001 \001(\010\022\026\n\016valuesizebytes\030\002 \001"
   "(\005\022\032\n\022disk_io_start_time\030\003 \001(\001\022\030\n\020disk_i"
   "o_end_time\030\004 \001(\001\022\027\n\017grpc_start_time\030\005 \001("
-  "\001\"x\n\007SetInfo\022\021\n\tblock_key\030\001 \001(\t\022\022\n\nblock"
-  "_size\030\002 \001(\005\022\020\n\010block_id\030\003 \001(\005\022\020\n\010proxy_i"
-  "p\030\004 \001(\t\022\022\n\nproxy_port\030\005 \001(\005\022\016\n\006ispull\030\006 "
-  "\001(\010\"t\n\nAppendInfo\022\021\n\tblock_key\030\001 \001(\t\022\020\n\010"
-  "block_id\030\002 \001(\005\022\023\n\013append_size\030\003 \001(\005\022\025\n\ra"
-  "ppend_offset\030\004 \001(\005\022\025\n\ris_serialized\030\005 \001("
-  "\010\"6\n\017MergeParityInfo\022\021\n\tblock_key\030\001 \001(\t\022"
-  "\020\n\010block_id\030\002 \001(\005\"h\n\007GetInfo\022\021\n\tblock_ke"
-  "y\030\001 \001(\t\022\022\n\nblock_size\030\002 \001(\005\022\020\n\010block_id\030"
-  "\003 \001(\005\022\020\n\010proxy_ip\030\004 \001(\t\022\022\n\nproxy_port\030\005 "
-  "\001(\005\"\034\n\007DelInfo\022\021\n\tblock_key\030\001 \001(\t2\246\006\n\017da"
-  "tanodeService\022J\n\ncheckalive\022\035.datanode_p"
-  "roto.CheckaliveCMD\032\035.datanode_proto.Requ"
-  "estResult\022C\n\thandleSet\022\027.datanode_proto."
-  "SetInfo\032\035.datanode_proto.RequestResult\022I"
-  "\n\014handleAppend\022\032.datanode_proto.AppendIn"
-  "fo\032\035.datanode_proto.RequestResult\022S\n\021han"
-  "dleMergeParity\022\037.datanode_proto.MergePar"
-  "ityInfo\032\035.datanode_proto.RequestResult\022Z"
-  "\n\030handleMergeParityWithRep\022\037.datanode_pr"
-  "oto.MergeParityInfo\032\035.datanode_proto.Req"
-  "uestResult\022P\n\016handleRecovery\022\037.datanode_"
-  "proto.MergeParityInfo\032\035.datanode_proto.R"
-  "equestResult\022Y\n\027handleRecoveryBreakdown\022"
-  "\037.datanode_proto.MergeParityInfo\032\035.datan"
-  "ode_proto.RequestResult\022C\n\thandleGet\022\027.d"
-  "atanode_proto.GetInfo\032\035.datanode_proto.R"
-  "equestResult\022L\n\022handleGetBreakdown\022\027.dat"
-  "anode_proto.GetInfo\032\035.datanode_proto.Req"
-  "uestResult\022F\n\014handleDelete\022\027.datanode_pr"
-  "oto.DelInfo\032\035.datanode_proto.RequestResu"
-  "ltb\006proto3"
+  "\001\"\244\001\n\007SetInfo\022\021\n\tblock_key\030\001 \001(\t\022\022\n\nbloc"
+  "k_size\030\002 \001(\005\022\020\n\010block_id\030\003 \001(\005\022\020\n\010proxy_"
+  "ip\030\004 \001(\t\022\022\n\nproxy_port\030\005 \001(\005\022\016\n\006ispull\030\006"
+  " \001(\010\022\024\n\014range_offset\030\007 \001(\005\022\024\n\014range_leng"
+  "th\030\010 \001(\005\"t\n\nAppendInfo\022\021\n\tblock_key\030\001 \001("
+  "\t\022\020\n\010block_id\030\002 \001(\005\022\023\n\013append_size\030\003 \001(\005"
+  "\022\025\n\rappend_offset\030\004 \001(\005\022\025\n\ris_serialized"
+  "\030\005 \001(\010\"6\n\017MergeParityInfo\022\021\n\tblock_key\030\001"
+  " \001(\t\022\020\n\010block_id\030\002 \001(\005\"\224\001\n\007GetInfo\022\021\n\tbl"
+  "ock_key\030\001 \001(\t\022\022\n\nblock_size\030\002 \001(\005\022\020\n\010blo"
+  "ck_id\030\003 \001(\005\022\020\n\010proxy_ip\030\004 \001(\t\022\022\n\nproxy_p"
+  "ort\030\005 \001(\005\022\024\n\014range_offset\030\006 \001(\005\022\024\n\014range"
+  "_length\030\007 \001(\005\"\034\n\007DelInfo\022\021\n\tblock_key\030\001 "
+  "\001(\t2\246\006\n\017datanodeService\022J\n\ncheckalive\022\035."
+  "datanode_proto.CheckaliveCMD\032\035.datanode_"
+  "proto.RequestResult\022C\n\thandleSet\022\027.datan"
+  "ode_proto.SetInfo\032\035.datanode_proto.Reque"
+  "stResult\022I\n\014handleAppend\022\032.datanode_prot"
+  "o.AppendInfo\032\035.datanode_proto.RequestRes"
+  "ult\022S\n\021handleMergeParity\022\037.datanode_prot"
+  "o.MergeParityInfo\032\035.datanode_proto.Reque"
+  "stResult\022Z\n\030handleMergeParityWithRep\022\037.d"
+  "atanode_proto.MergeParityInfo\032\035.datanode"
+  "_proto.RequestResult\022P\n\016handleRecovery\022\037"
+  ".datanode_proto.MergeParityInfo\032\035.datano"
+  "de_proto.RequestResult\022Y\n\027handleRecovery"
+  "Breakdown\022\037.datanode_proto.MergeParityIn"
+  "fo\032\035.datanode_proto.RequestResult\022C\n\than"
+  "dleGet\022\027.datanode_proto.GetInfo\032\035.datano"
+  "de_proto.RequestResult\022L\n\022handleGetBreak"
+  "down\022\027.datanode_proto.GetInfo\032\035.datanode"
+  "_proto.RequestResult\022F\n\014handleDelete\022\027.d"
+  "atanode_proto.DelInfo\032\035.datanode_proto.R"
+  "equestResultb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_datanode_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_datanode_2eproto = {
-    false, false, 1450, descriptor_table_protodef_datanode_2eproto,
+    false, false, 1540, descriptor_table_protodef_datanode_2eproto,
     "datanode.proto",
     &descriptor_table_datanode_2eproto_once, nullptr, 0, 7,
     schemas, file_default_instances, TableStruct_datanode_2eproto::offsets,
@@ -824,6 +834,8 @@ SetInfo::SetInfo(const SetInfo& from)
     , decltype(_impl_.block_id_){}
     , decltype(_impl_.proxy_port_){}
     , decltype(_impl_.ispull_){}
+    , decltype(_impl_.range_offset_){}
+    , decltype(_impl_.range_length_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -844,8 +856,8 @@ SetInfo::SetInfo(const SetInfo& from)
       _this->GetArenaForAllocation());
   }
   ::memcpy(&_impl_.block_size_, &from._impl_.block_size_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.ispull_) -
-    reinterpret_cast<char*>(&_impl_.block_size_)) + sizeof(_impl_.ispull_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.range_length_) -
+    reinterpret_cast<char*>(&_impl_.block_size_)) + sizeof(_impl_.range_length_));
   // @@protoc_insertion_point(copy_constructor:datanode_proto.SetInfo)
 }
 
@@ -860,6 +872,8 @@ inline void SetInfo::SharedCtor(
     , decltype(_impl_.block_id_){0}
     , decltype(_impl_.proxy_port_){0}
     , decltype(_impl_.ispull_){false}
+    , decltype(_impl_.range_offset_){0}
+    , decltype(_impl_.range_length_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.block_key_.InitDefault();
@@ -900,8 +914,8 @@ void SetInfo::Clear() {
   _impl_.block_key_.ClearToEmpty();
   _impl_.proxy_ip_.ClearToEmpty();
   ::memset(&_impl_.block_size_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.ispull_) -
-      reinterpret_cast<char*>(&_impl_.block_size_)) + sizeof(_impl_.ispull_));
+      reinterpret_cast<char*>(&_impl_.range_length_) -
+      reinterpret_cast<char*>(&_impl_.block_size_)) + sizeof(_impl_.range_length_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -959,6 +973,22 @@ const char* SetInfo::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) 
       case 6:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
           _impl_.ispull_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_offset = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
+          _impl_.range_offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_length = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 64)) {
+          _impl_.range_length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -1036,6 +1066,18 @@ uint8_t* SetInfo::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteBoolToArray(6, this->_internal_ispull(), target);
   }
 
+  // int32 range_offset = 7;
+  if (this->_internal_range_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(7, this->_internal_range_offset(), target);
+  }
+
+  // int32 range_length = 8;
+  if (this->_internal_range_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(8, this->_internal_range_length(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -1086,6 +1128,16 @@ size_t SetInfo::ByteSizeLong() const {
     total_size += 1 + 1;
   }
 
+  // int32 range_offset = 7;
+  if (this->_internal_range_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_offset());
+  }
+
+  // int32 range_length = 8;
+  if (this->_internal_range_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_length());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -1122,6 +1174,12 @@ void SetInfo::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOB
   if (from._internal_ispull() != 0) {
     _this->_internal_set_ispull(from._internal_ispull());
   }
+  if (from._internal_range_offset() != 0) {
+    _this->_internal_set_range_offset(from._internal_range_offset());
+  }
+  if (from._internal_range_length() != 0) {
+    _this->_internal_set_range_length(from._internal_range_length());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -1150,8 +1208,8 @@ void SetInfo::InternalSwap(SetInfo* other) {
       &other->_impl_.proxy_ip_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(SetInfo, _impl_.ispull_)
-      + sizeof(SetInfo::_impl_.ispull_)
+      PROTOBUF_FIELD_OFFSET(SetInfo, _impl_.range_length_)
+      + sizeof(SetInfo::_impl_.range_length_)
       - PROTOBUF_FIELD_OFFSET(SetInfo, _impl_.block_size_)>(
           reinterpret_cast<char*>(&_impl_.block_size_),
           reinterpret_cast<char*>(&other->_impl_.block_size_));
@@ -1725,6 +1783,8 @@ GetInfo::GetInfo(const GetInfo& from)
     , decltype(_impl_.block_size_){}
     , decltype(_impl_.block_id_){}
     , decltype(_impl_.proxy_port_){}
+    , decltype(_impl_.range_offset_){}
+    , decltype(_impl_.range_length_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -1745,8 +1805,8 @@ GetInfo::GetInfo(const GetInfo& from)
       _this->GetArenaForAllocation());
   }
   ::memcpy(&_impl_.block_size_, &from._impl_.block_size_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.proxy_port_) -
-    reinterpret_cast<char*>(&_impl_.block_size_)) + sizeof(_impl_.proxy_port_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.range_length_) -
+    reinterpret_cast<char*>(&_impl_.block_size_)) + sizeof(_impl_.range_length_));
   // @@protoc_insertion_point(copy_constructor:datanode_proto.GetInfo)
 }
 
@@ -1760,6 +1820,8 @@ inline void GetInfo::SharedCtor(
     , decltype(_impl_.block_size_){0}
     , decltype(_impl_.block_id_){0}
     , decltype(_impl_.proxy_port_){0}
+    , decltype(_impl_.range_offset_){0}
+    , decltype(_impl_.range_length_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.block_key_.InitDefault();
@@ -1800,8 +1862,8 @@ void GetInfo::Clear() {
   _impl_.block_key_.ClearToEmpty();
   _impl_.proxy_ip_.ClearToEmpty();
   ::memset(&_impl_.block_size_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.proxy_port_) -
-      reinterpret_cast<char*>(&_impl_.block_size_)) + sizeof(_impl_.proxy_port_));
+      reinterpret_cast<char*>(&_impl_.range_length_) -
+      reinterpret_cast<char*>(&_impl_.block_size_)) + sizeof(_impl_.range_length_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -1851,6 +1913,22 @@ const char* GetInfo::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) 
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
           _impl_.proxy_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_offset = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
+          _impl_.range_offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_length = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
+          _impl_.range_length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -1922,6 +2000,18 @@ uint8_t* GetInfo::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_proxy_port(), target);
   }
 
+  // int32 range_offset = 6;
+  if (this->_internal_range_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(6, this->_internal_range_offset(), target);
+  }
+
+  // int32 range_length = 7;
+  if (this->_internal_range_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(7, this->_internal_range_length(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -1967,6 +2057,16 @@ size_t GetInfo::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_proxy_port());
   }
 
+  // int32 range_offset = 6;
+  if (this->_internal_range_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_offset());
+  }
+
+  // int32 range_length = 7;
+  if (this->_internal_range_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_length());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -2000,6 +2100,12 @@ void GetInfo::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOB
   if (from._internal_proxy_port() != 0) {
     _this->_internal_set_proxy_port(from._internal_proxy_port());
   }
+  if (from._internal_range_offset() != 0) {
+    _this->_internal_set_range_offset(from._internal_range_offset());
+  }
+  if (from._internal_range_length() != 0) {
+    _this->_internal_set_range_length(from._internal_range_length());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -2028,8 +2134,8 @@ void GetInfo::InternalSwap(GetInfo* other) {
       &other->_impl_.proxy_ip_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(GetInfo, _impl_.proxy_port_)
-      + sizeof(GetInfo::_impl_.proxy_port_)
+      PROTOBUF_FIELD_OFFSET(GetInfo, _impl_.range_length_)
+      + sizeof(GetInfo::_impl_.range_length_)
       - PROTOBUF_FIELD_OFFSET(GetInfo, _impl_.block_size_)>(
           reinterpret_cast<char*>(&_impl_.block_size_),
           reinterpret_cast<char*>(&other->_impl_.block_size_));

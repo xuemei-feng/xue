@@ -2,6 +2,7 @@
 #include "coordinator.grpc.pb.h"
 #include "proxy.grpc.pb.h"
 #include "datanode.grpc.pb.h"
+#include <grpcpp/create_channel.h>
 
 #include <asio.hpp>
 #include <thread>
@@ -10,9 +11,12 @@
 #include <random>
 #include <algorithm>
 #include <cstring>
+#include <cstdlib>
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <unordered_map>
+#include <memory>
 #include <string>
 #include <vector>
 #include "unilrc_encoder.h"
@@ -25,22 +29,115 @@ namespace ECProject
       return code_type == "AzureLRC" || code_type == "RandomLRC";
     }
 
-    bool parix_datanode_read_block(const std::string &dn_ip, int dn_grpc_port, const std::string &block_key, int block_size, char *out)
+    // Hot-path: default off. Export PARIX_TRACE=1 for hex dumps and verbose Parix client logs.
+    static bool parix_client_trace()
     {
+      static const int enabled = []() {
+        const char *e = std::getenv("PARIX_TRACE");
+        return (e != nullptr && e[0] == '1' && e[1] == '\0') ? 1 : 0;
+      }();
+      return enabled != 0;
+    }
+
+    struct ParixPendingSlice
+    {
+      int off{};
+      int len{};
+      const char *payload{};
+    };
+
+    struct ParixCoalescedDiskWrite
+    {
+      int off{};
+      int len{};
+      const char *data{};
+      std::vector<char> owned{};
+    };
+
+    static std::vector<ParixCoalescedDiskWrite> parix_coalesce_disk_writes(std::vector<ParixPendingSlice> pending)
+    {
+      std::vector<ParixCoalescedDiskWrite> out;
+      if (pending.empty())
+      {
+        return out;
+      }
+      std::sort(pending.begin(), pending.end(),
+                [](const ParixPendingSlice &a, const ParixPendingSlice &b) { return a.off < b.off; });
+      size_t i = 0;
+      while (i < pending.size())
+      {
+        size_t j = i;
+        int run_end = pending[i].off + pending[i].len;
+        bool mem_ok = true;
+        while (j + 1 < pending.size() && pending[j + 1].off == run_end)
+        {
+          if (pending[j + 1].payload != pending[j].payload + pending[j].len)
+          {
+            mem_ok = false;
+          }
+          run_end += pending[j + 1].len;
+          j++;
+        }
+        const int run_begin = pending[i].off;
+        const int total_len = run_end - run_begin;
+        if (j > i && mem_ok)
+        {
+          ParixCoalescedDiskWrite cw;
+          cw.off = run_begin;
+          cw.len = total_len;
+          cw.data = pending[i].payload;
+          out.push_back(std::move(cw));
+          i = j + 1;
+          continue;
+        }
+        if (j > i && !mem_ok)
+        {
+          std::vector<char> buf(static_cast<size_t>(total_len));
+          int pos = 0;
+          for (size_t t = i; t <= j; t++)
+          {
+            std::memcpy(buf.data() + pos, pending[t].payload, static_cast<size_t>(pending[t].len));
+            pos += pending[t].len;
+          }
+          ParixCoalescedDiskWrite cw;
+          cw.off = run_begin;
+          cw.len = total_len;
+          cw.owned = std::move(buf);
+          cw.data = cw.owned.data();
+          out.push_back(std::move(cw));
+          i = j + 1;
+          continue;
+        }
+        ParixCoalescedDiskWrite cw;
+        cw.off = pending[i].off;
+        cw.len = pending[i].len;
+        cw.data = pending[i].payload;
+        out.push_back(std::move(cw));
+        i++;
+      }
+      return out;
+    }
+
+    bool parix_datanode_read_range_stub(datanode_proto::datanodeService::Stub *stub, const std::string &dn_ip, int dn_grpc_port,
+                                        const std::string &block_key, int block_size, int range_offset, int range_length, char *out)
+    {
+      if (stub == nullptr || range_length <= 0 || range_offset < 0 || range_offset + range_length > block_size)
+      {
+        return false;
+      }
       grpc::ClientContext ctx;
       datanode_proto::GetInfo req;
       req.set_block_key(block_key);
       req.set_block_size(block_size);
+      req.set_range_offset(range_offset);
+      req.set_range_length(range_length);
       req.set_proxy_ip("127.0.0.1");
       req.set_proxy_port(0);
-      auto ch = grpc::CreateChannel(dn_ip + ":" + std::to_string(dn_grpc_port), grpc::InsecureChannelCredentials());
-      auto stub = datanode_proto::datanodeService::NewStub(ch);
       datanode_proto::RequestResult res;
       if (!stub->handleGet(&ctx, req, &res).ok() || !res.message())
       {
         return false;
       }
-      std::this_thread::sleep_for(std::chrono::milliseconds(5));
       try
       {
         asio::io_context ioc;
@@ -48,8 +145,8 @@ namespace ECProject
         asio::ip::tcp::resolver r(ioc);
         asio::connect(s, r.resolve({dn_ip, std::to_string(dn_grpc_port + ECProject::DATANODE_PORT_SHIFT)}));
         asio::error_code ec;
-        size_t n = asio::read(s, asio::buffer(out, static_cast<size_t>(block_size)), ec);
-        return !ec && n == static_cast<size_t>(block_size);
+        size_t n = asio::read(s, asio::buffer(out, static_cast<size_t>(range_length)), ec);
+        return !ec && n == static_cast<size_t>(range_length);
       }
       catch (...)
       {
@@ -57,8 +154,14 @@ namespace ECProject
       }
     }
 
-    bool parix_datanode_write_block(const std::string &dn_ip, int dn_grpc_port, const std::string &block_key, int block_size, const char *data)
+    bool parix_datanode_write_range_stub(datanode_proto::datanodeService::Stub *stub, const std::string &dn_ip, int dn_grpc_port,
+                                         const std::string &block_key, int block_size, int range_offset, int range_length,
+                                         const char *data)
     {
+      if (stub == nullptr || range_length <= 0 || range_offset < 0 || range_offset + range_length > block_size)
+      {
+        return false;
+      }
       grpc::ClientContext ctx;
       datanode_proto::SetInfo req;
       req.set_block_key(block_key);
@@ -67,14 +170,13 @@ namespace ECProject
       req.set_proxy_ip("");
       req.set_proxy_port(0);
       req.set_ispull(false);
-      auto ch = grpc::CreateChannel(dn_ip + ":" + std::to_string(dn_grpc_port), grpc::InsecureChannelCredentials());
-      auto stub = datanode_proto::datanodeService::NewStub(ch);
+      req.set_range_offset(range_offset);
+      req.set_range_length(range_length);
       datanode_proto::RequestResult res;
       if (!stub->handleSet(&ctx, req, &res).ok() || !res.message())
       {
         return false;
       }
-      std::this_thread::sleep_for(std::chrono::milliseconds(5));
       try
       {
         asio::io_context ioc;
@@ -82,7 +184,7 @@ namespace ECProject
         asio::ip::tcp::resolver r(ioc);
         asio::connect(s, r.resolve({dn_ip, std::to_string(dn_grpc_port + ECProject::DATANODE_PORT_SHIFT)}));
         asio::error_code ec;
-        asio::write(s, asio::buffer(data, static_cast<size_t>(block_size)), ec);
+        asio::write(s, asio::buffer(data, static_cast<size_t>(range_length)), ec);
         return !ec;
       }
       catch (...)
@@ -133,6 +235,10 @@ namespace ECProject
 
     void parix_log_slice_hex(const std::string &ctx, const char *data, int nbytes, int max_show = 16)
     {
+      if (!parix_client_trace())
+      {
+        return;
+      }
       if (data == nullptr || nbytes <= 0)
       {
         std::cout << "[Client][Parix] " << ctx << " (empty)\n";
@@ -1644,14 +1750,82 @@ namespace ECProject
     for (const std::string &bk : block_key_plan_order)
     {
       const std::vector<int> &idxs = seg_indices_by_block[bk];
-      std::vector<char> block_buf(static_cast<size_t>(bs));
       const coordinator_proto::ParixDataSegmentPlan &seg_read = plan.segments(idxs[0]);
-      std::cout << "[Client][Parix] --- data block group block_key=" << bk << " segments_in_block=" << idxs.size() << std::endl;
-      if (!parix_datanode_read_block(seg_read.datanode_ip(), seg_read.datanode_port(), seg_read.block_key(), bs, block_buf.data()))
+      if (parix_client_trace())
       {
-        std::cout << "[Client][Parix] read data block failed " << seg_read.block_key() << std::endl;
-        return false;
+        std::cout << "[Client][Parix] --- data block group block_key=" << bk << " segments_in_block=" << idxs.size() << std::endl;
       }
+
+      const std::string dn_ep = seg_read.datanode_ip() + ":" + std::to_string(seg_read.datanode_port());
+      auto dn_channel = grpc::CreateChannel(dn_ep, grpc::InsecureChannelCredentials());
+      auto dn_stub = datanode_proto::datanodeService::NewStub(dn_channel);
+
+      std::unordered_map<int, std::vector<char>> old_seg_by_idx;
+      {
+        std::vector<int> idx_sort(idxs);
+        std::sort(idx_sort.begin(), idx_sort.end(), [&](int a, int b) {
+          return plan.segments(a).range_offset() < plan.segments(b).range_offset();
+        });
+        size_t g = 0;
+        while (g < idx_sort.size())
+        {
+          int i0 = idx_sort[g];
+          int run_lo = static_cast<int>(plan.segments(i0).range_offset());
+          int run_hi = run_lo + static_cast<int>(plan.segments(i0).range_length());
+          size_t h = g;
+          while (h + 1 < idx_sort.size())
+          {
+            int inext = idx_sort[h + 1];
+            int lo = static_cast<int>(plan.segments(inext).range_offset());
+            if (lo != run_hi)
+            {
+              break;
+            }
+            run_hi = lo + static_cast<int>(plan.segments(inext).range_length());
+            h++;
+          }
+          if (h > g)
+          {
+            const int run_len = run_hi - run_lo;
+            std::vector<char> run_buf(static_cast<size_t>(run_len));
+            if (!parix_datanode_read_range_stub(dn_stub.get(), seg_read.datanode_ip(), seg_read.datanode_port(), seg_read.block_key(), bs,
+                                                  run_lo, run_len, run_buf.data()))
+            {
+              std::cout << "[Client][Parix] read data slice failed " << seg_read.block_key() << std::endl;
+              return false;
+            }
+            for (size_t t = g; t <= h; t++)
+            {
+              const int idx = idx_sort[t];
+              const auto &s = plan.segments(idx);
+              const int o = static_cast<int>(s.range_offset());
+              const int l = static_cast<int>(s.range_length());
+              old_seg_by_idx[idx].assign(run_buf.begin() + (o - run_lo), run_buf.begin() + (o - run_lo) + l);
+            }
+            g = h + 1;
+          }
+          else
+          {
+            const int idx = idx_sort[g];
+            const auto &s = plan.segments(idx);
+            const int l = static_cast<int>(s.range_length());
+            old_seg_by_idx[idx].resize(static_cast<size_t>(l));
+            if (!parix_datanode_read_range_stub(dn_stub.get(), seg_read.datanode_ip(), seg_read.datanode_port(), seg_read.block_key(), bs,
+                                                 static_cast<int>(s.range_offset()), l, old_seg_by_idx[idx].data()))
+            {
+              std::cout << "[Client][Parix] read data slice failed " << seg_read.block_key() << std::endl;
+              return false;
+            }
+            g++;
+          }
+        }
+      }
+
+      std::unordered_map<std::string, std::unique_ptr<proxy_proto::proxyService::Stub>> data_proxy_stubs;
+      std::unordered_map<std::string, std::unique_ptr<proxy_proto::proxyService::Stub>> parity_stub_by_ep;
+
+      std::vector<ParixPendingSlice> pending_writes;
+      pending_writes.reserve(idxs.size());
 
       for (int idx : idxs)
       {
@@ -1671,25 +1845,35 @@ namespace ECProject
         }
         const char *payload_ptr = packed_new_bytes + static_cast<size_t>(buf_off);
 
-        std::cout << "[Client][Parix] segment plan_idx=" << idx << " logical[" << seg_lo << "," << (seg_lo + rlen)
-                  << ") block_intra_off=" << seg.range_offset() << " len=" << rlen << std::endl;
-        parix_log_slice_hex("BEFORE update (on block slice)", block_buf.data() + static_cast<size_t>(seg.range_offset()), rlen);
+        std::vector<char> &old_seg = old_seg_by_idx.at(idx);
+
+        if (parix_client_trace())
+        {
+          std::cout << "[Client][Parix] segment plan_idx=" << idx << " logical[" << seg_lo << "," << (seg_lo + rlen)
+                    << ") block_intra_off=" << seg.range_offset() << " len=" << rlen << std::endl;
+        }
+        parix_log_slice_hex("BEFORE update (on block slice)", old_seg.data(), rlen);
         parix_log_slice_hex("UPDATE content (new payload)", payload_ptr, rlen);
 
-        std::cout << "[Client][Parix] call data_proxy gRPC=" << seg.data_proxy_ip() << ":" << seg.data_proxy_grpc_port()
-                  << " tcp_payload_port=" << seg.data_proxy_tcp_shift_port()
-                  << " (proxy will fan-out parixJournalAppend to parities)" << std::endl;
+        if (parix_client_trace())
+        {
+          std::cout << "[Client][Parix] call data_proxy gRPC=" << seg.data_proxy_ip() << ":" << seg.data_proxy_grpc_port()
+                    << " tcp_payload_port=" << seg.data_proxy_tcp_shift_port()
+                    << " (proxy will fan-out parixJournalAppend to parities)" << std::endl;
+        }
 
         proxy_proto::ParixDataUpdatePlacement placement;
         fill_parix_placement_from_segment(seg, stripe_id, plan.batch_id(), &placement);
 
-        std::thread tcp_thr([&, payload_ptr, rlen]() {
+        const std::string dp_ip = seg.data_proxy_ip();
+        const int dp_tcp = seg.data_proxy_tcp_shift_port();
+        std::thread tcp_thr([payload_ptr, rlen, dp_ip, dp_tcp]() {
           try
           {
             asio::io_context ioc;
             asio::ip::tcp::socket s(ioc);
             asio::ip::tcp::resolver r(ioc);
-            asio::connect(s, r.resolve({seg.data_proxy_ip(), std::to_string(seg.data_proxy_tcp_shift_port())}));
+            asio::connect(s, r.resolve({dp_ip, std::to_string(dp_tcp)}));
             asio::error_code ec;
             asio::write(s, asio::buffer(payload_ptr, static_cast<size_t>(rlen)), ec);
             asio::error_code ign;
@@ -1703,11 +1887,17 @@ namespace ECProject
         });
 
         grpc::ClientContext sched_ctx;
-        auto sched_ch = grpc::CreateChannel(seg.data_proxy_ip() + ":" + std::to_string(seg.data_proxy_grpc_port()),
-                                            grpc::InsecureChannelCredentials());
-        std::unique_ptr<proxy_proto::proxyService::Stub> sched_stub = proxy_proto::proxyService::NewStub(sched_ch);
         proxy_proto::ParixScheduleDataUpdateReply sched_rep;
-        grpc::Status sched_st = sched_stub->parixScheduleDataUpdate(&sched_ctx, placement, &sched_rep);
+        const std::string dpe = seg.data_proxy_ip() + ":" + std::to_string(seg.data_proxy_grpc_port());
+        auto ds_it = data_proxy_stubs.find(dpe);
+        if (ds_it == data_proxy_stubs.end())
+        {
+          ds_it = data_proxy_stubs
+                      .emplace(dpe, proxy_proto::proxyService::NewStub(
+                                        grpc::CreateChannel(dpe, grpc::InsecureChannelCredentials())))
+                      .first;
+        }
+        grpc::Status sched_st = ds_it->second->parixScheduleDataUpdate(&sched_ctx, placement, &sched_rep);
         tcp_thr.join();
         if (!sched_st.ok() || !sched_rep.ifcommit())
         {
@@ -1718,10 +1908,13 @@ namespace ECProject
         for (int ai = 0; ai < sched_rep.journal_acks_size(); ++ai)
         {
           const proxy_proto::ParixJournalAckItem &ack = sched_rep.journal_acks(ai);
-          const char *ack_str = (ack.ack() == proxy_proto::PARIX_ACK_SUCCESS) ? "SUCCESS" : "NEED_D0";
-          std::cout << "[Client][Parix]   schedule reply: parity_proxy " << ack.parity_proxy_ip() << ":"
-                    << ack.parity_proxy_grpc_port() << " parity_block_id=" << ack.parity_block_id() << " -> " << ack_str
-                    << std::endl;
+          if (parix_client_trace())
+          {
+            const char *ack_str = (ack.ack() == proxy_proto::PARIX_ACK_SUCCESS) ? "SUCCESS" : "NEED_D0";
+            std::cout << "[Client][Parix]   schedule reply: parity_proxy " << ack.parity_proxy_ip() << ":"
+                      << ack.parity_proxy_grpc_port() << " parity_block_id=" << ack.parity_block_id() << " -> " << ack_str
+                      << std::endl;
+          }
           if (ack.ack() != proxy_proto::PARIX_ACK_NEED_D0)
           {
             continue;
@@ -1735,32 +1928,48 @@ namespace ECProject
           sreq.set_data_block_id(seg.block_id());
           sreq.set_range_offset(seg.range_offset());
           sreq.set_range_length(static_cast<uint64_t>(rlen));
-          sreq.set_old_payload(block_buf.data() + static_cast<size_t>(seg.range_offset()), static_cast<size_t>(rlen));
-          auto sup_ch = grpc::CreateChannel(ack.parity_proxy_ip() + ":" + std::to_string(ack.parity_proxy_grpc_port()),
-                                            grpc::InsecureChannelCredentials());
-          std::unique_ptr<proxy_proto::proxyService::Stub> sup_stub = proxy_proto::proxyService::NewStub(sup_ch);
+          sreq.set_old_payload(old_seg.data(), static_cast<size_t>(rlen));
+          const std::string sup_ep = ack.parity_proxy_ip() + ":" + std::to_string(ack.parity_proxy_grpc_port());
+          auto pit = parity_stub_by_ep.find(sup_ep);
+          if (pit == parity_stub_by_ep.end())
+          {
+            auto sup_ch = grpc::CreateChannel(sup_ep, grpc::InsecureChannelCredentials());
+            pit = parity_stub_by_ep.emplace(sup_ep, proxy_proto::proxyService::NewStub(sup_ch)).first;
+          }
           proxy_proto::SetReply sup_rep;
-          grpc::Status sup_st = sup_stub->parixSupplyD0(&sup_ctx, sreq, &sup_rep);
+          grpc::Status sup_st = pit->second->parixSupplyD0(&sup_ctx, sreq, &sup_rep);
           if (!sup_st.ok() || !sup_rep.ifcommit())
           {
             std::cout << "[Client][Parix] parixSupplyD0 failed parity_block_id=" << ack.parity_block_id() << std::endl;
             return false;
           }
-          std::cout << "[Client][Parix]   parixSupplyD0 ok -> parity_proxy " << ack.parity_proxy_ip() << ":"
-                    << ack.parity_proxy_grpc_port() << " parity_block_id=" << ack.parity_block_id() << std::endl;
+          if (parix_client_trace())
+          {
+            std::cout << "[Client][Parix]   parixSupplyD0 ok -> parity_proxy " << ack.parity_proxy_ip() << ":"
+                      << ack.parity_proxy_grpc_port() << " parity_block_id=" << ack.parity_block_id() << std::endl;
+          }
         }
 
-        std::memcpy(block_buf.data() + static_cast<size_t>(seg.range_offset()), payload_ptr, static_cast<size_t>(rlen));
-        parix_log_slice_hex("AFTER update (same slice in RAM, before group writeback)", block_buf.data() + static_cast<size_t>(seg.range_offset()), rlen);
+        pending_writes.push_back(ParixPendingSlice{static_cast<int>(seg.range_offset()), rlen, payload_ptr});
+        parix_log_slice_hex("AFTER update (new bytes staged for writeback)", payload_ptr, rlen);
       }
 
-      if (!parix_datanode_write_block(seg_read.datanode_ip(), seg_read.datanode_port(), seg_read.block_key(), bs, block_buf.data()))
+      const std::vector<ParixCoalescedDiskWrite> coalesced = parix_coalesce_disk_writes(std::move(pending_writes));
+      for (const ParixCoalescedDiskWrite &cw : coalesced)
       {
-        std::cout << "[Client][Parix] write data block failed " << seg_read.block_key() << std::endl;
-        return false;
+        if (!parix_datanode_write_range_stub(dn_stub.get(), seg_read.datanode_ip(), seg_read.datanode_port(), seg_read.block_key(), bs,
+                                            cw.off, cw.len, cw.data))
+        {
+          std::cout << "[Client][Parix] write data slice failed " << seg_read.block_key() << std::endl;
+          return false;
+        }
       }
-      std::cout << "[Client][Parix] data block writeback done datanode " << seg_read.datanode_ip() << ":" << seg_read.datanode_port()
-                << " key=" << seg_read.block_key() << std::endl;
+      if (parix_client_trace())
+      {
+        std::cout << "[Client][Parix] data block slice writeback done datanode " << seg_read.datanode_ip() << ":" << seg_read.datanode_port()
+                  << " key=" << seg_read.block_key() << " logical_slices=" << idxs.size() << " disk_writes=" << coalesced.size()
+                  << std::endl;
+      }
     }
 
     grpc::ClientContext cctx;
