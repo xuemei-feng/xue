@@ -1,5 +1,6 @@
 #include "proxy.h"
 #include <grpcpp/create_channel.h>
+#include <grpcpp/support/channel_arguments.h>
 #include "jerasure.h"
 #include "reed_sol.h"
 #include "tinyxml2.h"
@@ -30,6 +31,16 @@ namespace ECProject
     inline bool is_azure_like_code(const std::string &code_type)
     {
       return code_type == "AzureLRC" || code_type == "RandomLRC";
+    }
+
+    /** Parix fan-out embeds new_payload in parixJournalAppend*; must exceed default 4MB gRPC cap. */
+    inline grpc::ChannelArguments grpc_channel_args_parix_payload()
+    {
+      grpc::ChannelArguments args;
+      constexpr int k_max = 128 * 1024 * 1024;
+      args.SetMaxReceiveMessageSize(k_max);
+      args.SetMaxSendMessageSize(k_max);
+      return args;
     }
   }
 
@@ -2751,7 +2762,8 @@ namespace ECProject
         req.set_new_payload(buf.data(), buf.size());
         proxy_proto::ParixJournalAppendReply rep;
         const std::string addr = t.proxy_ip() + ":" + std::to_string(t.proxy_grpc_port());
-        auto channel = grpc::CreateChannel(addr, grpc::InsecureChannelCredentials());
+        auto channel =
+            grpc::CreateCustomChannel(addr, grpc::InsecureChannelCredentials(), grpc_channel_args_parix_payload());
         auto stub = proxy_proto::proxyService::NewStub(channel);
         grpc::Status st = stub->parixJournalAppend(&ctx, req, &rep);
         if (!st.ok())
@@ -2792,7 +2804,8 @@ namespace ECProject
           bi->set_parity_datanode_port(tp->parity_datanode_port());
         }
         proxy_proto::ParixJournalAppendBatchReply brep;
-        auto channel = grpc::CreateChannel(addr, grpc::InsecureChannelCredentials());
+        auto channel =
+            grpc::CreateCustomChannel(addr, grpc::InsecureChannelCredentials(), grpc_channel_args_parix_payload());
         auto stub = proxy_proto::proxyService::NewStub(channel);
         grpc::Status st = stub->parixJournalAppendBatch(&ctx, breq, &brep);
         if (!st.ok())

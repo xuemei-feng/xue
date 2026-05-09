@@ -3,6 +3,7 @@
 #include "proxy.grpc.pb.h"
 #include "datanode.grpc.pb.h"
 #include <grpcpp/create_channel.h>
+#include <grpcpp/support/channel_arguments.h>
 
 #include <asio.hpp>
 #include <thread>
@@ -27,6 +28,15 @@ namespace ECProject
     bool is_azure_like_code(const std::string &code_type)
     {
       return code_type == "AzureLRC" || code_type == "RandomLRC";
+    }
+
+    std::shared_ptr<grpc::Channel> parix_proxy_channel(const std::string &target)
+    {
+      grpc::ChannelArguments args;
+      constexpr int k_max = 128 * 1024 * 1024;
+      args.SetMaxReceiveMessageSize(k_max);
+      args.SetMaxSendMessageSize(k_max);
+      return grpc::CreateCustomChannel(target, grpc::InsecureChannelCredentials(), args);
     }
 
     // Hot-path: default off. Export PARIX_TRACE=1 for hex dumps and verbose Parix client logs.
@@ -1893,8 +1903,7 @@ namespace ECProject
         if (ds_it == data_proxy_stubs.end())
         {
           ds_it = data_proxy_stubs
-                      .emplace(dpe, proxy_proto::proxyService::NewStub(
-                                        grpc::CreateChannel(dpe, grpc::InsecureChannelCredentials())))
+                      .emplace(dpe, proxy_proto::proxyService::NewStub(parix_proxy_channel(dpe)))
                       .first;
         }
         grpc::Status sched_st = ds_it->second->parixScheduleDataUpdate(&sched_ctx, placement, &sched_rep);
@@ -1933,7 +1942,7 @@ namespace ECProject
           auto pit = parity_stub_by_ep.find(sup_ep);
           if (pit == parity_stub_by_ep.end())
           {
-            auto sup_ch = grpc::CreateChannel(sup_ep, grpc::InsecureChannelCredentials());
+            auto sup_ch = parix_proxy_channel(sup_ep);
             pit = parity_stub_by_ep.emplace(sup_ep, proxy_proto::proxyService::NewStub(sup_ch)).first;
           }
           proxy_proto::SetReply sup_rep;
@@ -2077,7 +2086,7 @@ namespace ECProject
         jr->set_range_length(inv.range_length());
       }
       grpc::ClientContext po_ctx;
-      auto pch = grpc::CreateChannel(ep.proxy_ip() + ":" + std::to_string(ep.proxy_grpc_port()), grpc::InsecureChannelCredentials());
+      auto pch = parix_proxy_channel(ep.proxy_ip() + ":" + std::to_string(ep.proxy_grpc_port()));
       std::unique_ptr<proxy_proto::proxyService::Stub> pstub = proxy_proto::proxyService::NewStub(pch);
       proxy_proto::SetReply prepl;
       grpc::Status pst = pstub->parixParityFullOverwrite(&po_ctx, oreq, &prepl);
