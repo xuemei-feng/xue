@@ -1,0 +1,6 @@
+/users/xue/xue/project/build_opt/CMakeFiles/run_coordinator.dir
+/users/xue/xue/project/build_opt/CMakeFiles/run_proxy.dir
+/users/xue/xue/project/build_opt/CMakeFiles/run_datanode.dir
+/users/xue/xue/project/build_opt/CMakeFiles/main_client.dir
+/users/xue/xue/project/build_opt/CMakeFiles/edit_cache.dir
+/users/xue/xue/project/build_opt/CMakeFiles/rebuild_cache.dir

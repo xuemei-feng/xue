@@ -1,4 +1,6 @@
 #include "proxy.h"
+#include <grpcpp/create_channel.h>
+#include <grpcpp/support/channel_arguments.h>
 #include "jerasure.h"
 #include "reed_sol.h"
 #include "tinyxml2.h"
@@ -39,6 +41,16 @@ namespace ECProject
     inline bool is_azure_like_code(const std::string &code_type)
     {
       return code_type == "AzureLRC" || code_type == "RandomLRC";
+    }
+
+    /** gRPC default max message is 4MB; RackCU home-delta fetch / Parix payloads need larger. */
+    inline grpc::ChannelArguments grpc_large_payload_channel_args()
+    {
+      grpc::ChannelArguments args;
+      constexpr int k_max = 128 * 1024 * 1024;
+      args.SetMaxReceiveMessageSize(k_max);
+      args.SetMaxSendMessageSize(k_max);
+      return args;
     }
 
     constexpr int kRackcuParityHexPreview = 16;
@@ -422,7 +434,7 @@ namespace ECProject
     else
     {
       const std::string target = ref.holder_proxy_ip() + ":" + std::to_string(ref.holder_proxy_port());
-      auto channel = grpc::CreateChannel(target, grpc::InsecureChannelCredentials());
+      auto channel = grpc::CreateCustomChannel(target, grpc::InsecureChannelCredentials(), grpc_large_payload_channel_args());
       auto stub = proxy_proto::proxyService::NewStub(channel);
       proxy_proto::RackCuHomeDeltaFetchRequest req;
       req.set_staging_key(ref.staging_key());

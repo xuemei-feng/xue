@@ -1,0 +1,4 @@
+CMakeFiles/run_coordinator.dir/src/asm/gf_vect_dot_prod_avx2.asm.o : \
+  /users/xue/xue/project/src/asm/gf_vect_dot_prod_avx2.asm \
+  /users/xue/xue/project/src/asm/reg_sizes.asm
+

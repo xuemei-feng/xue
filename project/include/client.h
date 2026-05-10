@@ -16,6 +16,13 @@
 #include <vector>
 namespace ECProject
 {
+  /** Optional breakdown from Client::async_append_to_proxies (TCP to proxy vs coordinator commit poll). */
+  struct RackCuAppendNetworkTiming
+  {
+    double tcp_resolve_connect_write_shutdown_s = 0;
+    double coordinator_check_commit_abort_s = 0;
+  };
+
   class Client
   {
   public:
@@ -98,7 +105,8 @@ namespace ECProject
     int get_append_slice_plans(std::string append_mode, int curr_logical_offset, int append_size, std::vector<std::vector<int>> *node_slice_sizes_per_cluster, std::vector<int> *modified_data_block_nums_per_cluster, std::vector<int> *data_ptr_size_array, int &parity_slice_size, int &parity_slice_offset);
     void split_for_append_data_and_parity(const coordinator_proto::ReplyProxyIPsPorts *reply_proxy_ips_ports, const std::vector<char *> &cluster_slice_data, const std::vector<std::vector<int>> &node_slice_sizes_per_cluster, const std::vector<int> &modified_data_block_nums_per_cluster, std::vector<char *> &data_ptr_array, std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array);
     void split_for_set_data_and_parity(const coordinator_proto::ReplyProxyIPsPorts *reply_proxy_ips_ports, const std::vector<char *> &cluster_slice_data, const std::vector<int> &data_block_num_per_group, const std::vector<int> &global_parity_block_num_per_group, const std::vector<int> &local_parity_block_num_per_group, std::vector<char *> &data_ptr_array, std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array);
-    void async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr, int stripe_id = -1, std::vector<std::vector<unsigned char>> *rackcu_delta_by_block = nullptr);
+    void async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr, int stripe_id = -1, std::vector<std::vector<unsigned char>> *rackcu_delta_by_block = nullptr,
+                                 RackCuAppendNetworkTiming *network_timing_out = nullptr);
     void get_cached_parity_slices(std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array, const int parity_slice_size, const int parity_slice_offset);
     void cache_latest_parity_slices(std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array, const int parity_slice_size, const int parity_slice_offset);
     std::vector<int> get_parameters();
@@ -118,6 +126,11 @@ namespace ECProject
     ECProject::ToolBox *m_toolbox;
     char *m_pre_allocated_buffer = nullptr;
     char **m_cached_buffer = nullptr;
+
+    /** RackCU DATA_HOME only: TCP payload to proxy (no coordinator wait). */
+    bool rackcu_tcp_send_payload(const char *data, int size, const std::string &proxy_ip, int proxy_port);
+    /** Wait until Coordinator records commit for this append_key (APPEND). */
+    bool rackcu_wait_append_committed(const std::string &append_key, int stripe_id);
   };
 
 } // namespace ECProject

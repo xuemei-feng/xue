@@ -22,6 +22,12 @@ namespace ECProject
       return code_type == "AzureLRC" || code_type == "RandomLRC";
     }
 
+    inline double chron_elapsed_s(std::chrono::high_resolution_clock::time_point a,
+                                    std::chrono::high_resolution_clock::time_point b)
+    {
+      return std::chrono::duration<double>(b - a).count();
+    }
+
     // 必须与 coordinator.cpp 匿名命名空间中的 RackCuClientStep 取值一致（与历史 group_ids 兼容）
     enum RackCuClientStep : int32_t
     {
@@ -345,7 +351,7 @@ namespace ECProject
       for (int i = 0; i < reply.append_keys_size(); i++)
       {
         threads.push_back(std::thread(&Client::async_append_to_proxies,
-                                      this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get()));
+                                      this, cluster_slice_data[i], reply.append_keys(i), static_cast<int>(reply.cluster_slice_sizes(i)), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get()));
       }
       for (auto &thread : threads)
       {
@@ -371,9 +377,11 @@ namespace ECProject
     return true;
   }*/
 
-  void Client::async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr, int stripe_id, std::vector<std::vector<unsigned char>> *rackcu_delta_by_block)
+  void Client::async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr, int stripe_id, std::vector<std::vector<unsigned char>> *rackcu_delta_by_block,
+                                       RackCuAppendNetworkTiming *network_timing_out)
   {
     // std::cout << "[Append174] Appending size " << cluster_slice_size << " to proxy_address:" << proxy_ip << ":" << proxy_port << std::endl;
+    const auto t_tcp0 = std::chrono::high_resolution_clock::now();
     asio::io_context io_context;
     asio::error_code error;
     asio::ip::tcp::resolver resolver(io_context);
@@ -386,6 +394,7 @@ namespace ECProject
     asio::error_code ignore_ec;
     sock_data.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
     sock_data.close(ignore_ec);
+    const auto t_tcp1 = std::chrono::high_resolution_clock::now();
 
     // check if metadata is saved successfully
     grpc::ClientContext check_commit;
@@ -400,6 +409,12 @@ namespace ECProject
     coordinator_proto::RepIfSuccess reply;
     grpc::Status status;
     status = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply);
+    const auto t_commit1 = std::chrono::high_resolution_clock::now();
+    if (network_timing_out != nullptr)
+    {
+      network_timing_out->tcp_resolve_connect_write_shutdown_s = chron_elapsed_s(t_tcp0, t_tcp1);
+      network_timing_out->coordinator_check_commit_abort_s = chron_elapsed_s(t_tcp1, t_commit1);
+    }
     if (status.ok())
     {
       if (reply.ifcommit())
@@ -415,6 +430,46 @@ namespace ECProject
     {
       std::cout << "[APPEND210] " << append_key << " Fail to check!!!!!" << " cluster_slice_size: " << cluster_slice_size << " proxy_ip: " << proxy_ip << " proxy_port: " << proxy_port << std::endl;
     }
+  }
+
+  bool Client::rackcu_tcp_send_payload(const char *data, int size, const std::string &proxy_ip, int proxy_port)
+  {
+    if (data == nullptr || size < 0)
+    {
+      return false;
+    }
+    asio::io_context io_context;
+    asio::error_code error;
+    asio::ip::tcp::resolver resolver(io_context);
+    asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(proxy_ip, std::to_string(proxy_port));
+    asio::ip::tcp::socket sock_data(io_context);
+    asio::connect(sock_data, endpoints);
+    asio::write(sock_data, asio::buffer(data, static_cast<size_t>(size)), error);
+    asio::error_code ignore_ec;
+    sock_data.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
+    sock_data.close(ignore_ec);
+    if (error)
+    {
+      std::cout << "[RACKCU] rackcu_tcp_send_payload: " << error.message() << " proxy=" << proxy_ip << ":" << proxy_port
+                << " bytes=" << size << std::endl;
+    }
+    return !error;
+  }
+
+  bool Client::rackcu_wait_append_committed(const std::string &append_key, int stripe_id)
+  {
+    grpc::ClientContext check_commit;
+    coordinator_proto::AskIfSuccess request;
+    request.set_key(append_key);
+    OpperateType opp = APPEND;
+    request.set_opp(opp);
+    if (stripe_id >= 0)
+    {
+      request.set_stripe_id(stripe_id);
+    }
+    coordinator_proto::RepIfSuccess reply;
+    grpc::Status status = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply);
+    return status.ok() && reply.ifcommit();
   }
 
   void Client::get_cached_parity_slices(std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array, const int parity_slice_size, const int parity_slice_offset)
@@ -715,7 +770,8 @@ namespace ECProject
       for (int i = 0; i < reply.append_keys_size(); i++)
       {
         threads.push_back(std::thread(&Client::async_append_to_proxies,
-                                      this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get(), -1, nullptr));
+                                      this, cluster_slice_data[i], reply.append_keys(i), static_cast<int>(reply.cluster_slice_sizes(i)), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get(), -1,
+                                      static_cast<std::vector<std::vector<unsigned char>> *>(nullptr), static_cast<RackCuAppendNetworkTiming *>(nullptr)));
       }
       for (auto &thread : threads)
       {
@@ -805,7 +861,8 @@ namespace ECProject
       for (int i = 0; i < reply.append_keys_size(); i++)
       {
         threads.push_back(std::thread(&Client::async_append_to_proxies,
-                                      this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get(), -1, nullptr));
+                                      this, cluster_slice_data[i], reply.append_keys(i), static_cast<int>(reply.cluster_slice_sizes(i)), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get(), -1,
+                                      static_cast<std::vector<std::vector<unsigned char>> *>(nullptr), static_cast<RackCuAppendNetworkTiming *>(nullptr)));
       }
       for (auto &thread : threads)
       {
@@ -870,7 +927,8 @@ namespace ECProject
     for (int i = 0; i < reply.append_keys_size(); i++)
     {
       threads.push_back(std::thread(&Client::async_append_to_proxies,
-                                    this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get(), -1, nullptr));
+                                    this, cluster_slice_data[i], reply.append_keys(i), static_cast<int>(reply.cluster_slice_sizes(i)), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get(), -1,
+                                    static_cast<std::vector<std::vector<unsigned char>> *>(nullptr), static_cast<RackCuAppendNetworkTiming *>(nullptr)));
     }
     for (auto &thread : threads)
     {
@@ -956,7 +1014,9 @@ namespace ECProject
       range->set_logical_offset_end(r.second);
     }
 
+    const auto t_coord0 = std::chrono::high_resolution_clock::now();
     grpc::Status status = m_coordinator_ptr->uploadRackCuUpdate(&ctx, request, &reply);
+    const auto t_coord1 = std::chrono::high_resolution_clock::now();
     if (!status.ok())
     {
       std::cout << "[RACKCU] upload failed: code=" << static_cast<int>(status.error_code()) << " " << status.error_message() << std::endl;
@@ -1020,8 +1080,153 @@ namespace ECProject
                        return lhs < rhs;
                      });
 
-    for (int oi = 0; oi < nsteps; oi++)
+    double rackcu_sum_prepare_s = 0.0;
+    double rackcu_sum_tcp_s = 0.0;
+    double rackcu_sum_commit_check_s = 0.0;
+
+    int oi_serial = 0;
+    int home_prefix = 0;
+    while (home_prefix < nsteps && reply.group_ids(dispatch_order[static_cast<size_t>(home_prefix)]) == RACKCU_STEP_DATA_HOME)
     {
+      ++home_prefix;
+    }
+
+    if (home_prefix >= 2)
+    {
+      struct RackCuHomeWaveItem
+      {
+        int plan_idx = 0;
+        int cluster_id = 0;
+        int32_t step = 0;
+        std::vector<char> buf;
+        int slice_size = 0;
+        std::string proxy_ip;
+        int proxy_port = 0;
+        std::string append_key;
+        double prepare_s = 0.0;
+        double tcp_s = 0.0;
+        bool tcp_ok = false;
+      };
+      std::vector<RackCuHomeWaveItem> home_items;
+      home_items.reserve(static_cast<size_t>(home_prefix));
+
+      for (int oi = 0; oi < home_prefix; ++oi)
+      {
+        const auto t_step_begin = std::chrono::high_resolution_clock::now();
+        const int i = dispatch_order[static_cast<size_t>(oi)];
+        proxy_proto::AppendStripeDataPlacement plan;
+        if (!plan.ParseFromString(reply.append_plans(i)))
+        {
+          std::cout << "[RACKCU] failed to parse append plan (DATA_HOME wave)" << std::endl;
+          return false;
+        }
+        const size_t slice_size = static_cast<size_t>(reply.cluster_slice_sizes(i));
+        std::vector<char> buf(std::max(slice_size, static_cast<size_t>(1)), 0);
+        char *p = buf.data();
+        const int32_t step = reply.group_ids(i);
+        if (step != RACKCU_STEP_DATA_HOME)
+        {
+          std::cout << "[RACKCU] internal: DATA_HOME wave contains non-home step" << std::endl;
+          return false;
+        }
+        std::cout << "[RACKCU][Dispatch] step=" << step << " (parallel wave prep) to cluster c" << plan.cluster_id() << " bytes=" << slice_size
+                  << std::endl;
+        const size_t w = pack_slices_in_plan_order(plan, p);
+        if (w != slice_size)
+        {
+          std::cout << "[RACKCU] packed size mismatch for DATA_HOME wave step " << step << std::endl;
+          return false;
+        }
+        const auto t_before_tcp = std::chrono::high_resolution_clock::now();
+        RackCuHomeWaveItem it;
+        it.plan_idx = i;
+        it.cluster_id = plan.cluster_id();
+        it.step = step;
+        it.buf = std::move(buf);
+        it.slice_size = static_cast<int>(slice_size);
+        it.proxy_ip = reply.proxyips(i);
+        it.proxy_port = reply.proxyports(i);
+        it.append_key = reply.append_keys(i);
+        it.prepare_s = chron_elapsed_s(t_step_begin, t_before_tcp);
+        home_items.push_back(std::move(it));
+      }
+
+      // 同一 (proxy_ip, proxy_port) 上，Proxy 对每个 scheduleAppend 起一个线程各自 accept()；若对该端点并发连
+      // 多个 TCP，accept 与 handler 会错配。按端点分组：组内按 dispatch 顺序串行 TCP，不同端点之间仍并行。
+      std::map<std::string, std::vector<size_t>> endpoint_to_wave_indices;
+      for (size_t wi = 0; wi < home_items.size(); ++wi)
+      {
+        const std::string ep = home_items[wi].proxy_ip + ":" + std::to_string(home_items[wi].proxy_port);
+        endpoint_to_wave_indices[ep].push_back(wi);
+      }
+
+      const auto t_wave_tcp0 = std::chrono::high_resolution_clock::now();
+      std::vector<std::thread> ep_threads;
+      ep_threads.reserve(endpoint_to_wave_indices.size());
+      for (const auto &kv : endpoint_to_wave_indices)
+      {
+        const std::vector<size_t> indices = kv.second;
+        ep_threads.emplace_back([this, indices, &home_items]() {
+          for (const size_t idx : indices)
+          {
+            const auto t0 = std::chrono::high_resolution_clock::now();
+            RackCuHomeWaveItem &it = home_items[idx];
+            it.tcp_ok = rackcu_tcp_send_payload(it.buf.data(), it.slice_size, it.proxy_ip, it.proxy_port);
+            it.tcp_s = chron_elapsed_s(t0, std::chrono::high_resolution_clock::now());
+            if (!it.tcp_ok)
+            {
+              return;
+            }
+          }
+        });
+      }
+      for (auto &th : ep_threads)
+      {
+        th.join();
+      }
+      const auto t_wave_tcp1 = std::chrono::high_resolution_clock::now();
+      const double wave_tcp_wall_s = chron_elapsed_s(t_wave_tcp0, t_wave_tcp1);
+
+      for (size_t wi = 0; wi < home_items.size(); ++wi)
+      {
+        if (!home_items[wi].tcp_ok)
+        {
+          std::cout << "[RACKCU] DATA_HOME parallel wave: TCP send failed cluster_id=" << home_items[wi].cluster_id
+                    << " proxy=" << home_items[wi].proxy_ip << ":" << home_items[wi].proxy_port << std::endl;
+          return false;
+        }
+      }
+
+      for (size_t wi = 0; wi < home_items.size(); ++wi)
+      {
+        RackCuHomeWaveItem &it = home_items[wi];
+        rackcu_sum_prepare_s += it.prepare_s;
+        rackcu_sum_tcp_s += it.tcp_s;
+        const auto t_commit0 = std::chrono::high_resolution_clock::now();
+        std::cout << "[RACKCU][Dispatch] wait_commit begin step=" << it.step << " c" << it.cluster_id << " proxy=" << it.proxy_ip << ":" << it.proxy_port
+                  << " append_key=" << it.append_key << " (after parallel TCP wave)" << std::endl;
+        const bool ok = rackcu_wait_append_committed(it.append_key, stripe_id);
+        const auto t_commit1 = std::chrono::high_resolution_clock::now();
+        const double commit_s = chron_elapsed_s(t_commit0, t_commit1);
+        rackcu_sum_commit_check_s += commit_s;
+        const double step_total_s = it.prepare_s + it.tcp_s + commit_s;
+        std::cout << "[RACKCU][Timing] step=" << it.step << " cluster_id=" << it.cluster_id << " slice_bytes=" << it.slice_size
+                  << " prepare_parse_pack_encode_s=" << std::fixed << std::setprecision(6) << it.prepare_s << " tcp_to_proxy_s=" << it.tcp_s
+                  << " coordinator_checkCommitAbort_s=" << commit_s << " step_total_s=" << step_total_s << std::endl;
+        std::cout << "[RACKCU][Dispatch] wait_commit end step=" << it.step << " c" << it.cluster_id << " ok=" << ok << std::endl;
+        if (!ok)
+        {
+          return false;
+        }
+      }
+      std::cout << "[RACKCU][Timing] data_home_parallel_wave n=" << home_prefix << " tcp_wall_s=" << std::fixed << std::setprecision(6) << wave_tcp_wall_s
+                << std::endl;
+      oi_serial = home_prefix;
+    }
+
+    for (int oi = oi_serial; oi < nsteps; oi++)
+    {
+      const auto t_step_begin = std::chrono::high_resolution_clock::now();
       const int i = dispatch_order[static_cast<size_t>(oi)];
       proxy_proto::AppendStripeDataPlacement plan;
       if (!plan.ParseFromString(reply.append_plans(i)))
@@ -1035,7 +1240,7 @@ namespace ECProject
       char *p = buf.data();
 
       const int32_t step = reply.group_ids(i);
-      // 串行发送：比“同一 cluster 同时最多一收/一发”更严格，天然满足该约束。
+      // Parity / local 等仍串行；多个 DATA_HOME 时已在上方并行 TCP + 顺序 checkCommitAbort。
       std::cout << "[RACKCU][Dispatch] step=" << step
                 << " to cluster c" << plan.cluster_id()
                 << " bytes=" << slice_size << std::endl;
@@ -1154,12 +1359,26 @@ namespace ECProject
         return false;
       }
 
+      const auto t_before_async = std::chrono::high_resolution_clock::now();
+      const double step_prepare_s = chron_elapsed_s(t_step_begin, t_before_async);
+      rackcu_sum_prepare_s += step_prepare_s;
+
       bool ok = true;
+      RackCuAppendNetworkTiming net_t;
       std::cout << "[RACKCU][Dispatch] wait_commit begin step=" << step << " c" << plan.cluster_id()
                 << " proxy=" << reply.proxyips(i) << ":" << reply.proxyports(i)
                 << " append_key=" << reply.append_keys(i) << std::endl;
       async_append_to_proxies(p, reply.append_keys(i), static_cast<int>(slice_size), reply.proxyips(i), reply.proxyports(i), 0, &ok, stripe_id,
-                              nullptr);
+                              nullptr, &net_t);
+      const auto t_step_end = std::chrono::high_resolution_clock::now();
+      rackcu_sum_tcp_s += net_t.tcp_resolve_connect_write_shutdown_s;
+      rackcu_sum_commit_check_s += net_t.coordinator_check_commit_abort_s;
+      const double step_total_s = chron_elapsed_s(t_step_begin, t_step_end);
+      std::cout << "[RACKCU][Timing] step=" << step << " cluster_id=" << plan.cluster_id() << " slice_bytes=" << slice_size
+                << " prepare_parse_pack_encode_s=" << std::fixed << std::setprecision(6) << step_prepare_s
+                << " tcp_to_proxy_s=" << net_t.tcp_resolve_connect_write_shutdown_s
+                << " coordinator_checkCommitAbort_s=" << net_t.coordinator_check_commit_abort_s
+                << " step_total_s=" << step_total_s << std::endl;
       std::cout << "[RACKCU][Dispatch] wait_commit end step=" << step << " c" << plan.cluster_id() << " ok=" << ok
                 << std::endl;
       if (!ok)
@@ -1168,7 +1387,10 @@ namespace ECProject
       }
     }
 
+    const double s_coord_rack = chron_elapsed_s(t_coord0, t_coord1);
+
     // 全轮（含所有 parity）成功后：删除各 holder 上 datanode 的 home Δ 暂存；校验增量已合并进正式 parity 块，无单独暂存
+    const auto t_cleanup0 = std::chrono::high_resolution_clock::now();
     for (int ci = 0; ci < reply.rack_cu_staging_cleanup_size(); ci++)
     {
       const coordinator_proto::RackCuStagingCleanupRef &r = reply.rack_cu_staging_cleanup(ci);
@@ -1189,6 +1411,16 @@ namespace ECProject
         return false;
       }
     }
+    const auto t_cleanup1 = std::chrono::high_resolution_clock::now();
+    const double s_cleanup = chron_elapsed_s(t_cleanup0, t_cleanup1);
+
+    const double dispatch_sum_s = rackcu_sum_prepare_s + rackcu_sum_tcp_s + rackcu_sum_commit_check_s;
+    const double total_rackcu_s = s_coord_rack + dispatch_sum_s + s_cleanup;
+    std::cout << "[RACKCU][Timing] summary: coordinator_uploadRackCuUpdate_s=" << std::fixed << std::setprecision(6)
+              << s_coord_rack << " sum_prepare_parse_pack_encode_s=" << rackcu_sum_prepare_s << " sum_tcp_to_proxy_s="
+              << rackcu_sum_tcp_s << " sum_coordinator_checkCommitAbort_s=" << rackcu_sum_commit_check_s
+              << " dispatch_steps_sum_s=" << dispatch_sum_s << " staging_cleanup_s=" << s_cleanup
+              << " total_client_rackcu_s=" << total_rackcu_s << " (nsteps=" << nsteps << ")" << std::endl;
 
     return true;
   }

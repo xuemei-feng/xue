@@ -186,6 +186,10 @@ namespace ECProject
       grpc::EnableDefaultHealthCheckService(true);
       grpc::reflection::InitProtoReflectionServerBuilderPlugin();
       grpc::ServerBuilder builder;
+      // RackCU fetchRackCuHomeDeltaStaging / Parix journal reply may carry multi‑MB blobs (default gRPC cap is 4MB).
+      constexpr int k_grpc_max_msg = 128 * 1024 * 1024;
+      builder.SetMaxSendMessageSize(k_grpc_max_msg);
+      builder.SetMaxReceiveMessageSize(k_grpc_max_msg);
       std::cout << "proxy_ip_port:" << proxy_ip_port << std::endl;
       builder.AddListeningPort(proxy_ip_port, grpc::InsecureServerCredentials());
       builder.RegisterService(&m_proxyImpl_ptr);
