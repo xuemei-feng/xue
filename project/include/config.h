@@ -22,7 +22,7 @@ namespace ECProject
 
     int AlignedSize = 4096;
     int UnitSize = 8 * 1024;
-    unsigned int BlockSize = 1024 * 1024;
+    unsigned int BlockSize = 64 * 1024;
     int alpha = 2;
     int z = 2;
     // TODO: need to modify configs to support directly setting k,r,z
