@@ -76,6 +76,9 @@ extern NodeAndBlockDefaultTypeInternal _NodeAndBlock_default_instance_;
 class ObjectAndPlacement;
 struct ObjectAndPlacementDefaultTypeInternal;
 extern ObjectAndPlacementDefaultTypeInternal _ObjectAndPlacement_default_instance_;
+class ParixBatchXferTimingReply;
+struct ParixBatchXferTimingReplyDefaultTypeInternal;
+extern ParixBatchXferTimingReplyDefaultTypeInternal _ParixBatchXferTimingReply_default_instance_;
 class ParixDataUpdatePlacement;
 struct ParixDataUpdatePlacementDefaultTypeInternal;
 extern ParixDataUpdatePlacementDefaultTypeInternal _ParixDataUpdatePlacement_default_instance_;
@@ -169,6 +172,7 @@ template<> ::proxy_proto::GetReply* Arena::CreateMaybeMessage<::proxy_proto::Get
 template<> ::proxy_proto::MultipleRecoveryRequest* Arena::CreateMaybeMessage<::proxy_proto::MultipleRecoveryRequest>(Arena*);
 template<> ::proxy_proto::NodeAndBlock* Arena::CreateMaybeMessage<::proxy_proto::NodeAndBlock>(Arena*);
 template<> ::proxy_proto::ObjectAndPlacement* Arena::CreateMaybeMessage<::proxy_proto::ObjectAndPlacement>(Arena*);
+template<> ::proxy_proto::ParixBatchXferTimingReply* Arena::CreateMaybeMessage<::proxy_proto::ParixBatchXferTimingReply>(Arena*);
 template<> ::proxy_proto::ParixDataUpdatePlacement* Arena::CreateMaybeMessage<::proxy_proto::ParixDataUpdatePlacement>(Arena*);
 template<> ::proxy_proto::ParixJournalAckItem* Arena::CreateMaybeMessage<::proxy_proto::ParixJournalAckItem>(Arena*);
 template<> ::proxy_proto::ParixJournalAppendBatchAckItem* Arena::CreateMaybeMessage<::proxy_proto::ParixJournalAppendBatchAckItem>(Arena*);
@@ -7283,6 +7287,187 @@ class ParixReplayBatchRequest final :
 };
 // -------------------------------------------------------------------
 
+class ParixBatchXferTimingReply final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixBatchXferTimingReply) */ {
+ public:
+  inline ParixBatchXferTimingReply() : ParixBatchXferTimingReply(nullptr) {}
+  ~ParixBatchXferTimingReply() override;
+  explicit PROTOBUF_CONSTEXPR ParixBatchXferTimingReply(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParixBatchXferTimingReply(const ParixBatchXferTimingReply& from);
+  ParixBatchXferTimingReply(ParixBatchXferTimingReply&& from) noexcept
+    : ParixBatchXferTimingReply() {
+    *this = ::std::move(from);
+  }
+
+  inline ParixBatchXferTimingReply& operator=(const ParixBatchXferTimingReply& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParixBatchXferTimingReply& operator=(ParixBatchXferTimingReply&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParixBatchXferTimingReply& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParixBatchXferTimingReply* internal_default_instance() {
+    return reinterpret_cast<const ParixBatchXferTimingReply*>(
+               &_ParixBatchXferTimingReply_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    31;
+
+  friend void swap(ParixBatchXferTimingReply& a, ParixBatchXferTimingReply& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParixBatchXferTimingReply* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParixBatchXferTimingReply* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParixBatchXferTimingReply* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixBatchXferTimingReply>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParixBatchXferTimingReply& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParixBatchXferTimingReply& from) {
+    ParixBatchXferTimingReply::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParixBatchXferTimingReply* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.ParixBatchXferTimingReply";
+  }
+  protected:
+  explicit ParixBatchXferTimingReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kProxyPureXferSecFieldNumber = 2,
+    kWallSpanStartUnixMsFieldNumber = 3,
+    kWallSpanEndUnixMsFieldNumber = 4,
+    kHadSamplesFieldNumber = 1,
+  };
+  // double proxy_pure_xfer_sec = 2;
+  void clear_proxy_pure_xfer_sec();
+  double proxy_pure_xfer_sec() const;
+  void set_proxy_pure_xfer_sec(double value);
+  private:
+  double _internal_proxy_pure_xfer_sec() const;
+  void _internal_set_proxy_pure_xfer_sec(double value);
+  public:
+
+  // int64 wall_span_start_unix_ms = 3;
+  void clear_wall_span_start_unix_ms();
+  int64_t wall_span_start_unix_ms() const;
+  void set_wall_span_start_unix_ms(int64_t value);
+  private:
+  int64_t _internal_wall_span_start_unix_ms() const;
+  void _internal_set_wall_span_start_unix_ms(int64_t value);
+  public:
+
+  // int64 wall_span_end_unix_ms = 4;
+  void clear_wall_span_end_unix_ms();
+  int64_t wall_span_end_unix_ms() const;
+  void set_wall_span_end_unix_ms(int64_t value);
+  private:
+  int64_t _internal_wall_span_end_unix_ms() const;
+  void _internal_set_wall_span_end_unix_ms(int64_t value);
+  public:
+
+  // bool had_samples = 1;
+  void clear_had_samples();
+  bool had_samples() const;
+  void set_had_samples(bool value);
+  private:
+  bool _internal_had_samples() const;
+  void _internal_set_had_samples(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixBatchXferTimingReply)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    double proxy_pure_xfer_sec_;
+    int64_t wall_span_start_unix_ms_;
+    int64_t wall_span_end_unix_ms_;
+    bool had_samples_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
 class ParixJournalInvalidationRange final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixJournalInvalidationRange) */ {
  public:
@@ -7331,7 +7516,7 @@ class ParixJournalInvalidationRange final :
                &_ParixJournalInvalidationRange_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    31;
+    32;
 
   friend void swap(ParixJournalInvalidationRange& a, ParixJournalInvalidationRange& b) {
     a.Swap(&b);
@@ -7501,7 +7686,7 @@ class ParixParityFullOverwriteRequest final :
                &_ParixParityFullOverwriteRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    32;
+    33;
 
   friend void swap(ParixParityFullOverwriteRequest& a, ParixParityFullOverwriteRequest& b) {
     a.Swap(&b);
@@ -7750,7 +7935,7 @@ class AppendStripeDataPlacement final :
                &_AppendStripeDataPlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    33;
+    34;
 
   friend void swap(AppendStripeDataPlacement& a, AppendStripeDataPlacement& b) {
     a.Swap(&b);
@@ -8126,7 +8311,7 @@ class SetReply final :
                &_SetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    34;
+    35;
 
   friend void swap(SetReply& a, SetReply& b) {
     a.Swap(&b);
@@ -8274,7 +8459,7 @@ class GetReply final :
                &_GetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    35;
+    36;
 
   friend void swap(GetReply& a, GetReply& b) {
     a.Swap(&b);
@@ -8422,7 +8607,7 @@ class StripeAndBlockIDs final :
                &_StripeAndBlockIDs_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    36;
+    37;
 
   friend void swap(StripeAndBlockIDs& a, StripeAndBlockIDs& b) {
     a.Swap(&b);
@@ -15171,6 +15356,90 @@ inline void ParixReplayBatchRequest::set_batch_id(uint64_t value) {
 
 // -------------------------------------------------------------------
 
+// ParixBatchXferTimingReply
+
+// bool had_samples = 1;
+inline void ParixBatchXferTimingReply::clear_had_samples() {
+  _impl_.had_samples_ = false;
+}
+inline bool ParixBatchXferTimingReply::_internal_had_samples() const {
+  return _impl_.had_samples_;
+}
+inline bool ParixBatchXferTimingReply::had_samples() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixBatchXferTimingReply.had_samples)
+  return _internal_had_samples();
+}
+inline void ParixBatchXferTimingReply::_internal_set_had_samples(bool value) {
+  
+  _impl_.had_samples_ = value;
+}
+inline void ParixBatchXferTimingReply::set_had_samples(bool value) {
+  _internal_set_had_samples(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixBatchXferTimingReply.had_samples)
+}
+
+// double proxy_pure_xfer_sec = 2;
+inline void ParixBatchXferTimingReply::clear_proxy_pure_xfer_sec() {
+  _impl_.proxy_pure_xfer_sec_ = 0;
+}
+inline double ParixBatchXferTimingReply::_internal_proxy_pure_xfer_sec() const {
+  return _impl_.proxy_pure_xfer_sec_;
+}
+inline double ParixBatchXferTimingReply::proxy_pure_xfer_sec() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixBatchXferTimingReply.proxy_pure_xfer_sec)
+  return _internal_proxy_pure_xfer_sec();
+}
+inline void ParixBatchXferTimingReply::_internal_set_proxy_pure_xfer_sec(double value) {
+  
+  _impl_.proxy_pure_xfer_sec_ = value;
+}
+inline void ParixBatchXferTimingReply::set_proxy_pure_xfer_sec(double value) {
+  _internal_set_proxy_pure_xfer_sec(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixBatchXferTimingReply.proxy_pure_xfer_sec)
+}
+
+// int64 wall_span_start_unix_ms = 3;
+inline void ParixBatchXferTimingReply::clear_wall_span_start_unix_ms() {
+  _impl_.wall_span_start_unix_ms_ = int64_t{0};
+}
+inline int64_t ParixBatchXferTimingReply::_internal_wall_span_start_unix_ms() const {
+  return _impl_.wall_span_start_unix_ms_;
+}
+inline int64_t ParixBatchXferTimingReply::wall_span_start_unix_ms() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixBatchXferTimingReply.wall_span_start_unix_ms)
+  return _internal_wall_span_start_unix_ms();
+}
+inline void ParixBatchXferTimingReply::_internal_set_wall_span_start_unix_ms(int64_t value) {
+  
+  _impl_.wall_span_start_unix_ms_ = value;
+}
+inline void ParixBatchXferTimingReply::set_wall_span_start_unix_ms(int64_t value) {
+  _internal_set_wall_span_start_unix_ms(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixBatchXferTimingReply.wall_span_start_unix_ms)
+}
+
+// int64 wall_span_end_unix_ms = 4;
+inline void ParixBatchXferTimingReply::clear_wall_span_end_unix_ms() {
+  _impl_.wall_span_end_unix_ms_ = int64_t{0};
+}
+inline int64_t ParixBatchXferTimingReply::_internal_wall_span_end_unix_ms() const {
+  return _impl_.wall_span_end_unix_ms_;
+}
+inline int64_t ParixBatchXferTimingReply::wall_span_end_unix_ms() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixBatchXferTimingReply.wall_span_end_unix_ms)
+  return _internal_wall_span_end_unix_ms();
+}
+inline void ParixBatchXferTimingReply::_internal_set_wall_span_end_unix_ms(int64_t value) {
+  
+  _impl_.wall_span_end_unix_ms_ = value;
+}
+inline void ParixBatchXferTimingReply::set_wall_span_end_unix_ms(int64_t value) {
+  _internal_set_wall_span_end_unix_ms(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixBatchXferTimingReply.wall_span_end_unix_ms)
+}
+
+// -------------------------------------------------------------------
+
 // ParixJournalInvalidationRange
 
 // int32 data_block_id = 1;
@@ -16458,6 +16727,8 @@ StripeAndBlockIDs::mutable_datanodeports() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

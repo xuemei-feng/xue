@@ -193,6 +193,14 @@ class proxyService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>> PrepareAsyncparixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>>(PrepareAsyncparixReplayBatchRaw(context, request, cq));
     }
+    // Coordinator pulls aggregated xfer timing for a batch (consume-on-read).
+    virtual ::grpc::Status parixPullBatchXferTiming(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::proxy_proto::ParixBatchXferTimingReply* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixBatchXferTimingReply>> AsyncparixPullBatchXferTiming(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixBatchXferTimingReply>>(AsyncparixPullBatchXferTimingRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixBatchXferTimingReply>> PrepareAsyncparixPullBatchXferTiming(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixBatchXferTimingReply>>(PrepareAsyncparixPullBatchXferTimingRaw(context, request, cq));
+    }
     virtual ::grpc::Status parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::proxy_proto::SetReply* response) = 0;
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>> AsyncparixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>>(AsyncparixParityFullOverwriteRaw(context, request, cq));
@@ -258,6 +266,9 @@ class proxyService final {
       virtual void parixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void parixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) = 0;
       virtual void parixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      // Coordinator pulls aggregated xfer timing for a batch (consume-on-read).
+      virtual void parixPullBatchXferTiming(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::ParixBatchXferTimingReply* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void parixPullBatchXferTiming(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::ParixBatchXferTimingReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) = 0;
       virtual void parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       // get stripe
@@ -306,6 +317,8 @@ class proxyService final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* PrepareAsyncparixSupplyD0Raw(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* AsyncparixReplayBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* PrepareAsyncparixReplayBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixBatchXferTimingReply>* AsyncparixPullBatchXferTimingRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::ParixBatchXferTimingReply>* PrepareAsyncparixPullBatchXferTimingRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* AsyncparixParityFullOverwriteRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* PrepareAsyncparixParityFullOverwriteRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::GetReply>* AsyncgetBlocksRaw(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs& request, ::grpc::CompletionQueue* cq) = 0;
@@ -447,6 +460,13 @@ class proxyService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>> PrepareAsyncparixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>>(PrepareAsyncparixReplayBatchRaw(context, request, cq));
     }
+    ::grpc::Status parixPullBatchXferTiming(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::proxy_proto::ParixBatchXferTimingReply* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixBatchXferTimingReply>> AsyncparixPullBatchXferTiming(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixBatchXferTimingReply>>(AsyncparixPullBatchXferTimingRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixBatchXferTimingReply>> PrepareAsyncparixPullBatchXferTiming(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixBatchXferTimingReply>>(PrepareAsyncparixPullBatchXferTimingRaw(context, request, cq));
+    }
     ::grpc::Status parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::proxy_proto::SetReply* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>> AsyncparixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>>(AsyncparixParityFullOverwriteRaw(context, request, cq));
@@ -502,6 +522,8 @@ class proxyService final {
       void parixSupplyD0(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) override;
       void parixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) override;
       void parixReplayBatch(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void parixPullBatchXferTiming(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::ParixBatchXferTimingReply* response, std::function<void(::grpc::Status)>) override;
+      void parixPullBatchXferTiming(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::ParixBatchXferTimingReply* response, ::grpc::ClientUnaryReactor* reactor) override;
       void parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) override;
       void parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) override;
       void getBlocks(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)>) override;
@@ -555,6 +577,8 @@ class proxyService final {
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* PrepareAsyncparixSupplyD0Raw(::grpc::ClientContext* context, const ::proxy_proto::ParixSupplyD0Request& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* AsyncparixReplayBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* PrepareAsyncparixReplayBatchRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixBatchXferTimingReply>* AsyncparixPullBatchXferTimingRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixBatchXferTimingReply>* PrepareAsyncparixPullBatchXferTimingRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* AsyncparixParityFullOverwriteRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* PrepareAsyncparixParityFullOverwriteRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* AsyncgetBlocksRaw(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs& request, ::grpc::CompletionQueue* cq) override;
@@ -578,6 +602,7 @@ class proxyService final {
     const ::grpc::internal::RpcMethod rpcmethod_parixJournalAppendBatch_;
     const ::grpc::internal::RpcMethod rpcmethod_parixSupplyD0_;
     const ::grpc::internal::RpcMethod rpcmethod_parixReplayBatch_;
+    const ::grpc::internal::RpcMethod rpcmethod_parixPullBatchXferTiming_;
     const ::grpc::internal::RpcMethod rpcmethod_parixParityFullOverwrite_;
     const ::grpc::internal::RpcMethod rpcmethod_getBlocks_;
   };
@@ -615,6 +640,8 @@ class proxyService final {
     virtual ::grpc::Status parixJournalAppendBatch(::grpc::ServerContext* context, const ::proxy_proto::ParixJournalAppendBatchRequest* request, ::proxy_proto::ParixJournalAppendBatchReply* response);
     virtual ::grpc::Status parixSupplyD0(::grpc::ServerContext* context, const ::proxy_proto::ParixSupplyD0Request* request, ::proxy_proto::SetReply* response);
     virtual ::grpc::Status parixReplayBatch(::grpc::ServerContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response);
+    // Coordinator pulls aggregated xfer timing for a batch (consume-on-read).
+    virtual ::grpc::Status parixPullBatchXferTiming(::grpc::ServerContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::ParixBatchXferTimingReply* response);
     virtual ::grpc::Status parixParityFullOverwrite(::grpc::ServerContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response);
     // get stripe
     virtual ::grpc::Status getBlocks(::grpc::ServerContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response);
@@ -1000,12 +1027,32 @@ class proxyService final {
     }
   };
   template <class BaseClass>
+  class WithAsyncMethod_parixPullBatchXferTiming : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_parixPullBatchXferTiming() {
+      ::grpc::Service::MarkMethodAsync(19);
+    }
+    ~WithAsyncMethod_parixPullBatchXferTiming() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixPullBatchXferTiming(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::ParixBatchXferTimingReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestparixPullBatchXferTiming(::grpc::ServerContext* context, ::proxy_proto::ParixReplayBatchRequest* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::ParixBatchXferTimingReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(19, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithAsyncMethod_parixParityFullOverwrite : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_parixParityFullOverwrite() {
-      ::grpc::Service::MarkMethodAsync(19);
+      ::grpc::Service::MarkMethodAsync(20);
     }
     ~WithAsyncMethod_parixParityFullOverwrite() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1016,7 +1063,7 @@ class proxyService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestparixParityFullOverwrite(::grpc::ServerContext* context, ::proxy_proto::ParixParityFullOverwriteRequest* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::SetReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(19, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(20, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -1025,7 +1072,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_getBlocks() {
-      ::grpc::Service::MarkMethodAsync(20);
+      ::grpc::Service::MarkMethodAsync(21);
     }
     ~WithAsyncMethod_getBlocks() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1036,10 +1083,10 @@ class proxyService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestgetBlocks(::grpc::ServerContext* context, ::proxy_proto::StripeAndBlockIDs* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::GetReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(20, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(21, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_checkalive<WithAsyncMethod_encodeAndSetObject<WithAsyncMethod_decodeAndGetObject<WithAsyncMethod_degradedRead<WithAsyncMethod_degradedRead2Client<WithAsyncMethod_degradedReadBreakdown<WithAsyncMethod_degradedRead2ClientBreakdown<WithAsyncMethod_degradedReadWithBlockStripeID<WithAsyncMethod_partialDecoding<WithAsyncMethod_recovery<WithAsyncMethod_recoveryBreakdown<WithAsyncMethod_multipleRecovery<WithAsyncMethod_deleteBlock<WithAsyncMethod_scheduleAppend2Datanode<WithAsyncMethod_parixScheduleDataUpdate<WithAsyncMethod_parixJournalAppend<WithAsyncMethod_parixJournalAppendBatch<WithAsyncMethod_parixSupplyD0<WithAsyncMethod_parixReplayBatch<WithAsyncMethod_parixParityFullOverwrite<WithAsyncMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > > > > AsyncService;
+  typedef WithAsyncMethod_checkalive<WithAsyncMethod_encodeAndSetObject<WithAsyncMethod_decodeAndGetObject<WithAsyncMethod_degradedRead<WithAsyncMethod_degradedRead2Client<WithAsyncMethod_degradedReadBreakdown<WithAsyncMethod_degradedRead2ClientBreakdown<WithAsyncMethod_degradedReadWithBlockStripeID<WithAsyncMethod_partialDecoding<WithAsyncMethod_recovery<WithAsyncMethod_recoveryBreakdown<WithAsyncMethod_multipleRecovery<WithAsyncMethod_deleteBlock<WithAsyncMethod_scheduleAppend2Datanode<WithAsyncMethod_parixScheduleDataUpdate<WithAsyncMethod_parixJournalAppend<WithAsyncMethod_parixJournalAppendBatch<WithAsyncMethod_parixSupplyD0<WithAsyncMethod_parixReplayBatch<WithAsyncMethod_parixPullBatchXferTiming<WithAsyncMethod_parixParityFullOverwrite<WithAsyncMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_checkalive : public BaseClass {
    private:
@@ -1554,18 +1601,45 @@ class proxyService final {
       ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::SetReply* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
+  class WithCallbackMethod_parixPullBatchXferTiming : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_parixPullBatchXferTiming() {
+      ::grpc::Service::MarkMethodCallback(19,
+          new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::ParixBatchXferTimingReply>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::ParixBatchXferTimingReply* response) { return this->parixPullBatchXferTiming(context, request, response); }));}
+    void SetMessageAllocatorFor_parixPullBatchXferTiming(
+        ::grpc::MessageAllocator< ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::ParixBatchXferTimingReply>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(19);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::ParixBatchXferTimingReply>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_parixPullBatchXferTiming() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixPullBatchXferTiming(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::ParixBatchXferTimingReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* parixPullBatchXferTiming(
+      ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::ParixBatchXferTimingReply* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
   class WithCallbackMethod_parixParityFullOverwrite : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_parixParityFullOverwrite() {
-      ::grpc::Service::MarkMethodCallback(19,
+      ::grpc::Service::MarkMethodCallback(20,
           new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixParityFullOverwriteRequest, ::proxy_proto::SetReply>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest* request, ::proxy_proto::SetReply* response) { return this->parixParityFullOverwrite(context, request, response); }));}
     void SetMessageAllocatorFor_parixParityFullOverwrite(
         ::grpc::MessageAllocator< ::proxy_proto::ParixParityFullOverwriteRequest, ::proxy_proto::SetReply>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(19);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(20);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::ParixParityFullOverwriteRequest, ::proxy_proto::SetReply>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -1586,13 +1660,13 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_getBlocks() {
-      ::grpc::Service::MarkMethodCallback(20,
+      ::grpc::Service::MarkMethodCallback(21,
           new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response) { return this->getBlocks(context, request, response); }));}
     void SetMessageAllocatorFor_getBlocks(
         ::grpc::MessageAllocator< ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(20);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(21);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -1607,7 +1681,7 @@ class proxyService final {
     virtual ::grpc::ServerUnaryReactor* getBlocks(
       ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::StripeAndBlockIDs* /*request*/, ::proxy_proto::GetReply* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_checkalive<WithCallbackMethod_encodeAndSetObject<WithCallbackMethod_decodeAndGetObject<WithCallbackMethod_degradedRead<WithCallbackMethod_degradedRead2Client<WithCallbackMethod_degradedReadBreakdown<WithCallbackMethod_degradedRead2ClientBreakdown<WithCallbackMethod_degradedReadWithBlockStripeID<WithCallbackMethod_partialDecoding<WithCallbackMethod_recovery<WithCallbackMethod_recoveryBreakdown<WithCallbackMethod_multipleRecovery<WithCallbackMethod_deleteBlock<WithCallbackMethod_scheduleAppend2Datanode<WithCallbackMethod_parixScheduleDataUpdate<WithCallbackMethod_parixJournalAppend<WithCallbackMethod_parixJournalAppendBatch<WithCallbackMethod_parixSupplyD0<WithCallbackMethod_parixReplayBatch<WithCallbackMethod_parixParityFullOverwrite<WithCallbackMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > > > > CallbackService;
+  typedef WithCallbackMethod_checkalive<WithCallbackMethod_encodeAndSetObject<WithCallbackMethod_decodeAndGetObject<WithCallbackMethod_degradedRead<WithCallbackMethod_degradedRead2Client<WithCallbackMethod_degradedReadBreakdown<WithCallbackMethod_degradedRead2ClientBreakdown<WithCallbackMethod_degradedReadWithBlockStripeID<WithCallbackMethod_partialDecoding<WithCallbackMethod_recovery<WithCallbackMethod_recoveryBreakdown<WithCallbackMethod_multipleRecovery<WithCallbackMethod_deleteBlock<WithCallbackMethod_scheduleAppend2Datanode<WithCallbackMethod_parixScheduleDataUpdate<WithCallbackMethod_parixJournalAppend<WithCallbackMethod_parixJournalAppendBatch<WithCallbackMethod_parixSupplyD0<WithCallbackMethod_parixReplayBatch<WithCallbackMethod_parixPullBatchXferTiming<WithCallbackMethod_parixParityFullOverwrite<WithCallbackMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_checkalive : public BaseClass {
@@ -1933,12 +2007,29 @@ class proxyService final {
     }
   };
   template <class BaseClass>
+  class WithGenericMethod_parixPullBatchXferTiming : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_parixPullBatchXferTiming() {
+      ::grpc::Service::MarkMethodGeneric(19);
+    }
+    ~WithGenericMethod_parixPullBatchXferTiming() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixPullBatchXferTiming(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::ParixBatchXferTimingReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
   class WithGenericMethod_parixParityFullOverwrite : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_parixParityFullOverwrite() {
-      ::grpc::Service::MarkMethodGeneric(19);
+      ::grpc::Service::MarkMethodGeneric(20);
     }
     ~WithGenericMethod_parixParityFullOverwrite() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1955,7 +2046,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_getBlocks() {
-      ::grpc::Service::MarkMethodGeneric(20);
+      ::grpc::Service::MarkMethodGeneric(21);
     }
     ~WithGenericMethod_getBlocks() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2347,12 +2438,32 @@ class proxyService final {
     }
   };
   template <class BaseClass>
+  class WithRawMethod_parixPullBatchXferTiming : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_parixPullBatchXferTiming() {
+      ::grpc::Service::MarkMethodRaw(19);
+    }
+    ~WithRawMethod_parixPullBatchXferTiming() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixPullBatchXferTiming(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::ParixBatchXferTimingReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestparixPullBatchXferTiming(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(19, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithRawMethod_parixParityFullOverwrite : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_parixParityFullOverwrite() {
-      ::grpc::Service::MarkMethodRaw(19);
+      ::grpc::Service::MarkMethodRaw(20);
     }
     ~WithRawMethod_parixParityFullOverwrite() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2363,7 +2474,7 @@ class proxyService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestparixParityFullOverwrite(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(19, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(20, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2372,7 +2483,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_getBlocks() {
-      ::grpc::Service::MarkMethodRaw(20);
+      ::grpc::Service::MarkMethodRaw(21);
     }
     ~WithRawMethod_getBlocks() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2383,7 +2494,7 @@ class proxyService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestgetBlocks(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(20, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(21, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2805,12 +2916,34 @@ class proxyService final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
+  class WithRawCallbackMethod_parixPullBatchXferTiming : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_parixPullBatchXferTiming() {
+      ::grpc::Service::MarkMethodRawCallback(19,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->parixPullBatchXferTiming(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_parixPullBatchXferTiming() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status parixPullBatchXferTiming(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::ParixBatchXferTimingReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* parixPullBatchXferTiming(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
   class WithRawCallbackMethod_parixParityFullOverwrite : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_parixParityFullOverwrite() {
-      ::grpc::Service::MarkMethodRawCallback(19,
+      ::grpc::Service::MarkMethodRawCallback(20,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->parixParityFullOverwrite(context, request, response); }));
@@ -2832,7 +2965,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_getBlocks() {
-      ::grpc::Service::MarkMethodRawCallback(20,
+      ::grpc::Service::MarkMethodRawCallback(21,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->getBlocks(context, request, response); }));
@@ -3362,12 +3495,39 @@ class proxyService final {
     virtual ::grpc::Status StreamedparixReplayBatch(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::ParixReplayBatchRequest,::proxy_proto::SetReply>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
+  class WithStreamedUnaryMethod_parixPullBatchXferTiming : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_parixPullBatchXferTiming() {
+      ::grpc::Service::MarkMethodStreamed(19,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::ParixBatchXferTimingReply>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::ParixBatchXferTimingReply>* streamer) {
+                       return this->StreamedparixPullBatchXferTiming(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_parixPullBatchXferTiming() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status parixPullBatchXferTiming(::grpc::ServerContext* /*context*/, const ::proxy_proto::ParixReplayBatchRequest* /*request*/, ::proxy_proto::ParixBatchXferTimingReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedparixPullBatchXferTiming(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::ParixReplayBatchRequest,::proxy_proto::ParixBatchXferTimingReply>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
   class WithStreamedUnaryMethod_parixParityFullOverwrite : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_parixParityFullOverwrite() {
-      ::grpc::Service::MarkMethodStreamed(19,
+      ::grpc::Service::MarkMethodStreamed(20,
         new ::grpc::internal::StreamedUnaryHandler<
           ::proxy_proto::ParixParityFullOverwriteRequest, ::proxy_proto::SetReply>(
             [this](::grpc::ServerContext* context,
@@ -3394,7 +3554,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_getBlocks() {
-      ::grpc::Service::MarkMethodStreamed(20,
+      ::grpc::Service::MarkMethodStreamed(21,
         new ::grpc::internal::StreamedUnaryHandler<
           ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply>(
             [this](::grpc::ServerContext* context,
@@ -3415,9 +3575,9 @@ class proxyService final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedgetBlocks(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::StripeAndBlockIDs,::proxy_proto::GetReply>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_encodeAndSetObject<WithStreamedUnaryMethod_decodeAndGetObject<WithStreamedUnaryMethod_degradedRead<WithStreamedUnaryMethod_degradedRead2Client<WithStreamedUnaryMethod_degradedReadBreakdown<WithStreamedUnaryMethod_degradedRead2ClientBreakdown<WithStreamedUnaryMethod_degradedReadWithBlockStripeID<WithStreamedUnaryMethod_partialDecoding<WithStreamedUnaryMethod_recovery<WithStreamedUnaryMethod_recoveryBreakdown<WithStreamedUnaryMethod_multipleRecovery<WithStreamedUnaryMethod_deleteBlock<WithStreamedUnaryMethod_scheduleAppend2Datanode<WithStreamedUnaryMethod_parixScheduleDataUpdate<WithStreamedUnaryMethod_parixJournalAppend<WithStreamedUnaryMethod_parixJournalAppendBatch<WithStreamedUnaryMethod_parixSupplyD0<WithStreamedUnaryMethod_parixReplayBatch<WithStreamedUnaryMethod_parixParityFullOverwrite<WithStreamedUnaryMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_encodeAndSetObject<WithStreamedUnaryMethod_decodeAndGetObject<WithStreamedUnaryMethod_degradedRead<WithStreamedUnaryMethod_degradedRead2Client<WithStreamedUnaryMethod_degradedReadBreakdown<WithStreamedUnaryMethod_degradedRead2ClientBreakdown<WithStreamedUnaryMethod_degradedReadWithBlockStripeID<WithStreamedUnaryMethod_partialDecoding<WithStreamedUnaryMethod_recovery<WithStreamedUnaryMethod_recoveryBreakdown<WithStreamedUnaryMethod_multipleRecovery<WithStreamedUnaryMethod_deleteBlock<WithStreamedUnaryMethod_scheduleAppend2Datanode<WithStreamedUnaryMethod_parixScheduleDataUpdate<WithStreamedUnaryMethod_parixJournalAppend<WithStreamedUnaryMethod_parixJournalAppendBatch<WithStreamedUnaryMethod_parixSupplyD0<WithStreamedUnaryMethod_parixReplayBatch<WithStreamedUnaryMethod_parixPullBatchXferTiming<WithStreamedUnaryMethod_parixParityFullOverwrite<WithStreamedUnaryMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_encodeAndSetObject<WithStreamedUnaryMethod_decodeAndGetObject<WithStreamedUnaryMethod_degradedRead<WithStreamedUnaryMethod_degradedRead2Client<WithStreamedUnaryMethod_degradedReadBreakdown<WithStreamedUnaryMethod_degradedRead2ClientBreakdown<WithStreamedUnaryMethod_degradedReadWithBlockStripeID<WithStreamedUnaryMethod_partialDecoding<WithStreamedUnaryMethod_recovery<WithStreamedUnaryMethod_recoveryBreakdown<WithStreamedUnaryMethod_multipleRecovery<WithStreamedUnaryMethod_deleteBlock<WithStreamedUnaryMethod_scheduleAppend2Datanode<WithStreamedUnaryMethod_parixScheduleDataUpdate<WithStreamedUnaryMethod_parixJournalAppend<WithStreamedUnaryMethod_parixJournalAppendBatch<WithStreamedUnaryMethod_parixSupplyD0<WithStreamedUnaryMethod_parixReplayBatch<WithStreamedUnaryMethod_parixParityFullOverwrite<WithStreamedUnaryMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_encodeAndSetObject<WithStreamedUnaryMethod_decodeAndGetObject<WithStreamedUnaryMethod_degradedRead<WithStreamedUnaryMethod_degradedRead2Client<WithStreamedUnaryMethod_degradedReadBreakdown<WithStreamedUnaryMethod_degradedRead2ClientBreakdown<WithStreamedUnaryMethod_degradedReadWithBlockStripeID<WithStreamedUnaryMethod_partialDecoding<WithStreamedUnaryMethod_recovery<WithStreamedUnaryMethod_recoveryBreakdown<WithStreamedUnaryMethod_multipleRecovery<WithStreamedUnaryMethod_deleteBlock<WithStreamedUnaryMethod_scheduleAppend2Datanode<WithStreamedUnaryMethod_parixScheduleDataUpdate<WithStreamedUnaryMethod_parixJournalAppend<WithStreamedUnaryMethod_parixJournalAppendBatch<WithStreamedUnaryMethod_parixSupplyD0<WithStreamedUnaryMethod_parixReplayBatch<WithStreamedUnaryMethod_parixPullBatchXferTiming<WithStreamedUnaryMethod_parixParityFullOverwrite<WithStreamedUnaryMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > > > > > StreamedService;
 };
 
 }  // namespace proxy_proto

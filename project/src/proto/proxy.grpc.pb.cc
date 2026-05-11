@@ -41,6 +41,7 @@ static const char* proxyService_method_names[] = {
   "/proxy_proto.proxyService/parixJournalAppendBatch",
   "/proxy_proto.proxyService/parixSupplyD0",
   "/proxy_proto.proxyService/parixReplayBatch",
+  "/proxy_proto.proxyService/parixPullBatchXferTiming",
   "/proxy_proto.proxyService/parixParityFullOverwrite",
   "/proxy_proto.proxyService/getBlocks",
 };
@@ -71,8 +72,9 @@ proxyService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& chann
   , rpcmethod_parixJournalAppendBatch_(proxyService_method_names[16], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_parixSupplyD0_(proxyService_method_names[17], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_parixReplayBatch_(proxyService_method_names[18], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_parixParityFullOverwrite_(proxyService_method_names[19], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_getBlocks_(proxyService_method_names[20], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_parixPullBatchXferTiming_(proxyService_method_names[19], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_parixParityFullOverwrite_(proxyService_method_names[20], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_getBlocks_(proxyService_method_names[21], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status proxyService::Stub::checkalive(::grpc::ClientContext* context, const ::proxy_proto::CheckaliveCMD& request, ::proxy_proto::RequestResult* response) {
@@ -512,6 +514,29 @@ void proxyService::Stub::async::parixReplayBatch(::grpc::ClientContext* context,
   return result;
 }
 
+::grpc::Status proxyService::Stub::parixPullBatchXferTiming(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::proxy_proto::ParixBatchXferTimingReply* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::ParixBatchXferTimingReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_parixPullBatchXferTiming_, context, request, response);
+}
+
+void proxyService::Stub::async::parixPullBatchXferTiming(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::ParixBatchXferTimingReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::ParixBatchXferTimingReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_parixPullBatchXferTiming_, context, request, response, std::move(f));
+}
+
+void proxyService::Stub::async::parixPullBatchXferTiming(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::ParixBatchXferTimingReply* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_parixPullBatchXferTiming_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixBatchXferTimingReply>* proxyService::Stub::PrepareAsyncparixPullBatchXferTimingRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::ParixBatchXferTimingReply, ::proxy_proto::ParixReplayBatchRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_parixPullBatchXferTiming_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::ParixBatchXferTimingReply>* proxyService::Stub::AsyncparixPullBatchXferTimingRaw(::grpc::ClientContext* context, const ::proxy_proto::ParixReplayBatchRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncparixPullBatchXferTimingRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 ::grpc::Status proxyService::Stub::parixParityFullOverwrite(::grpc::ClientContext* context, const ::proxy_proto::ParixParityFullOverwriteRequest& request, ::proxy_proto::SetReply* response) {
   return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::ParixParityFullOverwriteRequest, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_parixParityFullOverwrite_, context, request, response);
 }
@@ -752,6 +777,16 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[19],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::ParixReplayBatchRequest, ::proxy_proto::ParixBatchXferTimingReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](proxyService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::proxy_proto::ParixReplayBatchRequest* req,
+             ::proxy_proto::ParixBatchXferTimingReply* resp) {
+               return service->parixPullBatchXferTiming(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      proxyService_method_names[20],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::ParixParityFullOverwriteRequest, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](proxyService::Service* service,
              ::grpc::ServerContext* ctx,
@@ -760,7 +795,7 @@ proxyService::Service::Service() {
                return service->parixParityFullOverwrite(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[20],
+      proxyService_method_names[21],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](proxyService::Service* service,
@@ -901,6 +936,13 @@ proxyService::Service::~Service() {
 }
 
 ::grpc::Status proxyService::Service::parixReplayBatch(::grpc::ServerContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::SetReply* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status proxyService::Service::parixPullBatchXferTiming(::grpc::ServerContext* context, const ::proxy_proto::ParixReplayBatchRequest* request, ::proxy_proto::ParixBatchXferTimingReply* response) {
   (void) context;
   (void) request;
   (void) response;

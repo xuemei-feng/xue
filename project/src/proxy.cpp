@@ -14,6 +14,7 @@
 #include <sys/mman.h>
 #include "unilrc_encoder.h"
 #include <chrono>
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -42,6 +43,46 @@ namespace ECProject
       args.SetMaxSendMessageSize(k_max);
       return args;
     }
+    inline int64_t parix_wall_unix_ms_now()
+    {
+      return std::chrono::duration_cast<std::chrono::milliseconds>(
+                 std::chrono::system_clock::now().time_since_epoch())
+          .count();
+    }
+
+    struct ParixBatchXferAcc
+    {
+      bool have{false};
+      double pure_xfer_sec_sum{0.0};
+      int64_t wall_min_ms{0};
+      int64_t wall_max_ms{0};
+    };
+
+    std::mutex g_parix_batch_xfer_mu;
+    std::map<std::pair<int, uint64_t>, ParixBatchXferAcc> g_parix_batch_xfer;
+
+    void parix_batch_xfer_add(int stripe_id, uint64_t batch_id, double pure_sec, int64_t w0, int64_t w1)
+    {
+      if (w1 < w0)
+      {
+        std::swap(w0, w1);
+      }
+      const std::pair<int, uint64_t> key{stripe_id, batch_id};
+      std::lock_guard<std::mutex> lk(g_parix_batch_xfer_mu);
+      ParixBatchXferAcc &acc = g_parix_batch_xfer[key];
+      if (!acc.have)
+      {
+        acc.have = true;
+        acc.wall_min_ms = w0;
+        acc.wall_max_ms = w1;
+        acc.pure_xfer_sec_sum = pure_sec;
+        return;
+      }
+      acc.wall_min_ms = std::min(acc.wall_min_ms, w0);
+      acc.wall_max_ms = std::max(acc.wall_max_ms, w1);
+      acc.pure_xfer_sec_sum += pure_sec;
+    }
+
   }
 
   bool ProxyImpl::init_coordinator()
@@ -2862,6 +2903,9 @@ namespace ECProject
         by_endpoint[tp->proxy_ip() + ":" + std::to_string(tp->proxy_grpc_port())].push_back(tp);
       }
 
+      const auto xfer_t0 = std::chrono::steady_clock::now();
+      const int64_t xfer_w0 = parix_wall_unix_ms_now();
+
       bool ok = true;
       for (const auto &kv : by_endpoint)
       {
@@ -2888,7 +2932,14 @@ namespace ECProject
         }
       }
       response->set_ifcommit(ok);
-      std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixScheduleDataUpdate done ifcommit=" << (ok ? "true" : "false") << std::endl;
+
+      const auto xfer_t1 = std::chrono::steady_clock::now();
+      const int64_t xfer_w1 = parix_wall_unix_ms_now();
+      const double xfer_pure = std::chrono::duration<double>(xfer_t1 - xfer_t0).count();
+      parix_batch_xfer_add(placement->stripe_id(), placement->batch_id(), xfer_pure, xfer_w0, xfer_w1);
+
+      std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixScheduleDataUpdate done ifcommit=" << (ok ? "true" : "false")
+                << " schedule_journal_fanout_pure_xfer_sec=" << xfer_pure << std::endl;
     }
     catch (const std::exception &e)
     {
@@ -2905,6 +2956,8 @@ namespace ECProject
   {
     (void)context;
     response->clear_acks();
+    const auto t0 = std::chrono::steady_clock::now();
+    const int64_t w0 = parix_wall_unix_ms_now();
     const std::string new_payload(request->new_payload().data(), request->new_payload().size());
     for (int i = 0; i < request->targets_size(); ++i)
     {
@@ -2922,6 +2975,9 @@ namespace ECProject
                 << request->range_offset() << "," << (request->range_offset() + static_cast<int>(request->range_length())) << ") -> " << rname
                 << std::endl;
     }
+    const auto t1 = std::chrono::steady_clock::now();
+    const int64_t w1 = parix_wall_unix_ms_now();
+    parix_batch_xfer_add(request->stripe_id(), request->batch_id(), std::chrono::duration<double>(t1 - t0).count(), w0, w1);
     return grpc::Status::OK;
   }
 
@@ -2931,6 +2987,8 @@ namespace ECProject
       proxy_proto::ParixJournalAppendReply *response)
   {
     (void)context;
+    const auto t0 = std::chrono::steady_clock::now();
+    const int64_t w0 = parix_wall_unix_ms_now();
     const std::string new_payload(request->new_payload().data(), request->new_payload().size());
     const ParixJournal::AppendResult ar = m_parix_journal.append(
         request->stripe_id(), request->batch_id(), request->write_generation(), request->parity_block_id(),
@@ -2942,6 +3000,9 @@ namespace ECProject
               << " parity_block_id=" << request->parity_block_id() << " data_block_id=" << request->data_block_id() << " range["
               << request->range_offset() << "," << (request->range_offset() + static_cast<int>(request->range_length())) << ") -> "
               << (ar == ParixJournal::AppendResult::SUCCESS ? "SUCCESS" : "NEED_D0") << std::endl;
+    const auto t1 = std::chrono::steady_clock::now();
+    const int64_t w1 = parix_wall_unix_ms_now();
+    parix_batch_xfer_add(request->stripe_id(), request->batch_id(), std::chrono::duration<double>(t1 - t0).count(), w0, w1);
     return grpc::Status::OK;
   }
 
@@ -2951,10 +3012,15 @@ namespace ECProject
       proxy_proto::SetReply *response)
   {
     (void)context;
+    const auto t0 = std::chrono::steady_clock::now();
+    const int64_t w0 = parix_wall_unix_ms_now();
     const std::string old_payload(request->old_payload().data(), request->old_payload().size());
     const bool ok = m_parix_journal.supply_d0(request->stripe_id(), request->batch_id(), request->write_generation(),
                                               request->parity_block_id(), request->data_block_id(), request->range_offset(),
                                               static_cast<int>(request->range_length()), old_payload);
+    const auto t1 = std::chrono::steady_clock::now();
+    const int64_t w1 = parix_wall_unix_ms_now();
+    parix_batch_xfer_add(request->stripe_id(), request->batch_id(), std::chrono::duration<double>(t1 - t0).count(), w0, w1);
     response->set_ifcommit(ok);
     std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixSupplyD0: stripe=" << request->stripe_id() << " batch=" << request->batch_id()
               << " parity_block_id=" << request->parity_block_id() << " data_block_id=" << request->data_block_id() << " range["
@@ -2980,6 +3046,31 @@ namespace ECProject
     response->set_ifcommit(ok);
     std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixReplayBatch: stripe=" << request->stripe_id() << " batch=" << request->batch_id()
               << " (read parity from DN, apply journal deltas, write parity) ifcommit=" << (ok ? "true" : "false") << std::endl;
+    return grpc::Status::OK;
+  }
+
+  grpc::Status ProxyImpl::parixPullBatchXferTiming(
+      grpc::ServerContext *context,
+      const proxy_proto::ParixReplayBatchRequest *request,
+      proxy_proto::ParixBatchXferTimingReply *response)
+  {
+    (void)context;
+    const std::pair<int, uint64_t> key{request->stripe_id(), request->batch_id()};
+    std::lock_guard<std::mutex> lk(g_parix_batch_xfer_mu);
+    const auto it = g_parix_batch_xfer.find(key);
+    if (it == g_parix_batch_xfer.end() || !it->second.have)
+    {
+      response->set_had_samples(false);
+      response->set_proxy_pure_xfer_sec(0.0);
+      response->set_wall_span_start_unix_ms(0);
+      response->set_wall_span_end_unix_ms(0);
+      return grpc::Status::OK;
+    }
+    response->set_had_samples(true);
+    response->set_proxy_pure_xfer_sec(it->second.pure_xfer_sec_sum);
+    response->set_wall_span_start_unix_ms(it->second.wall_min_ms);
+    response->set_wall_span_end_unix_ms(it->second.wall_max_ms);
+    g_parix_batch_xfer.erase(it);
     return grpc::Status::OK;
   }
 

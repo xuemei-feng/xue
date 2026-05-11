@@ -3070,6 +3070,75 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       return grpc::Status(grpc::StatusCode::INTERNAL, "parixReplayBatch failed on " + fail_target);
     }
+
+    std::vector<std::string> xfer_pull_targets = replay_targets;
+    for (int bid = 0; bid < stripe.k; ++bid)
+    {
+      Block *db = find_block_by_block_id(stripe, bid);
+      if (db == nullptr)
+      {
+        continue;
+      }
+      const int cid = db->map2cluster;
+      xfer_pull_targets.push_back(m_cluster_table.at(cid).proxy_ip + ":" + std::to_string(m_cluster_table.at(cid).proxy_port));
+    }
+    std::sort(xfer_pull_targets.begin(), xfer_pull_targets.end());
+    xfer_pull_targets.erase(std::unique(xfer_pull_targets.begin(), xfer_pull_targets.end()), xfer_pull_targets.end());
+
+    std::mutex xfer_mu;
+    double max_proxy_pure = 0.0;
+    int proxies_with_timing = 0;
+    bool cluster_have = false;
+    google::protobuf::int64 cluster_w0 = 0;
+    google::protobuf::int64 cluster_w1 = 0;
+
+    std::vector<std::thread> xfer_workers;
+    xfer_workers.reserve(xfer_pull_targets.size());
+    for (const std::string &tgt : xfer_pull_targets)
+    {
+      xfer_workers.emplace_back([this, stripe_id, batch_id, tgt, &xfer_mu, &max_proxy_pure, &proxies_with_timing, &cluster_have, &cluster_w0,
+                                 &cluster_w1]() {
+        grpc::ClientContext ctx;
+        proxy_proto::ParixReplayBatchRequest rq;
+        rq.set_stripe_id(stripe_id);
+        rq.set_batch_id(batch_id);
+        proxy_proto::ParixBatchXferTimingReply rep;
+        grpc::Status st = m_proxy_ptrs.at(tgt)->parixPullBatchXferTiming(&ctx, rq, &rep);
+        if (!st.ok() || !rep.had_samples())
+        {
+          return;
+        }
+        std::lock_guard<std::mutex> lk(xfer_mu);
+        proxies_with_timing++;
+        max_proxy_pure = std::max(max_proxy_pure, rep.proxy_pure_xfer_sec());
+        std::cout << "[Parix][Coordinator] proxy_pure_xfer stripe=" << stripe_id << " batch=" << batch_id << " target=" << tgt
+                  << " proxy_pure_xfer_sec=" << rep.proxy_pure_xfer_sec() << " wall_span_unix_ms=[" << rep.wall_span_start_unix_ms() << ","
+                  << rep.wall_span_end_unix_ms() << "]" << std::endl;
+        if (!cluster_have)
+        {
+          cluster_have = true;
+          cluster_w0 = rep.wall_span_start_unix_ms();
+          cluster_w1 = rep.wall_span_end_unix_ms();
+        }
+        else
+        {
+          cluster_w0 = std::min(cluster_w0, rep.wall_span_start_unix_ms());
+          cluster_w1 = std::max(cluster_w1, rep.wall_span_end_unix_ms());
+        }
+      });
+    }
+    for (std::thread &w : xfer_workers)
+    {
+      w.join();
+    }
+    if (cluster_have)
+    {
+      const google::protobuf::int64 span_ms = cluster_w1 - cluster_w0;
+      const double span_sec = static_cast<double>(span_ms > 0 ? span_ms : 0) / 1000.0;
+      std::cout << "[Parix][Coordinator] cluster_pure_xfer_span_wall_sec stripe=" << stripe_id << " batch=" << batch_id << " span_sec=" << span_sec
+                << " max_proxy_pure_xfer_sec=" << max_proxy_pure << " proxies_with_timing=" << proxies_with_timing << std::endl;
+    }
+
     std::cout << "[Parix][Coordinator] commitParixBatch finished stripe=" << stripe_id << " batch=" << batch_id << std::endl;
     return grpc::Status::OK;
   }

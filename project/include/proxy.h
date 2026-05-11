@@ -69,6 +69,11 @@ namespace ECProject
         grpc::ServerContext *context,
         const proxy_proto::ParixReplayBatchRequest *request,
         proxy_proto::SetReply *response) override;
+
+    grpc::Status parixPullBatchXferTiming(
+        grpc::ServerContext *context,
+        const proxy_proto::ParixReplayBatchRequest *request,
+        proxy_proto::ParixBatchXferTimingReply *response) override;
     grpc::Status parixParityFullOverwrite(
         grpc::ServerContext *context,
         const proxy_proto::ParixParityFullOverwriteRequest *request,

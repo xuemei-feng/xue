@@ -47,6 +47,8 @@ service proxyService {
   rpc parixJournalAppendBatch(ParixJournalAppendBatchRequest) returns (ParixJournalAppendBatchReply);
   rpc parixSupplyD0(ParixSupplyD0Request) returns (SetReply);
   rpc parixReplayBatch(ParixReplayBatchRequest) returns (SetReply);
+  // Coordinator pulls aggregated xfer timing for a batch (consume-on-read).
+  rpc parixPullBatchXferTiming(ParixReplayBatchRequest) returns (ParixBatchXferTimingReply);
   rpc parixParityFullOverwrite(ParixParityFullOverwriteRequest) returns (SetReply);
   // get stripe
   rpc getBlocks(StripeAndBlockIDs) returns (GetReply);
@@ -343,6 +345,13 @@ message ParixSupplyD0Request {
 message ParixReplayBatchRequest {
   int32 stripe_id = 1;
   uint64 batch_id = 2;
+}
+
+message ParixBatchXferTimingReply {
+  bool had_samples = 1;
+  double proxy_pure_xfer_sec = 2;
+  int64 wall_span_start_unix_ms = 3;
+  int64 wall_span_end_unix_ms = 4;
 }
 
 message ParixJournalInvalidationRange {
