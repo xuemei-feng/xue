@@ -36,6 +36,7 @@ static const char* proxyService_method_names[] = {
   "/proxy_proto.proxyService/multipleRecovery",
   "/proxy_proto.proxyService/deleteBlock",
   "/proxy_proto.proxyService/scheduleAppend2Datanode",
+  "/proxy_proto.proxyService/rackCuPullXferTiming",
   "/proxy_proto.proxyService/fetchRackCuHomeDeltaStaging",
   "/proxy_proto.proxyService/deleteRackCuHomeDeltaStaging",
   "/proxy_proto.proxyService/getBlocks",
@@ -62,9 +63,10 @@ proxyService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& chann
   , rpcmethod_multipleRecovery_(proxyService_method_names[11], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_deleteBlock_(proxyService_method_names[12], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_scheduleAppend2Datanode_(proxyService_method_names[13], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_fetchRackCuHomeDeltaStaging_(proxyService_method_names[14], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_deleteRackCuHomeDeltaStaging_(proxyService_method_names[15], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_getBlocks_(proxyService_method_names[16], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_rackCuPullXferTiming_(proxyService_method_names[14], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_fetchRackCuHomeDeltaStaging_(proxyService_method_names[15], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_deleteRackCuHomeDeltaStaging_(proxyService_method_names[16], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_getBlocks_(proxyService_method_names[17], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status proxyService::Stub::checkalive(::grpc::ClientContext* context, const ::proxy_proto::CheckaliveCMD& request, ::proxy_proto::RequestResult* response) {
@@ -389,6 +391,29 @@ void proxyService::Stub::async::scheduleAppend2Datanode(::grpc::ClientContext* c
   return result;
 }
 
+::grpc::Status proxyService::Stub::rackCuPullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest& request, ::proxy_proto::RackCuXferTimingReply* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::RackCuXferTimingPullRequest, ::proxy_proto::RackCuXferTimingReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_rackCuPullXferTiming_, context, request, response);
+}
+
+void proxyService::Stub::async::rackCuPullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest* request, ::proxy_proto::RackCuXferTimingReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::RackCuXferTimingPullRequest, ::proxy_proto::RackCuXferTimingReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_rackCuPullXferTiming_, context, request, response, std::move(f));
+}
+
+void proxyService::Stub::async::rackCuPullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest* request, ::proxy_proto::RackCuXferTimingReply* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_rackCuPullXferTiming_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::RackCuXferTimingReply>* proxyService::Stub::PrepareAsyncrackCuPullXferTimingRaw(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::RackCuXferTimingReply, ::proxy_proto::RackCuXferTimingPullRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_rackCuPullXferTiming_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::RackCuXferTimingReply>* proxyService::Stub::AsyncrackCuPullXferTimingRaw(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncrackCuPullXferTimingRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 ::grpc::Status proxyService::Stub::fetchRackCuHomeDeltaStaging(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest& request, ::proxy_proto::RackCuHomeDeltaFetchReply* response) {
   return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::RackCuHomeDeltaFetchRequest, ::proxy_proto::RackCuHomeDeltaFetchReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_fetchRackCuHomeDeltaStaging_, context, request, response);
 }
@@ -602,6 +627,16 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[14],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::RackCuXferTimingPullRequest, ::proxy_proto::RackCuXferTimingReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](proxyService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::proxy_proto::RackCuXferTimingPullRequest* req,
+             ::proxy_proto::RackCuXferTimingReply* resp) {
+               return service->rackCuPullXferTiming(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      proxyService_method_names[15],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::RackCuHomeDeltaFetchRequest, ::proxy_proto::RackCuHomeDeltaFetchReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](proxyService::Service* service,
              ::grpc::ServerContext* ctx,
@@ -610,7 +645,7 @@ proxyService::Service::Service() {
                return service->fetchRackCuHomeDeltaStaging(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[15],
+      proxyService_method_names[16],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::RackCuHomeDeltaDeleteRequest, ::proxy_proto::RackCuHomeDeltaDeleteReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](proxyService::Service* service,
@@ -620,7 +655,7 @@ proxyService::Service::Service() {
                return service->deleteRackCuHomeDeltaStaging(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[16],
+      proxyService_method_names[17],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](proxyService::Service* service,
@@ -726,6 +761,13 @@ proxyService::Service::~Service() {
 }
 
 ::grpc::Status proxyService::Service::scheduleAppend2Datanode(::grpc::ServerContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status proxyService::Service::rackCuPullXferTiming(::grpc::ServerContext* context, const ::proxy_proto::RackCuXferTimingPullRequest* request, ::proxy_proto::RackCuXferTimingReply* response) {
   (void) context;
   (void) request;
   (void) response;

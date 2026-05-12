@@ -10,6 +10,7 @@
 #include <map>
 #include <unordered_map>
 #include <mutex>
+#include <atomic>
 #include <string>
 #include <thread>
 #include <condition_variable>
@@ -76,6 +77,10 @@ namespace ECProject
         grpc::ServerContext *context,
         const coordinator_proto::RackCuUpdateRequest *request,
         coordinator_proto::ReplyProxyIPsPorts *proxyIPPort) override;
+    grpc::Status pullRackCuXferTiming(
+        grpc::ServerContext *context,
+        const coordinator_proto::RackCuXferTimingPullRequest *request,
+        coordinator_proto::ReplyFromCoordinator *response) override;
     // get
     grpc::Status getValue(
         grpc::ServerContext *context,
@@ -201,6 +206,7 @@ namespace ECProject
 
   private:
     std::mutex m_mutex;
+    std::atomic<uint64_t> m_rack_cu_xfer_plan_seq{0};
     std::condition_variable cv;
     std::map<std::string, std::unique_ptr<proxy_proto::proxyService::Stub>>
         m_proxy_ptrs;

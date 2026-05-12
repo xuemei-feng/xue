@@ -37,6 +37,7 @@ service coordinatorService {
   rpc uploadXueUpdate (XueUpdateRequest) returns (ReplyProxyIPsPorts) {};
   // rack-aware clustered update（RackCU）：逻辑区间见 RackCuUpdateRequest
   rpc uploadRackCuUpdate (RackCuUpdateRequest) returns (ReplyProxyIPsPorts) {};
+  rpc pullRackCuXferTiming (RackCuXferTimingPullRequest) returns (ReplyFromCoordinator) {};
   // get
   rpc getValue(KeyAndClientIP) returns (RepIfGetSuccess) {};
 
@@ -135,6 +136,12 @@ message ReplyProxyIPsPorts {
   // 与 append_keys 等字段一一对应：proxy_proto.AppendStripeDataPlacement 的 SerializeAsString 结果
   repeated bytes append_plans = 7;
   repeated RackCuStagingCleanupRef rack_cu_staging_cleanup = 8;
+  uint64 rack_cu_xfer_plan_id = 9;
+}
+
+message RackCuXferTimingPullRequest {
+  int32 stripe_id = 1;
+  uint64 xfer_plan_id = 2;
 }
 
 // set, del, merge

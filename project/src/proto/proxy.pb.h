@@ -96,6 +96,12 @@ extern RackCuHomeDeltaFetchRequestDefaultTypeInternal _RackCuHomeDeltaFetchReque
 class RackCuHomeDeltaStagingRef;
 struct RackCuHomeDeltaStagingRefDefaultTypeInternal;
 extern RackCuHomeDeltaStagingRefDefaultTypeInternal _RackCuHomeDeltaStagingRef_default_instance_;
+class RackCuXferTimingPullRequest;
+struct RackCuXferTimingPullRequestDefaultTypeInternal;
+extern RackCuXferTimingPullRequestDefaultTypeInternal _RackCuXferTimingPullRequest_default_instance_;
+class RackCuXferTimingReply;
+struct RackCuXferTimingReplyDefaultTypeInternal;
+extern RackCuXferTimingReplyDefaultTypeInternal _RackCuXferTimingReply_default_instance_;
 class RecalReply;
 struct RecalReplyDefaultTypeInternal;
 extern RecalReplyDefaultTypeInternal _RecalReply_default_instance_;
@@ -151,6 +157,8 @@ template<> ::proxy_proto::RackCuHomeDeltaDeleteRequest* Arena::CreateMaybeMessag
 template<> ::proxy_proto::RackCuHomeDeltaFetchReply* Arena::CreateMaybeMessage<::proxy_proto::RackCuHomeDeltaFetchReply>(Arena*);
 template<> ::proxy_proto::RackCuHomeDeltaFetchRequest* Arena::CreateMaybeMessage<::proxy_proto::RackCuHomeDeltaFetchRequest>(Arena*);
 template<> ::proxy_proto::RackCuHomeDeltaStagingRef* Arena::CreateMaybeMessage<::proxy_proto::RackCuHomeDeltaStagingRef>(Arena*);
+template<> ::proxy_proto::RackCuXferTimingPullRequest* Arena::CreateMaybeMessage<::proxy_proto::RackCuXferTimingPullRequest>(Arena*);
+template<> ::proxy_proto::RackCuXferTimingReply* Arena::CreateMaybeMessage<::proxy_proto::RackCuXferTimingReply>(Arena*);
 template<> ::proxy_proto::RecalReply* Arena::CreateMaybeMessage<::proxy_proto::RecalReply>(Arena*);
 template<> ::proxy_proto::RecoveryReply* Arena::CreateMaybeMessage<::proxy_proto::RecoveryReply>(Arena*);
 template<> ::proxy_proto::RecoveryRequest* Arena::CreateMaybeMessage<::proxy_proto::RecoveryRequest>(Arena*);
@@ -293,6 +301,8 @@ class RackCuHomeDeltaFetchRequest final :
     kStagingDatanodeIpFieldNumber = 2,
     kBlobBytesFieldNumber = 4,
     kStagingDatanodePortFieldNumber = 3,
+    kRackCuXferStripeIdFieldNumber = 5,
+    kRackCuXferPlanIdFieldNumber = 6,
   };
   // string staging_key = 1;
   void clear_staging_key();
@@ -340,6 +350,24 @@ class RackCuHomeDeltaFetchRequest final :
   void _internal_set_staging_datanode_port(int32_t value);
   public:
 
+  // int32 rack_cu_xfer_stripe_id = 5;
+  void clear_rack_cu_xfer_stripe_id();
+  int32_t rack_cu_xfer_stripe_id() const;
+  void set_rack_cu_xfer_stripe_id(int32_t value);
+  private:
+  int32_t _internal_rack_cu_xfer_stripe_id() const;
+  void _internal_set_rack_cu_xfer_stripe_id(int32_t value);
+  public:
+
+  // uint64 rack_cu_xfer_plan_id = 6;
+  void clear_rack_cu_xfer_plan_id();
+  uint64_t rack_cu_xfer_plan_id() const;
+  void set_rack_cu_xfer_plan_id(uint64_t value);
+  private:
+  uint64_t _internal_rack_cu_xfer_plan_id() const;
+  void _internal_set_rack_cu_xfer_plan_id(uint64_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:proxy_proto.RackCuHomeDeltaFetchRequest)
  private:
   class _Internal;
@@ -352,6 +380,348 @@ class RackCuHomeDeltaFetchRequest final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr staging_datanode_ip_;
     uint64_t blob_bytes_;
     int32_t staging_datanode_port_;
+    int32_t rack_cu_xfer_stripe_id_;
+    uint64_t rack_cu_xfer_plan_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class RackCuXferTimingPullRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.RackCuXferTimingPullRequest) */ {
+ public:
+  inline RackCuXferTimingPullRequest() : RackCuXferTimingPullRequest(nullptr) {}
+  ~RackCuXferTimingPullRequest() override;
+  explicit PROTOBUF_CONSTEXPR RackCuXferTimingPullRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  RackCuXferTimingPullRequest(const RackCuXferTimingPullRequest& from);
+  RackCuXferTimingPullRequest(RackCuXferTimingPullRequest&& from) noexcept
+    : RackCuXferTimingPullRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline RackCuXferTimingPullRequest& operator=(const RackCuXferTimingPullRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline RackCuXferTimingPullRequest& operator=(RackCuXferTimingPullRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const RackCuXferTimingPullRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const RackCuXferTimingPullRequest* internal_default_instance() {
+    return reinterpret_cast<const RackCuXferTimingPullRequest*>(
+               &_RackCuXferTimingPullRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    1;
+
+  friend void swap(RackCuXferTimingPullRequest& a, RackCuXferTimingPullRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(RackCuXferTimingPullRequest* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(RackCuXferTimingPullRequest* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  RackCuXferTimingPullRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<RackCuXferTimingPullRequest>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const RackCuXferTimingPullRequest& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const RackCuXferTimingPullRequest& from) {
+    RackCuXferTimingPullRequest::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(RackCuXferTimingPullRequest* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.RackCuXferTimingPullRequest";
+  }
+  protected:
+  explicit RackCuXferTimingPullRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kXferPlanIdFieldNumber = 2,
+    kStripeIdFieldNumber = 1,
+  };
+  // uint64 xfer_plan_id = 2;
+  void clear_xfer_plan_id();
+  uint64_t xfer_plan_id() const;
+  void set_xfer_plan_id(uint64_t value);
+  private:
+  uint64_t _internal_xfer_plan_id() const;
+  void _internal_set_xfer_plan_id(uint64_t value);
+  public:
+
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.RackCuXferTimingPullRequest)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    uint64_t xfer_plan_id_;
+    int32_t stripe_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class RackCuXferTimingReply final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.RackCuXferTimingReply) */ {
+ public:
+  inline RackCuXferTimingReply() : RackCuXferTimingReply(nullptr) {}
+  ~RackCuXferTimingReply() override;
+  explicit PROTOBUF_CONSTEXPR RackCuXferTimingReply(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  RackCuXferTimingReply(const RackCuXferTimingReply& from);
+  RackCuXferTimingReply(RackCuXferTimingReply&& from) noexcept
+    : RackCuXferTimingReply() {
+    *this = ::std::move(from);
+  }
+
+  inline RackCuXferTimingReply& operator=(const RackCuXferTimingReply& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline RackCuXferTimingReply& operator=(RackCuXferTimingReply&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const RackCuXferTimingReply& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const RackCuXferTimingReply* internal_default_instance() {
+    return reinterpret_cast<const RackCuXferTimingReply*>(
+               &_RackCuXferTimingReply_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    2;
+
+  friend void swap(RackCuXferTimingReply& a, RackCuXferTimingReply& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(RackCuXferTimingReply* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(RackCuXferTimingReply* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  RackCuXferTimingReply* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<RackCuXferTimingReply>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const RackCuXferTimingReply& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const RackCuXferTimingReply& from) {
+    RackCuXferTimingReply::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(RackCuXferTimingReply* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.RackCuXferTimingReply";
+  }
+  protected:
+  explicit RackCuXferTimingReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kProxyPureXferSecFieldNumber = 2,
+    kWallSpanStartUnixMsFieldNumber = 3,
+    kWallSpanEndUnixMsFieldNumber = 4,
+    kHadSamplesFieldNumber = 1,
+  };
+  // double proxy_pure_xfer_sec = 2;
+  void clear_proxy_pure_xfer_sec();
+  double proxy_pure_xfer_sec() const;
+  void set_proxy_pure_xfer_sec(double value);
+  private:
+  double _internal_proxy_pure_xfer_sec() const;
+  void _internal_set_proxy_pure_xfer_sec(double value);
+  public:
+
+  // int64 wall_span_start_unix_ms = 3;
+  void clear_wall_span_start_unix_ms();
+  int64_t wall_span_start_unix_ms() const;
+  void set_wall_span_start_unix_ms(int64_t value);
+  private:
+  int64_t _internal_wall_span_start_unix_ms() const;
+  void _internal_set_wall_span_start_unix_ms(int64_t value);
+  public:
+
+  // int64 wall_span_end_unix_ms = 4;
+  void clear_wall_span_end_unix_ms();
+  int64_t wall_span_end_unix_ms() const;
+  void set_wall_span_end_unix_ms(int64_t value);
+  private:
+  int64_t _internal_wall_span_end_unix_ms() const;
+  void _internal_set_wall_span_end_unix_ms(int64_t value);
+  public:
+
+  // bool had_samples = 1;
+  void clear_had_samples();
+  bool had_samples() const;
+  void set_had_samples(bool value);
+  private:
+  bool _internal_had_samples() const;
+  void _internal_set_had_samples(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.RackCuXferTimingReply)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    double proxy_pure_xfer_sec_;
+    int64_t wall_span_start_unix_ms_;
+    int64_t wall_span_end_unix_ms_;
+    bool had_samples_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -407,7 +777,7 @@ class RackCuHomeDeltaFetchReply final :
                &_RackCuHomeDeltaFetchReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    1;
+    3;
 
   friend void swap(RackCuHomeDeltaFetchReply& a, RackCuHomeDeltaFetchReply& b) {
     a.Swap(&b);
@@ -571,7 +941,7 @@ class RackCuHomeDeltaDeleteRequest final :
                &_RackCuHomeDeltaDeleteRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    4;
 
   friend void swap(RackCuHomeDeltaDeleteRequest& a, RackCuHomeDeltaDeleteRequest& b) {
     a.Swap(&b);
@@ -751,7 +1121,7 @@ class RackCuHomeDeltaDeleteReply final :
                &_RackCuHomeDeltaDeleteReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    3;
+    5;
 
   friend void swap(RackCuHomeDeltaDeleteReply& a, RackCuHomeDeltaDeleteReply& b) {
     a.Swap(&b);
@@ -899,7 +1269,7 @@ class RackCuHomeDeltaStagingRef final :
                &_RackCuHomeDeltaStagingRef_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    4;
+    6;
 
   friend void swap(RackCuHomeDeltaStagingRef& a, RackCuHomeDeltaStagingRef& b) {
     a.Swap(&b);
@@ -1133,7 +1503,7 @@ class locationInfo final :
                &_locationInfo_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    5;
+    7;
 
   friend void swap(locationInfo& a, locationInfo& b) {
     a.Swap(&b);
@@ -1410,7 +1780,7 @@ class mainRecalPlan final :
                &_mainRecalPlan_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    8;
 
   friend void swap(mainRecalPlan& a, mainRecalPlan& b) {
     a.Swap(&b);
@@ -1743,7 +2113,7 @@ class RecalReply final :
                &_RecalReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    9;
 
   friend void swap(RecalReply& a, RecalReply& b) {
     a.Swap(&b);
@@ -1896,7 +2266,7 @@ class helpRecalPlan final :
                &_helpRecalPlan_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    10;
 
   friend void swap(helpRecalPlan& a, helpRecalPlan& b) {
     a.Swap(&b);
@@ -2228,7 +2598,7 @@ class blockRelocPlan final :
                &_blockRelocPlan_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    11;
 
   friend void swap(blockRelocPlan& a, blockRelocPlan& b) {
     a.Swap(&b);
@@ -2504,7 +2874,7 @@ class blockRelocReply final :
                &_blockRelocReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    12;
 
   friend void swap(blockRelocReply& a, blockRelocReply& b) {
     a.Swap(&b);
@@ -2657,7 +3027,7 @@ class AskIfSuccess final :
                &_AskIfSuccess_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    13;
 
   friend void swap(AskIfSuccess& a, AskIfSuccess& b) {
     a.Swap(&b);
@@ -2805,7 +3175,7 @@ class RepIfSuccess final :
                &_RepIfSuccess_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    14;
 
   friend void swap(RepIfSuccess& a, RepIfSuccess& b) {
     a.Swap(&b);
@@ -2953,7 +3323,7 @@ class NodeAndBlock final :
                &_NodeAndBlock_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    13;
+    15;
 
   friend void swap(NodeAndBlock& a, NodeAndBlock& b) {
     a.Swap(&b);
@@ -3194,7 +3564,7 @@ class DelReply final :
                &_DelReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    14;
+    16;
 
   friend void swap(DelReply& a, DelReply& b) {
     a.Swap(&b);
@@ -3342,7 +3712,7 @@ class CheckaliveCMD final :
                &_CheckaliveCMD_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    15;
+    17;
 
   friend void swap(CheckaliveCMD& a, CheckaliveCMD& b) {
     a.Swap(&b);
@@ -3495,7 +3865,7 @@ class RequestResult final :
                &_RequestResult_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    16;
+    18;
 
   friend void swap(RequestResult& a, RequestResult& b) {
     a.Swap(&b);
@@ -3643,7 +4013,7 @@ class ObjectAndPlacement final :
                &_ObjectAndPlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    17;
+    19;
 
   friend void swap(ObjectAndPlacement& a, ObjectAndPlacement& b) {
     a.Swap(&b);
@@ -4002,7 +4372,7 @@ class DegradedReadRequest final :
                &_DegradedReadRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    20;
 
   friend void swap(DegradedReadRequest& a, DegradedReadRequest& b) {
     a.Swap(&b);
@@ -4306,7 +4676,7 @@ class PartialDecodingRequest final :
                &_PartialDecodingRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    21;
 
   friend void swap(PartialDecodingRequest& a, PartialDecodingRequest& b) {
     a.Swap(&b);
@@ -4608,7 +4978,7 @@ class DegradedReadReply final :
                &_DegradedReadReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    22;
 
   friend void swap(DegradedReadReply& a, DegradedReadReply& b) {
     a.Swap(&b);
@@ -4866,7 +5236,7 @@ class RecoveryRequest final :
                &_RecoveryRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    23;
 
   friend void swap(RecoveryRequest& a, RecoveryRequest& b) {
     a.Swap(&b);
@@ -5243,7 +5613,7 @@ class MultipleRecoveryRequest final :
                &_MultipleRecoveryRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    24;
 
   friend void swap(MultipleRecoveryRequest& a, MultipleRecoveryRequest& b) {
     a.Swap(&b);
@@ -5469,7 +5839,7 @@ class RecoveryReply final :
                &_RecoveryReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    25;
 
   friend void swap(RecoveryReply& a, RecoveryReply& b) {
     a.Swap(&b);
@@ -5749,7 +6119,7 @@ class RackCuGlobalParityBatchTarget final :
                &_RackCuGlobalParityBatchTarget_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    24;
+    26;
 
   friend void swap(RackCuGlobalParityBatchTarget& a, RackCuGlobalParityBatchTarget& b) {
     a.Swap(&b);
@@ -5989,7 +6359,7 @@ class AppendStripeDataPlacement final :
                &_AppendStripeDataPlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    25;
+    27;
 
   friend void swap(AppendStripeDataPlacement& a, AppendStripeDataPlacement& b) {
     a.Swap(&b);
@@ -6079,6 +6449,7 @@ class AppendStripeDataPlacement final :
     kIsMergeParityFieldNumber = 11,
     kIsSerializedFieldNumber = 13,
     kTargetProxyPortFieldNumber = 15,
+    kRackCuXferPlanIdFieldNumber = 19,
     kRackcuCollectorClusterIdFieldNumber = 17,
   };
   // repeated string datanodeip = 5;
@@ -6349,6 +6720,15 @@ class AppendStripeDataPlacement final :
   void _internal_set_target_proxy_port(int32_t value);
   public:
 
+  // uint64 rack_cu_xfer_plan_id = 19;
+  void clear_rack_cu_xfer_plan_id();
+  uint64_t rack_cu_xfer_plan_id() const;
+  void set_rack_cu_xfer_plan_id(uint64_t value);
+  private:
+  uint64_t _internal_rack_cu_xfer_plan_id() const;
+  void _internal_set_rack_cu_xfer_plan_id(uint64_t value);
+  public:
+
   // int32 rackcu_collector_cluster_id = 17;
   void clear_rackcu_collector_cluster_id();
   int32_t rackcu_collector_cluster_id() const;
@@ -6387,6 +6767,7 @@ class AppendStripeDataPlacement final :
     bool is_merge_parity_;
     bool is_serialized_;
     int32_t target_proxy_port_;
+    uint64_t rack_cu_xfer_plan_id_;
     int32_t rackcu_collector_cluster_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -6443,7 +6824,7 @@ class SetReply final :
                &_SetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    26;
+    28;
 
   friend void swap(SetReply& a, SetReply& b) {
     a.Swap(&b);
@@ -6591,7 +6972,7 @@ class GetReply final :
                &_GetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    27;
+    29;
 
   friend void swap(GetReply& a, GetReply& b) {
     a.Swap(&b);
@@ -6739,7 +7120,7 @@ class StripeAndBlockIDs final :
                &_StripeAndBlockIDs_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    28;
+    30;
 
   friend void swap(StripeAndBlockIDs& a, StripeAndBlockIDs& b) {
     a.Swap(&b);
@@ -7126,6 +7507,174 @@ inline void RackCuHomeDeltaFetchRequest::_internal_set_blob_bytes(uint64_t value
 inline void RackCuHomeDeltaFetchRequest::set_blob_bytes(uint64_t value) {
   _internal_set_blob_bytes(value);
   // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaFetchRequest.blob_bytes)
+}
+
+// int32 rack_cu_xfer_stripe_id = 5;
+inline void RackCuHomeDeltaFetchRequest::clear_rack_cu_xfer_stripe_id() {
+  _impl_.rack_cu_xfer_stripe_id_ = 0;
+}
+inline int32_t RackCuHomeDeltaFetchRequest::_internal_rack_cu_xfer_stripe_id() const {
+  return _impl_.rack_cu_xfer_stripe_id_;
+}
+inline int32_t RackCuHomeDeltaFetchRequest::rack_cu_xfer_stripe_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaFetchRequest.rack_cu_xfer_stripe_id)
+  return _internal_rack_cu_xfer_stripe_id();
+}
+inline void RackCuHomeDeltaFetchRequest::_internal_set_rack_cu_xfer_stripe_id(int32_t value) {
+  
+  _impl_.rack_cu_xfer_stripe_id_ = value;
+}
+inline void RackCuHomeDeltaFetchRequest::set_rack_cu_xfer_stripe_id(int32_t value) {
+  _internal_set_rack_cu_xfer_stripe_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaFetchRequest.rack_cu_xfer_stripe_id)
+}
+
+// uint64 rack_cu_xfer_plan_id = 6;
+inline void RackCuHomeDeltaFetchRequest::clear_rack_cu_xfer_plan_id() {
+  _impl_.rack_cu_xfer_plan_id_ = uint64_t{0u};
+}
+inline uint64_t RackCuHomeDeltaFetchRequest::_internal_rack_cu_xfer_plan_id() const {
+  return _impl_.rack_cu_xfer_plan_id_;
+}
+inline uint64_t RackCuHomeDeltaFetchRequest::rack_cu_xfer_plan_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuHomeDeltaFetchRequest.rack_cu_xfer_plan_id)
+  return _internal_rack_cu_xfer_plan_id();
+}
+inline void RackCuHomeDeltaFetchRequest::_internal_set_rack_cu_xfer_plan_id(uint64_t value) {
+  
+  _impl_.rack_cu_xfer_plan_id_ = value;
+}
+inline void RackCuHomeDeltaFetchRequest::set_rack_cu_xfer_plan_id(uint64_t value) {
+  _internal_set_rack_cu_xfer_plan_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuHomeDeltaFetchRequest.rack_cu_xfer_plan_id)
+}
+
+// -------------------------------------------------------------------
+
+// RackCuXferTimingPullRequest
+
+// int32 stripe_id = 1;
+inline void RackCuXferTimingPullRequest::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t RackCuXferTimingPullRequest::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t RackCuXferTimingPullRequest::stripe_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuXferTimingPullRequest.stripe_id)
+  return _internal_stripe_id();
+}
+inline void RackCuXferTimingPullRequest::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void RackCuXferTimingPullRequest::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuXferTimingPullRequest.stripe_id)
+}
+
+// uint64 xfer_plan_id = 2;
+inline void RackCuXferTimingPullRequest::clear_xfer_plan_id() {
+  _impl_.xfer_plan_id_ = uint64_t{0u};
+}
+inline uint64_t RackCuXferTimingPullRequest::_internal_xfer_plan_id() const {
+  return _impl_.xfer_plan_id_;
+}
+inline uint64_t RackCuXferTimingPullRequest::xfer_plan_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuXferTimingPullRequest.xfer_plan_id)
+  return _internal_xfer_plan_id();
+}
+inline void RackCuXferTimingPullRequest::_internal_set_xfer_plan_id(uint64_t value) {
+  
+  _impl_.xfer_plan_id_ = value;
+}
+inline void RackCuXferTimingPullRequest::set_xfer_plan_id(uint64_t value) {
+  _internal_set_xfer_plan_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuXferTimingPullRequest.xfer_plan_id)
+}
+
+// -------------------------------------------------------------------
+
+// RackCuXferTimingReply
+
+// bool had_samples = 1;
+inline void RackCuXferTimingReply::clear_had_samples() {
+  _impl_.had_samples_ = false;
+}
+inline bool RackCuXferTimingReply::_internal_had_samples() const {
+  return _impl_.had_samples_;
+}
+inline bool RackCuXferTimingReply::had_samples() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuXferTimingReply.had_samples)
+  return _internal_had_samples();
+}
+inline void RackCuXferTimingReply::_internal_set_had_samples(bool value) {
+  
+  _impl_.had_samples_ = value;
+}
+inline void RackCuXferTimingReply::set_had_samples(bool value) {
+  _internal_set_had_samples(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuXferTimingReply.had_samples)
+}
+
+// double proxy_pure_xfer_sec = 2;
+inline void RackCuXferTimingReply::clear_proxy_pure_xfer_sec() {
+  _impl_.proxy_pure_xfer_sec_ = 0;
+}
+inline double RackCuXferTimingReply::_internal_proxy_pure_xfer_sec() const {
+  return _impl_.proxy_pure_xfer_sec_;
+}
+inline double RackCuXferTimingReply::proxy_pure_xfer_sec() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuXferTimingReply.proxy_pure_xfer_sec)
+  return _internal_proxy_pure_xfer_sec();
+}
+inline void RackCuXferTimingReply::_internal_set_proxy_pure_xfer_sec(double value) {
+  
+  _impl_.proxy_pure_xfer_sec_ = value;
+}
+inline void RackCuXferTimingReply::set_proxy_pure_xfer_sec(double value) {
+  _internal_set_proxy_pure_xfer_sec(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuXferTimingReply.proxy_pure_xfer_sec)
+}
+
+// int64 wall_span_start_unix_ms = 3;
+inline void RackCuXferTimingReply::clear_wall_span_start_unix_ms() {
+  _impl_.wall_span_start_unix_ms_ = int64_t{0};
+}
+inline int64_t RackCuXferTimingReply::_internal_wall_span_start_unix_ms() const {
+  return _impl_.wall_span_start_unix_ms_;
+}
+inline int64_t RackCuXferTimingReply::wall_span_start_unix_ms() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuXferTimingReply.wall_span_start_unix_ms)
+  return _internal_wall_span_start_unix_ms();
+}
+inline void RackCuXferTimingReply::_internal_set_wall_span_start_unix_ms(int64_t value) {
+  
+  _impl_.wall_span_start_unix_ms_ = value;
+}
+inline void RackCuXferTimingReply::set_wall_span_start_unix_ms(int64_t value) {
+  _internal_set_wall_span_start_unix_ms(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuXferTimingReply.wall_span_start_unix_ms)
+}
+
+// int64 wall_span_end_unix_ms = 4;
+inline void RackCuXferTimingReply::clear_wall_span_end_unix_ms() {
+  _impl_.wall_span_end_unix_ms_ = int64_t{0};
+}
+inline int64_t RackCuXferTimingReply::_internal_wall_span_end_unix_ms() const {
+  return _impl_.wall_span_end_unix_ms_;
+}
+inline int64_t RackCuXferTimingReply::wall_span_end_unix_ms() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.RackCuXferTimingReply.wall_span_end_unix_ms)
+  return _internal_wall_span_end_unix_ms();
+}
+inline void RackCuXferTimingReply::_internal_set_wall_span_end_unix_ms(int64_t value) {
+  
+  _impl_.wall_span_end_unix_ms_ = value;
+}
+inline void RackCuXferTimingReply::set_wall_span_end_unix_ms(int64_t value) {
+  _internal_set_wall_span_end_unix_ms(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.RackCuXferTimingReply.wall_span_end_unix_ms)
 }
 
 // -------------------------------------------------------------------
@@ -13202,6 +13751,26 @@ AppendStripeDataPlacement::rackcu_global_parity_batch() const {
   return _impl_.rackcu_global_parity_batch_;
 }
 
+// uint64 rack_cu_xfer_plan_id = 19;
+inline void AppendStripeDataPlacement::clear_rack_cu_xfer_plan_id() {
+  _impl_.rack_cu_xfer_plan_id_ = uint64_t{0u};
+}
+inline uint64_t AppendStripeDataPlacement::_internal_rack_cu_xfer_plan_id() const {
+  return _impl_.rack_cu_xfer_plan_id_;
+}
+inline uint64_t AppendStripeDataPlacement::rack_cu_xfer_plan_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.rack_cu_xfer_plan_id)
+  return _internal_rack_cu_xfer_plan_id();
+}
+inline void AppendStripeDataPlacement::_internal_set_rack_cu_xfer_plan_id(uint64_t value) {
+  
+  _impl_.rack_cu_xfer_plan_id_ = value;
+}
+inline void AppendStripeDataPlacement::set_rack_cu_xfer_plan_id(uint64_t value) {
+  _internal_set_rack_cu_xfer_plan_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.rack_cu_xfer_plan_id)
+}
+
 // -------------------------------------------------------------------
 
 // SetReply
@@ -13611,6 +14180,10 @@ StripeAndBlockIDs::mutable_datanodeports() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

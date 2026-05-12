@@ -1588,6 +1588,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       m_mutex.unlock();
     }
 
+    const uint64_t rack_cu_xfer_plan_id = m_rack_cu_xfer_plan_seq.fetch_add(1, std::memory_order_relaxed) + 1;
+    for (auto &p : plans)
+    {
+      p.set_rack_cu_xfer_plan_id(rack_cu_xfer_plan_id);
+    }
+    proxyIPPort->set_rack_cu_xfer_plan_id(rack_cu_xfer_plan_id);
+
     uint64_t sum_append_size = 0;
     std::vector<std::thread> threads;
     threads.reserve(plans.size());
@@ -1621,6 +1628,98 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       c->set_holder_proxy_port(st.holder_proxy_port());
       c->set_staging_datanode_ip(st.staging_datanode_ip());
       c->set_staging_datanode_port(st.staging_datanode_port());
+    }
+
+    return grpc::Status::OK;
+  }
+
+
+  grpc::Status CoordinatorImpl::pullRackCuXferTiming(
+      grpc::ServerContext *context,
+      const coordinator_proto::RackCuXferTimingPullRequest *request,
+      coordinator_proto::ReplyFromCoordinator *response)
+  {
+    (void)context;
+    (void)response;
+    const int stripe_id = request->stripe_id();
+    const uint64_t xfer_plan_id = request->xfer_plan_id();
+    if (xfer_plan_id == 0)
+    {
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "xfer_plan_id must be non-zero");
+    }
+    auto sit = m_stripe_table.find(stripe_id);
+    if (sit == m_stripe_table.end())
+    {
+      return grpc::Status(grpc::StatusCode::NOT_FOUND, "stripe_id not found");
+    }
+    const Stripe &stripe = sit->second;
+    std::vector<std::string> xfer_pull_targets;
+    xfer_pull_targets.reserve(stripe.blocks.size());
+    for (Block *blk : stripe.blocks)
+    {
+      if (blk == nullptr)
+      {
+        continue;
+      }
+      const int cid = blk->map2cluster;
+      xfer_pull_targets.push_back(m_cluster_table.at(cid).proxy_ip + ":" + std::to_string(m_cluster_table.at(cid).proxy_port));
+    }
+    std::sort(xfer_pull_targets.begin(), xfer_pull_targets.end());
+    xfer_pull_targets.erase(std::unique(xfer_pull_targets.begin(), xfer_pull_targets.end()), xfer_pull_targets.end());
+
+    std::mutex xfer_mu;
+    double max_proxy_pure = 0.0;
+    int proxies_with_timing = 0;
+    bool cluster_have = false;
+    google::protobuf::int64 cluster_w0 = 0;
+    google::protobuf::int64 cluster_w1 = 0;
+
+    std::vector<std::thread> xfer_workers;
+    xfer_workers.reserve(xfer_pull_targets.size());
+    for (const std::string &tgt : xfer_pull_targets)
+    {
+      xfer_workers.emplace_back([this, stripe_id, xfer_plan_id, tgt, &xfer_mu, &max_proxy_pure, &proxies_with_timing, &cluster_have, &cluster_w0,
+                                 &cluster_w1]() {
+        grpc::ClientContext ctx;
+        proxy_proto::RackCuXferTimingPullRequest rq;
+        rq.set_stripe_id(stripe_id);
+        rq.set_xfer_plan_id(xfer_plan_id);
+        proxy_proto::RackCuXferTimingReply rep;
+        grpc::Status st = m_proxy_ptrs.at(tgt)->rackCuPullXferTiming(&ctx, rq, &rep);
+        if (!st.ok() || !rep.had_samples())
+        {
+          return;
+        }
+        std::lock_guard<std::mutex> lk(xfer_mu);
+        proxies_with_timing++;
+        max_proxy_pure = std::max(max_proxy_pure, rep.proxy_pure_xfer_sec());
+        std::cout << "[RackCU][Coordinator] proxy_pure_xfer stripe=" << stripe_id << " xfer_plan_id=" << xfer_plan_id << " target=" << tgt
+                  << " proxy_pure_xfer_sec=" << rep.proxy_pure_xfer_sec() << " wall_span_unix_ms=[" << rep.wall_span_start_unix_ms() << ","
+                  << rep.wall_span_end_unix_ms() << "]" << std::endl;
+        if (!cluster_have)
+        {
+          cluster_have = true;
+          cluster_w0 = rep.wall_span_start_unix_ms();
+          cluster_w1 = rep.wall_span_end_unix_ms();
+        }
+        else
+        {
+          cluster_w0 = std::min(cluster_w0, rep.wall_span_start_unix_ms());
+          cluster_w1 = std::max(cluster_w1, rep.wall_span_end_unix_ms());
+        }
+      });
+    }
+    for (std::thread &w : xfer_workers)
+    {
+      w.join();
+    }
+    if (cluster_have)
+    {
+      const google::protobuf::int64 span_ms = cluster_w1 - cluster_w0;
+      const double cluster_pure_xfer_span_wall_sec = static_cast<double>(span_ms > 0 ? span_ms : 0) / 1000.0;
+      std::cout << "[RackCU][Coordinator] cluster_pure_xfer_span_wall_sec stripe=" << stripe_id << " xfer_plan_id=" << xfer_plan_id
+                << " cluster_pure_xfer_span_wall_sec=" << cluster_pure_xfer_span_wall_sec << " max_proxy_pure_xfer_sec=" << max_proxy_pure
+                << " proxies_with_timing=" << proxies_with_timing << std::endl;
     }
 
     return grpc::Status::OK;

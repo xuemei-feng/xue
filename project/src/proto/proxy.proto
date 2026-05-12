@@ -40,6 +40,7 @@ service proxyService {
   rpc deleteBlock(NodeAndBlock) returns (DelReply);
   // append
   rpc scheduleAppend2Datanode(AppendStripeDataPlacement) returns (SetReply);
+  rpc rackCuPullXferTiming(RackCuXferTimingPullRequest) returns (RackCuXferTimingReply);
   // RackCU：其它 cluster 的 proxy 向本机拉取已落盘的 home Δ blob（纯集群内转发）
   rpc fetchRackCuHomeDeltaStaging(RackCuHomeDeltaFetchRequest) returns (RackCuHomeDeltaFetchReply);
   // RackCU：删除本 cluster datanode 上的 home Δ 暂存（全轮更新成功后由 client 触发）
@@ -53,7 +54,22 @@ message RackCuHomeDeltaFetchRequest {
   string staging_datanode_ip = 2;
   int32 staging_datanode_port = 3;
   uint64 blob_bytes = 4;
+  int32 rack_cu_xfer_stripe_id = 5;
+  uint64 rack_cu_xfer_plan_id = 6;
 }
+
+message RackCuXferTimingPullRequest {
+  int32 stripe_id = 1;
+  uint64 xfer_plan_id = 2;
+}
+
+message RackCuXferTimingReply {
+  bool had_samples = 1;
+  double proxy_pure_xfer_sec = 2;
+  int64 wall_span_start_unix_ms = 3;
+  int64 wall_span_end_unix_ms = 4;
+}
+
 
 message RackCuHomeDeltaFetchReply {
   bool ok = 1;
@@ -308,6 +324,7 @@ message AppendStripeDataPlacement{
   // RackCU：home -> collector push 时，collector 侧 schedule 用的 cluster_id（与 plan.cluster_id=home 区分）
   int32 rackcu_collector_cluster_id = 17;
   repeated RackCuGlobalParityBatchTarget rackcu_global_parity_batch = 18;
+  uint64 rack_cu_xfer_plan_id = 19;
 }
 
 message SetReply {

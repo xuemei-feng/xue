@@ -156,6 +156,13 @@ class proxyService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>> PrepareAsyncscheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>>(PrepareAsyncscheduleAppend2DatanodeRaw(context, request, cq));
     }
+    virtual ::grpc::Status rackCuPullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest& request, ::proxy_proto::RackCuXferTimingReply* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::RackCuXferTimingReply>> AsyncrackCuPullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::RackCuXferTimingReply>>(AsyncrackCuPullXferTimingRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::RackCuXferTimingReply>> PrepareAsyncrackCuPullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::RackCuXferTimingReply>>(PrepareAsyncrackCuPullXferTimingRaw(context, request, cq));
+    }
     // RackCU：其它 cluster 的 proxy 向本机拉取已落盘的 home Δ blob（纯集群内转发）
     virtual ::grpc::Status fetchRackCuHomeDeltaStaging(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest& request, ::proxy_proto::RackCuHomeDeltaFetchReply* response) = 0;
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::RackCuHomeDeltaFetchReply>> AsyncfetchRackCuHomeDeltaStaging(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest& request, ::grpc::CompletionQueue* cq) {
@@ -218,6 +225,8 @@ class proxyService final {
       // append
       virtual void scheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) = 0;
       virtual void scheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void rackCuPullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest* request, ::proxy_proto::RackCuXferTimingReply* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void rackCuPullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest* request, ::proxy_proto::RackCuXferTimingReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       // RackCU：其它 cluster 的 proxy 向本机拉取已落盘的 home Δ blob（纯集群内转发）
       virtual void fetchRackCuHomeDeltaStaging(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest* request, ::proxy_proto::RackCuHomeDeltaFetchReply* response, std::function<void(::grpc::Status)>) = 0;
       virtual void fetchRackCuHomeDeltaStaging(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest* request, ::proxy_proto::RackCuHomeDeltaFetchReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
@@ -260,6 +269,8 @@ class proxyService final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::DelReply>* PrepareAsyncdeleteBlockRaw(::grpc::ClientContext* context, const ::proxy_proto::NodeAndBlock& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* AsyncscheduleAppend2DatanodeRaw(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::SetReply>* PrepareAsyncscheduleAppend2DatanodeRaw(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::RackCuXferTimingReply>* AsyncrackCuPullXferTimingRaw(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::RackCuXferTimingReply>* PrepareAsyncrackCuPullXferTimingRaw(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::RackCuHomeDeltaFetchReply>* AsyncfetchRackCuHomeDeltaStagingRaw(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::RackCuHomeDeltaFetchReply>* PrepareAsyncfetchRackCuHomeDeltaStagingRaw(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::proxy_proto::RackCuHomeDeltaDeleteReply>* AsyncdeleteRackCuHomeDeltaStagingRaw(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaDeleteRequest& request, ::grpc::CompletionQueue* cq) = 0;
@@ -368,6 +379,13 @@ class proxyService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>> PrepareAsyncscheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>>(PrepareAsyncscheduleAppend2DatanodeRaw(context, request, cq));
     }
+    ::grpc::Status rackCuPullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest& request, ::proxy_proto::RackCuXferTimingReply* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::RackCuXferTimingReply>> AsyncrackCuPullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::RackCuXferTimingReply>>(AsyncrackCuPullXferTimingRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::RackCuXferTimingReply>> PrepareAsyncrackCuPullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::RackCuXferTimingReply>>(PrepareAsyncrackCuPullXferTimingRaw(context, request, cq));
+    }
     ::grpc::Status fetchRackCuHomeDeltaStaging(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest& request, ::proxy_proto::RackCuHomeDeltaFetchReply* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::RackCuHomeDeltaFetchReply>> AsyncfetchRackCuHomeDeltaStaging(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::proxy_proto::RackCuHomeDeltaFetchReply>>(AsyncfetchRackCuHomeDeltaStagingRaw(context, request, cq));
@@ -420,6 +438,8 @@ class proxyService final {
       void deleteBlock(::grpc::ClientContext* context, const ::proxy_proto::NodeAndBlock* request, ::proxy_proto::DelReply* response, ::grpc::ClientUnaryReactor* reactor) override;
       void scheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)>) override;
       void scheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void rackCuPullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest* request, ::proxy_proto::RackCuXferTimingReply* response, std::function<void(::grpc::Status)>) override;
+      void rackCuPullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest* request, ::proxy_proto::RackCuXferTimingReply* response, ::grpc::ClientUnaryReactor* reactor) override;
       void fetchRackCuHomeDeltaStaging(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest* request, ::proxy_proto::RackCuHomeDeltaFetchReply* response, std::function<void(::grpc::Status)>) override;
       void fetchRackCuHomeDeltaStaging(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest* request, ::proxy_proto::RackCuHomeDeltaFetchReply* response, ::grpc::ClientUnaryReactor* reactor) override;
       void deleteRackCuHomeDeltaStaging(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaDeleteRequest* request, ::proxy_proto::RackCuHomeDeltaDeleteReply* response, std::function<void(::grpc::Status)>) override;
@@ -465,6 +485,8 @@ class proxyService final {
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::DelReply>* PrepareAsyncdeleteBlockRaw(::grpc::ClientContext* context, const ::proxy_proto::NodeAndBlock& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* AsyncscheduleAppend2DatanodeRaw(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* PrepareAsyncscheduleAppend2DatanodeRaw(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::RackCuXferTimingReply>* AsyncrackCuPullXferTimingRaw(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::proxy_proto::RackCuXferTimingReply>* PrepareAsyncrackCuPullXferTimingRaw(::grpc::ClientContext* context, const ::proxy_proto::RackCuXferTimingPullRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::RackCuHomeDeltaFetchReply>* AsyncfetchRackCuHomeDeltaStagingRaw(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::RackCuHomeDeltaFetchReply>* PrepareAsyncfetchRackCuHomeDeltaStagingRaw(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::proxy_proto::RackCuHomeDeltaDeleteReply>* AsyncdeleteRackCuHomeDeltaStagingRaw(::grpc::ClientContext* context, const ::proxy_proto::RackCuHomeDeltaDeleteRequest& request, ::grpc::CompletionQueue* cq) override;
@@ -485,6 +507,7 @@ class proxyService final {
     const ::grpc::internal::RpcMethod rpcmethod_multipleRecovery_;
     const ::grpc::internal::RpcMethod rpcmethod_deleteBlock_;
     const ::grpc::internal::RpcMethod rpcmethod_scheduleAppend2Datanode_;
+    const ::grpc::internal::RpcMethod rpcmethod_rackCuPullXferTiming_;
     const ::grpc::internal::RpcMethod rpcmethod_fetchRackCuHomeDeltaStaging_;
     const ::grpc::internal::RpcMethod rpcmethod_deleteRackCuHomeDeltaStaging_;
     const ::grpc::internal::RpcMethod rpcmethod_getBlocks_;
@@ -516,6 +539,7 @@ class proxyService final {
     virtual ::grpc::Status deleteBlock(::grpc::ServerContext* context, const ::proxy_proto::NodeAndBlock* request, ::proxy_proto::DelReply* response);
     // append
     virtual ::grpc::Status scheduleAppend2Datanode(::grpc::ServerContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response);
+    virtual ::grpc::Status rackCuPullXferTiming(::grpc::ServerContext* context, const ::proxy_proto::RackCuXferTimingPullRequest* request, ::proxy_proto::RackCuXferTimingReply* response);
     // RackCU：其它 cluster 的 proxy 向本机拉取已落盘的 home Δ blob（纯集群内转发）
     virtual ::grpc::Status fetchRackCuHomeDeltaStaging(::grpc::ServerContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest* request, ::proxy_proto::RackCuHomeDeltaFetchReply* response);
     // RackCU：删除本 cluster datanode 上的 home Δ 暂存（全轮更新成功后由 client 触发）
@@ -804,12 +828,32 @@ class proxyService final {
     }
   };
   template <class BaseClass>
+  class WithAsyncMethod_rackCuPullXferTiming : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_rackCuPullXferTiming() {
+      ::grpc::Service::MarkMethodAsync(14);
+    }
+    ~WithAsyncMethod_rackCuPullXferTiming() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status rackCuPullXferTiming(::grpc::ServerContext* /*context*/, const ::proxy_proto::RackCuXferTimingPullRequest* /*request*/, ::proxy_proto::RackCuXferTimingReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestrackCuPullXferTiming(::grpc::ServerContext* context, ::proxy_proto::RackCuXferTimingPullRequest* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::RackCuXferTimingReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(14, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithAsyncMethod_fetchRackCuHomeDeltaStaging : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_fetchRackCuHomeDeltaStaging() {
-      ::grpc::Service::MarkMethodAsync(14);
+      ::grpc::Service::MarkMethodAsync(15);
     }
     ~WithAsyncMethod_fetchRackCuHomeDeltaStaging() override {
       BaseClassMustBeDerivedFromService(this);
@@ -820,7 +864,7 @@ class proxyService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestfetchRackCuHomeDeltaStaging(::grpc::ServerContext* context, ::proxy_proto::RackCuHomeDeltaFetchRequest* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::RackCuHomeDeltaFetchReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(14, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(15, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -829,7 +873,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_deleteRackCuHomeDeltaStaging() {
-      ::grpc::Service::MarkMethodAsync(15);
+      ::grpc::Service::MarkMethodAsync(16);
     }
     ~WithAsyncMethod_deleteRackCuHomeDeltaStaging() override {
       BaseClassMustBeDerivedFromService(this);
@@ -840,7 +884,7 @@ class proxyService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestdeleteRackCuHomeDeltaStaging(::grpc::ServerContext* context, ::proxy_proto::RackCuHomeDeltaDeleteRequest* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::RackCuHomeDeltaDeleteReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(15, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(16, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -849,7 +893,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_getBlocks() {
-      ::grpc::Service::MarkMethodAsync(16);
+      ::grpc::Service::MarkMethodAsync(17);
     }
     ~WithAsyncMethod_getBlocks() override {
       BaseClassMustBeDerivedFromService(this);
@@ -860,10 +904,10 @@ class proxyService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestgetBlocks(::grpc::ServerContext* context, ::proxy_proto::StripeAndBlockIDs* request, ::grpc::ServerAsyncResponseWriter< ::proxy_proto::GetReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(16, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(17, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_checkalive<WithAsyncMethod_encodeAndSetObject<WithAsyncMethod_decodeAndGetObject<WithAsyncMethod_degradedRead<WithAsyncMethod_degradedRead2Client<WithAsyncMethod_degradedReadBreakdown<WithAsyncMethod_degradedRead2ClientBreakdown<WithAsyncMethod_degradedReadWithBlockStripeID<WithAsyncMethod_partialDecoding<WithAsyncMethod_recovery<WithAsyncMethod_recoveryBreakdown<WithAsyncMethod_multipleRecovery<WithAsyncMethod_deleteBlock<WithAsyncMethod_scheduleAppend2Datanode<WithAsyncMethod_fetchRackCuHomeDeltaStaging<WithAsyncMethod_deleteRackCuHomeDeltaStaging<WithAsyncMethod_getBlocks<Service > > > > > > > > > > > > > > > > > AsyncService;
+  typedef WithAsyncMethod_checkalive<WithAsyncMethod_encodeAndSetObject<WithAsyncMethod_decodeAndGetObject<WithAsyncMethod_degradedRead<WithAsyncMethod_degradedRead2Client<WithAsyncMethod_degradedReadBreakdown<WithAsyncMethod_degradedRead2ClientBreakdown<WithAsyncMethod_degradedReadWithBlockStripeID<WithAsyncMethod_partialDecoding<WithAsyncMethod_recovery<WithAsyncMethod_recoveryBreakdown<WithAsyncMethod_multipleRecovery<WithAsyncMethod_deleteBlock<WithAsyncMethod_scheduleAppend2Datanode<WithAsyncMethod_rackCuPullXferTiming<WithAsyncMethod_fetchRackCuHomeDeltaStaging<WithAsyncMethod_deleteRackCuHomeDeltaStaging<WithAsyncMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_checkalive : public BaseClass {
    private:
@@ -1243,18 +1287,45 @@ class proxyService final {
       ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::AppendStripeDataPlacement* /*request*/, ::proxy_proto::SetReply* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
+  class WithCallbackMethod_rackCuPullXferTiming : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_rackCuPullXferTiming() {
+      ::grpc::Service::MarkMethodCallback(14,
+          new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::RackCuXferTimingPullRequest, ::proxy_proto::RackCuXferTimingReply>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::proxy_proto::RackCuXferTimingPullRequest* request, ::proxy_proto::RackCuXferTimingReply* response) { return this->rackCuPullXferTiming(context, request, response); }));}
+    void SetMessageAllocatorFor_rackCuPullXferTiming(
+        ::grpc::MessageAllocator< ::proxy_proto::RackCuXferTimingPullRequest, ::proxy_proto::RackCuXferTimingReply>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(14);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::RackCuXferTimingPullRequest, ::proxy_proto::RackCuXferTimingReply>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_rackCuPullXferTiming() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status rackCuPullXferTiming(::grpc::ServerContext* /*context*/, const ::proxy_proto::RackCuXferTimingPullRequest* /*request*/, ::proxy_proto::RackCuXferTimingReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* rackCuPullXferTiming(
+      ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::RackCuXferTimingPullRequest* /*request*/, ::proxy_proto::RackCuXferTimingReply* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
   class WithCallbackMethod_fetchRackCuHomeDeltaStaging : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_fetchRackCuHomeDeltaStaging() {
-      ::grpc::Service::MarkMethodCallback(14,
+      ::grpc::Service::MarkMethodCallback(15,
           new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::RackCuHomeDeltaFetchRequest, ::proxy_proto::RackCuHomeDeltaFetchReply>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::proxy_proto::RackCuHomeDeltaFetchRequest* request, ::proxy_proto::RackCuHomeDeltaFetchReply* response) { return this->fetchRackCuHomeDeltaStaging(context, request, response); }));}
     void SetMessageAllocatorFor_fetchRackCuHomeDeltaStaging(
         ::grpc::MessageAllocator< ::proxy_proto::RackCuHomeDeltaFetchRequest, ::proxy_proto::RackCuHomeDeltaFetchReply>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(14);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(15);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::RackCuHomeDeltaFetchRequest, ::proxy_proto::RackCuHomeDeltaFetchReply>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -1275,13 +1346,13 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_deleteRackCuHomeDeltaStaging() {
-      ::grpc::Service::MarkMethodCallback(15,
+      ::grpc::Service::MarkMethodCallback(16,
           new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::RackCuHomeDeltaDeleteRequest, ::proxy_proto::RackCuHomeDeltaDeleteReply>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::proxy_proto::RackCuHomeDeltaDeleteRequest* request, ::proxy_proto::RackCuHomeDeltaDeleteReply* response) { return this->deleteRackCuHomeDeltaStaging(context, request, response); }));}
     void SetMessageAllocatorFor_deleteRackCuHomeDeltaStaging(
         ::grpc::MessageAllocator< ::proxy_proto::RackCuHomeDeltaDeleteRequest, ::proxy_proto::RackCuHomeDeltaDeleteReply>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(15);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(16);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::RackCuHomeDeltaDeleteRequest, ::proxy_proto::RackCuHomeDeltaDeleteReply>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -1302,13 +1373,13 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_getBlocks() {
-      ::grpc::Service::MarkMethodCallback(16,
+      ::grpc::Service::MarkMethodCallback(17,
           new ::grpc::internal::CallbackUnaryHandler< ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response) { return this->getBlocks(context, request, response); }));}
     void SetMessageAllocatorFor_getBlocks(
         ::grpc::MessageAllocator< ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(16);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(17);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -1323,7 +1394,7 @@ class proxyService final {
     virtual ::grpc::ServerUnaryReactor* getBlocks(
       ::grpc::CallbackServerContext* /*context*/, const ::proxy_proto::StripeAndBlockIDs* /*request*/, ::proxy_proto::GetReply* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_checkalive<WithCallbackMethod_encodeAndSetObject<WithCallbackMethod_decodeAndGetObject<WithCallbackMethod_degradedRead<WithCallbackMethod_degradedRead2Client<WithCallbackMethod_degradedReadBreakdown<WithCallbackMethod_degradedRead2ClientBreakdown<WithCallbackMethod_degradedReadWithBlockStripeID<WithCallbackMethod_partialDecoding<WithCallbackMethod_recovery<WithCallbackMethod_recoveryBreakdown<WithCallbackMethod_multipleRecovery<WithCallbackMethod_deleteBlock<WithCallbackMethod_scheduleAppend2Datanode<WithCallbackMethod_fetchRackCuHomeDeltaStaging<WithCallbackMethod_deleteRackCuHomeDeltaStaging<WithCallbackMethod_getBlocks<Service > > > > > > > > > > > > > > > > > CallbackService;
+  typedef WithCallbackMethod_checkalive<WithCallbackMethod_encodeAndSetObject<WithCallbackMethod_decodeAndGetObject<WithCallbackMethod_degradedRead<WithCallbackMethod_degradedRead2Client<WithCallbackMethod_degradedReadBreakdown<WithCallbackMethod_degradedRead2ClientBreakdown<WithCallbackMethod_degradedReadWithBlockStripeID<WithCallbackMethod_partialDecoding<WithCallbackMethod_recovery<WithCallbackMethod_recoveryBreakdown<WithCallbackMethod_multipleRecovery<WithCallbackMethod_deleteBlock<WithCallbackMethod_scheduleAppend2Datanode<WithCallbackMethod_rackCuPullXferTiming<WithCallbackMethod_fetchRackCuHomeDeltaStaging<WithCallbackMethod_deleteRackCuHomeDeltaStaging<WithCallbackMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_checkalive : public BaseClass {
@@ -1564,12 +1635,29 @@ class proxyService final {
     }
   };
   template <class BaseClass>
+  class WithGenericMethod_rackCuPullXferTiming : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_rackCuPullXferTiming() {
+      ::grpc::Service::MarkMethodGeneric(14);
+    }
+    ~WithGenericMethod_rackCuPullXferTiming() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status rackCuPullXferTiming(::grpc::ServerContext* /*context*/, const ::proxy_proto::RackCuXferTimingPullRequest* /*request*/, ::proxy_proto::RackCuXferTimingReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
   class WithGenericMethod_fetchRackCuHomeDeltaStaging : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_fetchRackCuHomeDeltaStaging() {
-      ::grpc::Service::MarkMethodGeneric(14);
+      ::grpc::Service::MarkMethodGeneric(15);
     }
     ~WithGenericMethod_fetchRackCuHomeDeltaStaging() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1586,7 +1674,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_deleteRackCuHomeDeltaStaging() {
-      ::grpc::Service::MarkMethodGeneric(15);
+      ::grpc::Service::MarkMethodGeneric(16);
     }
     ~WithGenericMethod_deleteRackCuHomeDeltaStaging() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1603,7 +1691,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_getBlocks() {
-      ::grpc::Service::MarkMethodGeneric(16);
+      ::grpc::Service::MarkMethodGeneric(17);
     }
     ~WithGenericMethod_getBlocks() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1895,12 +1983,32 @@ class proxyService final {
     }
   };
   template <class BaseClass>
+  class WithRawMethod_rackCuPullXferTiming : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_rackCuPullXferTiming() {
+      ::grpc::Service::MarkMethodRaw(14);
+    }
+    ~WithRawMethod_rackCuPullXferTiming() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status rackCuPullXferTiming(::grpc::ServerContext* /*context*/, const ::proxy_proto::RackCuXferTimingPullRequest* /*request*/, ::proxy_proto::RackCuXferTimingReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestrackCuPullXferTiming(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(14, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithRawMethod_fetchRackCuHomeDeltaStaging : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_fetchRackCuHomeDeltaStaging() {
-      ::grpc::Service::MarkMethodRaw(14);
+      ::grpc::Service::MarkMethodRaw(15);
     }
     ~WithRawMethod_fetchRackCuHomeDeltaStaging() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1911,7 +2019,7 @@ class proxyService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestfetchRackCuHomeDeltaStaging(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(14, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(15, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -1920,7 +2028,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_deleteRackCuHomeDeltaStaging() {
-      ::grpc::Service::MarkMethodRaw(15);
+      ::grpc::Service::MarkMethodRaw(16);
     }
     ~WithRawMethod_deleteRackCuHomeDeltaStaging() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1931,7 +2039,7 @@ class proxyService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestdeleteRackCuHomeDeltaStaging(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(15, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(16, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -1940,7 +2048,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_getBlocks() {
-      ::grpc::Service::MarkMethodRaw(16);
+      ::grpc::Service::MarkMethodRaw(17);
     }
     ~WithRawMethod_getBlocks() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1951,7 +2059,7 @@ class proxyService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestgetBlocks(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(16, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(17, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2263,12 +2371,34 @@ class proxyService final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
+  class WithRawCallbackMethod_rackCuPullXferTiming : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_rackCuPullXferTiming() {
+      ::grpc::Service::MarkMethodRawCallback(14,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->rackCuPullXferTiming(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_rackCuPullXferTiming() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status rackCuPullXferTiming(::grpc::ServerContext* /*context*/, const ::proxy_proto::RackCuXferTimingPullRequest* /*request*/, ::proxy_proto::RackCuXferTimingReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* rackCuPullXferTiming(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
   class WithRawCallbackMethod_fetchRackCuHomeDeltaStaging : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_fetchRackCuHomeDeltaStaging() {
-      ::grpc::Service::MarkMethodRawCallback(14,
+      ::grpc::Service::MarkMethodRawCallback(15,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->fetchRackCuHomeDeltaStaging(context, request, response); }));
@@ -2290,7 +2420,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_deleteRackCuHomeDeltaStaging() {
-      ::grpc::Service::MarkMethodRawCallback(15,
+      ::grpc::Service::MarkMethodRawCallback(16,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->deleteRackCuHomeDeltaStaging(context, request, response); }));
@@ -2312,7 +2442,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_getBlocks() {
-      ::grpc::Service::MarkMethodRawCallback(16,
+      ::grpc::Service::MarkMethodRawCallback(17,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->getBlocks(context, request, response); }));
@@ -2707,12 +2837,39 @@ class proxyService final {
     virtual ::grpc::Status StreamedscheduleAppend2Datanode(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::AppendStripeDataPlacement,::proxy_proto::SetReply>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
+  class WithStreamedUnaryMethod_rackCuPullXferTiming : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_rackCuPullXferTiming() {
+      ::grpc::Service::MarkMethodStreamed(14,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::proxy_proto::RackCuXferTimingPullRequest, ::proxy_proto::RackCuXferTimingReply>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::proxy_proto::RackCuXferTimingPullRequest, ::proxy_proto::RackCuXferTimingReply>* streamer) {
+                       return this->StreamedrackCuPullXferTiming(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_rackCuPullXferTiming() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status rackCuPullXferTiming(::grpc::ServerContext* /*context*/, const ::proxy_proto::RackCuXferTimingPullRequest* /*request*/, ::proxy_proto::RackCuXferTimingReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedrackCuPullXferTiming(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::RackCuXferTimingPullRequest,::proxy_proto::RackCuXferTimingReply>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
   class WithStreamedUnaryMethod_fetchRackCuHomeDeltaStaging : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_fetchRackCuHomeDeltaStaging() {
-      ::grpc::Service::MarkMethodStreamed(14,
+      ::grpc::Service::MarkMethodStreamed(15,
         new ::grpc::internal::StreamedUnaryHandler<
           ::proxy_proto::RackCuHomeDeltaFetchRequest, ::proxy_proto::RackCuHomeDeltaFetchReply>(
             [this](::grpc::ServerContext* context,
@@ -2739,7 +2896,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_deleteRackCuHomeDeltaStaging() {
-      ::grpc::Service::MarkMethodStreamed(15,
+      ::grpc::Service::MarkMethodStreamed(16,
         new ::grpc::internal::StreamedUnaryHandler<
           ::proxy_proto::RackCuHomeDeltaDeleteRequest, ::proxy_proto::RackCuHomeDeltaDeleteReply>(
             [this](::grpc::ServerContext* context,
@@ -2766,7 +2923,7 @@ class proxyService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_getBlocks() {
-      ::grpc::Service::MarkMethodStreamed(16,
+      ::grpc::Service::MarkMethodStreamed(17,
         new ::grpc::internal::StreamedUnaryHandler<
           ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply>(
             [this](::grpc::ServerContext* context,
@@ -2787,9 +2944,9 @@ class proxyService final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedgetBlocks(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::proxy_proto::StripeAndBlockIDs,::proxy_proto::GetReply>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_encodeAndSetObject<WithStreamedUnaryMethod_decodeAndGetObject<WithStreamedUnaryMethod_degradedRead<WithStreamedUnaryMethod_degradedRead2Client<WithStreamedUnaryMethod_degradedReadBreakdown<WithStreamedUnaryMethod_degradedRead2ClientBreakdown<WithStreamedUnaryMethod_degradedReadWithBlockStripeID<WithStreamedUnaryMethod_partialDecoding<WithStreamedUnaryMethod_recovery<WithStreamedUnaryMethod_recoveryBreakdown<WithStreamedUnaryMethod_multipleRecovery<WithStreamedUnaryMethod_deleteBlock<WithStreamedUnaryMethod_scheduleAppend2Datanode<WithStreamedUnaryMethod_fetchRackCuHomeDeltaStaging<WithStreamedUnaryMethod_deleteRackCuHomeDeltaStaging<WithStreamedUnaryMethod_getBlocks<Service > > > > > > > > > > > > > > > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_encodeAndSetObject<WithStreamedUnaryMethod_decodeAndGetObject<WithStreamedUnaryMethod_degradedRead<WithStreamedUnaryMethod_degradedRead2Client<WithStreamedUnaryMethod_degradedReadBreakdown<WithStreamedUnaryMethod_degradedRead2ClientBreakdown<WithStreamedUnaryMethod_degradedReadWithBlockStripeID<WithStreamedUnaryMethod_partialDecoding<WithStreamedUnaryMethod_recovery<WithStreamedUnaryMethod_recoveryBreakdown<WithStreamedUnaryMethod_multipleRecovery<WithStreamedUnaryMethod_deleteBlock<WithStreamedUnaryMethod_scheduleAppend2Datanode<WithStreamedUnaryMethod_rackCuPullXferTiming<WithStreamedUnaryMethod_fetchRackCuHomeDeltaStaging<WithStreamedUnaryMethod_deleteRackCuHomeDeltaStaging<WithStreamedUnaryMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_encodeAndSetObject<WithStreamedUnaryMethod_decodeAndGetObject<WithStreamedUnaryMethod_degradedRead<WithStreamedUnaryMethod_degradedRead2Client<WithStreamedUnaryMethod_degradedReadBreakdown<WithStreamedUnaryMethod_degradedRead2ClientBreakdown<WithStreamedUnaryMethod_degradedReadWithBlockStripeID<WithStreamedUnaryMethod_partialDecoding<WithStreamedUnaryMethod_recovery<WithStreamedUnaryMethod_recoveryBreakdown<WithStreamedUnaryMethod_multipleRecovery<WithStreamedUnaryMethod_deleteBlock<WithStreamedUnaryMethod_scheduleAppend2Datanode<WithStreamedUnaryMethod_fetchRackCuHomeDeltaStaging<WithStreamedUnaryMethod_deleteRackCuHomeDeltaStaging<WithStreamedUnaryMethod_getBlocks<Service > > > > > > > > > > > > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_encodeAndSetObject<WithStreamedUnaryMethod_decodeAndGetObject<WithStreamedUnaryMethod_degradedRead<WithStreamedUnaryMethod_degradedRead2Client<WithStreamedUnaryMethod_degradedReadBreakdown<WithStreamedUnaryMethod_degradedRead2ClientBreakdown<WithStreamedUnaryMethod_degradedReadWithBlockStripeID<WithStreamedUnaryMethod_partialDecoding<WithStreamedUnaryMethod_recovery<WithStreamedUnaryMethod_recoveryBreakdown<WithStreamedUnaryMethod_multipleRecovery<WithStreamedUnaryMethod_deleteBlock<WithStreamedUnaryMethod_scheduleAppend2Datanode<WithStreamedUnaryMethod_rackCuPullXferTiming<WithStreamedUnaryMethod_fetchRackCuHomeDeltaStaging<WithStreamedUnaryMethod_deleteRackCuHomeDeltaStaging<WithStreamedUnaryMethod_getBlocks<Service > > > > > > > > > > > > > > > > > > StreamedService;
 };
 
 }  // namespace proxy_proto

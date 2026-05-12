@@ -7,6 +7,7 @@
 #include "toolbox.h"
 #include "lrc.h"
 #include <thread>
+#include <mutex>
 #include <cassert>
 #include <string>
 #include <cstring>
@@ -52,6 +53,50 @@ namespace ECProject
       args.SetMaxSendMessageSize(k_max);
       return args;
     }
+    inline int64_t rackcu_wall_unix_ms_now()
+    {
+      return std::chrono::duration_cast<std::chrono::milliseconds>(
+                 std::chrono::system_clock::now().time_since_epoch())
+          .count();
+    }
+
+    struct RackCuBatchXferAcc
+    {
+      bool have{false};
+      double pure_xfer_sec_sum{0.0};
+      int64_t wall_min_ms{0};
+      int64_t wall_max_ms{0};
+    };
+
+    std::mutex g_rackcu_batch_xfer_mu;
+    std::map<std::pair<int, uint64_t>, RackCuBatchXferAcc> g_rackcu_batch_xfer;
+
+    void rackcu_batch_xfer_add(int stripe_id, uint64_t xfer_plan_id, double pure_sec, int64_t w0, int64_t w1)
+    {
+      if (xfer_plan_id == 0u)
+      {
+        return;
+      }
+      if (w1 < w0)
+      {
+        std::swap(w0, w1);
+      }
+      const std::pair<int, uint64_t> key{stripe_id, xfer_plan_id};
+      std::lock_guard<std::mutex> lk(g_rackcu_batch_xfer_mu);
+      RackCuBatchXferAcc &acc = g_rackcu_batch_xfer[key];
+      if (!acc.have)
+      {
+        acc.have = true;
+        acc.wall_min_ms = w0;
+        acc.wall_max_ms = w1;
+        acc.pure_xfer_sec_sum = pure_sec;
+        return;
+      }
+      acc.wall_min_ms = std::min(acc.wall_min_ms, w0);
+      acc.wall_max_ms = std::max(acc.wall_max_ms, w1);
+      acc.pure_xfer_sec_sum += pure_sec;
+    }
+
 
     constexpr int kRackcuParityHexPreview = 16;
 
@@ -393,7 +438,8 @@ namespace ECProject
     return grpc::Status::OK;
   }
 
-  bool ProxyImpl::fetch_rack_cu_home_staging_blob(const proxy_proto::RackCuHomeDeltaStagingRef &ref, std::string *out_blob)
+  bool ProxyImpl::fetch_rack_cu_home_staging_blob(const proxy_proto::RackCuHomeDeltaStagingRef &ref, std::string *out_blob,
+                                                  int rack_cu_xfer_stripe_id, uint64_t rack_cu_xfer_plan_id)
   {
     if (out_blob == nullptr)
     {
@@ -441,6 +487,11 @@ namespace ECProject
       req.set_staging_datanode_ip(ref.staging_datanode_ip());
       req.set_staging_datanode_port(ref.staging_datanode_port());
       req.set_blob_bytes(ref.blob_bytes());
+      if (rack_cu_xfer_plan_id != 0u)
+      {
+        req.set_rack_cu_xfer_stripe_id(rack_cu_xfer_stripe_id);
+        req.set_rack_cu_xfer_plan_id(rack_cu_xfer_plan_id);
+      }
       grpc::ClientContext ctx;
       proxy_proto::RackCuHomeDeltaFetchReply rep;
       grpc::Status st = stub->fetchRackCuHomeDeltaStaging(&ctx, req, &rep);
@@ -463,6 +514,8 @@ namespace ECProject
                                                       proxy_proto::RackCuHomeDeltaFetchReply *response)
   {
     (void)context;
+    const auto rackcu_fetch_t0 = std::chrono::steady_clock::now();
+    const int64_t rackcu_fetch_w0 = rackcu_wall_unix_ms_now();
     const uint64_t nb = request->blob_bytes();
     if (nb == 0u || nb > (1ull << 30))
     {
@@ -477,6 +530,14 @@ namespace ECProject
     if (ok)
     {
       response->set_blob(buf.data(), buf.size());
+    }
+    if (request->rack_cu_xfer_plan_id() != 0u)
+    {
+      const auto rackcu_fetch_t1 = std::chrono::steady_clock::now();
+      const int64_t rackcu_fetch_w1 = rackcu_wall_unix_ms_now();
+      rackcu_batch_xfer_add(request->rack_cu_xfer_stripe_id(), request->rack_cu_xfer_plan_id(),
+                            std::chrono::duration<double>(rackcu_fetch_t1 - rackcu_fetch_t0).count(), rackcu_fetch_w0,
+                            rackcu_fetch_w1);
     }
     return grpc::Status::OK;
   }
@@ -1061,6 +1122,10 @@ namespace ECProject
         socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
         socket_data.close(ignore_ec);
 
+        const uint64_t rack_cu_xfer_plan_id_cap = placement_copy->rack_cu_xfer_plan_id();
+        const auto rack_cu_xfer_t0_steady = std::chrono::steady_clock::now();
+        const int64_t rack_cu_xfer_w0_wall = rackcu_wall_unix_ms_now();
+
         const std::string &am0 = placement_copy->append_mode();
         const bool rackcu_parity_staging =
             am0 == "RACKCU_GLOBAL_FROM_DATA_HOME_DELTA_STAGING" ||
@@ -1263,7 +1328,8 @@ namespace ECProject
             for (int si = 0; si < placement_copy->rackcu_home_delta_staging_refs_size(); si++)
             {
               std::string one;
-              if (!fetch_rack_cu_home_staging_blob(placement_copy->rackcu_home_delta_staging_refs(si), &one))
+              if (!fetch_rack_cu_home_staging_blob(placement_copy->rackcu_home_delta_staging_refs(si), &one, placement_copy->stripe_id(),
+                                              placement_copy->rack_cu_xfer_plan_id()))
               {
                 throw std::runtime_error("RACKCU: failed to fetch home delta staging blob");
               }
@@ -1761,6 +1827,14 @@ namespace ECProject
         {
           std::cout << "[Proxy" << m_self_cluster_id << "][APPEND410]"
                     << " report to coordinator fail!" << std::endl;
+        }
+        if (rack_cu_xfer_plan_id_cap != 0u)
+        {
+          const auto rack_cu_xfer_t1_steady = std::chrono::steady_clock::now();
+          const int64_t rack_cu_xfer_w1_wall = rackcu_wall_unix_ms_now();
+          rackcu_batch_xfer_add(stripe_id, rack_cu_xfer_plan_id_cap,
+                                std::chrono::duration<double>(rack_cu_xfer_t1_steady - rack_cu_xfer_t0_steady).count(),
+                                rack_cu_xfer_w0_wall, rack_cu_xfer_w1_wall);
         }
       }
       catch (std::exception &e)
@@ -3685,6 +3759,30 @@ namespace ECProject
       std::cout << e.what() << std::endl;
     }
 
+    return grpc::Status::OK;
+  }
+
+  grpc::Status ProxyImpl::rackCuPullXferTiming(grpc::ServerContext *context,
+                                                    const proxy_proto::RackCuXferTimingPullRequest *request,
+                                                    proxy_proto::RackCuXferTimingReply *response)
+  {
+    (void)context;
+    const std::pair<int, uint64_t> key{request->stripe_id(), request->xfer_plan_id()};
+    std::lock_guard<std::mutex> lk(g_rackcu_batch_xfer_mu);
+    const auto it = g_rackcu_batch_xfer.find(key);
+    if (it == g_rackcu_batch_xfer.end() || !it->second.have)
+    {
+      response->set_had_samples(false);
+      response->set_proxy_pure_xfer_sec(0.0);
+      response->set_wall_span_start_unix_ms(0);
+      response->set_wall_span_end_unix_ms(0);
+      return grpc::Status::OK;
+    }
+    response->set_had_samples(true);
+    response->set_proxy_pure_xfer_sec(it->second.pure_xfer_sec_sum);
+    response->set_wall_span_start_unix_ms(it->second.wall_min_ms);
+    response->set_wall_span_end_unix_ms(it->second.wall_max_ms);
+    g_rackcu_batch_xfer.erase(it);
     return grpc::Status::OK;
   }
 

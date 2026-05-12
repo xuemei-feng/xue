@@ -54,6 +54,10 @@ namespace ECProject
         grpc::ServerContext *context,
         const proxy_proto::AppendStripeDataPlacement *append_stripe_data_placement,
         proxy_proto::SetReply *response) override;
+    grpc::Status rackCuPullXferTiming(
+        grpc::ServerContext *context,
+        const proxy_proto::RackCuXferTimingPullRequest *request,
+        proxy_proto::RackCuXferTimingReply *response) override;
     grpc::Status fetchRackCuHomeDeltaStaging(
         grpc::ServerContext *context,
         const proxy_proto::RackCuHomeDeltaFetchRequest *request,
@@ -143,7 +147,8 @@ namespace ECProject
     int cluster_for_datapath_ip(const char *ip) const;
     // Linux: SO_MAX_PACING_RATE (fq) + SO_RCVBUF 收紧窗口；非 Linux 无操作。
     void apply_kernel_bandwidth_to_peer_socket(asio::ip::tcp::socket &sock, const char *peer_ip) const;
-    bool fetch_rack_cu_home_staging_blob(const proxy_proto::RackCuHomeDeltaStagingRef &ref, std::string *out_blob);
+    bool fetch_rack_cu_home_staging_blob(const proxy_proto::RackCuHomeDeltaStagingRef &ref, std::string *out_blob,
+                                         int rack_cu_xfer_stripe_id = 0, std::uint64_t rack_cu_xfer_plan_id = 0);
     bool delete_rack_cu_staging_on_datanode(const std::string &key, const std::string &dn_ip, int dn_port);
     std::mutex m_mutex;
     std::condition_variable cv;

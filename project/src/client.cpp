@@ -1414,6 +1414,20 @@ namespace ECProject
     const auto t_cleanup1 = std::chrono::high_resolution_clock::now();
     const double s_cleanup = chron_elapsed_s(t_cleanup0, t_cleanup1);
 
+    if (reply.rack_cu_xfer_plan_id() != 0)
+    {
+      grpc::ClientContext pull_ctx;
+      coordinator_proto::RackCuXferTimingPullRequest pull_req;
+      pull_req.set_stripe_id(stripe_id);
+      pull_req.set_xfer_plan_id(reply.rack_cu_xfer_plan_id());
+      coordinator_proto::ReplyFromCoordinator pull_rep;
+      grpc::Status pst = m_coordinator_ptr->pullRackCuXferTiming(&pull_ctx, pull_req, &pull_rep);
+      if (!pst.ok())
+      {
+        std::cout << "[RackCU][XferTiming] pullRackCuXferTiming failed: " << pst.error_message() << std::endl;
+      }
+    }
+
     const double dispatch_sum_s = rackcu_sum_prepare_s + rackcu_sum_tcp_s + rackcu_sum_commit_check_s;
     const double total_rackcu_s = s_coord_rack + dispatch_sum_s + s_cleanup;
     std::cout << "[RACKCU][Timing] summary: coordinator_uploadRackCuUpdate_s=" << std::fixed << std::setprecision(6)
