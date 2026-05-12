@@ -914,7 +914,9 @@ namespace ECProject
     grpc::Status status = m_coordinator_ptr->uploadCordUpdate(&ctx, request, &reply);
     if (!status.ok())
     {
-      std::cout << "[CoRD] uploadCordUpdate failed: " << status.error_message() << std::endl;
+      std::cout << "[CoRD] uploadCordUpdate failed: grpc_error_code=" << static_cast<int>(status.error_code())
+                << " msg=\"" << status.error_message() << "\" details_len=" << status.error_details().size()
+                << std::endl;
       return false;
     }
     if (reply.sum_append_size() == 0)
