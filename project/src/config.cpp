@@ -110,6 +110,8 @@ namespace ECProject
       CoordinatorPort = std::stoi(elem->GetText());
     if (auto elem = root->FirstChildElement("AppendMode"))
       AppendMode = std::string(elem->GetText());
+    if (auto elem = root->FirstChildElement("PlacementRandomSeed"))
+      PlacementRandomSeed = std::stoull(elem->GetText());
   }
 
   void Config::printConfigs() const
@@ -130,5 +132,6 @@ namespace ECProject
     std::cout << "  CoordinatorPort: " << CoordinatorPort << std::endl;
     std::cout << "  AppendMode: " << AppendMode << std::endl;
     std::cout << "  CodeType: " << CodeType << std::endl;
+    std::cout << "  PlacementRandomSeed: " << PlacementRandomSeed << std::endl;
   }
 }

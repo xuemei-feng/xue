@@ -1,4 +1,5 @@
 #include "coordinator.h"
+#include <cstdint>
 #include "tinyxml2.h"
 #include <random>
 #include <unistd.h>
@@ -556,8 +557,25 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     const int global_parity_cluster = selected_clusters[1];
     std::vector<int> data_clusters = {selected_clusters[2], selected_clusters[3], selected_clusters[4], selected_clusters[5]};
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    std::mt19937 gen;
+    const std::uint64_t placement_seed = m_sys_config->PlacementRandomSeed;
+    if (placement_seed != 0ULL)
+    {
+      const std::uint64_t mixed =
+          placement_seed ^ (static_cast<std::uint64_t>(static_cast<std::uint32_t>(stripe->stripe_id)) * UINT64_C(0x9e3779b97f4a7c15));
+      const std::uint32_t seeds[] = {
+          static_cast<std::uint32_t>(mixed),
+          static_cast<std::uint32_t>(mixed >> 32),
+          static_cast<std::uint32_t>(stripe->stripe_id),
+          static_cast<std::uint32_t>(stripe->stripe_id) ^ static_cast<std::uint32_t>(mixed >> 48)};
+      std::seed_seq ss(seeds, seeds + sizeof(seeds) / sizeof(seeds[0]));
+      gen.seed(ss);
+    }
+    else
+    {
+      std::random_device rd;
+      gen.seed(rd());
+    }
 
     // 按 Azure 风格构建 group：数据组 0..z-1，全局校验组 z，本地校验组 0..z-1。
     const int global_parity_group_id = stripe->z;
@@ -656,7 +674,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     for (int i = 0; i < stripe->n; i++)
     {
       blocks_info[i].map2cluster = assigned_cluster[i];
-      int t_node_id = randomly_select_a_node(blocks_info[i].map2cluster, stripe->stripe_id);
+      int t_node_id = randomly_select_a_node(blocks_info[i].map2cluster, stripe->stripe_id, gen);
       blocks_info[i].map2node = t_node_id;
       update_stripe_info_in_node(t_node_id, stripe->stripe_id, i);
       m_cluster_table[blocks_info[i].map2cluster].blocks.push_back(&blocks_info[i]);
@@ -4043,6 +4061,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   {
     std::random_device rd;
     std::mt19937 gen(rd());
+    return randomly_select_a_node(cluster_id, stripe_id, gen);
+  }
+
+  int CoordinatorImpl::randomly_select_a_node(int cluster_id, int stripe_id, std::mt19937 &gen)
+  {
     std::uniform_int_distribution<int> dis_node(0, m_cluster_table[cluster_id].nodes.size() - 1);
     int r_node_id = m_cluster_table[cluster_id].nodes[dis_node(gen)];
     while (m_node_table[r_node_id].stripes.find(stripe_id) != m_node_table[r_node_id].stripes.end())

@@ -10,6 +10,7 @@
 #include <map>
 #include <unordered_map>
 #include <mutex>
+#include <random>
 #include <atomic>
 #include <string>
 #include <thread>
@@ -150,6 +151,7 @@ namespace ECProject
     void update_stripe_info_in_node(bool add_or_sub, int t_node_id, int stripe_id);
     int randomly_select_a_cluster(int stripe_id);
     int randomly_select_a_node(int cluster_id, int stripe_id);
+    int randomly_select_a_node(int cluster_id, int stripe_id, std::mt19937 &gen);
     int generate_placement(int stripe_id, int block_size);
     void blocks_in_cluster(std::map<char, std::vector<ECProject::Block *>> &block_info, int cluster_id, int stripe_id);
     void find_max_group(int &max_group_id, int &max_group_num, int cluster_id, int stripe_id);
