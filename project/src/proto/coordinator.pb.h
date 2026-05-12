@@ -1785,6 +1785,7 @@ class ReplyProxyIPsPorts final :
     kGroupIdsFieldNumber = 6,
     kAppendPlansFieldNumber = 7,
     kRackCuStagingCleanupFieldNumber = 8,
+    kRackCuScheduledSlotsFieldNumber = 10,
     kSumAppendSizeFieldNumber = 1,
     kRackCuXferPlanIdFieldNumber = 9,
   };
@@ -1944,6 +1945,28 @@ class ReplyProxyIPsPorts final :
   const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::RackCuStagingCleanupRef >&
       rack_cu_staging_cleanup() const;
 
+  // repeated uint32 rack_cu_scheduled_slots = 10;
+  int rack_cu_scheduled_slots_size() const;
+  private:
+  int _internal_rack_cu_scheduled_slots_size() const;
+  public:
+  void clear_rack_cu_scheduled_slots();
+  private:
+  uint32_t _internal_rack_cu_scheduled_slots(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+      _internal_rack_cu_scheduled_slots() const;
+  void _internal_add_rack_cu_scheduled_slots(uint32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+      _internal_mutable_rack_cu_scheduled_slots();
+  public:
+  uint32_t rack_cu_scheduled_slots(int index) const;
+  void set_rack_cu_scheduled_slots(int index, uint32_t value);
+  void add_rack_cu_scheduled_slots(uint32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+      rack_cu_scheduled_slots() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+      mutable_rack_cu_scheduled_slots();
+
   // uint64 sum_append_size = 1;
   void clear_sum_append_size();
   uint64_t sum_append_size() const;
@@ -1980,6 +2003,8 @@ class ReplyProxyIPsPorts final :
     mutable std::atomic<int> _group_ids_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> append_plans_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::RackCuStagingCleanupRef > rack_cu_staging_cleanup_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t > rack_cu_scheduled_slots_;
+    mutable std::atomic<int> _rack_cu_scheduled_slots_cached_byte_size_;
     uint64_t sum_append_size_;
     uint64_t rack_cu_xfer_plan_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -6468,6 +6493,53 @@ inline void ReplyProxyIPsPorts::_internal_set_rack_cu_xfer_plan_id(uint64_t valu
 inline void ReplyProxyIPsPorts::set_rack_cu_xfer_plan_id(uint64_t value) {
   _internal_set_rack_cu_xfer_plan_id(value);
   // @@protoc_insertion_point(field_set:coordinator_proto.ReplyProxyIPsPorts.rack_cu_xfer_plan_id)
+}
+
+// repeated uint32 rack_cu_scheduled_slots = 10;
+inline int ReplyProxyIPsPorts::_internal_rack_cu_scheduled_slots_size() const {
+  return _impl_.rack_cu_scheduled_slots_.size();
+}
+inline int ReplyProxyIPsPorts::rack_cu_scheduled_slots_size() const {
+  return _internal_rack_cu_scheduled_slots_size();
+}
+inline void ReplyProxyIPsPorts::clear_rack_cu_scheduled_slots() {
+  _impl_.rack_cu_scheduled_slots_.Clear();
+}
+inline uint32_t ReplyProxyIPsPorts::_internal_rack_cu_scheduled_slots(int index) const {
+  return _impl_.rack_cu_scheduled_slots_.Get(index);
+}
+inline uint32_t ReplyProxyIPsPorts::rack_cu_scheduled_slots(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.ReplyProxyIPsPorts.rack_cu_scheduled_slots)
+  return _internal_rack_cu_scheduled_slots(index);
+}
+inline void ReplyProxyIPsPorts::set_rack_cu_scheduled_slots(int index, uint32_t value) {
+  _impl_.rack_cu_scheduled_slots_.Set(index, value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.ReplyProxyIPsPorts.rack_cu_scheduled_slots)
+}
+inline void ReplyProxyIPsPorts::_internal_add_rack_cu_scheduled_slots(uint32_t value) {
+  _impl_.rack_cu_scheduled_slots_.Add(value);
+}
+inline void ReplyProxyIPsPorts::add_rack_cu_scheduled_slots(uint32_t value) {
+  _internal_add_rack_cu_scheduled_slots(value);
+  // @@protoc_insertion_point(field_add:coordinator_proto.ReplyProxyIPsPorts.rack_cu_scheduled_slots)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+ReplyProxyIPsPorts::_internal_rack_cu_scheduled_slots() const {
+  return _impl_.rack_cu_scheduled_slots_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >&
+ReplyProxyIPsPorts::rack_cu_scheduled_slots() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.ReplyProxyIPsPorts.rack_cu_scheduled_slots)
+  return _internal_rack_cu_scheduled_slots();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+ReplyProxyIPsPorts::_internal_mutable_rack_cu_scheduled_slots() {
+  return &_impl_.rack_cu_scheduled_slots_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint32_t >*
+ReplyProxyIPsPorts::mutable_rack_cu_scheduled_slots() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.ReplyProxyIPsPorts.rack_cu_scheduled_slots)
+  return _internal_mutable_rack_cu_scheduled_slots();
 }
 
 // -------------------------------------------------------------------

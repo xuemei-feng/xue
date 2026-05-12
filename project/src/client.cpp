@@ -1029,6 +1029,11 @@ namespace ECProject
       std::cout << "[RACKCU] malformed reply from coordinator" << std::endl;
       return false;
     }
+    if (reply.rack_cu_scheduled_slots_size() != 0 && reply.rack_cu_scheduled_slots_size() != nsteps)
+    {
+      std::cout << "[RACKCU] malformed rack_cu_scheduled_slots size from coordinator" << std::endl;
+      return false;
+    }
 
     auto ptr_for_block = [&](int block_id) -> unsigned char * {
       return reinterpret_cast<unsigned char *>(m_pre_allocated_buffer + static_cast<size_t>(block_id) * static_cast<size_t>(block_size));
@@ -1069,8 +1074,18 @@ namespace ECProject
       }
       return 2;
     };
+    const bool rack_cu_use_slots = (reply.rack_cu_scheduled_slots_size() == nsteps);
     std::stable_sort(dispatch_order.begin(), dispatch_order.end(),
                      [&](int lhs, int rhs) {
+                       if (rack_cu_use_slots)
+                       {
+                         const uint32_t sl = reply.rack_cu_scheduled_slots(lhs);
+                         const uint32_t sr = reply.rack_cu_scheduled_slots(rhs);
+                         if (sl != sr)
+                         {
+                           return sl < sr;
+                         }
+                       }
                        const int bl = rackcu_step_bucket(reply.group_ids(lhs));
                        const int br = rackcu_step_bucket(reply.group_ids(rhs));
                        if (bl != br)

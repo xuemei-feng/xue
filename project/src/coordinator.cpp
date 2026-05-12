@@ -180,6 +180,117 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       return 8ull + payload;
     }
+
+    /** Non-DATA_HOME: holder clusters for cross-cluster staging pulls (excluding executor self-loop). */
+    static void rack_cu_cross_holder_clusters(const proxy_proto::AppendStripeDataPlacement &plan, int32_t step,
+                                              int executor_cluster, std::unordered_set<int> *holders_out)
+    {
+      holders_out->clear();
+      if (step == RACKCU_STEP_DATA_HOME)
+      {
+        return;
+      }
+      for (int ri = 0; ri < plan.rackcu_home_delta_staging_refs_size(); ++ri)
+      {
+        const auto &ref = plan.rackcu_home_delta_staging_refs(ri);
+        if (!ref.has_staging_source_cluster_id())
+        {
+          continue;
+        }
+        const int hc = ref.staging_source_cluster_id();
+        if (hc < 0 || hc == executor_cluster)
+        {
+          continue;
+        }
+        holders_out->insert(hc);
+      }
+    }
+
+    /** CoRD-like slots: DATA_HOME stays slot 0; non-home steps share a slot only if no cluster conflict (conservative). */
+    static bool rack_cu_slot_conflict_nonhome(int exec_a, const std::unordered_set<int> &hold_a, int exec_b,
+                                              const std::unordered_set<int> &hold_b)
+    {
+      if (exec_a == exec_b)
+      {
+        return true;
+      }
+      for (int h : hold_a)
+      {
+        if (hold_b.count(h) != 0u)
+        {
+          return true;
+        }
+        if (h == exec_b)
+        {
+          return true;
+        }
+      }
+      for (int h : hold_b)
+      {
+        if (h == exec_a)
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    static void rack_cu_compute_scheduled_slots(const std::vector<proxy_proto::AppendStripeDataPlacement> &plans,
+                                                const std::vector<int32_t> &plan_steps,
+                                                std::vector<uint32_t> *out_slots)
+    {
+      const size_t n = plans.size();
+      out_slots->assign(n, 0u);
+      std::vector<std::unordered_set<int>> holders_per(n);
+      std::vector<int> exec_per(n, -1);
+      for (size_t i = 0; i < n; ++i)
+      {
+        exec_per[i] = plans[i].cluster_id();
+        rack_cu_cross_holder_clusters(plans[i], plan_steps[i], exec_per[i], &holders_per[i]);
+      }
+
+      for (size_t i = 0; i < n; ++i)
+      {
+        if (plan_steps[i] == RACKCU_STEP_DATA_HOME)
+        {
+          (*out_slots)[i] = 0u;
+        }
+      }
+
+      for (size_t i = 0; i < n; ++i)
+      {
+        if (plan_steps[i] == RACKCU_STEP_DATA_HOME)
+        {
+          continue;
+        }
+        uint32_t s = 1u;
+        for (;; ++s)
+        {
+          bool ok = true;
+          for (size_t j = 0; j < i; ++j)
+          {
+            if (plan_steps[j] == RACKCU_STEP_DATA_HOME)
+            {
+              continue;
+            }
+            if ((*out_slots)[j] != s)
+            {
+              continue;
+            }
+            if (rack_cu_slot_conflict_nonhome(exec_per[i], holders_per[i], exec_per[j], holders_per[j]))
+            {
+              ok = false;
+              break;
+            }
+          }
+          if (ok)
+          {
+            break;
+          }
+        }
+        (*out_slots)[i] = s;
+      }
+    }
   } // namespace
 
   grpc::Status CoordinatorImpl::setParameter(
@@ -1599,6 +1710,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return grpc::Status(grpc::StatusCode::INTERNAL, "RackCU internal plan/step mismatch");
     }
 
+    std::vector<uint32_t> rack_cu_slots;
+    rack_cu_compute_scheduled_slots(plans, plan_steps, &rack_cu_slots);
+
     for (const auto &plan : plans)
     {
       m_mutex.lock();
@@ -1624,6 +1738,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       proxyIPPort->add_proxyports(m_cluster_table[plans[i].cluster_id()].proxy_port + ECProject::PROXY_PORT_SHIFT);
       proxyIPPort->add_cluster_slice_sizes(plans[i].append_size());
       proxyIPPort->add_group_ids(plan_steps[i]);
+      proxyIPPort->add_rack_cu_scheduled_slots(rack_cu_slots[i]);
       std::string serialized;
       if (!plans[i].SerializeToString(&serialized))
       {

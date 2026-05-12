@@ -19,7 +19,7 @@
     <r>2</r>  //是全局校验块数量
     <z>2</z>  //是本地校验块数量
     <!-- PlacementRandomSeed: 0 = non-deterministic. Non-zero = reproducible RandomLRC for same seed, stripe_id, topology. -->
-    <PlacementRandomSeed>12345</PlacementRandomSeed>
+    <PlacementRandomSeed>17</PlacementRandomSeed>
     <!-- <CodeType>UniformLRC</CodeType>
     <k>30</k>
     <r>6</r>

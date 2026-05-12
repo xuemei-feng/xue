@@ -137,6 +137,8 @@ message ReplyProxyIPsPorts {
   repeated bytes append_plans = 7;
   repeated RackCuStagingCleanupRef rack_cu_staging_cleanup = 8;
   uint64 rack_cu_xfer_plan_id = 9;
+  // RackCU: aligned with append_keys; discrete slots for cross-proxy staging pulls (0=DATA_HOME only)
+  repeated uint32 rack_cu_scheduled_slots = 10;
 }
 
 message RackCuXferTimingPullRequest {
