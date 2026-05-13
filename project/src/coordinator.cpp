@@ -3166,7 +3166,17 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         write_gen = it->second;
       }
     }
-    const int master_bid = rand_num(stripe.k);
+    int master_bid;
+    if (m_sys_config != nullptr && m_sys_config->ParixPlacementSeed != 0u)
+    {
+      std::lock_guard<std::mutex> lk(m_parix_master_rng_mu);
+      std::uniform_int_distribution<int> dis(0, stripe.k - 1);
+      master_bid = dis(m_parix_master_rng);
+    }
+    else
+    {
+      master_bid = rand_num(stripe.k);
+    }
     Block *mb = find_block_by_block_id(stripe, master_bid);
     if (mb == nullptr)
     {
@@ -3469,6 +3479,21 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     return true;
   }
+
+  void CoordinatorImpl::init_parix_placement_rng()
+  {
+    if (m_sys_config == nullptr)
+    {
+      return;
+    }
+    if (m_sys_config->ParixPlacementSeed == 0u)
+    {
+      return;
+    }
+    std::lock_guard<std::mutex> lk(m_parix_master_rng_mu);
+    m_parix_master_rng.seed(m_sys_config->ParixPlacementSeed);
+  }
+
   bool CoordinatorImpl::init_clusterinfo(std::string m_clusterinfo_path)
   {
     std::cout << "Cluster_information_path:" << m_clusterinfo_path << std::endl;

@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 #include "devcommon.h"
+#include <cstdint>
 
 namespace ECProject
 {
@@ -37,6 +38,11 @@ namespace ECProject
     std::string CodeType = "UniLRC";
     /** main_client / bench: number of stripes to create via Client::set() (see parameterConfiguration.xml). */
     int ClientStripeNum = 3;
+    /**
+     * Parix full-stripe plan: master data block index in [0, k) uses a fixed PRNG when non-zero.
+     * 0 keeps legacy behavior (fresh random_device per planParixFullStripe call via rand_num).
+     */
+    std::uint32_t ParixPlacementSeed = 0;
   };
 }
 

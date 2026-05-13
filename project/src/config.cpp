@@ -113,6 +113,8 @@ namespace ECProject
       AppendMode = std::string(elem->GetText());
     if (auto elem = root->FirstChildElement("ClientStripeNum"))
       ClientStripeNum = std::stoi(elem->GetText());
+    if (auto elem = root->FirstChildElement("ParixPlacementSeed"))
+      ParixPlacementSeed = static_cast<std::uint32_t>(std::stoul(elem->GetText()));
   }
 
   void Config::printConfigs() const
@@ -134,5 +136,6 @@ namespace ECProject
     std::cout << "  AppendMode: " << AppendMode << std::endl;
     std::cout << "  CodeType: " << CodeType << std::endl;
     std::cout << "  ClientStripeNum: " << ClientStripeNum << std::endl;
+    std::cout << "  ParixPlacementSeed: " << ParixPlacementSeed << " (0 = non-deterministic master pick per call)" << std::endl;
   }
 }

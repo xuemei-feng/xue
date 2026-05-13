@@ -15,6 +15,7 @@
 #include <unordered_set>
 #include <thread>
 #include <condition_variable>
+#include <random>
 #include <config.h>
 #include <toolbox.h>
 #include "unilrc_encoder.h"
@@ -148,6 +149,8 @@ namespace ECProject
 
     bool init_clusterinfo(std::string m_clusterinfo_path);
     bool init_proxyinfo();
+    /** Seed internal PRNG when m_sys_config->ParixPlacementSeed != 0 (Coordinator 3-arg ctor). */
+    void init_parix_placement_rng();
     void update_stripe_info_in_node(bool add_or_sub, int t_node_id, int stripe_id);
     int randomly_select_a_cluster(int stripe_id);
     int randomly_select_a_node(int cluster_id, int stripe_id);
@@ -210,6 +213,8 @@ namespace ECProject
     std::atomic<uint64_t> m_parix_batch_seq{1};
     std::mutex m_parix_gen_mu;
     std::unordered_map<int, uint64_t> m_parix_stripe_gen;
+    std::mutex m_parix_master_rng_mu;
+    std::mt19937 m_parix_master_rng;
 
   private:
     std::mutex m_mutex;
@@ -247,6 +252,7 @@ namespace ECProject
       m_coordinatorImpl.init_proxyinfo();
       m_coordinatorImpl.m_sys_config = ECProject::Config::getInstance(sys_config_path);
       m_coordinatorImpl.m_toolbox = ECProject::ToolBox::getInstance();
+      m_coordinatorImpl.init_parix_placement_rng();
 
       // initializing
       m_coordinatorImpl.m_cur_cluster_id = 0;
