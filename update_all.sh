@@ -1,21 +1,21 @@
 #!/bin/bash
 
 cd /users/xue
-sudo chmod 777 -R UniLRC
-cd UniLRC
+sudo chmod 777 -R xue
+cd xue
 
 
 # 定义源文件夹路径
-SOURCE_DIR="/users/xue/UniLRC"
+SOURCE_DIR="/users/xue/xue"
 
 # 定义 hosts 文件路径
 HOSTS_FILE="hosts"
 
 # 定义远程目标文件夹路径
-REMOTE_DIR="/users/xue/UniLRC"
+REMOTE_DIR="/users/xue/xue"
 
 # 检查 hosts 文件是否存在
-if [[ ! -f "$HOSTS_FILE" ]]; then
+if [ ! -f "$HOSTS_FILE" ]; then
     echo "Error: hosts file not found!"
     exit 1
 fi
@@ -38,7 +38,7 @@ while read -r ip; do
 
 done < "$HOSTS_FILE"
 
-cd /users/xue/UniLRC
+cd /users/xue/xue
 sh generate_run_proxy.sh
 
 echo "All done!"

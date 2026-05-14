@@ -3446,7 +3446,67 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
     return grpc::Status::OK;
   }
-  
+
+  grpc::Status CoordinatorImpl::peekStripeByteRanges(
+      grpc::ServerContext *context,
+      const coordinator_proto::PeekStripeByteRangesRequest *request,
+      coordinator_proto::PeekStripeByteRangesReply *reply)
+  {
+    (void)context;
+    const int stripe_id = request->stripe_id();
+    auto stripe_it = m_stripe_table.find(stripe_id);
+    if (stripe_it == m_stripe_table.end())
+    {
+      return grpc::Status(grpc::StatusCode::NOT_FOUND, "stripe_id not found");
+    }
+    Stripe &t_stripe = stripe_it->second;
+    const int blk_sz = static_cast<int>(m_sys_config->BlockSize);
+    for (int i = 0; i < request->ranges_size(); ++i)
+    {
+      const auto &sr = request->ranges(i);
+      const int bid = sr.block_id();
+      const int off = sr.offset();
+      const int len = sr.length();
+      if (bid < 0 || bid >= t_stripe.n || off < 0 || len <= 0 || off > blk_sz || len > blk_sz || off + len > blk_sz)
+      {
+        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "bad byte subrange");
+      }
+      Block *b = t_stripe.blocks[bid];
+      const int node_id = b->map2node;
+      const std::string &dk = b->block_key;
+      const std::string dip = m_node_table[node_id].node_ip;
+      const int dport = m_node_table[node_id].node_port;
+      const int cid = b->map2cluster;
+      const std::string pkey = m_cluster_table[cid].proxy_ip + ":" + std::to_string(m_cluster_table[cid].proxy_port);
+      auto pit = m_proxy_ptrs.find(pkey);
+      if (pit == m_proxy_ptrs.end())
+      {
+        return grpc::Status(grpc::StatusCode::INTERNAL, "proxy not found for cluster");
+      }
+      proxy_proto::ReadBlockRangesRequest preq;
+      proxy_proto::ReadBlockRangesReply pres;
+      auto *rd = preq.add_reads();
+      rd->set_block_key(dk);
+      rd->set_block_id(bid);
+      rd->set_offset(off);
+      rd->set_length(len);
+      rd->set_datanode_ip(dip);
+      rd->set_datanode_port(dport);
+      grpc::ClientContext pctx;
+      grpc::Status pst = pit->second->readBlockRanges(&pctx, preq, &pres);
+      if (!pst.ok())
+      {
+        return grpc::Status(grpc::StatusCode::INTERNAL, "readBlockRanges rpc: " + pst.error_message());
+      }
+      if (!pres.ok() || pres.payloads_size() != 1)
+      {
+        return grpc::Status(grpc::StatusCode::INTERNAL, "readBlockRanges failed on proxy");
+      }
+      reply->add_payloads(pres.payloads(0));
+    }
+    return grpc::Status::OK;
+  }
+
   grpc::Status
   CoordinatorImpl::getBlocks(
       grpc::ServerContext *context,

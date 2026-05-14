@@ -12,7 +12,7 @@ HOSTS_FILE="proxy_hosts"
 
 USER="root"
 
-REMOTE_COMMAND="cd /users/xue/UniLRC && sh run_proxy_datanode.sh"
+REMOTE_COMMAND="cd /users/xue/xue && sh run_proxy_datanode.sh"
 
 PARALLEL=50
 

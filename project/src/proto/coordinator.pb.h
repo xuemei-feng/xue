@@ -72,6 +72,12 @@ extern NodeIdFromClientDefaultTypeInternal _NodeIdFromClient_default_instance_;
 class Parameter;
 struct ParameterDefaultTypeInternal;
 extern ParameterDefaultTypeInternal _Parameter_default_instance_;
+class PeekStripeByteRangesReply;
+struct PeekStripeByteRangesReplyDefaultTypeInternal;
+extern PeekStripeByteRangesReplyDefaultTypeInternal _PeekStripeByteRangesReply_default_instance_;
+class PeekStripeByteRangesRequest;
+struct PeekStripeByteRangesRequestDefaultTypeInternal;
+extern PeekStripeByteRangesRequestDefaultTypeInternal _PeekStripeByteRangesRequest_default_instance_;
 class RecoveryReply;
 struct RecoveryReplyDefaultTypeInternal;
 extern RecoveryReplyDefaultTypeInternal _RecoveryReply_default_instance_;
@@ -108,6 +114,9 @@ extern RequestProxyIPPortDefaultTypeInternal _RequestProxyIPPort_default_instanc
 class RequestToCoordinator;
 struct RequestToCoordinatorDefaultTypeInternal;
 extern RequestToCoordinatorDefaultTypeInternal _RequestToCoordinator_default_instance_;
+class StripeByteSubrange;
+struct StripeByteSubrangeDefaultTypeInternal;
+extern StripeByteSubrangeDefaultTypeInternal _StripeByteSubrange_default_instance_;
 class StripeIdAndBlockIDsFromClient;
 struct StripeIdAndBlockIDsFromClientDefaultTypeInternal;
 extern StripeIdAndBlockIDsFromClientDefaultTypeInternal _StripeIdAndBlockIDsFromClient_default_instance_;
@@ -128,6 +137,8 @@ template<> ::coordinator_proto::KeyFromClient* Arena::CreateMaybeMessage<::coord
 template<> ::coordinator_proto::LogicalRange* Arena::CreateMaybeMessage<::coordinator_proto::LogicalRange>(Arena*);
 template<> ::coordinator_proto::NodeIdFromClient* Arena::CreateMaybeMessage<::coordinator_proto::NodeIdFromClient>(Arena*);
 template<> ::coordinator_proto::Parameter* Arena::CreateMaybeMessage<::coordinator_proto::Parameter>(Arena*);
+template<> ::coordinator_proto::PeekStripeByteRangesReply* Arena::CreateMaybeMessage<::coordinator_proto::PeekStripeByteRangesReply>(Arena*);
+template<> ::coordinator_proto::PeekStripeByteRangesRequest* Arena::CreateMaybeMessage<::coordinator_proto::PeekStripeByteRangesRequest>(Arena*);
 template<> ::coordinator_proto::RecoveryReply* Arena::CreateMaybeMessage<::coordinator_proto::RecoveryReply>(Arena*);
 template<> ::coordinator_proto::RepBlockNum* Arena::CreateMaybeMessage<::coordinator_proto::RepBlockNum>(Arena*);
 template<> ::coordinator_proto::RepIfDeling* Arena::CreateMaybeMessage<::coordinator_proto::RepIfDeling>(Arena*);
@@ -140,6 +151,7 @@ template<> ::coordinator_proto::ReplyProxyIPPort* Arena::CreateMaybeMessage<::co
 template<> ::coordinator_proto::ReplyProxyIPsPorts* Arena::CreateMaybeMessage<::coordinator_proto::ReplyProxyIPsPorts>(Arena*);
 template<> ::coordinator_proto::RequestProxyIPPort* Arena::CreateMaybeMessage<::coordinator_proto::RequestProxyIPPort>(Arena*);
 template<> ::coordinator_proto::RequestToCoordinator* Arena::CreateMaybeMessage<::coordinator_proto::RequestToCoordinator>(Arena*);
+template<> ::coordinator_proto::StripeByteSubrange* Arena::CreateMaybeMessage<::coordinator_proto::StripeByteSubrange>(Arena*);
 template<> ::coordinator_proto::StripeIdAndBlockIDsFromClient* Arena::CreateMaybeMessage<::coordinator_proto::StripeIdAndBlockIDsFromClient>(Arena*);
 template<> ::coordinator_proto::StripeIdFromClient* Arena::CreateMaybeMessage<::coordinator_proto::StripeIdFromClient>(Arena*);
 template<> ::coordinator_proto::XueUpdateRequest* Arena::CreateMaybeMessage<::coordinator_proto::XueUpdateRequest>(Arena*);
@@ -2870,6 +2882,507 @@ class XueUpdateRequest final :
 };
 // -------------------------------------------------------------------
 
+class StripeByteSubrange final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coordinator_proto.StripeByteSubrange) */ {
+ public:
+  inline StripeByteSubrange() : StripeByteSubrange(nullptr) {}
+  ~StripeByteSubrange() override;
+  explicit PROTOBUF_CONSTEXPR StripeByteSubrange(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  StripeByteSubrange(const StripeByteSubrange& from);
+  StripeByteSubrange(StripeByteSubrange&& from) noexcept
+    : StripeByteSubrange() {
+    *this = ::std::move(from);
+  }
+
+  inline StripeByteSubrange& operator=(const StripeByteSubrange& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline StripeByteSubrange& operator=(StripeByteSubrange&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const StripeByteSubrange& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const StripeByteSubrange* internal_default_instance() {
+    return reinterpret_cast<const StripeByteSubrange*>(
+               &_StripeByteSubrange_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    15;
+
+  friend void swap(StripeByteSubrange& a, StripeByteSubrange& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(StripeByteSubrange* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(StripeByteSubrange* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  StripeByteSubrange* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<StripeByteSubrange>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const StripeByteSubrange& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const StripeByteSubrange& from) {
+    StripeByteSubrange::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(StripeByteSubrange* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coordinator_proto.StripeByteSubrange";
+  }
+  protected:
+  explicit StripeByteSubrange(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kBlockIdFieldNumber = 1,
+    kOffsetFieldNumber = 2,
+    kLengthFieldNumber = 3,
+  };
+  // int32 block_id = 1;
+  void clear_block_id();
+  int32_t block_id() const;
+  void set_block_id(int32_t value);
+  private:
+  int32_t _internal_block_id() const;
+  void _internal_set_block_id(int32_t value);
+  public:
+
+  // int32 offset = 2;
+  void clear_offset();
+  int32_t offset() const;
+  void set_offset(int32_t value);
+  private:
+  int32_t _internal_offset() const;
+  void _internal_set_offset(int32_t value);
+  public:
+
+  // int32 length = 3;
+  void clear_length();
+  int32_t length() const;
+  void set_length(int32_t value);
+  private:
+  int32_t _internal_length() const;
+  void _internal_set_length(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:coordinator_proto.StripeByteSubrange)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int32_t block_id_;
+    int32_t offset_;
+    int32_t length_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coordinator_2eproto;
+};
+// -------------------------------------------------------------------
+
+class PeekStripeByteRangesRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coordinator_proto.PeekStripeByteRangesRequest) */ {
+ public:
+  inline PeekStripeByteRangesRequest() : PeekStripeByteRangesRequest(nullptr) {}
+  ~PeekStripeByteRangesRequest() override;
+  explicit PROTOBUF_CONSTEXPR PeekStripeByteRangesRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  PeekStripeByteRangesRequest(const PeekStripeByteRangesRequest& from);
+  PeekStripeByteRangesRequest(PeekStripeByteRangesRequest&& from) noexcept
+    : PeekStripeByteRangesRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline PeekStripeByteRangesRequest& operator=(const PeekStripeByteRangesRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PeekStripeByteRangesRequest& operator=(PeekStripeByteRangesRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PeekStripeByteRangesRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const PeekStripeByteRangesRequest* internal_default_instance() {
+    return reinterpret_cast<const PeekStripeByteRangesRequest*>(
+               &_PeekStripeByteRangesRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    16;
+
+  friend void swap(PeekStripeByteRangesRequest& a, PeekStripeByteRangesRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(PeekStripeByteRangesRequest* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PeekStripeByteRangesRequest* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PeekStripeByteRangesRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<PeekStripeByteRangesRequest>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const PeekStripeByteRangesRequest& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const PeekStripeByteRangesRequest& from) {
+    PeekStripeByteRangesRequest::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(PeekStripeByteRangesRequest* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coordinator_proto.PeekStripeByteRangesRequest";
+  }
+  protected:
+  explicit PeekStripeByteRangesRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kRangesFieldNumber = 2,
+    kStripeIdFieldNumber = 1,
+  };
+  // repeated .coordinator_proto.StripeByteSubrange ranges = 2;
+  int ranges_size() const;
+  private:
+  int _internal_ranges_size() const;
+  public:
+  void clear_ranges();
+  ::coordinator_proto::StripeByteSubrange* mutable_ranges(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::StripeByteSubrange >*
+      mutable_ranges();
+  private:
+  const ::coordinator_proto::StripeByteSubrange& _internal_ranges(int index) const;
+  ::coordinator_proto::StripeByteSubrange* _internal_add_ranges();
+  public:
+  const ::coordinator_proto::StripeByteSubrange& ranges(int index) const;
+  ::coordinator_proto::StripeByteSubrange* add_ranges();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::StripeByteSubrange >&
+      ranges() const;
+
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:coordinator_proto.PeekStripeByteRangesRequest)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::StripeByteSubrange > ranges_;
+    int32_t stripe_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coordinator_2eproto;
+};
+// -------------------------------------------------------------------
+
+class PeekStripeByteRangesReply final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coordinator_proto.PeekStripeByteRangesReply) */ {
+ public:
+  inline PeekStripeByteRangesReply() : PeekStripeByteRangesReply(nullptr) {}
+  ~PeekStripeByteRangesReply() override;
+  explicit PROTOBUF_CONSTEXPR PeekStripeByteRangesReply(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  PeekStripeByteRangesReply(const PeekStripeByteRangesReply& from);
+  PeekStripeByteRangesReply(PeekStripeByteRangesReply&& from) noexcept
+    : PeekStripeByteRangesReply() {
+    *this = ::std::move(from);
+  }
+
+  inline PeekStripeByteRangesReply& operator=(const PeekStripeByteRangesReply& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PeekStripeByteRangesReply& operator=(PeekStripeByteRangesReply&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PeekStripeByteRangesReply& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const PeekStripeByteRangesReply* internal_default_instance() {
+    return reinterpret_cast<const PeekStripeByteRangesReply*>(
+               &_PeekStripeByteRangesReply_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    17;
+
+  friend void swap(PeekStripeByteRangesReply& a, PeekStripeByteRangesReply& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(PeekStripeByteRangesReply* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PeekStripeByteRangesReply* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PeekStripeByteRangesReply* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<PeekStripeByteRangesReply>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const PeekStripeByteRangesReply& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const PeekStripeByteRangesReply& from) {
+    PeekStripeByteRangesReply::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(PeekStripeByteRangesReply* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coordinator_proto.PeekStripeByteRangesReply";
+  }
+  protected:
+  explicit PeekStripeByteRangesReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kPayloadsFieldNumber = 1,
+  };
+  // repeated bytes payloads = 1;
+  int payloads_size() const;
+  private:
+  int _internal_payloads_size() const;
+  public:
+  void clear_payloads();
+  const std::string& payloads(int index) const;
+  std::string* mutable_payloads(int index);
+  void set_payloads(int index, const std::string& value);
+  void set_payloads(int index, std::string&& value);
+  void set_payloads(int index, const char* value);
+  void set_payloads(int index, const void* value, size_t size);
+  std::string* add_payloads();
+  void add_payloads(const std::string& value);
+  void add_payloads(std::string&& value);
+  void add_payloads(const char* value);
+  void add_payloads(const void* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& payloads() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_payloads();
+  private:
+  const std::string& _internal_payloads(int index) const;
+  std::string* _internal_add_payloads();
+  public:
+
+  // @@protoc_insertion_point(class_scope:coordinator_proto.PeekStripeByteRangesReply)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> payloads_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coordinator_2eproto;
+};
+// -------------------------------------------------------------------
+
 class KeyFromClient final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coordinator_proto.KeyFromClient) */ {
  public:
@@ -2918,7 +3431,7 @@ class KeyFromClient final :
                &_KeyFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    15;
+    18;
 
   friend void swap(KeyFromClient& a, KeyFromClient& b) {
     a.Swap(&b);
@@ -3071,7 +3584,7 @@ class StripeIdFromClient final :
                &_StripeIdFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    16;
+    19;
 
   friend void swap(StripeIdFromClient& a, StripeIdFromClient& b) {
     a.Swap(&b);
@@ -3219,7 +3732,7 @@ class StripeIdAndBlockIDsFromClient final :
                &_StripeIdAndBlockIDsFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    17;
+    20;
 
   friend void swap(StripeIdAndBlockIDsFromClient& a, StripeIdAndBlockIDsFromClient& b) {
     a.Swap(&b);
@@ -3392,7 +3905,7 @@ class NodeIdFromClient final :
                &_NodeIdFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    21;
 
   friend void swap(NodeIdFromClient& a, NodeIdFromClient& b) {
     a.Swap(&b);
@@ -3540,7 +4053,7 @@ class RepIfDeling final :
                &_RepIfDeling_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    22;
 
   friend void swap(RepIfDeling& a, RepIfDeling& b) {
     a.Swap(&b);
@@ -3688,7 +4201,7 @@ class RepStripeIds final :
                &_RepStripeIds_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    23;
 
   friend void swap(RepStripeIds& a, RepStripeIds& b) {
     a.Swap(&b);
@@ -3850,7 +4363,7 @@ class RepBlockNum final :
                &_RepBlockNum_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    24;
 
   friend void swap(RepBlockNum& a, RepBlockNum& b) {
     a.Swap(&b);
@@ -3998,7 +4511,7 @@ class DegradedReadReply final :
                &_DegradedReadReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    25;
 
   friend void swap(DegradedReadReply& a, DegradedReadReply& b) {
     a.Swap(&b);
@@ -4179,7 +4692,7 @@ class RecoveryReply final :
                &_RecoveryReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    26;
 
   friend void swap(RecoveryReply& a, RecoveryReply& b) {
     a.Swap(&b);
@@ -5898,6 +6411,213 @@ XueUpdateRequest::ranges() const {
 
 // -------------------------------------------------------------------
 
+// StripeByteSubrange
+
+// int32 block_id = 1;
+inline void StripeByteSubrange::clear_block_id() {
+  _impl_.block_id_ = 0;
+}
+inline int32_t StripeByteSubrange::_internal_block_id() const {
+  return _impl_.block_id_;
+}
+inline int32_t StripeByteSubrange::block_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.StripeByteSubrange.block_id)
+  return _internal_block_id();
+}
+inline void StripeByteSubrange::_internal_set_block_id(int32_t value) {
+  
+  _impl_.block_id_ = value;
+}
+inline void StripeByteSubrange::set_block_id(int32_t value) {
+  _internal_set_block_id(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.StripeByteSubrange.block_id)
+}
+
+// int32 offset = 2;
+inline void StripeByteSubrange::clear_offset() {
+  _impl_.offset_ = 0;
+}
+inline int32_t StripeByteSubrange::_internal_offset() const {
+  return _impl_.offset_;
+}
+inline int32_t StripeByteSubrange::offset() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.StripeByteSubrange.offset)
+  return _internal_offset();
+}
+inline void StripeByteSubrange::_internal_set_offset(int32_t value) {
+  
+  _impl_.offset_ = value;
+}
+inline void StripeByteSubrange::set_offset(int32_t value) {
+  _internal_set_offset(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.StripeByteSubrange.offset)
+}
+
+// int32 length = 3;
+inline void StripeByteSubrange::clear_length() {
+  _impl_.length_ = 0;
+}
+inline int32_t StripeByteSubrange::_internal_length() const {
+  return _impl_.length_;
+}
+inline int32_t StripeByteSubrange::length() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.StripeByteSubrange.length)
+  return _internal_length();
+}
+inline void StripeByteSubrange::_internal_set_length(int32_t value) {
+  
+  _impl_.length_ = value;
+}
+inline void StripeByteSubrange::set_length(int32_t value) {
+  _internal_set_length(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.StripeByteSubrange.length)
+}
+
+// -------------------------------------------------------------------
+
+// PeekStripeByteRangesRequest
+
+// int32 stripe_id = 1;
+inline void PeekStripeByteRangesRequest::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t PeekStripeByteRangesRequest::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t PeekStripeByteRangesRequest::stripe_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.PeekStripeByteRangesRequest.stripe_id)
+  return _internal_stripe_id();
+}
+inline void PeekStripeByteRangesRequest::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void PeekStripeByteRangesRequest::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.PeekStripeByteRangesRequest.stripe_id)
+}
+
+// repeated .coordinator_proto.StripeByteSubrange ranges = 2;
+inline int PeekStripeByteRangesRequest::_internal_ranges_size() const {
+  return _impl_.ranges_.size();
+}
+inline int PeekStripeByteRangesRequest::ranges_size() const {
+  return _internal_ranges_size();
+}
+inline void PeekStripeByteRangesRequest::clear_ranges() {
+  _impl_.ranges_.Clear();
+}
+inline ::coordinator_proto::StripeByteSubrange* PeekStripeByteRangesRequest::mutable_ranges(int index) {
+  // @@protoc_insertion_point(field_mutable:coordinator_proto.PeekStripeByteRangesRequest.ranges)
+  return _impl_.ranges_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::StripeByteSubrange >*
+PeekStripeByteRangesRequest::mutable_ranges() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.PeekStripeByteRangesRequest.ranges)
+  return &_impl_.ranges_;
+}
+inline const ::coordinator_proto::StripeByteSubrange& PeekStripeByteRangesRequest::_internal_ranges(int index) const {
+  return _impl_.ranges_.Get(index);
+}
+inline const ::coordinator_proto::StripeByteSubrange& PeekStripeByteRangesRequest::ranges(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.PeekStripeByteRangesRequest.ranges)
+  return _internal_ranges(index);
+}
+inline ::coordinator_proto::StripeByteSubrange* PeekStripeByteRangesRequest::_internal_add_ranges() {
+  return _impl_.ranges_.Add();
+}
+inline ::coordinator_proto::StripeByteSubrange* PeekStripeByteRangesRequest::add_ranges() {
+  ::coordinator_proto::StripeByteSubrange* _add = _internal_add_ranges();
+  // @@protoc_insertion_point(field_add:coordinator_proto.PeekStripeByteRangesRequest.ranges)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::StripeByteSubrange >&
+PeekStripeByteRangesRequest::ranges() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.PeekStripeByteRangesRequest.ranges)
+  return _impl_.ranges_;
+}
+
+// -------------------------------------------------------------------
+
+// PeekStripeByteRangesReply
+
+// repeated bytes payloads = 1;
+inline int PeekStripeByteRangesReply::_internal_payloads_size() const {
+  return _impl_.payloads_.size();
+}
+inline int PeekStripeByteRangesReply::payloads_size() const {
+  return _internal_payloads_size();
+}
+inline void PeekStripeByteRangesReply::clear_payloads() {
+  _impl_.payloads_.Clear();
+}
+inline std::string* PeekStripeByteRangesReply::add_payloads() {
+  std::string* _s = _internal_add_payloads();
+  // @@protoc_insertion_point(field_add_mutable:coordinator_proto.PeekStripeByteRangesReply.payloads)
+  return _s;
+}
+inline const std::string& PeekStripeByteRangesReply::_internal_payloads(int index) const {
+  return _impl_.payloads_.Get(index);
+}
+inline const std::string& PeekStripeByteRangesReply::payloads(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.PeekStripeByteRangesReply.payloads)
+  return _internal_payloads(index);
+}
+inline std::string* PeekStripeByteRangesReply::mutable_payloads(int index) {
+  // @@protoc_insertion_point(field_mutable:coordinator_proto.PeekStripeByteRangesReply.payloads)
+  return _impl_.payloads_.Mutable(index);
+}
+inline void PeekStripeByteRangesReply::set_payloads(int index, const std::string& value) {
+  _impl_.payloads_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.PeekStripeByteRangesReply.payloads)
+}
+inline void PeekStripeByteRangesReply::set_payloads(int index, std::string&& value) {
+  _impl_.payloads_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:coordinator_proto.PeekStripeByteRangesReply.payloads)
+}
+inline void PeekStripeByteRangesReply::set_payloads(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.payloads_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:coordinator_proto.PeekStripeByteRangesReply.payloads)
+}
+inline void PeekStripeByteRangesReply::set_payloads(int index, const void* value, size_t size) {
+  _impl_.payloads_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:coordinator_proto.PeekStripeByteRangesReply.payloads)
+}
+inline std::string* PeekStripeByteRangesReply::_internal_add_payloads() {
+  return _impl_.payloads_.Add();
+}
+inline void PeekStripeByteRangesReply::add_payloads(const std::string& value) {
+  _impl_.payloads_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:coordinator_proto.PeekStripeByteRangesReply.payloads)
+}
+inline void PeekStripeByteRangesReply::add_payloads(std::string&& value) {
+  _impl_.payloads_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:coordinator_proto.PeekStripeByteRangesReply.payloads)
+}
+inline void PeekStripeByteRangesReply::add_payloads(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.payloads_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:coordinator_proto.PeekStripeByteRangesReply.payloads)
+}
+inline void PeekStripeByteRangesReply::add_payloads(const void* value, size_t size) {
+  _impl_.payloads_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:coordinator_proto.PeekStripeByteRangesReply.payloads)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+PeekStripeByteRangesReply::payloads() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.PeekStripeByteRangesReply.payloads)
+  return _impl_.payloads_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+PeekStripeByteRangesReply::mutable_payloads() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.PeekStripeByteRangesReply.payloads)
+  return &_impl_.payloads_;
+}
+
+// -------------------------------------------------------------------
+
 // KeyFromClient
 
 // string key = 1;
@@ -6359,6 +7079,12 @@ inline void RecoveryReply::set_grpc_start_time(double value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

@@ -4,7 +4,7 @@ HOSTS_FILE="hosts"
 
 USER="root"
 
-REMOTE_COMMAND="cd /users/xue/UniLRC/project && sh compile.sh"
+REMOTE_COMMAND="cd /users/xue/xue/project && sh compile.sh"
 
 PARALLEL=5
 

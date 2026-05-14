@@ -475,6 +475,51 @@ struct GetReplyDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 GetReplyDefaultTypeInternal _GetReply_default_instance_;
+PROTOBUF_CONSTEXPR BlockRangeRead::BlockRangeRead(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.datanode_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.block_id_)*/0
+  , /*decltype(_impl_.offset_)*/0
+  , /*decltype(_impl_.length_)*/0
+  , /*decltype(_impl_.datanode_port_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct BlockRangeReadDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR BlockRangeReadDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~BlockRangeReadDefaultTypeInternal() {}
+  union {
+    BlockRangeRead _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 BlockRangeReadDefaultTypeInternal _BlockRangeRead_default_instance_;
+PROTOBUF_CONSTEXPR ReadBlockRangesRequest::ReadBlockRangesRequest(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.reads_)*/{}
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ReadBlockRangesRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ReadBlockRangesRequestDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ReadBlockRangesRequestDefaultTypeInternal() {}
+  union {
+    ReadBlockRangesRequest _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ReadBlockRangesRequestDefaultTypeInternal _ReadBlockRangesRequest_default_instance_;
+PROTOBUF_CONSTEXPR ReadBlockRangesReply::ReadBlockRangesReply(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.payloads_)*/{}
+  , /*decltype(_impl_.ok_)*/false
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ReadBlockRangesReplyDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ReadBlockRangesReplyDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ReadBlockRangesReplyDefaultTypeInternal() {}
+  union {
+    ReadBlockRangesReply _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ReadBlockRangesReplyDefaultTypeInternal _ReadBlockRangesReply_default_instance_;
 PROTOBUF_CONSTEXPR StripeAndBlockIDs::StripeAndBlockIDs(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.block_ids_)*/{}
@@ -498,7 +543,7 @@ struct StripeAndBlockIDsDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StripeAndBlockIDsDefaultTypeInternal _StripeAndBlockIDs_default_instance_;
 }  // namespace proxy_proto
-static ::_pb::Metadata file_level_metadata_proxy_2eproto[24];
+static ::_pb::Metadata file_level_metadata_proxy_2eproto[27];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_proxy_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_proxy_2eproto = nullptr;
 
@@ -792,6 +837,33 @@ const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::GetReply, _impl_.getsuccess_),
   ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::BlockRangeRead, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::BlockRangeRead, _impl_.block_key_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::BlockRangeRead, _impl_.block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::BlockRangeRead, _impl_.offset_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::BlockRangeRead, _impl_.length_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::BlockRangeRead, _impl_.datanode_ip_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::BlockRangeRead, _impl_.datanode_port_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ReadBlockRangesRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ReadBlockRangesRequest, _impl_.reads_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ReadBlockRangesReply, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ReadBlockRangesReply, _impl_.ok_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ReadBlockRangesReply, _impl_.payloads_),
+  ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeAndBlockIDs, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -830,7 +902,10 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 260, -1, -1, sizeof(::proxy_proto::XueForwardTarget)},
   { 274, -1, -1, sizeof(::proxy_proto::SetReply)},
   { 281, -1, -1, sizeof(::proxy_proto::GetReply)},
-  { 288, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
+  { 288, -1, -1, sizeof(::proxy_proto::BlockRangeRead)},
+  { 300, -1, -1, sizeof(::proxy_proto::ReadBlockRangesRequest)},
+  { 307, -1, -1, sizeof(::proxy_proto::ReadBlockRangesReply)},
+  { 315, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -857,6 +932,9 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::proxy_proto::_XueForwardTarget_default_instance_._instance,
   &::proxy_proto::_SetReply_default_instance_._instance,
   &::proxy_proto::_GetReply_default_instance_._instance,
+  &::proxy_proto::_BlockRangeRead_default_instance_._instance,
+  &::proxy_proto::_ReadBlockRangesRequest_default_instance_._instance,
+  &::proxy_proto::_ReadBlockRangesReply_default_instance_._instance,
   &::proxy_proto::_StripeAndBlockIDs_default_instance_._instance,
 };
 
@@ -957,48 +1035,57 @@ const char descriptor_table_protodef_proxy_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "c_offsets\030\006 \003(\005\022\021\n\trec_sizes\030\007 \003(\005\022\030\n\020re"
   "c_payload_kind\030\010 \003(\r\"\034\n\010SetReply\022\020\n\010ifco"
   "mmit\030\001 \001(\010\"\036\n\010GetReply\022\022\n\ngetsuccess\030\001 \001"
-  "(\010\"\261\001\n\021StripeAndBlockIDs\022\021\n\tstripe_id\030\001 "
-  "\001(\005\022\020\n\010group_id\030\002 \001(\005\022\020\n\010clientip\030\003 \001(\t\022"
-  "\022\n\nclientport\030\004 \001(\005\022\021\n\tblock_ids\030\005 \003(\005\022\022"
-  "\n\nblock_keys\030\006 \003(\t\022\023\n\013datanodeips\030\007 \003(\t\022"
-  "\025\n\rdatanodeports\030\010 \003(\0052\307\t\n\014proxyService\022"
-  "D\n\ncheckalive\022\032.proxy_proto.CheckaliveCM"
-  "D\032\032.proxy_proto.RequestResult\022L\n\022encodeA"
-  "ndSetObject\022\037.proxy_proto.ObjectAndPlace"
-  "ment\032\025.proxy_proto.SetReply\022L\n\022decodeAnd"
-  "GetObject\022\037.proxy_proto.ObjectAndPlaceme"
-  "nt\032\025.proxy_proto.GetReply\022P\n\014degradedRea"
-  "d\022 .proxy_proto.DegradedReadRequest\032\036.pr"
-  "oxy_proto.DegradedReadReply\022S\n\023degradedR"
-  "ead2Client\022\034.proxy_proto.RecoveryRequest"
-  "\032\036.proxy_proto.DegradedReadReply\022Y\n\025degr"
-  "adedReadBreakdown\022 .proxy_proto.Degraded"
+  "(\010\"\201\001\n\016BlockRangeRead\022\021\n\tblock_key\030\001 \001(\t"
+  "\022\020\n\010block_id\030\002 \001(\005\022\016\n\006offset\030\003 \001(\005\022\016\n\006le"
+  "ngth\030\004 \001(\005\022\023\n\013datanode_ip\030\005 \001(\t\022\025\n\rdatan"
+  "ode_port\030\006 \001(\005\"D\n\026ReadBlockRangesRequest"
+  "\022*\n\005reads\030\001 \003(\0132\033.proxy_proto.BlockRange"
+  "Read\"4\n\024ReadBlockRangesReply\022\n\n\002ok\030\001 \001(\010"
+  "\022\020\n\010payloads\030\002 \003(\014\"\261\001\n\021StripeAndBlockIDs"
+  "\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010group_id\030\002 \001(\005\022\020\n"
+  "\010clientip\030\003 \001(\t\022\022\n\nclientport\030\004 \001(\005\022\021\n\tb"
+  "lock_ids\030\005 \003(\005\022\022\n\nblock_keys\030\006 \003(\t\022\023\n\013da"
+  "tanodeips\030\007 \003(\t\022\025\n\rdatanodeports\030\010 \003(\0052\242"
+  "\n\n\014proxyService\022D\n\ncheckalive\022\032.proxy_pr"
+  "oto.CheckaliveCMD\032\032.proxy_proto.RequestR"
+  "esult\022L\n\022encodeAndSetObject\022\037.proxy_prot"
+  "o.ObjectAndPlacement\032\025.proxy_proto.SetRe"
+  "ply\022L\n\022decodeAndGetObject\022\037.proxy_proto."
+  "ObjectAndPlacement\032\025.proxy_proto.GetRepl"
+  "y\022P\n\014degradedRead\022 .proxy_proto.Degraded"
   "ReadRequest\032\036.proxy_proto.DegradedReadRe"
-  "ply\022\\\n\034degradedRead2ClientBreakdown\022\034.pr"
-  "oxy_proto.RecoveryRequest\032\036.proxy_proto."
-  "DegradedReadReply\022X\n\035degradedReadWithBlo"
-  "ckStripeID\022 .proxy_proto.DegradedReadReq"
-  "uest\032\025.proxy_proto.GetReply\022V\n\017partialDe"
-  "coding\022#.proxy_proto.PartialDecodingRequ"
-  "est\032\036.proxy_proto.DegradedReadReply\022D\n\010r"
-  "ecovery\022\034.proxy_proto.RecoveryRequest\032\032."
-  "proxy_proto.RecoveryReply\022M\n\021recoveryBre"
-  "akdown\022\034.proxy_proto.RecoveryRequest\032\032.p"
-  "roxy_proto.RecoveryReply\022O\n\020multipleReco"
-  "very\022$.proxy_proto.MultipleRecoveryReque"
-  "st\032\025.proxy_proto.GetReply\022\?\n\013deleteBlock"
-  "\022\031.proxy_proto.NodeAndBlock\032\025.proxy_prot"
-  "o.DelReply\022X\n\027scheduleAppend2Datanode\022&."
-  "proxy_proto.AppendStripeDataPlacement\032\025."
-  "proxy_proto.SetReply\022B\n\tgetBlocks\022\036.prox"
-  "y_proto.StripeAndBlockIDs\032\025.proxy_proto."
-  "GetReplyb\006proto3"
+  "ply\022S\n\023degradedRead2Client\022\034.proxy_proto"
+  ".RecoveryRequest\032\036.proxy_proto.DegradedR"
+  "eadReply\022Y\n\025degradedReadBreakdown\022 .prox"
+  "y_proto.DegradedReadRequest\032\036.proxy_prot"
+  "o.DegradedReadReply\022\\\n\034degradedRead2Clie"
+  "ntBreakdown\022\034.proxy_proto.RecoveryReques"
+  "t\032\036.proxy_proto.DegradedReadReply\022X\n\035deg"
+  "radedReadWithBlockStripeID\022 .proxy_proto"
+  ".DegradedReadRequest\032\025.proxy_proto.GetRe"
+  "ply\022V\n\017partialDecoding\022#.proxy_proto.Par"
+  "tialDecodingRequest\032\036.proxy_proto.Degrad"
+  "edReadReply\022D\n\010recovery\022\034.proxy_proto.Re"
+  "coveryRequest\032\032.proxy_proto.RecoveryRepl"
+  "y\022M\n\021recoveryBreakdown\022\034.proxy_proto.Rec"
+  "overyRequest\032\032.proxy_proto.RecoveryReply"
+  "\022O\n\020multipleRecovery\022$.proxy_proto.Multi"
+  "pleRecoveryRequest\032\025.proxy_proto.GetRepl"
+  "y\022\?\n\013deleteBlock\022\031.proxy_proto.NodeAndBl"
+  "ock\032\025.proxy_proto.DelReply\022X\n\027scheduleAp"
+  "pend2Datanode\022&.proxy_proto.AppendStripe"
+  "DataPlacement\032\025.proxy_proto.SetReply\022B\n\t"
+  "getBlocks\022\036.proxy_proto.StripeAndBlockID"
+  "s\032\025.proxy_proto.GetReply\022Y\n\017readBlockRan"
+  "ges\022#.proxy_proto.ReadBlockRangesRequest"
+  "\032!.proxy_proto.ReadBlockRangesReplyb\006pro"
+  "to3"
   ;
 static ::_pbi::once_flag descriptor_table_proxy_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_proxy_2eproto = {
-    false, false, 5256, descriptor_table_protodef_proxy_2eproto,
+    false, false, 5603, descriptor_table_protodef_proxy_2eproto,
     "proxy.proto",
-    &descriptor_table_proxy_2eproto_once, nullptr, 0, 24,
+    &descriptor_table_proxy_2eproto_once, nullptr, 0, 27,
     schemas, file_default_instances, TableStruct_proxy_2eproto::offsets,
     file_level_metadata_proxy_2eproto, file_level_enum_descriptors_proxy_2eproto,
     file_level_service_descriptors_proxy_2eproto,
@@ -9907,6 +9994,764 @@ void GetReply::InternalSwap(GetReply* other) {
 
 // ===================================================================
 
+class BlockRangeRead::_Internal {
+ public:
+};
+
+BlockRangeRead::BlockRangeRead(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.BlockRangeRead)
+}
+BlockRangeRead::BlockRangeRead(const BlockRangeRead& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  BlockRangeRead* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.block_key_){}
+    , decltype(_impl_.datanode_ip_){}
+    , decltype(_impl_.block_id_){}
+    , decltype(_impl_.offset_){}
+    , decltype(_impl_.length_){}
+    , decltype(_impl_.datanode_port_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_block_key().empty()) {
+    _this->_impl_.block_key_.Set(from._internal_block_key(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_datanode_ip().empty()) {
+    _this->_impl_.datanode_ip_.Set(from._internal_datanode_ip(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.block_id_, &from._impl_.block_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.datanode_port_) -
+    reinterpret_cast<char*>(&_impl_.block_id_)) + sizeof(_impl_.datanode_port_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.BlockRangeRead)
+}
+
+inline void BlockRangeRead::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.block_key_){}
+    , decltype(_impl_.datanode_ip_){}
+    , decltype(_impl_.block_id_){0}
+    , decltype(_impl_.offset_){0}
+    , decltype(_impl_.length_){0}
+    , decltype(_impl_.datanode_port_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+BlockRangeRead::~BlockRangeRead() {
+  // @@protoc_insertion_point(destructor:proxy_proto.BlockRangeRead)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void BlockRangeRead::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.block_key_.Destroy();
+  _impl_.datanode_ip_.Destroy();
+}
+
+void BlockRangeRead::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void BlockRangeRead::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.BlockRangeRead)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.block_key_.ClearToEmpty();
+  _impl_.datanode_ip_.ClearToEmpty();
+  ::memset(&_impl_.block_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.datanode_port_) -
+      reinterpret_cast<char*>(&_impl_.block_id_)) + sizeof(_impl_.datanode_port_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* BlockRangeRead::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // string block_key = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          auto str = _internal_mutable_block_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.BlockRangeRead.block_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 block_id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 offset = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 length = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string datanode_ip = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+          auto str = _internal_mutable_datanode_ip();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.BlockRangeRead.datanode_ip"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 datanode_port = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
+          _impl_.datanode_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* BlockRangeRead::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.BlockRangeRead)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string block_key = 1;
+  if (!this->_internal_block_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_block_key().data(), static_cast<int>(this->_internal_block_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.BlockRangeRead.block_key");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_block_key(), target);
+  }
+
+  // int32 block_id = 2;
+  if (this->_internal_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_block_id(), target);
+  }
+
+  // int32 offset = 3;
+  if (this->_internal_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_offset(), target);
+  }
+
+  // int32 length = 4;
+  if (this->_internal_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_length(), target);
+  }
+
+  // string datanode_ip = 5;
+  if (!this->_internal_datanode_ip().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_datanode_ip().data(), static_cast<int>(this->_internal_datanode_ip().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.BlockRangeRead.datanode_ip");
+    target = stream->WriteStringMaybeAliased(
+        5, this->_internal_datanode_ip(), target);
+  }
+
+  // int32 datanode_port = 6;
+  if (this->_internal_datanode_port() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(6, this->_internal_datanode_port(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.BlockRangeRead)
+  return target;
+}
+
+size_t BlockRangeRead::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.BlockRangeRead)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string block_key = 1;
+  if (!this->_internal_block_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_block_key());
+  }
+
+  // string datanode_ip = 5;
+  if (!this->_internal_datanode_ip().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_datanode_ip());
+  }
+
+  // int32 block_id = 2;
+  if (this->_internal_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_block_id());
+  }
+
+  // int32 offset = 3;
+  if (this->_internal_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_offset());
+  }
+
+  // int32 length = 4;
+  if (this->_internal_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_length());
+  }
+
+  // int32 datanode_port = 6;
+  if (this->_internal_datanode_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_datanode_port());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData BlockRangeRead::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    BlockRangeRead::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*BlockRangeRead::GetClassData() const { return &_class_data_; }
+
+
+void BlockRangeRead::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<BlockRangeRead*>(&to_msg);
+  auto& from = static_cast<const BlockRangeRead&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.BlockRangeRead)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_block_key().empty()) {
+    _this->_internal_set_block_key(from._internal_block_key());
+  }
+  if (!from._internal_datanode_ip().empty()) {
+    _this->_internal_set_datanode_ip(from._internal_datanode_ip());
+  }
+  if (from._internal_block_id() != 0) {
+    _this->_internal_set_block_id(from._internal_block_id());
+  }
+  if (from._internal_offset() != 0) {
+    _this->_internal_set_offset(from._internal_offset());
+  }
+  if (from._internal_length() != 0) {
+    _this->_internal_set_length(from._internal_length());
+  }
+  if (from._internal_datanode_port() != 0) {
+    _this->_internal_set_datanode_port(from._internal_datanode_port());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void BlockRangeRead::CopyFrom(const BlockRangeRead& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.BlockRangeRead)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool BlockRangeRead::IsInitialized() const {
+  return true;
+}
+
+void BlockRangeRead::InternalSwap(BlockRangeRead* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.block_key_, lhs_arena,
+      &other->_impl_.block_key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.datanode_ip_, lhs_arena,
+      &other->_impl_.datanode_ip_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(BlockRangeRead, _impl_.datanode_port_)
+      + sizeof(BlockRangeRead::_impl_.datanode_port_)
+      - PROTOBUF_FIELD_OFFSET(BlockRangeRead, _impl_.block_id_)>(
+          reinterpret_cast<char*>(&_impl_.block_id_),
+          reinterpret_cast<char*>(&other->_impl_.block_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata BlockRangeRead::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[23]);
+}
+
+// ===================================================================
+
+class ReadBlockRangesRequest::_Internal {
+ public:
+};
+
+ReadBlockRangesRequest::ReadBlockRangesRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ReadBlockRangesRequest)
+}
+ReadBlockRangesRequest::ReadBlockRangesRequest(const ReadBlockRangesRequest& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ReadBlockRangesRequest* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.reads_){from._impl_.reads_}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ReadBlockRangesRequest)
+}
+
+inline void ReadBlockRangesRequest::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.reads_){arena}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+ReadBlockRangesRequest::~ReadBlockRangesRequest() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ReadBlockRangesRequest)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ReadBlockRangesRequest::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.reads_.~RepeatedPtrField();
+}
+
+void ReadBlockRangesRequest::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ReadBlockRangesRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ReadBlockRangesRequest)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.reads_.Clear();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ReadBlockRangesRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // repeated .proxy_proto.BlockRangeRead reads = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_reads(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ReadBlockRangesRequest::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ReadBlockRangesRequest)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated .proxy_proto.BlockRangeRead reads = 1;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_reads_size()); i < n; i++) {
+    const auto& repfield = this->_internal_reads(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(1, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ReadBlockRangesRequest)
+  return target;
+}
+
+size_t ReadBlockRangesRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ReadBlockRangesRequest)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated .proxy_proto.BlockRangeRead reads = 1;
+  total_size += 1UL * this->_internal_reads_size();
+  for (const auto& msg : this->_impl_.reads_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ReadBlockRangesRequest::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ReadBlockRangesRequest::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ReadBlockRangesRequest::GetClassData() const { return &_class_data_; }
+
+
+void ReadBlockRangesRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ReadBlockRangesRequest*>(&to_msg);
+  auto& from = static_cast<const ReadBlockRangesRequest&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ReadBlockRangesRequest)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.reads_.MergeFrom(from._impl_.reads_);
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ReadBlockRangesRequest::CopyFrom(const ReadBlockRangesRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ReadBlockRangesRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ReadBlockRangesRequest::IsInitialized() const {
+  return true;
+}
+
+void ReadBlockRangesRequest::InternalSwap(ReadBlockRangesRequest* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.reads_.InternalSwap(&other->_impl_.reads_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ReadBlockRangesRequest::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[24]);
+}
+
+// ===================================================================
+
+class ReadBlockRangesReply::_Internal {
+ public:
+};
+
+ReadBlockRangesReply::ReadBlockRangesReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ReadBlockRangesReply)
+}
+ReadBlockRangesReply::ReadBlockRangesReply(const ReadBlockRangesReply& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ReadBlockRangesReply* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.payloads_){from._impl_.payloads_}
+    , decltype(_impl_.ok_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.ok_ = from._impl_.ok_;
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ReadBlockRangesReply)
+}
+
+inline void ReadBlockRangesReply::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.payloads_){arena}
+    , decltype(_impl_.ok_){false}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+ReadBlockRangesReply::~ReadBlockRangesReply() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ReadBlockRangesReply)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ReadBlockRangesReply::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.payloads_.~RepeatedPtrField();
+}
+
+void ReadBlockRangesReply::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ReadBlockRangesReply::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ReadBlockRangesReply)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.payloads_.Clear();
+  _impl_.ok_ = false;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ReadBlockRangesReply::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // bool ok = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.ok_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated bytes payloads = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            auto str = _internal_add_payloads();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ReadBlockRangesReply::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ReadBlockRangesReply)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // bool ok = 1;
+  if (this->_internal_ok() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(1, this->_internal_ok(), target);
+  }
+
+  // repeated bytes payloads = 2;
+  for (int i = 0, n = this->_internal_payloads_size(); i < n; i++) {
+    const auto& s = this->_internal_payloads(i);
+    target = stream->WriteBytes(2, s, target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ReadBlockRangesReply)
+  return target;
+}
+
+size_t ReadBlockRangesReply::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ReadBlockRangesReply)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated bytes payloads = 2;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.payloads_.size());
+  for (int i = 0, n = _impl_.payloads_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+      _impl_.payloads_.Get(i));
+  }
+
+  // bool ok = 1;
+  if (this->_internal_ok() != 0) {
+    total_size += 1 + 1;
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ReadBlockRangesReply::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ReadBlockRangesReply::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ReadBlockRangesReply::GetClassData() const { return &_class_data_; }
+
+
+void ReadBlockRangesReply::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ReadBlockRangesReply*>(&to_msg);
+  auto& from = static_cast<const ReadBlockRangesReply&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ReadBlockRangesReply)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.payloads_.MergeFrom(from._impl_.payloads_);
+  if (from._internal_ok() != 0) {
+    _this->_internal_set_ok(from._internal_ok());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ReadBlockRangesReply::CopyFrom(const ReadBlockRangesReply& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ReadBlockRangesReply)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ReadBlockRangesReply::IsInitialized() const {
+  return true;
+}
+
+void ReadBlockRangesReply::InternalSwap(ReadBlockRangesReply* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.payloads_.InternalSwap(&other->_impl_.payloads_);
+  swap(_impl_.ok_, other->_impl_.ok_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ReadBlockRangesReply::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[25]);
+}
+
+// ===================================================================
+
 class StripeAndBlockIDs::_Internal {
  public:
 };
@@ -10351,7 +11196,7 @@ void StripeAndBlockIDs::InternalSwap(StripeAndBlockIDs* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata StripeAndBlockIDs::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[23]);
+      file_level_metadata_proxy_2eproto[26]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -10448,6 +11293,18 @@ Arena::CreateMaybeMessage< ::proxy_proto::SetReply >(Arena* arena) {
 template<> PROTOBUF_NOINLINE ::proxy_proto::GetReply*
 Arena::CreateMaybeMessage< ::proxy_proto::GetReply >(Arena* arena) {
   return Arena::CreateMessageInternal< ::proxy_proto::GetReply >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::BlockRangeRead*
+Arena::CreateMaybeMessage< ::proxy_proto::BlockRangeRead >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::BlockRangeRead >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::ReadBlockRangesRequest*
+Arena::CreateMaybeMessage< ::proxy_proto::ReadBlockRangesRequest >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ReadBlockRangesRequest >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::ReadBlockRangesReply*
+Arena::CreateMaybeMessage< ::proxy_proto::ReadBlockRangesReply >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ReadBlockRangesReply >(arena);
 }
 template<> PROTOBUF_NOINLINE ::proxy_proto::StripeAndBlockIDs*
 Arena::CreateMaybeMessage< ::proxy_proto::StripeAndBlockIDs >(Arena* arena) {

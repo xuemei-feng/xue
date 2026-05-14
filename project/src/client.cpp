@@ -7,6 +7,8 @@
 #include <thread>
 #include <assert.h>
 #include <chrono>
+#include <iomanip>
+#include <iostream>
 #include "unilrc_encoder.h"
 namespace ECProject
 {
@@ -786,6 +788,85 @@ namespace ECProject
     return false;
   }
 
+  void Client::print_xue_logical_range_first16(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges,
+                                               const char *tag)
+  {
+    const int bs = static_cast<int>(m_sys_config->BlockSize);
+    const int k = m_sys_config->k;
+    const int logical_cap = k * bs;
+    int range_index = 0;
+    for (const auto &lr : logical_ranges)
+    {
+      const int L0 = lr.first;
+      const int L1 = lr.second;
+      ++range_index;
+      if (L1 <= L0)
+      {
+        continue;
+      }
+      if (L0 < 0 || L0 >= logical_cap)
+      {
+        std::cout << "[XUE_UPDATE] " << tag << " range#" << range_index << " [" << L0 << "," << L1
+                  << ") starts outside logical data [0," << logical_cap << ")\n";
+        continue;
+      }
+      const int take_total = std::min(16, L1 - L0);
+      const int span_end = std::min(L1, L0 + take_total);
+
+      coordinator_proto::PeekStripeByteRangesRequest req;
+      req.set_stripe_id(stripe_id);
+      int pos = L0;
+      while (pos < span_end)
+      {
+        const int bid = pos / bs;
+        const int boff = pos % bs;
+        if (bid >= k)
+        {
+          break;
+        }
+        const int chunk = std::min(span_end - pos, bs - boff);
+        auto *sr = req.add_ranges();
+        sr->set_block_id(bid);
+        sr->set_offset(boff);
+        sr->set_length(chunk);
+        pos += chunk;
+      }
+      if (req.ranges_size() <= 0)
+      {
+        std::cout << "[XUE_UPDATE] " << tag << " range#" << range_index << " [" << L0 << "," << L1 << ") (no data subranges)\n";
+        continue;
+      }
+
+      grpc::ClientContext ctx;
+      coordinator_proto::PeekStripeByteRangesReply rep;
+      grpc::Status st = m_coordinator_ptr->peekStripeByteRanges(&ctx, req, &rep);
+      if (!st.ok())
+      {
+        std::cout << "[XUE_UPDATE] " << tag << " range#" << range_index << " peekStripeByteRanges failed: "
+                  << st.error_message() << std::endl;
+        continue;
+      }
+      if (rep.payloads_size() != req.ranges_size())
+      {
+        std::cout << "[XUE_UPDATE] " << tag << " range#" << range_index << " payload count mismatch\n";
+        continue;
+      }
+
+      std::cout << "[XUE_UPDATE] " << tag << " range#" << range_index << " logical [" << L0 << "," << L1
+                << ") first " << take_total << " byte(s) on disk (hex, logical order): ";
+      for (int i = 0; i < rep.payloads_size(); ++i)
+      {
+        const std::string &p = rep.payloads(i);
+        for (size_t j = 0; j < p.size(); ++j)
+        {
+          std::cout << std::hex << std::uppercase << std::setfill('0') << std::setw(2)
+                    << static_cast<int>(static_cast<unsigned char>(p[j]));
+        }
+      }
+      std::cout << std::dec << "\n";
+    }
+  }
+
   bool Client::xue_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges)
   {
     if (logical_ranges.empty())
@@ -827,6 +908,8 @@ namespace ECProject
       return false;
     }
 
+    print_xue_logical_range_first16(stripe_id, logical_ranges, "BEFORE_UPDATE");
+
     std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
     std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
     std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
@@ -855,6 +938,8 @@ namespace ECProject
     {
       thread.join();
     }
+
+    print_xue_logical_range_first16(stripe_id, logical_ranges, "AFTER_UPDATE");
 
     bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + reply.append_keys_size(), [](bool val)
                                 { return val == true; });

@@ -15,6 +15,7 @@
 #include <config.h>
 #include <toolbox.h>
 #include <queue>
+#include <iostream>
 // #define IF_DEBUG true
 #define IF_DEBUG false
 namespace ECProject
@@ -25,7 +26,7 @@ namespace ECProject
   {
 
   public:
-    ProxyImpl(std::string proxy_ip_port, std::string config_path, std::string coordinator_address) : config_path(config_path), proxy_ip_port(proxy_ip_port), acceptor(io_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(proxy_ip_port.substr(0, proxy_ip_port.find(':')).c_str()), ECProject::PROXY_PORT_SHIFT + std::stoi(proxy_ip_port.substr(proxy_ip_port.find(':') + 1, proxy_ip_port.size())))), xue_forward_acceptor(io_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(proxy_ip_port.substr(0, proxy_ip_port.find(':')).c_str()), ECProject::PROXY_XUE_FORWARD_PORT_SHIFT + std::stoi(proxy_ip_port.substr(proxy_ip_port.find(':') + 1, proxy_ip_port.size())))), m_coordinator_address(coordinator_address)
+    ProxyImpl(std::string proxy_ip_port, std::string config_path, std::string coordinator_address) : config_path(config_path), proxy_ip_port(proxy_ip_port), acceptor(io_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(proxy_ip_port.substr(0, proxy_ip_port.find(':')).c_str()), ECProject::PROXY_PORT_SHIFT + std::stoi(proxy_ip_port.substr(proxy_ip_port.find(':') + 1, proxy_ip_port.size())))), xue_forward_acceptor(io_context, asio::ip::tcp::endpoint(asio::ip::address_v4::any(), ECProject::PROXY_XUE_FORWARD_PORT_SHIFT + std::stoi(proxy_ip_port.substr(proxy_ip_port.find(':') + 1, proxy_ip_port.size())))), m_coordinator_address(coordinator_address)
     {
       init_coordinator();
       init_datanodes(config_path);
@@ -102,6 +103,10 @@ namespace ECProject
         grpc::ServerContext *context,
         const proxy_proto::StripeAndBlockIDs *request,
         proxy_proto::GetReply *response) override;
+    grpc::Status readBlockRanges(
+        grpc::ServerContext *context,
+        const proxy_proto::ReadBlockRangesRequest *request,
+        proxy_proto::ReadBlockRangesReply *response) override;
 
     bool SetToDatanode(const char *key, size_t key_length, const char *value, size_t value_length, const char *ip, int port, int offset);
     bool GetFromDatanode(const char *key, size_t key_length, char *value, size_t value_length, const char *ip, int port, int offset);
@@ -127,6 +132,8 @@ namespace ECProject
 
   private:
     std::mutex m_mutex;
+    /** Serializes XUE peer forward accepts; multiple detached append threads must not share one acceptor. */
+    std::mutex m_xue_forward_accept_mutex;
     std::condition_variable cv;
     bool init_coordinator();
     bool init_datanodes(std::string datanodeinfo_path);
@@ -160,7 +167,24 @@ namespace ECProject
       grpc::EnableDefaultHealthCheckService(true);
       grpc::reflection::InitProtoReflectionServerBuilderPlugin();
       grpc::ServerBuilder builder;
-      std::cout << "proxy_ip_port:" << proxy_ip_port << std::endl;
+      std::cout << "proxy_ip_port (gRPC):" << proxy_ip_port << std::endl;
+      try
+      {
+        const size_t colon = proxy_ip_port.find(':');
+        if (colon != std::string::npos)
+        {
+          const int base = std::stoi(proxy_ip_port.substr(colon + 1));
+          const std::string host = proxy_ip_port.substr(0, colon);
+          std::cout << "proxy_data_listen (client append TCP): " << host << ":" << (base + ECProject::PROXY_PORT_SHIFT)
+                    << std::endl;
+          std::cout << "proxy_xue_forward_listen (peer XUE delta): " << host << ":"
+                    << (base + ECProject::PROXY_XUE_FORWARD_PORT_SHIFT) << std::endl;
+        }
+      }
+      catch (...)
+      {
+        std::cout << "[Proxy] could not parse base port from proxy_ip_port for listen hints" << std::endl;
+      }
       builder.AddListeningPort(proxy_ip_port, grpc::InsecureServerCredentials());
       builder.RegisterService(&m_proxyImpl_ptr);
       std::unique_ptr<grpc::Server> server(builder.BuildAndStart());

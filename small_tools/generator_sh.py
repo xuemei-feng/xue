@@ -5,18 +5,22 @@ import netifaces
 
 current_path = os.getcwd()
 parent_path = os.path.dirname(current_path)
-cluster_number = 4
-datanode_number_per_cluster = 30
+cluster_number = 6
+datanode_number_per_cluster = 7
 datanode_port_start = 17600
 cluster_id_start = 0
 iftest = False
 RUN_ENV = os.environ.get("UNILRC_ENV", "half-sim").strip().lower()
 
+# Fallback when clusterInformation.xml is absent: 10.10.1.3..8 as cluster proxies (see hosts / proxy_hosts)
+# 每台机器一个 proxy：gRPC 监听端口与 run_proxy 第一个参数一致；不同机器可用相同端口号。
 proxy_ip_list = [
-    ["10.10.1.3",50405],
-    ["10.10.1.4",50405],
-    ["10.10.1.5",50405],
-    ["10.10.1.6",50405]
+    ["10.10.1.3", 50405],
+    ["10.10.1.4", 50405],
+    ["10.10.1.5", 50405],
+    ["10.10.1.6", 50405],
+    ["10.10.1.7", 50405],
+    ["10.10.1.8", 50405],
 ]
 coordinator_ip = "10.10.1.2"
 

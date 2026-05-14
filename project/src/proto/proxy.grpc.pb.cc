@@ -37,6 +37,7 @@ static const char* proxyService_method_names[] = {
   "/proxy_proto.proxyService/deleteBlock",
   "/proxy_proto.proxyService/scheduleAppend2Datanode",
   "/proxy_proto.proxyService/getBlocks",
+  "/proxy_proto.proxyService/readBlockRanges",
 };
 
 std::unique_ptr< proxyService::Stub> proxyService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -61,6 +62,7 @@ proxyService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& chann
   , rpcmethod_deleteBlock_(proxyService_method_names[12], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_scheduleAppend2Datanode_(proxyService_method_names[13], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_getBlocks_(proxyService_method_names[14], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_readBlockRanges_(proxyService_method_names[15], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status proxyService::Stub::checkalive(::grpc::ClientContext* context, const ::proxy_proto::CheckaliveCMD& request, ::proxy_proto::RequestResult* response) {
@@ -408,6 +410,29 @@ void proxyService::Stub::async::getBlocks(::grpc::ClientContext* context, const 
   return result;
 }
 
+::grpc::Status proxyService::Stub::readBlockRanges(::grpc::ClientContext* context, const ::proxy_proto::ReadBlockRangesRequest& request, ::proxy_proto::ReadBlockRangesReply* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::ReadBlockRangesRequest, ::proxy_proto::ReadBlockRangesReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_readBlockRanges_, context, request, response);
+}
+
+void proxyService::Stub::async::readBlockRanges(::grpc::ClientContext* context, const ::proxy_proto::ReadBlockRangesRequest* request, ::proxy_proto::ReadBlockRangesReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::ReadBlockRangesRequest, ::proxy_proto::ReadBlockRangesReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_readBlockRanges_, context, request, response, std::move(f));
+}
+
+void proxyService::Stub::async::readBlockRanges(::grpc::ClientContext* context, const ::proxy_proto::ReadBlockRangesRequest* request, ::proxy_proto::ReadBlockRangesReply* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_readBlockRanges_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::ReadBlockRangesReply>* proxyService::Stub::PrepareAsyncreadBlockRangesRaw(::grpc::ClientContext* context, const ::proxy_proto::ReadBlockRangesRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::ReadBlockRangesReply, ::proxy_proto::ReadBlockRangesRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_readBlockRanges_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::ReadBlockRangesReply>* proxyService::Stub::AsyncreadBlockRangesRaw(::grpc::ClientContext* context, const ::proxy_proto::ReadBlockRangesRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncreadBlockRangesRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[0],
@@ -559,6 +584,16 @@ proxyService::Service::Service() {
              ::proxy_proto::GetReply* resp) {
                return service->getBlocks(ctx, req, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      proxyService_method_names[15],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::ReadBlockRangesRequest, ::proxy_proto::ReadBlockRangesReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](proxyService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::proxy_proto::ReadBlockRangesRequest* req,
+             ::proxy_proto::ReadBlockRangesReply* resp) {
+               return service->readBlockRanges(ctx, req, resp);
+             }, this)));
 }
 
 proxyService::Service::~Service() {
@@ -663,6 +698,13 @@ proxyService::Service::~Service() {
 }
 
 ::grpc::Status proxyService::Service::getBlocks(::grpc::ServerContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status proxyService::Service::readBlockRanges(::grpc::ServerContext* context, const ::proxy_proto::ReadBlockRangesRequest* request, ::proxy_proto::ReadBlockRangesReply* response) {
   (void) context;
   (void) request;
   (void) response;

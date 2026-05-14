@@ -42,6 +42,8 @@ service proxyService {
   rpc scheduleAppend2Datanode(AppendStripeDataPlacement) returns (SetReply);
   // get stripe
   rpc getBlocks(StripeAndBlockIDs) returns (GetReply);
+  // read arbitrary byte subranges from blocks on this cluster (datanode ReadRange)
+  rpc readBlockRanges(ReadBlockRangesRequest) returns (ReadBlockRangesReply);
 }
 
 // parity block recalculation
@@ -280,6 +282,25 @@ message SetReply {
 message GetReply {
   bool getsuccess = 1;
 }
+
+message BlockRangeRead {
+  string block_key = 1;
+  int32 block_id = 2;
+  int32 offset = 3;
+  int32 length = 4;
+  string datanode_ip = 5;
+  int32 datanode_port = 6;
+}
+
+message ReadBlockRangesRequest {
+  repeated BlockRangeRead reads = 1;
+}
+
+message ReadBlockRangesReply {
+  bool ok = 1;
+  repeated bytes payloads = 2;
+}
+
 message StripeAndBlockIDs{
   int32 stripe_id = 1;
   int32 group_id = 2;

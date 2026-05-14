@@ -16,6 +16,8 @@
 #include <tuple>
 #include <algorithm>
 #include <cstdint>
+#include <mutex>
+#include <iostream>
 template <typename T>
 inline T ceil(T const &A, T const &B)
 {
@@ -122,6 +124,15 @@ namespace
     asio::read(sock, asio::buffer(&magic, sizeof(magic)), ec);
     if (ec || magic != kXueFwdMagic)
     {
+      if (!ec && magic != kXueFwdMagic)
+      {
+        std::cerr << "[Proxy] XUE forward recv bad magic 0x" << std::hex << magic << std::dec
+                  << " (wrong peer or crossed connections)" << std::endl;
+      }
+      else if (ec)
+      {
+        std::cerr << "[Proxy] XUE forward recv header read: " << ec.message() << std::endl;
+      }
       return false;
     }
     asio::read(sock, asio::buffer(&nrec, sizeof(nrec)), ec);
@@ -189,6 +200,8 @@ namespace
       }
       if (j_match < 0)
       {
+        std::cerr << "[Proxy] XUE forward recv slice mismatch bid=" << bid << " off=" << off << " len=" << len
+                  << std::endl;
         return false;
       }
       char *dest = append_base + slice_off[static_cast<size_t>(j_match)];
@@ -226,11 +239,28 @@ namespace
                               const std::map<XueDataDeltaKey, std::vector<char>> &data_delta_acc)
   {
     asio::ip::tcp::socket sock(io_ctx);
-    asio::ip::tcp::resolver resolver(io_ctx);
     asio::error_code ec;
-    asio::connect(sock, resolver.resolve({ip, std::to_string(base_port + ECProject::PROXY_XUE_FORWARD_PORT_SHIFT)}), ec);
+    const int fwd_port = base_port + ECProject::PROXY_XUE_FORWARD_PORT_SHIFT;
+    asio::ip::tcp::endpoint ep;
+    try
+    {
+      ep = asio::ip::tcp::endpoint(asio::ip::make_address_v4(ip), static_cast<unsigned short>(fwd_port));
+    }
+    catch (const std::exception &)
+    {
+      std::cerr << "[Proxy] XUE forward connect: not an IPv4 host \"" << ip << "\"" << std::endl;
+      return false;
+    }
+    sock.open(ep.protocol(), ec);
     if (ec)
     {
+      std::cerr << "[Proxy] XUE forward connect open " << ip << ":" << fwd_port << " : " << ec.message() << std::endl;
+      return false;
+    }
+    sock.connect(ep, ec);
+    if (ec)
+    {
+      std::cerr << "[Proxy] XUE forward connect " << ip << ":" << fwd_port << " : " << ec.message() << std::endl;
       return false;
     }
     uint32_t magic = kXueFwdMagic;
@@ -1003,10 +1033,12 @@ namespace ECProject
           {
             for (uint32_t ri = 0; ri < merge_rounds_eff; ++ri)
             {
+              std::lock_guard<std::mutex> xue_fwd_lk(m_xue_forward_accept_mutex);
               if (!recv_xue_forward_payloads(io_context, xue_forward_acceptor, append_buf.data(), slice_off,
                                              *placement_copy, &xue_recv_data_deltas, ri > 0))
               {
-                std::cerr << "[Proxy] XUE forward receive failed" << std::endl;
+                std::cerr << "[Proxy] XUE forward receive failed (round " << ri << "/" << merge_rounds_eff << ")"
+                          << std::endl;
               }
             }
           }
@@ -1219,7 +1251,9 @@ namespace ECProject
             if (!send_xue_forward_batch(io_context, ft.dst_proxy_ip(), ft.dst_base_proxy_port(), ft, parity_acc,
                                         data_delta_acc_send))
             {
-              std::cerr << "[Proxy] XUE forward batch to " << ft.dst_proxy_ip() << " failed" << std::endl;
+              std::cerr << "[Proxy] XUE forward batch to " << ft.dst_proxy_ip() << ":"
+                        << (ft.dst_base_proxy_port() + ECProject::PROXY_XUE_FORWARD_PORT_SHIFT) << " failed"
+                        << std::endl;
             }
           }
         }
@@ -3357,6 +3391,35 @@ namespace ECProject
 
     delete blocks;
     return grpc::Status();
+  }
+
+  grpc::Status ProxyImpl::readBlockRanges(grpc::ServerContext *context,
+                                          const proxy_proto::ReadBlockRangesRequest *request,
+                                          proxy_proto::ReadBlockRangesReply *reply)
+  {
+    (void)context;
+    reply->set_ok(true);
+    for (int i = 0; i < request->reads_size(); ++i)
+    {
+      const auto &rd = request->reads(i);
+      const int len = rd.length();
+      if (len <= 0)
+      {
+        reply->set_ok(false);
+        reply->clear_payloads();
+        return grpc::Status::OK;
+      }
+      std::vector<char> buf(static_cast<size_t>(len));
+      if (!ReadRangeFromDatanode(rd.block_key().c_str(), rd.block_id(), rd.offset(), len, buf.data(),
+                                 rd.datanode_ip().c_str(), rd.datanode_port()))
+      {
+        reply->set_ok(false);
+        reply->clear_payloads();
+        return grpc::Status::OK;
+      }
+      reply->add_payloads(std::string(buf.begin(), buf.end()));
+    }
+    return grpc::Status::OK;
   }
 
 } // namespace ECProject

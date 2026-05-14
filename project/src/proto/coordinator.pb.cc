@@ -252,6 +252,48 @@ struct XueUpdateRequestDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueUpdateRequestDefaultTypeInternal _XueUpdateRequest_default_instance_;
+PROTOBUF_CONSTEXPR StripeByteSubrange::StripeByteSubrange(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.block_id_)*/0
+  , /*decltype(_impl_.offset_)*/0
+  , /*decltype(_impl_.length_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct StripeByteSubrangeDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR StripeByteSubrangeDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~StripeByteSubrangeDefaultTypeInternal() {}
+  union {
+    StripeByteSubrange _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StripeByteSubrangeDefaultTypeInternal _StripeByteSubrange_default_instance_;
+PROTOBUF_CONSTEXPR PeekStripeByteRangesRequest::PeekStripeByteRangesRequest(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.ranges_)*/{}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct PeekStripeByteRangesRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR PeekStripeByteRangesRequestDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~PeekStripeByteRangesRequestDefaultTypeInternal() {}
+  union {
+    PeekStripeByteRangesRequest _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PeekStripeByteRangesRequestDefaultTypeInternal _PeekStripeByteRangesRequest_default_instance_;
+PROTOBUF_CONSTEXPR PeekStripeByteRangesReply::PeekStripeByteRangesReply(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.payloads_)*/{}
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct PeekStripeByteRangesReplyDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR PeekStripeByteRangesReplyDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~PeekStripeByteRangesReplyDefaultTypeInternal() {}
+  union {
+    PeekStripeByteRangesReply _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PeekStripeByteRangesReplyDefaultTypeInternal _PeekStripeByteRangesReply_default_instance_;
 PROTOBUF_CONSTEXPR KeyFromClient::KeyFromClient(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
@@ -380,7 +422,7 @@ struct RecoveryReplyDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 RecoveryReplyDefaultTypeInternal _RecoveryReply_default_instance_;
 }  // namespace coordinator_proto
-static ::_pb::Metadata file_level_metadata_coordinator_2eproto[24];
+static ::_pb::Metadata file_level_metadata_coordinator_2eproto[27];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_coordinator_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_coordinator_2eproto = nullptr;
 
@@ -523,6 +565,30 @@ const uint32_t TableStruct_coordinator_2eproto::offsets[] PROTOBUF_SECTION_VARIA
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueUpdateRequest, _impl_.stripe_id_),
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueUpdateRequest, _impl_.ranges_),
   ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::StripeByteSubrange, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::StripeByteSubrange, _impl_.block_id_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::StripeByteSubrange, _impl_.offset_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::StripeByteSubrange, _impl_.length_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::PeekStripeByteRangesRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::PeekStripeByteRangesRequest, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::PeekStripeByteRangesRequest, _impl_.ranges_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::PeekStripeByteRangesReply, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::PeekStripeByteRangesReply, _impl_.payloads_),
+  ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::KeyFromClient, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -610,15 +676,18 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 109, -1, -1, sizeof(::coordinator_proto::BlockIDsAndClientIP)},
   { 120, -1, -1, sizeof(::coordinator_proto::LogicalRange)},
   { 128, -1, -1, sizeof(::coordinator_proto::XueUpdateRequest)},
-  { 137, -1, -1, sizeof(::coordinator_proto::KeyFromClient)},
-  { 144, -1, -1, sizeof(::coordinator_proto::StripeIdFromClient)},
-  { 151, -1, -1, sizeof(::coordinator_proto::StripeIdAndBlockIDsFromClient)},
-  { 159, -1, -1, sizeof(::coordinator_proto::NodeIdFromClient)},
-  { 166, -1, -1, sizeof(::coordinator_proto::RepIfDeling)},
-  { 173, -1, -1, sizeof(::coordinator_proto::RepStripeIds)},
-  { 180, -1, -1, sizeof(::coordinator_proto::RepBlockNum)},
-  { 187, -1, -1, sizeof(::coordinator_proto::DegradedReadReply)},
-  { 197, -1, -1, sizeof(::coordinator_proto::RecoveryReply)},
+  { 137, -1, -1, sizeof(::coordinator_proto::StripeByteSubrange)},
+  { 146, -1, -1, sizeof(::coordinator_proto::PeekStripeByteRangesRequest)},
+  { 154, -1, -1, sizeof(::coordinator_proto::PeekStripeByteRangesReply)},
+  { 161, -1, -1, sizeof(::coordinator_proto::KeyFromClient)},
+  { 168, -1, -1, sizeof(::coordinator_proto::StripeIdFromClient)},
+  { 175, -1, -1, sizeof(::coordinator_proto::StripeIdAndBlockIDsFromClient)},
+  { 183, -1, -1, sizeof(::coordinator_proto::NodeIdFromClient)},
+  { 190, -1, -1, sizeof(::coordinator_proto::RepIfDeling)},
+  { 197, -1, -1, sizeof(::coordinator_proto::RepStripeIds)},
+  { 204, -1, -1, sizeof(::coordinator_proto::RepBlockNum)},
+  { 211, -1, -1, sizeof(::coordinator_proto::DegradedReadReply)},
+  { 221, -1, -1, sizeof(::coordinator_proto::RecoveryReply)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -637,6 +706,9 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::coordinator_proto::_BlockIDsAndClientIP_default_instance_._instance,
   &::coordinator_proto::_LogicalRange_default_instance_._instance,
   &::coordinator_proto::_XueUpdateRequest_default_instance_._instance,
+  &::coordinator_proto::_StripeByteSubrange_default_instance_._instance,
+  &::coordinator_proto::_PeekStripeByteRangesRequest_default_instance_._instance,
+  &::coordinator_proto::_PeekStripeByteRangesReply_default_instance_._instance,
   &::coordinator_proto::_KeyFromClient_default_instance_._instance,
   &::coordinator_proto::_StripeIdFromClient_default_instance_._instance,
   &::coordinator_proto::_StripeIdAndBlockIDsFromClient_default_instance_._instance,
@@ -683,84 +755,93 @@ const char descriptor_table_protodef_coordinator_2eproto[] PROTOBUF_SECTION_VARI
   "\032\n\022logical_offset_end\030\002 \001(\005\"i\n\020XueUpdate"
   "Request\022\021\n\tclient_id\030\001 \001(\t\022\021\n\tstripe_id\030"
   "\002 \001(\005\022/\n\006ranges\030\003 \003(\0132\037.coordinator_prot"
-  "o.LogicalRange\"\034\n\rKeyFromClient\022\013\n\003key\030\001"
-  " \001(\t\"\'\n\022StripeIdFromClient\022\021\n\tstripe_id\030"
-  "\001 \001(\005\"E\n\035StripeIdAndBlockIDsFromClient\022\021"
-  "\n\tstripe_id\030\001 \001(\005\022\021\n\tblock_ids\030\002 \003(\005\"#\n\020"
-  "NodeIdFromClient\022\017\n\007node_id\030\001 \001(\005\"\037\n\013Rep"
-  "IfDeling\022\020\n\010ifdeling\030\001 \001(\010\"\"\n\014RepStripeI"
-  "ds\022\022\n\nstripe_ids\030\001 \003(\005\" \n\013RepBlockNum\022\021\n"
-  "\tblock_num\030\001 \001(\005\"m\n\021DegradedReadReply\022\024\n"
-  "\014disk_io_time\030\001 \001(\001\022\024\n\014network_time\030\002 \001("
-  "\001\022\023\n\013decode_time\030\003 \001(\001\022\027\n\017grpc_start_tim"
-  "e\030\004 \001(\001\"\204\001\n\rRecoveryReply\022\026\n\016disk_read_t"
-  "ime\030\001 \001(\001\022\024\n\014network_time\030\002 \001(\001\022\023\n\013decod"
-  "e_time\030\003 \001(\001\022\027\n\017disk_write_time\030\004 \001(\001\022\027\n"
-  "\017grpc_start_time\030\005 \001(\0012\206\022\n\022coordinatorSe"
-  "rvice\022k\n\025sayHelloToCoordinator\022\'.coordin"
-  "ator_proto.RequestToCoordinator\032\'.coordi"
-  "nator_proto.ReplyFromCoordinator\"\000\022`\n\nch"
-  "eckalive\022\'.coordinator_proto.RequestToCo"
-  "ordinator\032\'.coordinator_proto.ReplyFromC"
-  "oordinator\"\000\022V\n\014setParameter\022\034.coordinat"
-  "or_proto.Parameter\032&.coordinator_proto.R"
-  "epIfSetParaSuccess\"\000\022d\n\024uploadOriginKeyV"
-  "alue\022%.coordinator_proto.RequestProxyIPP"
-  "ort\032#.coordinator_proto.ReplyProxyIPPort"
-  "\"\000\022a\n\021reportCommitAbort\022!.coordinator_pr"
-  "oto.CommitAbortKey\032\'.coordinator_proto.R"
-  "eplyFromCoordinator\"\000\022V\n\020checkCommitAbor"
-  "t\022\037.coordinator_proto.AskIfSuccess\032\037.coo"
-  "rdinator_proto.RepIfSuccess\"\000\022`\n\016uploadS"
-  "etValue\022%.coordinator_proto.RequestProxy"
-  "IPPort\032%.coordinator_proto.ReplyProxyIPs"
-  "Ports\"\000\022c\n\021uploadSubsetValue\022%.coordinat"
-  "or_proto.RequestProxyIPPort\032%.coordinato"
-  "r_proto.ReplyProxyIPsPorts\"\000\022c\n\021uploadAp"
-  "pendValue\022%.coordinator_proto.RequestPro"
-  "xyIPPort\032%.coordinator_proto.ReplyProxyI"
-  "PsPorts\"\000\022_\n\017uploadXueUpdate\022#.coordinat"
-  "or_proto.XueUpdateRequest\032%.coordinator_"
-  "proto.ReplyProxyIPsPorts\"\000\022S\n\010getValue\022!"
-  ".coordinator_proto.KeyAndClientIP\032\".coor"
-  "dinator_proto.RepIfGetSuccess\"\000\022W\n\tgetSt"
-  "ripe\022!.coordinator_proto.KeyAndClientIP\032"
-  "%.coordinator_proto.ReplyProxyIPsPorts\"\000"
-  "\022\\\n\tgetBlocks\022&.coordinator_proto.BlockI"
-  "DsAndClientIP\032%.coordinator_proto.ReplyP"
-  "roxyIPsPorts\"\000\022h\n\025getDegradedReadBlocks\022"
-  "&.coordinator_proto.BlockIDsAndClientIP\032"
-  "%.coordinator_proto.ReplyProxyIPsPorts\"\000"
-  "\022a\n\024getDegradedReadBlock\022!.coordinator_p"
-  "roto.KeyAndClientIP\032$.coordinator_proto."
-  "DegradedReadReply\"\000\022j\n\035getDegradedReadBl"
-  "ockBreakdown\022!.coordinator_proto.KeyAndC"
-  "lientIP\032$.coordinator_proto.DegradedRead"
-  "Reply\"\000\022T\n\013getRecovery\022!.coordinator_pro"
-  "to.KeyAndClientIP\032 .coordinator_proto.Re"
-  "coveryReply\"\000\022]\n\024getRecoveryBreakdown\022!."
-  "coordinator_proto.KeyAndClientIP\032 .coord"
-  "inator_proto.RecoveryReply\"\000\022Y\n\020fullNode"
-  "Recovery\022#.coordinator_proto.NodeIdFromC"
-  "lient\032\036.coordinator_proto.RepBlockNum\"\000\022"
-  "j\n\022multiBlockRecovery\0220.coordinator_prot"
-  "o.StripeIdAndBlockIDsFromClient\032 .coordi"
-  "nator_proto.RecoveryReply\"\000\022N\n\010delByKey\022"
-  " .coordinator_proto.KeyFromClient\032\036.coor"
-  "dinator_proto.RepIfDeling\"\000\022V\n\013delByStri"
-  "pe\022%.coordinator_proto.StripeIdFromClien"
-  "t\032\036.coordinator_proto.RepIfDeling\"\000\022Y\n\013l"
-  "istStripes\022\'.coordinator_proto.RequestTo"
-  "Coordinator\032\037.coordinator_proto.RepStrip"
-  "eIds\"\000\022W\n\ndecodeTest\022!.coordinator_proto"
-  ".KeyAndClientIP\032$.coordinator_proto.Degr"
-  "adedReadReply\"\000b\006proto3"
+  "o.LogicalRange\"F\n\022StripeByteSubrange\022\020\n\010"
+  "block_id\030\001 \001(\005\022\016\n\006offset\030\002 \001(\005\022\016\n\006length"
+  "\030\003 \001(\005\"g\n\033PeekStripeByteRangesRequest\022\021\n"
+  "\tstripe_id\030\001 \001(\005\0225\n\006ranges\030\002 \003(\0132%.coord"
+  "inator_proto.StripeByteSubrange\"-\n\031PeekS"
+  "tripeByteRangesReply\022\020\n\010payloads\030\001 \003(\014\"\034"
+  "\n\rKeyFromClient\022\013\n\003key\030\001 \001(\t\"\'\n\022StripeId"
+  "FromClient\022\021\n\tstripe_id\030\001 \001(\005\"E\n\035StripeI"
+  "dAndBlockIDsFromClient\022\021\n\tstripe_id\030\001 \001("
+  "\005\022\021\n\tblock_ids\030\002 \003(\005\"#\n\020NodeIdFromClient"
+  "\022\017\n\007node_id\030\001 \001(\005\"\037\n\013RepIfDeling\022\020\n\010ifde"
+  "ling\030\001 \001(\010\"\"\n\014RepStripeIds\022\022\n\nstripe_ids"
+  "\030\001 \003(\005\" \n\013RepBlockNum\022\021\n\tblock_num\030\001 \001(\005"
+  "\"m\n\021DegradedReadReply\022\024\n\014disk_io_time\030\001 "
+  "\001(\001\022\024\n\014network_time\030\002 \001(\001\022\023\n\013decode_time"
+  "\030\003 \001(\001\022\027\n\017grpc_start_time\030\004 \001(\001\"\204\001\n\rReco"
+  "veryReply\022\026\n\016disk_read_time\030\001 \001(\001\022\024\n\014net"
+  "work_time\030\002 \001(\001\022\023\n\013decode_time\030\003 \001(\001\022\027\n\017"
+  "disk_write_time\030\004 \001(\001\022\027\n\017grpc_start_time"
+  "\030\005 \001(\0012\376\022\n\022coordinatorService\022k\n\025sayHell"
+  "oToCoordinator\022\'.coordinator_proto.Reque"
+  "stToCoordinator\032\'.coordinator_proto.Repl"
+  "yFromCoordinator\"\000\022`\n\ncheckalive\022\'.coord"
+  "inator_proto.RequestToCoordinator\032\'.coor"
+  "dinator_proto.ReplyFromCoordinator\"\000\022V\n\014"
+  "setParameter\022\034.coordinator_proto.Paramet"
+  "er\032&.coordinator_proto.RepIfSetParaSucce"
+  "ss\"\000\022d\n\024uploadOriginKeyValue\022%.coordinat"
+  "or_proto.RequestProxyIPPort\032#.coordinato"
+  "r_proto.ReplyProxyIPPort\"\000\022a\n\021reportComm"
+  "itAbort\022!.coordinator_proto.CommitAbortK"
+  "ey\032\'.coordinator_proto.ReplyFromCoordina"
+  "tor\"\000\022V\n\020checkCommitAbort\022\037.coordinator_"
+  "proto.AskIfSuccess\032\037.coordinator_proto.R"
+  "epIfSuccess\"\000\022`\n\016uploadSetValue\022%.coordi"
+  "nator_proto.RequestProxyIPPort\032%.coordin"
+  "ator_proto.ReplyProxyIPsPorts\"\000\022c\n\021uploa"
+  "dSubsetValue\022%.coordinator_proto.Request"
+  "ProxyIPPort\032%.coordinator_proto.ReplyPro"
+  "xyIPsPorts\"\000\022c\n\021uploadAppendValue\022%.coor"
+  "dinator_proto.RequestProxyIPPort\032%.coord"
+  "inator_proto.ReplyProxyIPsPorts\"\000\022_\n\017upl"
+  "oadXueUpdate\022#.coordinator_proto.XueUpda"
+  "teRequest\032%.coordinator_proto.ReplyProxy"
+  "IPsPorts\"\000\022v\n\024peekStripeByteRanges\022..coo"
+  "rdinator_proto.PeekStripeByteRangesReque"
+  "st\032,.coordinator_proto.PeekStripeByteRan"
+  "gesReply\"\000\022S\n\010getValue\022!.coordinator_pro"
+  "to.KeyAndClientIP\032\".coordinator_proto.Re"
+  "pIfGetSuccess\"\000\022W\n\tgetStripe\022!.coordinat"
+  "or_proto.KeyAndClientIP\032%.coordinator_pr"
+  "oto.ReplyProxyIPsPorts\"\000\022\\\n\tgetBlocks\022&."
+  "coordinator_proto.BlockIDsAndClientIP\032%."
+  "coordinator_proto.ReplyProxyIPsPorts\"\000\022h"
+  "\n\025getDegradedReadBlocks\022&.coordinator_pr"
+  "oto.BlockIDsAndClientIP\032%.coordinator_pr"
+  "oto.ReplyProxyIPsPorts\"\000\022a\n\024getDegradedR"
+  "eadBlock\022!.coordinator_proto.KeyAndClien"
+  "tIP\032$.coordinator_proto.DegradedReadRepl"
+  "y\"\000\022j\n\035getDegradedReadBlockBreakdown\022!.c"
+  "oordinator_proto.KeyAndClientIP\032$.coordi"
+  "nator_proto.DegradedReadReply\"\000\022T\n\013getRe"
+  "covery\022!.coordinator_proto.KeyAndClientI"
+  "P\032 .coordinator_proto.RecoveryReply\"\000\022]\n"
+  "\024getRecoveryBreakdown\022!.coordinator_prot"
+  "o.KeyAndClientIP\032 .coordinator_proto.Rec"
+  "overyReply\"\000\022Y\n\020fullNodeRecovery\022#.coord"
+  "inator_proto.NodeIdFromClient\032\036.coordina"
+  "tor_proto.RepBlockNum\"\000\022j\n\022multiBlockRec"
+  "overy\0220.coordinator_proto.StripeIdAndBlo"
+  "ckIDsFromClient\032 .coordinator_proto.Reco"
+  "veryReply\"\000\022N\n\010delByKey\022 .coordinator_pr"
+  "oto.KeyFromClient\032\036.coordinator_proto.Re"
+  "pIfDeling\"\000\022V\n\013delByStripe\022%.coordinator"
+  "_proto.StripeIdFromClient\032\036.coordinator_"
+  "proto.RepIfDeling\"\000\022Y\n\013listStripes\022\'.coo"
+  "rdinator_proto.RequestToCoordinator\032\037.co"
+  "ordinator_proto.RepStripeIds\"\000\022W\n\ndecode"
+  "Test\022!.coordinator_proto.KeyAndClientIP\032"
+  "$.coordinator_proto.DegradedReadReply\"\000b"
+  "\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_coordinator_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_coordinator_2eproto = {
-    false, false, 4223, descriptor_table_protodef_coordinator_2eproto,
+    false, false, 4567, descriptor_table_protodef_coordinator_2eproto,
     "coordinator.proto",
-    &descriptor_table_coordinator_2eproto_once, nullptr, 0, 24,
+    &descriptor_table_coordinator_2eproto_once, nullptr, 0, 27,
     schemas, file_default_instances, TableStruct_coordinator_2eproto::offsets,
     file_level_metadata_coordinator_2eproto, file_level_enum_descriptors_coordinator_2eproto,
     file_level_service_descriptors_coordinator_2eproto,
@@ -4677,6 +4758,638 @@ void XueUpdateRequest::InternalSwap(XueUpdateRequest* other) {
 
 // ===================================================================
 
+class StripeByteSubrange::_Internal {
+ public:
+};
+
+StripeByteSubrange::StripeByteSubrange(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.StripeByteSubrange)
+}
+StripeByteSubrange::StripeByteSubrange(const StripeByteSubrange& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  StripeByteSubrange* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.block_id_){}
+    , decltype(_impl_.offset_){}
+    , decltype(_impl_.length_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.block_id_, &from._impl_.block_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.length_) -
+    reinterpret_cast<char*>(&_impl_.block_id_)) + sizeof(_impl_.length_));
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.StripeByteSubrange)
+}
+
+inline void StripeByteSubrange::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.block_id_){0}
+    , decltype(_impl_.offset_){0}
+    , decltype(_impl_.length_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+StripeByteSubrange::~StripeByteSubrange() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.StripeByteSubrange)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void StripeByteSubrange::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void StripeByteSubrange::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void StripeByteSubrange::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.StripeByteSubrange)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&_impl_.block_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.length_) -
+      reinterpret_cast<char*>(&_impl_.block_id_)) + sizeof(_impl_.length_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* StripeByteSubrange::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 block_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 offset = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 length = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* StripeByteSubrange::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.StripeByteSubrange)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 block_id = 1;
+  if (this->_internal_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_block_id(), target);
+  }
+
+  // int32 offset = 2;
+  if (this->_internal_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_offset(), target);
+  }
+
+  // int32 length = 3;
+  if (this->_internal_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_length(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.StripeByteSubrange)
+  return target;
+}
+
+size_t StripeByteSubrange::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.StripeByteSubrange)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // int32 block_id = 1;
+  if (this->_internal_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_block_id());
+  }
+
+  // int32 offset = 2;
+  if (this->_internal_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_offset());
+  }
+
+  // int32 length = 3;
+  if (this->_internal_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_length());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData StripeByteSubrange::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    StripeByteSubrange::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*StripeByteSubrange::GetClassData() const { return &_class_data_; }
+
+
+void StripeByteSubrange::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<StripeByteSubrange*>(&to_msg);
+  auto& from = static_cast<const StripeByteSubrange&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.StripeByteSubrange)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_block_id() != 0) {
+    _this->_internal_set_block_id(from._internal_block_id());
+  }
+  if (from._internal_offset() != 0) {
+    _this->_internal_set_offset(from._internal_offset());
+  }
+  if (from._internal_length() != 0) {
+    _this->_internal_set_length(from._internal_length());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void StripeByteSubrange::CopyFrom(const StripeByteSubrange& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.StripeByteSubrange)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool StripeByteSubrange::IsInitialized() const {
+  return true;
+}
+
+void StripeByteSubrange::InternalSwap(StripeByteSubrange* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(StripeByteSubrange, _impl_.length_)
+      + sizeof(StripeByteSubrange::_impl_.length_)
+      - PROTOBUF_FIELD_OFFSET(StripeByteSubrange, _impl_.block_id_)>(
+          reinterpret_cast<char*>(&_impl_.block_id_),
+          reinterpret_cast<char*>(&other->_impl_.block_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata StripeByteSubrange::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[15]);
+}
+
+// ===================================================================
+
+class PeekStripeByteRangesRequest::_Internal {
+ public:
+};
+
+PeekStripeByteRangesRequest::PeekStripeByteRangesRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.PeekStripeByteRangesRequest)
+}
+PeekStripeByteRangesRequest::PeekStripeByteRangesRequest(const PeekStripeByteRangesRequest& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  PeekStripeByteRangesRequest* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.ranges_){from._impl_.ranges_}
+    , decltype(_impl_.stripe_id_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.stripe_id_ = from._impl_.stripe_id_;
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.PeekStripeByteRangesRequest)
+}
+
+inline void PeekStripeByteRangesRequest::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.ranges_){arena}
+    , decltype(_impl_.stripe_id_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+PeekStripeByteRangesRequest::~PeekStripeByteRangesRequest() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.PeekStripeByteRangesRequest)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void PeekStripeByteRangesRequest::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.ranges_.~RepeatedPtrField();
+}
+
+void PeekStripeByteRangesRequest::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void PeekStripeByteRangesRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.PeekStripeByteRangesRequest)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.ranges_.Clear();
+  _impl_.stripe_id_ = 0;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* PeekStripeByteRangesRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated .coordinator_proto.StripeByteSubrange ranges = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_ranges(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* PeekStripeByteRangesRequest::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.PeekStripeByteRangesRequest)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // repeated .coordinator_proto.StripeByteSubrange ranges = 2;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_ranges_size()); i < n; i++) {
+    const auto& repfield = this->_internal_ranges(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(2, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.PeekStripeByteRangesRequest)
+  return target;
+}
+
+size_t PeekStripeByteRangesRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.PeekStripeByteRangesRequest)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated .coordinator_proto.StripeByteSubrange ranges = 2;
+  total_size += 1UL * this->_internal_ranges_size();
+  for (const auto& msg : this->_impl_.ranges_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData PeekStripeByteRangesRequest::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    PeekStripeByteRangesRequest::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*PeekStripeByteRangesRequest::GetClassData() const { return &_class_data_; }
+
+
+void PeekStripeByteRangesRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<PeekStripeByteRangesRequest*>(&to_msg);
+  auto& from = static_cast<const PeekStripeByteRangesRequest&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.PeekStripeByteRangesRequest)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.ranges_.MergeFrom(from._impl_.ranges_);
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void PeekStripeByteRangesRequest::CopyFrom(const PeekStripeByteRangesRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.PeekStripeByteRangesRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool PeekStripeByteRangesRequest::IsInitialized() const {
+  return true;
+}
+
+void PeekStripeByteRangesRequest::InternalSwap(PeekStripeByteRangesRequest* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.ranges_.InternalSwap(&other->_impl_.ranges_);
+  swap(_impl_.stripe_id_, other->_impl_.stripe_id_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata PeekStripeByteRangesRequest::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[16]);
+}
+
+// ===================================================================
+
+class PeekStripeByteRangesReply::_Internal {
+ public:
+};
+
+PeekStripeByteRangesReply::PeekStripeByteRangesReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.PeekStripeByteRangesReply)
+}
+PeekStripeByteRangesReply::PeekStripeByteRangesReply(const PeekStripeByteRangesReply& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  PeekStripeByteRangesReply* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.payloads_){from._impl_.payloads_}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.PeekStripeByteRangesReply)
+}
+
+inline void PeekStripeByteRangesReply::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.payloads_){arena}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+PeekStripeByteRangesReply::~PeekStripeByteRangesReply() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.PeekStripeByteRangesReply)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void PeekStripeByteRangesReply::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.payloads_.~RepeatedPtrField();
+}
+
+void PeekStripeByteRangesReply::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void PeekStripeByteRangesReply::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.PeekStripeByteRangesReply)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.payloads_.Clear();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* PeekStripeByteRangesReply::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // repeated bytes payloads = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            auto str = _internal_add_payloads();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* PeekStripeByteRangesReply::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.PeekStripeByteRangesReply)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated bytes payloads = 1;
+  for (int i = 0, n = this->_internal_payloads_size(); i < n; i++) {
+    const auto& s = this->_internal_payloads(i);
+    target = stream->WriteBytes(1, s, target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.PeekStripeByteRangesReply)
+  return target;
+}
+
+size_t PeekStripeByteRangesReply::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.PeekStripeByteRangesReply)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated bytes payloads = 1;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.payloads_.size());
+  for (int i = 0, n = _impl_.payloads_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+      _impl_.payloads_.Get(i));
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData PeekStripeByteRangesReply::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    PeekStripeByteRangesReply::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*PeekStripeByteRangesReply::GetClassData() const { return &_class_data_; }
+
+
+void PeekStripeByteRangesReply::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<PeekStripeByteRangesReply*>(&to_msg);
+  auto& from = static_cast<const PeekStripeByteRangesReply&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.PeekStripeByteRangesReply)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.payloads_.MergeFrom(from._impl_.payloads_);
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void PeekStripeByteRangesReply::CopyFrom(const PeekStripeByteRangesReply& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.PeekStripeByteRangesReply)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool PeekStripeByteRangesReply::IsInitialized() const {
+  return true;
+}
+
+void PeekStripeByteRangesReply::InternalSwap(PeekStripeByteRangesReply* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.payloads_.InternalSwap(&other->_impl_.payloads_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata PeekStripeByteRangesReply::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[17]);
+}
+
+// ===================================================================
+
 class KeyFromClient::_Internal {
  public:
 };
@@ -4875,7 +5588,7 @@ void KeyFromClient::InternalSwap(KeyFromClient* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata KeyFromClient::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[15]);
+      file_level_metadata_coordinator_2eproto[18]);
 }
 
 // ===================================================================
@@ -5053,7 +5766,7 @@ void StripeIdFromClient::InternalSwap(StripeIdFromClient* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata StripeIdFromClient::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[16]);
+      file_level_metadata_coordinator_2eproto[19]);
 }
 
 // ===================================================================
@@ -5273,7 +5986,7 @@ void StripeIdAndBlockIDsFromClient::InternalSwap(StripeIdAndBlockIDsFromClient* 
 ::PROTOBUF_NAMESPACE_ID::Metadata StripeIdAndBlockIDsFromClient::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[17]);
+      file_level_metadata_coordinator_2eproto[20]);
 }
 
 // ===================================================================
@@ -5451,7 +6164,7 @@ void NodeIdFromClient::InternalSwap(NodeIdFromClient* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata NodeIdFromClient::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[18]);
+      file_level_metadata_coordinator_2eproto[21]);
 }
 
 // ===================================================================
@@ -5629,7 +6342,7 @@ void RepIfDeling::InternalSwap(RepIfDeling* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RepIfDeling::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[19]);
+      file_level_metadata_coordinator_2eproto[22]);
 }
 
 // ===================================================================
@@ -5822,7 +6535,7 @@ void RepStripeIds::InternalSwap(RepStripeIds* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RepStripeIds::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[20]);
+      file_level_metadata_coordinator_2eproto[23]);
 }
 
 // ===================================================================
@@ -6000,7 +6713,7 @@ void RepBlockNum::InternalSwap(RepBlockNum* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RepBlockNum::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[21]);
+      file_level_metadata_coordinator_2eproto[24]);
 }
 
 // ===================================================================
@@ -6307,7 +7020,7 @@ void DegradedReadReply::InternalSwap(DegradedReadReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata DegradedReadReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[22]);
+      file_level_metadata_coordinator_2eproto[25]);
 }
 
 // ===================================================================
@@ -6650,7 +7363,7 @@ void RecoveryReply::InternalSwap(RecoveryReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RecoveryReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[23]);
+      file_level_metadata_coordinator_2eproto[26]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -6715,6 +7428,18 @@ Arena::CreateMaybeMessage< ::coordinator_proto::LogicalRange >(Arena* arena) {
 template<> PROTOBUF_NOINLINE ::coordinator_proto::XueUpdateRequest*
 Arena::CreateMaybeMessage< ::coordinator_proto::XueUpdateRequest >(Arena* arena) {
   return Arena::CreateMessageInternal< ::coordinator_proto::XueUpdateRequest >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::StripeByteSubrange*
+Arena::CreateMaybeMessage< ::coordinator_proto::StripeByteSubrange >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::StripeByteSubrange >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::PeekStripeByteRangesRequest*
+Arena::CreateMaybeMessage< ::coordinator_proto::PeekStripeByteRangesRequest >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::PeekStripeByteRangesRequest >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::PeekStripeByteRangesReply*
+Arena::CreateMaybeMessage< ::coordinator_proto::PeekStripeByteRangesReply >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::PeekStripeByteRangesReply >(arena);
 }
 template<> PROTOBUF_NOINLINE ::coordinator_proto::KeyFromClient*
 Arena::CreateMaybeMessage< ::coordinator_proto::KeyFromClient >(Arena* arena) {

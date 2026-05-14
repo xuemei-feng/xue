@@ -4,7 +4,7 @@ HOSTS_FILE="proxy_hosts"
 
 USER="root"
 
-REMOTE_COMMAND="cd /users/xue/UniLRC && sh limit_1Gb.sh"
+REMOTE_COMMAND="cd /users/xue/xue && sh limit_1Gb.sh"
 
 PARALLEL=5
 

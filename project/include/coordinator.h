@@ -71,6 +71,10 @@ namespace ECProject
         grpc::ServerContext *context,
         const coordinator_proto::XueUpdateRequest *request,
         coordinator_proto::ReplyProxyIPsPorts *proxyIPPort) override;
+    grpc::Status peekStripeByteRanges(
+        grpc::ServerContext *context,
+        const coordinator_proto::PeekStripeByteRangesRequest *request,
+        coordinator_proto::PeekStripeByteRangesReply *reply) override;
     // get
     grpc::Status getValue(
         grpc::ServerContext *context,

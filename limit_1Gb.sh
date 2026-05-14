@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 检查enp6s0f0是否存在且处于UP状态
-if ip link show enp6s0f0 &> /dev/null && \
+if ip link show enp6s0f0 >/dev/null 2>&1 && \
    ip link show enp6s0f0 | grep -q 'state UP'
 then
     wondershaper -a enp6s0f0 -d 1048576 -u 1048576
@@ -9,7 +9,7 @@ then
 fi
 
 # 检查enp6s0f1是否存在且处于UP状态
-if ip link show enp6s0f1 &> /dev/null && \
+if ip link show enp6s0f1 >/dev/null 2>&1 && \
    ip link show enp6s0f1 | grep -q 'state UP'
 then
     wondershaper -a enp6s0f1 -d 1048576 -u 1048576
