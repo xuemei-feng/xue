@@ -12,6 +12,28 @@
 #include "unilrc_encoder.h"
 #include <chrono>
 #include <cstring>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+
+namespace
+{
+  std::string proxy_xfer_timestamp()
+  {
+    const auto tp = std::chrono::system_clock::now();
+    const std::time_t tt = std::chrono::system_clock::to_time_t(tp);
+    std::tm st{};
+#if defined(_WIN32)
+    localtime_s(&st, &tt);
+#else
+    localtime_r(&tt, &st);
+#endif
+    std::ostringstream oss;
+    oss << std::put_time(&st, "%F %T");
+    return oss.str();
+  }
+} // namespace
+
 template <typename T>
 inline T ceil(T const &A, T const &B)
 {
@@ -647,6 +669,13 @@ namespace ECProject
 
     auto placement_copy = std::make_shared<proxy_proto::AppendStripeDataPlacement>(*append_stripe_data_placement);
 
+    std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " grpc scheduleAppend2Datanode"
+              << " proxy_cluster=" << m_self_cluster_id
+              << " placement_cluster=" << append_stripe_data_placement->cluster_id()
+              << " append_key=" << append_stripe_data_placement->key()
+              << " stripe_id=" << stripe_id << " mode=" << append_stripe_data_placement->append_mode()
+              << " append_bytes=" << cluster_append_size << " slices=" << slice_num << std::endl;
+
     auto append_and_save = [this, stripe_id, cluster_append_size, slice_num, placement_copy, is_serialized]() mutable
     {
       try
@@ -671,6 +700,10 @@ namespace ECProject
         {
           throw asio::system_error(error);
         }
+
+        std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " client_tcp->proxy_cluster=" << m_self_cluster_id
+                  << " append_key=" << placement_copy->key() << " stripe_id=" << stripe_id
+                  << " received_bytes=" << cluster_append_size << std::endl;
 
         if (IF_DEBUG)
         {
@@ -701,6 +734,11 @@ namespace ECProject
           const int bid = placement_copy->blockids(j);
           const bool xue_data_path =
               (append_mode_str == "XUE_UPDATE" && bid >= 0 && bid < m_sys_config->k);
+          std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " slice_plan proxy_cluster=" << m_self_cluster_id
+                    << " ->datanode=" << placement_copy->datanodeip(j) << ":" << placement_copy->datanodeport(j)
+                    << " block_id=" << bid << " off=" << placement_copy->offsets(j) << " len=" << placement_copy->sizes(j)
+                    << " block_key=" << placement_copy->blockkeys(j)
+                    << (xue_data_path ? " op=XUE_READ_XOR_WRITE" : " op=APPEND_TCP_TO_DATANODE") << std::endl;
           if (xue_data_path)
           {
             senders.push_back(std::thread(
@@ -747,6 +785,9 @@ namespace ECProject
 
         if (placement_copy->is_merge_parity())
         {
+          std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " merge_parity_begin proxy_cluster="
+                    << m_self_cluster_id << " stripe_id=" << stripe_id << " append_key=" << placement_copy->key()
+                    << std::endl;
           for (int j = 0; j < slice_num; j++)
           {
             if (placement_copy->blockids(j) >= m_sys_config->k)
@@ -773,6 +814,9 @@ namespace ECProject
         commit_abort_key.set_ifcommitmetadata(true);
         grpc::Status status;
         status = m_coordinator_ptr->reportCommitAbort(&context, commit_abort_key, &result);
+        std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " append_commit_report proxy_cluster="
+                  << m_self_cluster_id << " append_key=" << placement_copy->key() << " stripe_id=" << stripe_id
+                  << " grpc_ok=" << (status.ok() ? "true" : "false") << std::endl;
         if (status.ok() && IF_DEBUG)
         {
           std::cout << "[Proxy" << m_self_cluster_id << "][APPEND405]"
@@ -883,6 +927,10 @@ namespace ECProject
         socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
         socket_data.close(ignore_ec);
 
+        std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " SET client_tcp->proxy_cluster=" << m_self_cluster_id
+                  << " object_key=" << key << " key_match=" << (flag ? "true" : "false")
+                  << " value_bytes_expected=" << value_size_bytes << std::endl;
+
         // set the blocks to the datanode
         char *buf = v_buf.data();
         // define a lambda function to send to datanode
@@ -950,6 +998,9 @@ namespace ECProject
         {
           senders[j].join();
         }
+        std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " SET proxy_cluster=" << m_self_cluster_id
+                  << " object_key=" << key << " datanode_block_pushes=" << senders.size()
+                  << " block_size=" << block_size << std::endl;
         if (IF_DEBUG)
         {
           std::cout << "[Proxy" << m_self_cluster_id << "][SET]"
@@ -966,12 +1017,14 @@ namespace ECProject
         commit_abort_key.set_ifcommitmetadata(true);
         grpc::Status status;
         status = m_coordinator_ptr->reportCommitAbort(&context, commit_abort_key, &result);
+        std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " SET_commit_report proxy_cluster=" << m_self_cluster_id
+                  << " object_key=" << key << " grpc_ok=" << (status.ok() ? "true" : "false") << std::endl;
         if (status.ok() && IF_DEBUG)
         {
           std::cout << "[Proxy" << m_self_cluster_id << "][SET]"
                     << "[SET] report to coordinator success" << std::endl;
         }
-        else
+        else if (!status.ok())
         {
           std::cout << "[Proxy" << m_self_cluster_id << "][SET]"
                     << " report to coordinator fail!" << std::endl;

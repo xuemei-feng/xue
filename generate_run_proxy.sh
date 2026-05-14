@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义源文件路径
-SOURCE_FILE="/users/xue/UniLRC/small_tools/generator_sh.py"
+SOURCE_FILE="/users/xue/xue/small_tools/generator_sh.py"
 
 # 定义 hosts 文件路径
 HOSTS_FILE="hosts"
@@ -19,7 +19,7 @@ HOSTS=$(cat "$HOSTS_FILE")
 echo "Copying $SOURCE_FILE to all hosts..."
 for HOST in $HOSTS; do
   echo "Copying to $HOST..."
-  scp "$SOURCE_FILE" "$HOST:/users/xue/UniLRC/small_tools/"
+  scp "$SOURCE_FILE" "$HOST:/users/xue/xue/small_tools/"
   if [ $? -eq 0 ]; then
     echo "Successfully copied to $HOST!"
   else
@@ -29,7 +29,7 @@ for HOST in $HOSTS; do
 done
 
 # 使用 pdsh 在所有主机上运行 Python 脚本
-REMOTE_COMMAND="cd /users/xue/UniLRC/small_tools/ && python generator_sh.py"
+REMOTE_COMMAND="cd /users/xue/xue/small_tools/ && python generator_sh.py"
 PARALLEL=50
 USER="root"
 

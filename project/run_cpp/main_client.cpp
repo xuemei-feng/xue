@@ -22,7 +22,7 @@ int main(int argc, char **argv)
     std::cout << "Current working directory: " << sys_config_path << std::endl;
 
     const ECProject::Config *config = ECProject::Config::getInstance(sys_config_path);
-    std::string client_ip = "127.0.0.1";
+    std::string client_ip = "10.10.1.1";
     int client_port = 77777;
     ECProject::Client client(client_ip, client_port, config->CoordinatorIP + ":" + std::to_string(config->CoordinatorPort), sys_config_path);
     std::cout << client.sayHelloToCoordinatorByGrpc("Client ID: " + client_ip + ":" + std::to_string(client_port)) << std::endl;
@@ -51,10 +51,11 @@ int main(int argc, char **argv)
     double block_size = static_cast<double> (parameters[3]) / 1024 / 1024; //MB
     int n = k + r + z;
 
+    // 条带数量固定为 3；后续若需更多条带，改此常量即可。
+    const int stripe_num = 3;
+    std::cout << "Stripe count: " << stripe_num << " (fixed in main_client.cpp)" << std::endl;
 
-    
-    size_t total_write_size = 3000; //MB
-    int stripe_num = total_write_size / (block_size * n);
+    size_t total_write_size = 3000; // MB (used for throughput headline below)
     std::cout << "Starting set stripe operation" << std::endl;
     std::chrono::high_resolution_clock::time_point set_start = std::chrono::high_resolution_clock::now();
     for(int i = 0; i < stripe_num; i++){
