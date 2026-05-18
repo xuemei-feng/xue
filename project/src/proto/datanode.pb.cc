@@ -301,7 +301,7 @@ const char descriptor_table_protodef_datanode_2eproto[] PROTOBUF_SECTION_VARIABL
   "d\030\002 \001(\005\022\024\n\014range_offset\030\003 \001(\005\022\022\n\nrange_s"
   "ize\030\004 \001(\005\"_\n\016WriteRangeInfo\022\021\n\tblock_key"
   "\030\001 \001(\t\022\020\n\010block_id\030\002 \001(\005\022\024\n\014range_offset"
-  "\030\003 \001(\005\022\022\n\nrange_size\030\004 \001(\0052\312\007\n\017datanodeS"
+  "\030\003 \001(\005\022\022\n\nrange_size\030\004 \001(\0052\240\010\n\017datanodeS"
   "ervice\022J\n\ncheckalive\022\035.datanode_proto.Ch"
   "eckaliveCMD\032\035.datanode_proto.RequestResu"
   "lt\022C\n\thandleSet\022\027.datanode_proto.SetInfo"
@@ -325,12 +325,14 @@ const char descriptor_table_protodef_datanode_2eproto[] PROTOBUF_SECTION_VARIABL
   "andleReadRange\022\035.datanode_proto.ReadRang"
   "eInfo\032\035.datanode_proto.RequestResult\022Q\n\020"
   "handleWriteRange\022\036.datanode_proto.WriteR"
-  "angeInfo\032\035.datanode_proto.RequestResultb"
-  "\006proto3"
+  "angeInfo\032\035.datanode_proto.RequestResult\022"
+  "T\n\023handleXorWriteRange\022\036.datanode_proto."
+  "WriteRangeInfo\032\035.datanode_proto.RequestR"
+  "esultb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_datanode_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_datanode_2eproto = {
-    false, false, 1807, descriptor_table_protodef_datanode_2eproto,
+    false, false, 1893, descriptor_table_protodef_datanode_2eproto,
     "datanode.proto",
     &descriptor_table_datanode_2eproto_once, nullptr, 0, 9,
     schemas, file_default_instances, TableStruct_datanode_2eproto::offsets,

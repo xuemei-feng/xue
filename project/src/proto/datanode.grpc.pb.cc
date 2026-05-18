@@ -34,6 +34,7 @@ static const char* datanodeService_method_names[] = {
   "/datanode_proto.datanodeService/handleDelete",
   "/datanode_proto.datanodeService/handleReadRange",
   "/datanode_proto.datanodeService/handleWriteRange",
+  "/datanode_proto.datanodeService/handleXorWriteRange",
 };
 
 std::unique_ptr< datanodeService::Stub> datanodeService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -55,6 +56,7 @@ datanodeService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& ch
   , rpcmethod_handleDelete_(datanodeService_method_names[9], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_handleReadRange_(datanodeService_method_names[10], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_handleWriteRange_(datanodeService_method_names[11], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_handleXorWriteRange_(datanodeService_method_names[12], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status datanodeService::Stub::checkalive(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD& request, ::datanode_proto::RequestResult* response) {
@@ -333,6 +335,29 @@ void datanodeService::Stub::async::handleWriteRange(::grpc::ClientContext* conte
   return result;
 }
 
+::grpc::Status datanodeService::Stub::handleXorWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::datanode_proto::RequestResult* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::WriteRangeInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_handleXorWriteRange_, context, request, response);
+}
+
+void datanodeService::Stub::async::handleXorWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::WriteRangeInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleXorWriteRange_, context, request, response, std::move(f));
+}
+
+void datanodeService::Stub::async::handleXorWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleXorWriteRange_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleXorWriteRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::WriteRangeInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_handleXorWriteRange_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynchandleXorWriteRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsynchandleXorWriteRangeRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[0],
@@ -454,6 +479,16 @@ datanodeService::Service::Service() {
              ::datanode_proto::RequestResult* resp) {
                return service->handleWriteRange(ctx, req, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      datanodeService_method_names[12],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::WriteRangeInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](datanodeService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::datanode_proto::WriteRangeInfo* req,
+             ::datanode_proto::RequestResult* resp) {
+               return service->handleXorWriteRange(ctx, req, resp);
+             }, this)));
 }
 
 datanodeService::Service::~Service() {
@@ -537,6 +572,13 @@ datanodeService::Service::~Service() {
 }
 
 ::grpc::Status datanodeService::Service::handleWriteRange(::grpc::ServerContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status datanodeService::Service::handleXorWriteRange(::grpc::ServerContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response) {
   (void) context;
   (void) request;
   (void) response;

@@ -113,6 +113,12 @@ namespace ECProject
     bool AppendToDatanode(const char *block_key, int block_id, size_t append_size, const char *append_buf, int append_offset, const char *ip, int port, bool is_serialized);
     bool ReadRangeFromDatanode(const char *block_key, int block_id, int range_offset, int range_size, char *out_buf, const char *ip, int port);
     bool WriteRangeToDatanode(const char *block_key, int block_id, int range_offset, const char *data, int range_size, const char *ip, int port);
+    bool XorWriteRangeToDatanode(const char *block_key, int block_id, int range_offset, const char *delta, int range_size, const char *ip, int port);
+    bool forwardXueDataDeltaSync(int dest_cluster_id, const std::string &append_mode,
+                                 const proxy_proto::AppendStripeDataPlacement &placement,
+                                 const char *delta_buf, size_t delta_size);
+    int applyXueGlobalParityFromDataDeltas(const proxy_proto::AppendStripeDataPlacement &placement,
+                                           const std::vector<char *> &slices, int tcp_slice_count);
     bool MergeParityOnDatanode(const char *block_key, int block_id, const char *ip, int port, const std::string &append_mode);
     void printAppendStripeDataPlacement(const proxy_proto::AppendStripeDataPlacement *append_stripe_data_placement);
     std::vector<unsigned char *> convertToUnsignedCharArray(std::vector<char*> &input);
@@ -130,8 +136,13 @@ namespace ECProject
     std::condition_variable cv;
     bool init_coordinator();
     bool init_datanodes(std::string datanodeinfo_path);
+    int clusterIdForDatanodeEndpoint(const std::string &ip, int port) const;
+    proxy_proto::proxyService::Stub *getProxyStubForCluster(int cluster_id);
     std::unique_ptr<coordinator_proto::coordinatorService::Stub> m_coordinator_ptr;
     std::map<std::string, std::unique_ptr<datanode_proto::datanodeService::Stub>> m_datanode_ptrs;
+    std::map<std::string, int> m_datanode_endpoint_to_cluster;
+    std::map<int, std::pair<std::string, int>> m_cluster_proxy_endpoints;
+    std::map<int, std::unique_ptr<proxy_proto::proxyService::Stub>> m_proxy_peer_stubs;
     std::string config_path;
     std::string proxy_ip_port;
     std::string m_ip;

@@ -39,6 +39,8 @@ service datanodeService {
   // random access read/write for in-place updates (XUE_UPDATE data path)
   rpc handleReadRange(ReadRangeInfo) returns(RequestResult);
   rpc handleWriteRange(WriteRangeInfo) returns(RequestResult);
+  // read existing range, XOR with payload, write back (XUE_UPDATE global parity path)
+  rpc handleXorWriteRange(WriteRangeInfo) returns(RequestResult);
 }
 
 // The request message containing the user's name.

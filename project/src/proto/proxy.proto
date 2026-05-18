@@ -250,6 +250,20 @@ message AppendStripeDataPlacement{
   bool is_merge_parity = 11;
   string append_mode = 12;
   bool is_serialized = 13;
+  // true when this proxy (cluster_id) is the global-parity ingress for XUE_UPDATE
+  bool xue_compute_global_parity = 14;
+  // class-1 relay path: client -> data cluster; then data_delta hops to relay and global
+  bool xue_class1_relay_path = 15;
+  int32 xue_relay_cluster_id = 16;
+  int32 xue_global_parity_cluster_id = 17;
+  // buffer slices are already data increments (proxy-to-proxy hops)
+  bool xue_data_slices_are_delta = 18;
+  // reply one byte on TCP after processing (proxy-to-proxy synchronous forward)
+  bool xue_send_ack = 19;
+  // number of leading slices in blockkeys/sizes that are present in the TCP payload
+  int32 xue_tcp_slice_count = 20;
+  // coordinator placement: map2cluster for each slice (parallel to blockids)
+  repeated int32 block_cluster_ids = 21;
 }
 
 message SetReply {

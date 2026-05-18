@@ -408,6 +408,102 @@ namespace ECProject
         return grpc::Status::OK;
     }
 
+    grpc::Status DatanodeImpl::handleXorWriteRange(
+        grpc::ServerContext *context,
+        const datanode_proto::WriteRangeInfo *request,
+        datanode_proto::RequestResult *response)
+    {
+        (void)context;
+        std::string block_key = request->block_key();
+        const int range_offset = request->range_offset();
+        const int range_size = request->range_size();
+        if (range_size <= 0)
+        {
+            response->set_message(false);
+            return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid range_size");
+        }
+
+        std::string targetdir = "./storage/" + std::to_string(m_port) + "/";
+        std::string writepath = targetdir + block_key;
+        if (access(targetdir.c_str(), F_OK) == -1)
+        {
+            createDirectories(targetdir);
+        }
+
+        auto handler = [this, writepath, range_offset, range_size]() mutable
+        {
+            try
+            {
+                std::vector<char> delta(static_cast<size_t>(range_size));
+                asio::error_code ec;
+                asio::ip::tcp::socket socket(io_context);
+                acceptor.accept(socket);
+                asio::read(socket, asio::buffer(delta.data(), static_cast<size_t>(range_size)), ec);
+                asio::error_code ignore_ec;
+                socket.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
+                socket.close(ignore_ec);
+
+                std::vector<char> oldbuf(static_cast<size_t>(range_size), 0);
+                if (access(writepath.c_str(), F_OK) == 0)
+                {
+                    FILE *rfp = std::fopen(writepath.c_str(), "rb");
+                    if (rfp != nullptr)
+                    {
+                        if (std::fseek(rfp, range_offset, SEEK_SET) == 0)
+                        {
+                            const size_t n = std::fread(oldbuf.data(), 1, static_cast<size_t>(range_size), rfp);
+                            (void)n;
+                        }
+                        std::fclose(rfp);
+                    }
+                }
+
+                for (int t = 0; t < range_size; ++t)
+                {
+                    delta[static_cast<size_t>(t)] = static_cast<char>(
+                        static_cast<unsigned char>(oldbuf[static_cast<size_t>(t)]) ^
+                        static_cast<unsigned char>(delta[static_cast<size_t>(t)]));
+                }
+
+                FILE *fp = std::fopen(writepath.c_str(), "r+b");
+                if (fp == nullptr)
+                {
+                    fp = std::fopen(writepath.c_str(), "w+b");
+                }
+                if (fp == nullptr)
+                {
+                    std::cerr << "[Datanode] handleXorWriteRange: cannot open " << writepath << std::endl;
+                    return;
+                }
+                if (std::fseek(fp, range_offset, SEEK_SET) != 0)
+                {
+                    std::fclose(fp);
+                    return;
+                }
+                const size_t w = std::fwrite(delta.data(), 1, static_cast<size_t>(range_size), fp);
+                (void)w;
+                std::fflush(fp);
+                std::fclose(fp);
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << e.what() << '\n';
+            }
+        };
+
+        try
+        {
+            std::thread my_thread(handler);
+            my_thread.detach();
+            response->set_message(true);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+        return grpc::Status::OK;
+    }
+
     grpc::Status DatanodeImpl::handleRecovery(
         grpc::ServerContext *context,
         const datanode_proto::MergeParityInfo *recovery_info,

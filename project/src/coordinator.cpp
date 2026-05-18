@@ -100,9 +100,17 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       std::string path_desc; // 路径描述
     };
 
+    struct Class1RelayRoute
+    {
+      bool enabled = false;
+      int relay_cluster = -1;
+      int global_parity_cluster = -1;
+    };
+
     struct XueUpdateResult  // Xue更新结果
     {
       std::map<int, int> group_to_ingress_cluster; // 组到入口集群的映射
+      std::map<int, Class1RelayRoute> group_to_class1_relay; // 第1类选中继时的两跳路由
       std::vector<TransferPlanDecision> route_decisions; //所有路径决策
       std::vector<ScheduledTask> scheduled_tasks; // 所有调度任务
     };
@@ -776,6 +784,35 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       throw std::runtime_error("Global parity block not found for group_id=" + std::to_string(group_id));
     }
 
+    int get_xue_global_parity_cluster_id(const Stripe *stripe)
+    {
+      for (const auto *block : stripe->blocks)
+      {
+        if (block->block_type == 'G')
+        {
+          return block->map2cluster;
+        }
+      }
+      return -1;
+    }
+
+    bool xue_plan_group_has_data_update(
+        const Stripe *stripe,
+        int group_index,
+        const std::map<int, std::vector<std::pair<int, int>>> &block_to_slices)
+    {
+      const int data_begin = group_index * stripe->k / stripe->z;
+      const int data_end = (group_index + 1) * stripe->k / stripe->z;
+      for (int j = data_begin; j < data_end; ++j)
+      {
+        if (block_to_slices.find(j) != block_to_slices.end())
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
     int get_group_id_for_data_block(const Stripe *stripe, int data_block_id)
     {
       for (const auto &entry : stripe->group_to_blocks)
@@ -906,13 +943,19 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           d.reason = "class1: choose relay to global parity cluster";
           d.steps.push_back({u.data_cluster, best_relay, "data_delta", false,
                              fmt_cluster_id(u.data_cluster) + " 上 " + fmt_data_update_range(u) + " -> " +
-                                 fmt_cluster_id(best_relay) + " (中继，暂存待二次转发)", static_cast<double>(u.size)});
-          d.steps.push_back({best_relay, u.global_parity_cluster, "parity_delta", true,
-                             fmt_cluster_id(best_relay) + " 基于 " + fmt_data_update_range(u) + " 的校验更新 -> " +
-                                 fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id), static_cast<double>(u.size)});
+                                 fmt_cluster_id(best_relay) + " (数据增量)", static_cast<double>(u.size)});
+          d.steps.push_back({best_relay, u.global_parity_cluster, "data_delta", true,
+                             fmt_cluster_id(best_relay) + " 转发数据增量 -> " +
+                                 fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id),
+                             static_cast<double>(u.size)});
           d.has_direct_fallback = true;
           d.direct_fallback_dst = u.global_parity_cluster;
-          group_to_ingress_cluster[u.group_id] = best_relay;
+          group_to_ingress_cluster[u.group_id] = u.data_cluster;
+          Class1RelayRoute route;
+          route.enabled = true;
+          route.relay_cluster = best_relay;
+          route.global_parity_cluster = u.global_parity_cluster;
+          result.group_to_class1_relay[u.group_id] = route;
         }
         else
         {
@@ -1237,13 +1280,19 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           d.reason = "class1: choose relay to global parity cluster";
           d.steps.push_back({u.data_cluster, best_relay, "data_delta", false,
                              fmt_cluster_id(u.data_cluster) + " 上 " + batch_range + " -> " +
-                                 fmt_cluster_id(best_relay) + " (中继，暂存待二次转发)", batch_sz});
-          d.steps.push_back({best_relay, u.global_parity_cluster, "parity_delta", true,
-                             fmt_cluster_id(best_relay) + " 基于 " + batch_range + " 的校验更新 -> " +
-                                 fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id), batch_sz});
+                                 fmt_cluster_id(best_relay) + " (数据增量)", batch_sz});
+          d.steps.push_back({best_relay, u.global_parity_cluster, "data_delta", true,
+                             fmt_cluster_id(best_relay) + " 转发数据增量 -> " +
+                                 fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id),
+                             batch_sz});
           d.has_direct_fallback = true;
           d.direct_fallback_dst = u.global_parity_cluster;
-          group_to_ingress_cluster[u.group_id] = best_relay;
+          group_to_ingress_cluster[u.group_id] = u.data_cluster;
+          Class1RelayRoute route;
+          route.enabled = true;
+          route.relay_cluster = best_relay;
+          route.global_parity_cluster = u.global_parity_cluster;
+          result.group_to_class1_relay[u.group_id] = route;
         }
         else
         {
@@ -2058,6 +2107,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     plan.add_datanodeport(node.node_port);
     plan.add_blockkeys(block->block_key);
     plan.add_blockids(block->block_id);
+    plan.add_block_cluster_ids(block->map2cluster);
     plan.add_offsets(slice_info.second);
     plan.add_sizes(slice_info.first);
   }
@@ -2473,14 +2523,28 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::cout << "start xue_update_sparse" << std::endl;
     XueUpdateResult update_result = xue_update_sparse(stripe, block_to_slices, m_sys_config->CodeType);
     const std::map<int, int> &group_to_ingress_cluster = update_result.group_to_ingress_cluster;
+    const std::map<int, Class1RelayRoute> &group_to_class1_relay = update_result.group_to_class1_relay;
     const std::vector<ScheduledTask> &scheduled_tasks = update_result.scheduled_tasks;
     std::cout << "end xue_update_sparse" << std::endl;
     // 在 uploadXueUpdate 入口处显式输出传输时间窗，避免依赖下层函数打印行为。
     log_append_schedule_visual(scheduled_tasks);
     std::cout << "end log_append_schedule_visual" << std::endl;
     std::vector<proxy_proto::AppendStripeDataPlacement> append_plans;
+    const int global_parity_cluster_id = get_xue_global_parity_cluster_id(stripe);
+    bool global_data_forward_assigned = false;
+    auto add_all_global_parity_metadata = [&](proxy_proto::AppendStripeDataPlacement &plan,
+                                              const auto &add_block_slices_fn) {
+      for (int j = stripe->k + stripe->r; j < stripe->k + stripe->r + stripe->z; j++)
+      {
+        add_block_slices_fn(j, false);
+      }
+    };
     for (int i = 0; i < stripe->z; i++)
     {
+      if (!xue_plan_group_has_data_update(stripe, i, block_to_slices))
+      {
+        continue;
+      }
       proxy_proto::AppendStripeDataPlacement plan;
       plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, i));
       plan.set_stripe_id(stripe->stripe_id);
@@ -2492,51 +2556,98 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       else
       {
-        plan.set_cluster_id(stripe->blocks[stripe->group_to_blocks[i][0]]->map2cluster);
+        const Block *ingress_block = find_block_by_id(stripe, stripe->group_to_blocks[i][0]);
+        if (ingress_block != nullptr)
+        {
+          plan.set_cluster_id(ingress_block->map2cluster);
+        }
       }
       plan.set_append_mode("XUE_UPDATE");
       plan.set_is_serialized(true);
+      const auto relay_it = group_to_class1_relay.find(i);
+      const bool class1_relay = relay_it != group_to_class1_relay.end() && relay_it->second.enabled;
+      if (class1_relay)
+      {
+        plan.set_xue_class1_relay_path(true);
+        plan.set_xue_relay_cluster_id(relay_it->second.relay_cluster);
+        plan.set_xue_global_parity_cluster_id(relay_it->second.global_parity_cluster);
+        plan.set_xue_compute_global_parity(false);
+        global_data_forward_assigned = true;
+      }
+      else
+      {
+        plan.set_xue_class1_relay_path(false);
+        bool compute_global_parity = false;
+        if (ingress_it != group_to_ingress_cluster.end() && global_parity_cluster_id >= 0 &&
+            ingress_it->second == global_parity_cluster_id)
+        {
+          compute_global_parity = true;
+        }
+        plan.set_xue_compute_global_parity(compute_global_parity);
+        if (global_parity_cluster_id >= 0)
+        {
+          if (compute_global_parity)
+          {
+            plan.set_xue_global_parity_cluster_id(global_parity_cluster_id);
+          }
+          else if (!global_data_forward_assigned)
+          {
+            plan.set_xue_global_parity_cluster_id(global_parity_cluster_id);
+            global_data_forward_assigned = true;
+          }
+        }
+      }
       int plan_append_size = 0;
+      int tcp_slice_count = 0;
+      auto add_block_slices = [&](int block_id, bool count_tcp) {
+        const Block *block = find_block_by_id(stripe, block_id);
+        if (block == nullptr)
+        {
+          return;
+        }
+        auto it = block_to_slices.find(block_id);
+        if (it == block_to_slices.end())
+        {
+          return;
+        }
+        for (const auto &slice : it->second)
+        {
+          addBlockToAppendPlan(plan, block, m_node_table[block->map2node], slice);
+          if (count_tcp)
+          {
+            plan_append_size += slice.first;
+            ++tcp_slice_count;
+          }
+        }
+      };
 
       for (int j = i * stripe->k / stripe->z;
            j < (i + 1) * stripe->k / stripe->z; j++)
       {
-        auto it = block_to_slices.find(j);
-        if (it != block_to_slices.end())
-        {
-          for (const auto &slice : it->second)
-          {
-            addBlockToAppendPlan(plan, stripe->blocks[j],
-                                 m_node_table[stripe->blocks[j]->map2node], slice);
-            plan_append_size += slice.first;
-          }
-        }
+        add_block_slices(j, true);
       }
-      for (int j = stripe->k + i * stripe->r / stripe->z;
-           j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
+      if (!class1_relay)
       {
-        auto it = block_to_slices.find(j);
-        if (it == block_to_slices.end()) continue;
-        for (const auto &slice : it->second)
+        for (int j = stripe->k + i * stripe->r / stripe->z;
+             j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
         {
-          addBlockToAppendPlan(plan, stripe->blocks[j],
-                               m_node_table[stripe->blocks[j]->map2node], slice);
-          plan_append_size += slice.first;
+          add_block_slices(j, true);
+        }
+        if (plan.xue_compute_global_parity())
+        {
+          add_all_global_parity_metadata(plan, add_block_slices);
         }
       }
-      for (int j = stripe->k + stripe->r + i * stripe->z / stripe->z;
-           j < stripe->k + stripe->r + (i + 1) * stripe->z / stripe->z; j++)
+      else
       {
-        auto it = block_to_slices.find(j);
-        if (it == block_to_slices.end()) continue;
-        for (const auto &slice : it->second)
-        {
-          addBlockToAppendPlan(plan, stripe->blocks[j],
-                               m_node_table[stripe->blocks[j]->map2node], slice);
-          plan_append_size += slice.first;
-        }
+        add_all_global_parity_metadata(plan, add_block_slices);
       }
+      plan.set_xue_tcp_slice_count(tcp_slice_count);
       plan.set_append_size(plan_append_size);
+      if (plan_append_size <= 0)
+      {
+        continue;
+      }
       append_plans.push_back(plan);
     }
 
@@ -2575,7 +2686,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     for (int i = 0; i < stripe->num_groups; i++)
     {
       proxy_proto::AppendStripeDataPlacement plan;
-      int mapped_cluster_id = stripe->blocks[stripe->group_to_blocks[i][0]]->map2cluster;
+      const Block *ingress_block = find_block_by_id(stripe, stripe->group_to_blocks[i][0]);
+      if (ingress_block == nullptr)
+      {
+        continue;
+      }
+      const int mapped_cluster_id = ingress_block->map2cluster;
       size_t append_size = stripe->group_to_blocks[i].size() * m_sys_config->BlockSize;
 
       plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, i));
@@ -2588,7 +2704,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
       for (int j = 0; j < stripe->group_to_blocks[i].size(); j++)
       {
-        addBlockToAppendPlan(plan, stripe->blocks[stripe->group_to_blocks[i][j]], m_node_table[stripe->blocks[stripe->group_to_blocks[i][j]]->map2node], std::make_pair(m_sys_config->BlockSize, 0));
+        const Block *block = find_block_by_id(stripe, stripe->group_to_blocks[i][j]);
+        if (block == nullptr)
+        {
+          continue;
+        }
+        addBlockToAppendPlan(plan, block, m_node_table[block->map2node], std::make_pair(m_sys_config->BlockSize, 0));
       }
 
       add_plans.push_back(plan);

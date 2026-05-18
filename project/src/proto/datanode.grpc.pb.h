@@ -144,6 +144,14 @@ class datanodeService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>> PrepareAsynchandleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>>(PrepareAsynchandleWriteRangeRaw(context, request, cq));
     }
+    // read existing range, XOR with payload, write back (XUE_UPDATE global parity path)
+    virtual ::grpc::Status handleXorWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::datanode_proto::RequestResult* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>> AsynchandleXorWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>>(AsynchandleXorWriteRangeRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>> PrepareAsynchandleXorWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>>(PrepareAsynchandleXorWriteRangeRaw(context, request, cq));
+    }
     class async_interface {
      public:
       virtual ~async_interface() {}
@@ -180,6 +188,9 @@ class datanodeService final {
       virtual void handleReadRange(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void handleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
       virtual void handleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      // read existing range, XOR with payload, write back (XUE_UPDATE global parity path)
+      virtual void handleXorWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleXorWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
@@ -209,6 +220,8 @@ class datanodeService final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* PrepareAsynchandleReadRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* AsynchandleWriteRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* PrepareAsynchandleWriteRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* AsynchandleXorWriteRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* PrepareAsynchandleXorWriteRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -297,6 +310,13 @@ class datanodeService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>> PrepareAsynchandleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>>(PrepareAsynchandleWriteRangeRaw(context, request, cq));
     }
+    ::grpc::Status handleXorWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::datanode_proto::RequestResult* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>> AsynchandleXorWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>>(AsynchandleXorWriteRangeRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>> PrepareAsynchandleXorWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>>(PrepareAsynchandleXorWriteRangeRaw(context, request, cq));
+    }
     class async final :
       public StubInterface::async_interface {
      public:
@@ -324,6 +344,8 @@ class datanodeService final {
       void handleReadRange(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
       void handleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
       void handleWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void handleXorWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleXorWriteRange(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -359,6 +381,8 @@ class datanodeService final {
     ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* PrepareAsynchandleReadRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::ReadRangeInfo& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* AsynchandleWriteRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* PrepareAsynchandleWriteRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* AsynchandleXorWriteRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* PrepareAsynchandleXorWriteRangeRaw(::grpc::ClientContext* context, const ::datanode_proto::WriteRangeInfo& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_checkalive_;
     const ::grpc::internal::RpcMethod rpcmethod_handleSet_;
     const ::grpc::internal::RpcMethod rpcmethod_handleAppend_;
@@ -371,6 +395,7 @@ class datanodeService final {
     const ::grpc::internal::RpcMethod rpcmethod_handleDelete_;
     const ::grpc::internal::RpcMethod rpcmethod_handleReadRange_;
     const ::grpc::internal::RpcMethod rpcmethod_handleWriteRange_;
+    const ::grpc::internal::RpcMethod rpcmethod_handleXorWriteRange_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -399,6 +424,8 @@ class datanodeService final {
     // random access read/write for in-place updates (XUE_UPDATE data path)
     virtual ::grpc::Status handleReadRange(::grpc::ServerContext* context, const ::datanode_proto::ReadRangeInfo* request, ::datanode_proto::RequestResult* response);
     virtual ::grpc::Status handleWriteRange(::grpc::ServerContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response);
+    // read existing range, XOR with payload, write back (XUE_UPDATE global parity path)
+    virtual ::grpc::Status handleXorWriteRange(::grpc::ServerContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_checkalive : public BaseClass {
@@ -640,7 +667,27 @@ class datanodeService final {
       ::grpc::Service::RequestAsyncUnary(11, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_checkalive<WithAsyncMethod_handleSet<WithAsyncMethod_handleAppend<WithAsyncMethod_handleMergeParity<WithAsyncMethod_handleMergeParityWithRep<WithAsyncMethod_handleRecovery<WithAsyncMethod_handleRecoveryBreakdown<WithAsyncMethod_handleGet<WithAsyncMethod_handleGetBreakdown<WithAsyncMethod_handleDelete<WithAsyncMethod_handleReadRange<WithAsyncMethod_handleWriteRange<Service > > > > > > > > > > > > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_handleXorWriteRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_handleXorWriteRange() {
+      ::grpc::Service::MarkMethodAsync(12);
+    }
+    ~WithAsyncMethod_handleXorWriteRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleXorWriteRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequesthandleXorWriteRange(::grpc::ServerContext* context, ::datanode_proto::WriteRangeInfo* request, ::grpc::ServerAsyncResponseWriter< ::datanode_proto::RequestResult>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(12, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_checkalive<WithAsyncMethod_handleSet<WithAsyncMethod_handleAppend<WithAsyncMethod_handleMergeParity<WithAsyncMethod_handleMergeParityWithRep<WithAsyncMethod_handleRecovery<WithAsyncMethod_handleRecoveryBreakdown<WithAsyncMethod_handleGet<WithAsyncMethod_handleGetBreakdown<WithAsyncMethod_handleDelete<WithAsyncMethod_handleReadRange<WithAsyncMethod_handleWriteRange<WithAsyncMethod_handleXorWriteRange<Service > > > > > > > > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_checkalive : public BaseClass {
    private:
@@ -965,7 +1012,34 @@ class datanodeService final {
     virtual ::grpc::ServerUnaryReactor* handleWriteRange(
       ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_checkalive<WithCallbackMethod_handleSet<WithCallbackMethod_handleAppend<WithCallbackMethod_handleMergeParity<WithCallbackMethod_handleMergeParityWithRep<WithCallbackMethod_handleRecovery<WithCallbackMethod_handleRecoveryBreakdown<WithCallbackMethod_handleGet<WithCallbackMethod_handleGetBreakdown<WithCallbackMethod_handleDelete<WithCallbackMethod_handleReadRange<WithCallbackMethod_handleWriteRange<Service > > > > > > > > > > > > CallbackService;
+  template <class BaseClass>
+  class WithCallbackMethod_handleXorWriteRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_handleXorWriteRange() {
+      ::grpc::Service::MarkMethodCallback(12,
+          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::WriteRangeInfo, ::datanode_proto::RequestResult>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::datanode_proto::WriteRangeInfo* request, ::datanode_proto::RequestResult* response) { return this->handleXorWriteRange(context, request, response); }));}
+    void SetMessageAllocatorFor_handleXorWriteRange(
+        ::grpc::MessageAllocator< ::datanode_proto::WriteRangeInfo, ::datanode_proto::RequestResult>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(12);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::WriteRangeInfo, ::datanode_proto::RequestResult>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_handleXorWriteRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleXorWriteRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* handleXorWriteRange(
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+  };
+  typedef WithCallbackMethod_checkalive<WithCallbackMethod_handleSet<WithCallbackMethod_handleAppend<WithCallbackMethod_handleMergeParity<WithCallbackMethod_handleMergeParityWithRep<WithCallbackMethod_handleRecovery<WithCallbackMethod_handleRecoveryBreakdown<WithCallbackMethod_handleGet<WithCallbackMethod_handleGetBreakdown<WithCallbackMethod_handleDelete<WithCallbackMethod_handleReadRange<WithCallbackMethod_handleWriteRange<WithCallbackMethod_handleXorWriteRange<Service > > > > > > > > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_checkalive : public BaseClass {
@@ -1167,6 +1241,23 @@ class datanodeService final {
     }
     // disable synchronous version of this method
     ::grpc::Status handleWriteRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_handleXorWriteRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_handleXorWriteRange() {
+      ::grpc::Service::MarkMethodGeneric(12);
+    }
+    ~WithGenericMethod_handleXorWriteRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleXorWriteRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -1409,6 +1500,26 @@ class datanodeService final {
     }
     void RequesthandleWriteRange(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(11, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_handleXorWriteRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_handleXorWriteRange() {
+      ::grpc::Service::MarkMethodRaw(12);
+    }
+    ~WithRawMethod_handleXorWriteRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleXorWriteRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequesthandleXorWriteRange(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(12, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -1673,6 +1784,28 @@ class datanodeService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     virtual ::grpc::ServerUnaryReactor* handleWriteRange(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_handleXorWriteRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_handleXorWriteRange() {
+      ::grpc::Service::MarkMethodRawCallback(12,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleXorWriteRange(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_handleXorWriteRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status handleXorWriteRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* handleXorWriteRange(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -1999,9 +2132,36 @@ class datanodeService final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedhandleWriteRange(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::datanode_proto::WriteRangeInfo,::datanode_proto::RequestResult>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_handleSet<WithStreamedUnaryMethod_handleAppend<WithStreamedUnaryMethod_handleMergeParity<WithStreamedUnaryMethod_handleMergeParityWithRep<WithStreamedUnaryMethod_handleRecovery<WithStreamedUnaryMethod_handleRecoveryBreakdown<WithStreamedUnaryMethod_handleGet<WithStreamedUnaryMethod_handleGetBreakdown<WithStreamedUnaryMethod_handleDelete<WithStreamedUnaryMethod_handleReadRange<WithStreamedUnaryMethod_handleWriteRange<Service > > > > > > > > > > > > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_handleXorWriteRange : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_handleXorWriteRange() {
+      ::grpc::Service::MarkMethodStreamed(12,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::datanode_proto::WriteRangeInfo, ::datanode_proto::RequestResult>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::datanode_proto::WriteRangeInfo, ::datanode_proto::RequestResult>* streamer) {
+                       return this->StreamedhandleXorWriteRange(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_handleXorWriteRange() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status handleXorWriteRange(::grpc::ServerContext* /*context*/, const ::datanode_proto::WriteRangeInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedhandleXorWriteRange(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::datanode_proto::WriteRangeInfo,::datanode_proto::RequestResult>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_handleSet<WithStreamedUnaryMethod_handleAppend<WithStreamedUnaryMethod_handleMergeParity<WithStreamedUnaryMethod_handleMergeParityWithRep<WithStreamedUnaryMethod_handleRecovery<WithStreamedUnaryMethod_handleRecoveryBreakdown<WithStreamedUnaryMethod_handleGet<WithStreamedUnaryMethod_handleGetBreakdown<WithStreamedUnaryMethod_handleDelete<WithStreamedUnaryMethod_handleReadRange<WithStreamedUnaryMethod_handleWriteRange<WithStreamedUnaryMethod_handleXorWriteRange<Service > > > > > > > > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_handleSet<WithStreamedUnaryMethod_handleAppend<WithStreamedUnaryMethod_handleMergeParity<WithStreamedUnaryMethod_handleMergeParityWithRep<WithStreamedUnaryMethod_handleRecovery<WithStreamedUnaryMethod_handleRecoveryBreakdown<WithStreamedUnaryMethod_handleGet<WithStreamedUnaryMethod_handleGetBreakdown<WithStreamedUnaryMethod_handleDelete<WithStreamedUnaryMethod_handleReadRange<WithStreamedUnaryMethod_handleWriteRange<Service > > > > > > > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_checkalive<WithStreamedUnaryMethod_handleSet<WithStreamedUnaryMethod_handleAppend<WithStreamedUnaryMethod_handleMergeParity<WithStreamedUnaryMethod_handleMergeParityWithRep<WithStreamedUnaryMethod_handleRecovery<WithStreamedUnaryMethod_handleRecoveryBreakdown<WithStreamedUnaryMethod_handleGet<WithStreamedUnaryMethod_handleGetBreakdown<WithStreamedUnaryMethod_handleDelete<WithStreamedUnaryMethod_handleReadRange<WithStreamedUnaryMethod_handleWriteRange<WithStreamedUnaryMethod_handleXorWriteRange<Service > > > > > > > > > > > > > StreamedService;
 };
 
 }  // namespace datanode_proto

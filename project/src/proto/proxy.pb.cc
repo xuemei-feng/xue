@@ -403,6 +403,8 @@ PROTOBUF_CONSTEXPR AppendStripeDataPlacement::AppendStripeDataPlacement(
   , /*decltype(_impl_._offsets_cached_byte_size_)*/{0}
   , /*decltype(_impl_.sizes_)*/{}
   , /*decltype(_impl_._sizes_cached_byte_size_)*/{0}
+  , /*decltype(_impl_.block_cluster_ids_)*/{}
+  , /*decltype(_impl_._block_cluster_ids_cached_byte_size_)*/{0}
   , /*decltype(_impl_.key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.append_mode_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.cluster_id_)*/0
@@ -410,6 +412,13 @@ PROTOBUF_CONSTEXPR AppendStripeDataPlacement::AppendStripeDataPlacement(
   , /*decltype(_impl_.append_size_)*/uint64_t{0u}
   , /*decltype(_impl_.is_merge_parity_)*/false
   , /*decltype(_impl_.is_serialized_)*/false
+  , /*decltype(_impl_.xue_compute_global_parity_)*/false
+  , /*decltype(_impl_.xue_class1_relay_path_)*/false
+  , /*decltype(_impl_.xue_relay_cluster_id_)*/0
+  , /*decltype(_impl_.xue_global_parity_cluster_id_)*/0
+  , /*decltype(_impl_.xue_data_slices_are_delta_)*/false
+  , /*decltype(_impl_.xue_send_ack_)*/false
+  , /*decltype(_impl_.xue_tcp_slice_count_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct AppendStripeDataPlacementDefaultTypeInternal {
   PROTOBUF_CONSTEXPR AppendStripeDataPlacementDefaultTypeInternal()
@@ -730,6 +739,14 @@ const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.is_merge_parity_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.append_mode_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.is_serialized_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.xue_compute_global_parity_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.xue_class1_relay_path_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.xue_relay_cluster_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.xue_global_parity_cluster_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.xue_data_slices_are_delta_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.xue_send_ack_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.xue_tcp_slice_count_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.block_cluster_ids_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::SetReply, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -780,9 +797,9 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 207, -1, -1, sizeof(::proxy_proto::MultipleRecoveryRequest)},
   { 218, -1, -1, sizeof(::proxy_proto::RecoveryReply)},
   { 237, -1, -1, sizeof(::proxy_proto::AppendStripeDataPlacement)},
-  { 256, -1, -1, sizeof(::proxy_proto::SetReply)},
-  { 263, -1, -1, sizeof(::proxy_proto::GetReply)},
-  { 270, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
+  { 264, -1, -1, sizeof(::proxy_proto::SetReply)},
+  { 271, -1, -1, sizeof(::proxy_proto::GetReply)},
+  { 278, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -890,55 +907,61 @@ const char descriptor_table_protodef_proxy_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "ta_node_grpc_notify_time\030\n \001(\001\022!\n\031data_n"
   "ode_grpc_start_time\030\013 \001(\001\022#\n\033dest_data_n"
   "ode_network_time\030\014 \001(\001\022#\n\033dest_data_node"
-  "_disk_io_time\030\r \001(\001\"\230\002\n\031AppendStripeData"
+  "_disk_io_time\030\r \001(\001\"\217\004\n\031AppendStripeData"
   "Placement\022\013\n\003key\030\001 \001(\t\022\022\n\ncluster_id\030\002 \001"
   "(\005\022\021\n\tstripe_id\030\003 \001(\005\022\023\n\013append_size\030\004 \001"
   "(\004\022\022\n\ndatanodeip\030\005 \003(\t\022\024\n\014datanodeport\030\006"
   " \003(\005\022\021\n\tblockkeys\030\007 \003(\t\022\020\n\010blockids\030\010 \003("
   "\005\022\017\n\007offsets\030\t \003(\004\022\r\n\005sizes\030\n \003(\004\022\027\n\017is_"
   "merge_parity\030\013 \001(\010\022\023\n\013append_mode\030\014 \001(\t\022"
-  "\025\n\ris_serialized\030\r \001(\010\"\034\n\010SetReply\022\020\n\010if"
-  "commit\030\001 \001(\010\"\036\n\010GetReply\022\022\n\ngetsuccess\030\001"
-  " \001(\010\"\261\001\n\021StripeAndBlockIDs\022\021\n\tstripe_id\030"
-  "\001 \001(\005\022\020\n\010group_id\030\002 \001(\005\022\020\n\010clientip\030\003 \001("
-  "\t\022\022\n\nclientport\030\004 \001(\005\022\021\n\tblock_ids\030\005 \003(\005"
-  "\022\022\n\nblock_keys\030\006 \003(\t\022\023\n\013datanodeips\030\007 \003("
-  "\t\022\025\n\rdatanodeports\030\010 \003(\0052\307\t\n\014proxyServic"
-  "e\022D\n\ncheckalive\022\032.proxy_proto.Checkalive"
-  "CMD\032\032.proxy_proto.RequestResult\022L\n\022encod"
-  "eAndSetObject\022\037.proxy_proto.ObjectAndPla"
-  "cement\032\025.proxy_proto.SetReply\022L\n\022decodeA"
-  "ndGetObject\022\037.proxy_proto.ObjectAndPlace"
-  "ment\032\025.proxy_proto.GetReply\022P\n\014degradedR"
-  "ead\022 .proxy_proto.DegradedReadRequest\032\036."
-  "proxy_proto.DegradedReadReply\022S\n\023degrade"
-  "dRead2Client\022\034.proxy_proto.RecoveryReque"
-  "st\032\036.proxy_proto.DegradedReadReply\022Y\n\025de"
-  "gradedReadBreakdown\022 .proxy_proto.Degrad"
-  "edReadRequest\032\036.proxy_proto.DegradedRead"
-  "Reply\022\\\n\034degradedRead2ClientBreakdown\022\034."
-  "proxy_proto.RecoveryRequest\032\036.proxy_prot"
-  "o.DegradedReadReply\022X\n\035degradedReadWithB"
-  "lockStripeID\022 .proxy_proto.DegradedReadR"
-  "equest\032\025.proxy_proto.GetReply\022V\n\017partial"
-  "Decoding\022#.proxy_proto.PartialDecodingRe"
-  "quest\032\036.proxy_proto.DegradedReadReply\022D\n"
-  "\010recovery\022\034.proxy_proto.RecoveryRequest\032"
-  "\032.proxy_proto.RecoveryReply\022M\n\021recoveryB"
-  "reakdown\022\034.proxy_proto.RecoveryRequest\032\032"
-  ".proxy_proto.RecoveryReply\022O\n\020multipleRe"
-  "covery\022$.proxy_proto.MultipleRecoveryReq"
-  "uest\032\025.proxy_proto.GetReply\022\?\n\013deleteBlo"
-  "ck\022\031.proxy_proto.NodeAndBlock\032\025.proxy_pr"
-  "oto.DelReply\022X\n\027scheduleAppend2Datanode\022"
-  "&.proxy_proto.AppendStripeDataPlacement\032"
-  "\025.proxy_proto.SetReply\022B\n\tgetBlocks\022\036.pr"
-  "oxy_proto.StripeAndBlockIDs\032\025.proxy_prot"
-  "o.GetReplyb\006proto3"
+  "\025\n\ris_serialized\030\r \001(\010\022!\n\031xue_compute_gl"
+  "obal_parity\030\016 \001(\010\022\035\n\025xue_class1_relay_pa"
+  "th\030\017 \001(\010\022\034\n\024xue_relay_cluster_id\030\020 \001(\005\022$"
+  "\n\034xue_global_parity_cluster_id\030\021 \001(\005\022!\n\031"
+  "xue_data_slices_are_delta\030\022 \001(\010\022\024\n\014xue_s"
+  "end_ack\030\023 \001(\010\022\033\n\023xue_tcp_slice_count\030\024 \001"
+  "(\005\022\031\n\021block_cluster_ids\030\025 \003(\005\"\034\n\010SetRepl"
+  "y\022\020\n\010ifcommit\030\001 \001(\010\"\036\n\010GetReply\022\022\n\ngetsu"
+  "ccess\030\001 \001(\010\"\261\001\n\021StripeAndBlockIDs\022\021\n\tstr"
+  "ipe_id\030\001 \001(\005\022\020\n\010group_id\030\002 \001(\005\022\020\n\010client"
+  "ip\030\003 \001(\t\022\022\n\nclientport\030\004 \001(\005\022\021\n\tblock_id"
+  "s\030\005 \003(\005\022\022\n\nblock_keys\030\006 \003(\t\022\023\n\013datanodei"
+  "ps\030\007 \003(\t\022\025\n\rdatanodeports\030\010 \003(\0052\307\t\n\014prox"
+  "yService\022D\n\ncheckalive\022\032.proxy_proto.Che"
+  "ckaliveCMD\032\032.proxy_proto.RequestResult\022L"
+  "\n\022encodeAndSetObject\022\037.proxy_proto.Objec"
+  "tAndPlacement\032\025.proxy_proto.SetReply\022L\n\022"
+  "decodeAndGetObject\022\037.proxy_proto.ObjectA"
+  "ndPlacement\032\025.proxy_proto.GetReply\022P\n\014de"
+  "gradedRead\022 .proxy_proto.DegradedReadReq"
+  "uest\032\036.proxy_proto.DegradedReadReply\022S\n\023"
+  "degradedRead2Client\022\034.proxy_proto.Recove"
+  "ryRequest\032\036.proxy_proto.DegradedReadRepl"
+  "y\022Y\n\025degradedReadBreakdown\022 .proxy_proto"
+  ".DegradedReadRequest\032\036.proxy_proto.Degra"
+  "dedReadReply\022\\\n\034degradedRead2ClientBreak"
+  "down\022\034.proxy_proto.RecoveryRequest\032\036.pro"
+  "xy_proto.DegradedReadReply\022X\n\035degradedRe"
+  "adWithBlockStripeID\022 .proxy_proto.Degrad"
+  "edReadRequest\032\025.proxy_proto.GetReply\022V\n\017"
+  "partialDecoding\022#.proxy_proto.PartialDec"
+  "odingRequest\032\036.proxy_proto.DegradedReadR"
+  "eply\022D\n\010recovery\022\034.proxy_proto.RecoveryR"
+  "equest\032\032.proxy_proto.RecoveryReply\022M\n\021re"
+  "coveryBreakdown\022\034.proxy_proto.RecoveryRe"
+  "quest\032\032.proxy_proto.RecoveryReply\022O\n\020mul"
+  "tipleRecovery\022$.proxy_proto.MultipleReco"
+  "veryRequest\032\025.proxy_proto.GetReply\022\?\n\013de"
+  "leteBlock\022\031.proxy_proto.NodeAndBlock\032\025.p"
+  "roxy_proto.DelReply\022X\n\027scheduleAppend2Da"
+  "tanode\022&.proxy_proto.AppendStripeDataPla"
+  "cement\032\025.proxy_proto.SetReply\022B\n\tgetBloc"
+  "ks\022\036.proxy_proto.StripeAndBlockIDs\032\025.pro"
+  "xy_proto.GetReplyb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_proxy_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_proxy_2eproto = {
-    false, false, 4898, descriptor_table_protodef_proxy_2eproto,
+    false, false, 5145, descriptor_table_protodef_proxy_2eproto,
     "proxy.proto",
     &descriptor_table_proxy_2eproto_once, nullptr, 0, 23,
     schemas, file_default_instances, TableStruct_proxy_2eproto::offsets,
@@ -8279,6 +8302,8 @@ AppendStripeDataPlacement::AppendStripeDataPlacement(const AppendStripeDataPlace
     , /*decltype(_impl_._offsets_cached_byte_size_)*/{0}
     , decltype(_impl_.sizes_){from._impl_.sizes_}
     , /*decltype(_impl_._sizes_cached_byte_size_)*/{0}
+    , decltype(_impl_.block_cluster_ids_){from._impl_.block_cluster_ids_}
+    , /*decltype(_impl_._block_cluster_ids_cached_byte_size_)*/{0}
     , decltype(_impl_.key_){}
     , decltype(_impl_.append_mode_){}
     , decltype(_impl_.cluster_id_){}
@@ -8286,6 +8311,13 @@ AppendStripeDataPlacement::AppendStripeDataPlacement(const AppendStripeDataPlace
     , decltype(_impl_.append_size_){}
     , decltype(_impl_.is_merge_parity_){}
     , decltype(_impl_.is_serialized_){}
+    , decltype(_impl_.xue_compute_global_parity_){}
+    , decltype(_impl_.xue_class1_relay_path_){}
+    , decltype(_impl_.xue_relay_cluster_id_){}
+    , decltype(_impl_.xue_global_parity_cluster_id_){}
+    , decltype(_impl_.xue_data_slices_are_delta_){}
+    , decltype(_impl_.xue_send_ack_){}
+    , decltype(_impl_.xue_tcp_slice_count_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -8306,8 +8338,8 @@ AppendStripeDataPlacement::AppendStripeDataPlacement(const AppendStripeDataPlace
       _this->GetArenaForAllocation());
   }
   ::memcpy(&_impl_.cluster_id_, &from._impl_.cluster_id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.is_serialized_) -
-    reinterpret_cast<char*>(&_impl_.cluster_id_)) + sizeof(_impl_.is_serialized_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.xue_tcp_slice_count_) -
+    reinterpret_cast<char*>(&_impl_.cluster_id_)) + sizeof(_impl_.xue_tcp_slice_count_));
   // @@protoc_insertion_point(copy_constructor:proxy_proto.AppendStripeDataPlacement)
 }
 
@@ -8326,6 +8358,8 @@ inline void AppendStripeDataPlacement::SharedCtor(
     , /*decltype(_impl_._offsets_cached_byte_size_)*/{0}
     , decltype(_impl_.sizes_){arena}
     , /*decltype(_impl_._sizes_cached_byte_size_)*/{0}
+    , decltype(_impl_.block_cluster_ids_){arena}
+    , /*decltype(_impl_._block_cluster_ids_cached_byte_size_)*/{0}
     , decltype(_impl_.key_){}
     , decltype(_impl_.append_mode_){}
     , decltype(_impl_.cluster_id_){0}
@@ -8333,6 +8367,13 @@ inline void AppendStripeDataPlacement::SharedCtor(
     , decltype(_impl_.append_size_){uint64_t{0u}}
     , decltype(_impl_.is_merge_parity_){false}
     , decltype(_impl_.is_serialized_){false}
+    , decltype(_impl_.xue_compute_global_parity_){false}
+    , decltype(_impl_.xue_class1_relay_path_){false}
+    , decltype(_impl_.xue_relay_cluster_id_){0}
+    , decltype(_impl_.xue_global_parity_cluster_id_){0}
+    , decltype(_impl_.xue_data_slices_are_delta_){false}
+    , decltype(_impl_.xue_send_ack_){false}
+    , decltype(_impl_.xue_tcp_slice_count_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.key_.InitDefault();
@@ -8362,6 +8403,7 @@ inline void AppendStripeDataPlacement::SharedDtor() {
   _impl_.blockids_.~RepeatedField();
   _impl_.offsets_.~RepeatedField();
   _impl_.sizes_.~RepeatedField();
+  _impl_.block_cluster_ids_.~RepeatedField();
   _impl_.key_.Destroy();
   _impl_.append_mode_.Destroy();
 }
@@ -8382,11 +8424,12 @@ void AppendStripeDataPlacement::Clear() {
   _impl_.blockids_.Clear();
   _impl_.offsets_.Clear();
   _impl_.sizes_.Clear();
+  _impl_.block_cluster_ids_.Clear();
   _impl_.key_.ClearToEmpty();
   _impl_.append_mode_.ClearToEmpty();
   ::memset(&_impl_.cluster_id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.is_serialized_) -
-      reinterpret_cast<char*>(&_impl_.cluster_id_)) + sizeof(_impl_.is_serialized_));
+      reinterpret_cast<char*>(&_impl_.xue_tcp_slice_count_) -
+      reinterpret_cast<char*>(&_impl_.cluster_id_)) + sizeof(_impl_.xue_tcp_slice_count_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -8530,6 +8573,73 @@ const char* AppendStripeDataPlacement::_InternalParse(const char* ptr, ::_pbi::P
         } else
           goto handle_unusual;
         continue;
+      // bool xue_compute_global_parity = 14;
+      case 14:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 112)) {
+          _impl_.xue_compute_global_parity_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bool xue_class1_relay_path = 15;
+      case 15:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 120)) {
+          _impl_.xue_class1_relay_path_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 xue_relay_cluster_id = 16;
+      case 16:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 128)) {
+          _impl_.xue_relay_cluster_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 xue_global_parity_cluster_id = 17;
+      case 17:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 136)) {
+          _impl_.xue_global_parity_cluster_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bool xue_data_slices_are_delta = 18;
+      case 18:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 144)) {
+          _impl_.xue_data_slices_are_delta_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bool xue_send_ack = 19;
+      case 19:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 152)) {
+          _impl_.xue_send_ack_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 xue_tcp_slice_count = 20;
+      case 20:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 160)) {
+          _impl_.xue_tcp_slice_count_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated int32 block_cluster_ids = 21;
+      case 21:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 170)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_block_cluster_ids(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<uint8_t>(tag) == 168) {
+          _internal_add_block_cluster_ids(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
       default:
         goto handle_unusual;
     }  // switch
@@ -8665,6 +8775,57 @@ uint8_t* AppendStripeDataPlacement::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteBoolToArray(13, this->_internal_is_serialized(), target);
   }
 
+  // bool xue_compute_global_parity = 14;
+  if (this->_internal_xue_compute_global_parity() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(14, this->_internal_xue_compute_global_parity(), target);
+  }
+
+  // bool xue_class1_relay_path = 15;
+  if (this->_internal_xue_class1_relay_path() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(15, this->_internal_xue_class1_relay_path(), target);
+  }
+
+  // int32 xue_relay_cluster_id = 16;
+  if (this->_internal_xue_relay_cluster_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(16, this->_internal_xue_relay_cluster_id(), target);
+  }
+
+  // int32 xue_global_parity_cluster_id = 17;
+  if (this->_internal_xue_global_parity_cluster_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(17, this->_internal_xue_global_parity_cluster_id(), target);
+  }
+
+  // bool xue_data_slices_are_delta = 18;
+  if (this->_internal_xue_data_slices_are_delta() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(18, this->_internal_xue_data_slices_are_delta(), target);
+  }
+
+  // bool xue_send_ack = 19;
+  if (this->_internal_xue_send_ack() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(19, this->_internal_xue_send_ack(), target);
+  }
+
+  // int32 xue_tcp_slice_count = 20;
+  if (this->_internal_xue_tcp_slice_count() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(20, this->_internal_xue_tcp_slice_count(), target);
+  }
+
+  // repeated int32 block_cluster_ids = 21;
+  {
+    int byte_size = _impl_._block_cluster_ids_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt32Packed(
+          21, _internal_block_cluster_ids(), byte_size, target);
+    }
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -8753,6 +8914,20 @@ size_t AppendStripeDataPlacement::ByteSizeLong() const {
     total_size += data_size;
   }
 
+  // repeated int32 block_cluster_ids = 21;
+  {
+    size_t data_size = ::_pbi::WireFormatLite::
+      Int32Size(this->_impl_.block_cluster_ids_);
+    if (data_size > 0) {
+      total_size += 2 +
+        ::_pbi::WireFormatLite::Int32Size(static_cast<int32_t>(data_size));
+    }
+    int cached_size = ::_pbi::ToCachedSize(data_size);
+    _impl_._block_cluster_ids_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
   // string key = 1;
   if (!this->_internal_key().empty()) {
     total_size += 1 +
@@ -8792,6 +8967,47 @@ size_t AppendStripeDataPlacement::ByteSizeLong() const {
     total_size += 1 + 1;
   }
 
+  // bool xue_compute_global_parity = 14;
+  if (this->_internal_xue_compute_global_parity() != 0) {
+    total_size += 1 + 1;
+  }
+
+  // bool xue_class1_relay_path = 15;
+  if (this->_internal_xue_class1_relay_path() != 0) {
+    total_size += 1 + 1;
+  }
+
+  // int32 xue_relay_cluster_id = 16;
+  if (this->_internal_xue_relay_cluster_id() != 0) {
+    total_size += 2 +
+      ::_pbi::WireFormatLite::Int32Size(
+        this->_internal_xue_relay_cluster_id());
+  }
+
+  // int32 xue_global_parity_cluster_id = 17;
+  if (this->_internal_xue_global_parity_cluster_id() != 0) {
+    total_size += 2 +
+      ::_pbi::WireFormatLite::Int32Size(
+        this->_internal_xue_global_parity_cluster_id());
+  }
+
+  // bool xue_data_slices_are_delta = 18;
+  if (this->_internal_xue_data_slices_are_delta() != 0) {
+    total_size += 2 + 1;
+  }
+
+  // bool xue_send_ack = 19;
+  if (this->_internal_xue_send_ack() != 0) {
+    total_size += 2 + 1;
+  }
+
+  // int32 xue_tcp_slice_count = 20;
+  if (this->_internal_xue_tcp_slice_count() != 0) {
+    total_size += 2 +
+      ::_pbi::WireFormatLite::Int32Size(
+        this->_internal_xue_tcp_slice_count());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -8816,6 +9032,7 @@ void AppendStripeDataPlacement::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_m
   _this->_impl_.blockids_.MergeFrom(from._impl_.blockids_);
   _this->_impl_.offsets_.MergeFrom(from._impl_.offsets_);
   _this->_impl_.sizes_.MergeFrom(from._impl_.sizes_);
+  _this->_impl_.block_cluster_ids_.MergeFrom(from._impl_.block_cluster_ids_);
   if (!from._internal_key().empty()) {
     _this->_internal_set_key(from._internal_key());
   }
@@ -8836,6 +9053,27 @@ void AppendStripeDataPlacement::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_m
   }
   if (from._internal_is_serialized() != 0) {
     _this->_internal_set_is_serialized(from._internal_is_serialized());
+  }
+  if (from._internal_xue_compute_global_parity() != 0) {
+    _this->_internal_set_xue_compute_global_parity(from._internal_xue_compute_global_parity());
+  }
+  if (from._internal_xue_class1_relay_path() != 0) {
+    _this->_internal_set_xue_class1_relay_path(from._internal_xue_class1_relay_path());
+  }
+  if (from._internal_xue_relay_cluster_id() != 0) {
+    _this->_internal_set_xue_relay_cluster_id(from._internal_xue_relay_cluster_id());
+  }
+  if (from._internal_xue_global_parity_cluster_id() != 0) {
+    _this->_internal_set_xue_global_parity_cluster_id(from._internal_xue_global_parity_cluster_id());
+  }
+  if (from._internal_xue_data_slices_are_delta() != 0) {
+    _this->_internal_set_xue_data_slices_are_delta(from._internal_xue_data_slices_are_delta());
+  }
+  if (from._internal_xue_send_ack() != 0) {
+    _this->_internal_set_xue_send_ack(from._internal_xue_send_ack());
+  }
+  if (from._internal_xue_tcp_slice_count() != 0) {
+    _this->_internal_set_xue_tcp_slice_count(from._internal_xue_tcp_slice_count());
   }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -8862,6 +9100,7 @@ void AppendStripeDataPlacement::InternalSwap(AppendStripeDataPlacement* other) {
   _impl_.blockids_.InternalSwap(&other->_impl_.blockids_);
   _impl_.offsets_.InternalSwap(&other->_impl_.offsets_);
   _impl_.sizes_.InternalSwap(&other->_impl_.sizes_);
+  _impl_.block_cluster_ids_.InternalSwap(&other->_impl_.block_cluster_ids_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.key_, lhs_arena,
       &other->_impl_.key_, rhs_arena
@@ -8871,8 +9110,8 @@ void AppendStripeDataPlacement::InternalSwap(AppendStripeDataPlacement* other) {
       &other->_impl_.append_mode_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(AppendStripeDataPlacement, _impl_.is_serialized_)
-      + sizeof(AppendStripeDataPlacement::_impl_.is_serialized_)
+      PROTOBUF_FIELD_OFFSET(AppendStripeDataPlacement, _impl_.xue_tcp_slice_count_)
+      + sizeof(AppendStripeDataPlacement::_impl_.xue_tcp_slice_count_)
       - PROTOBUF_FIELD_OFFSET(AppendStripeDataPlacement, _impl_.cluster_id_)>(
           reinterpret_cast<char*>(&_impl_.cluster_id_),
           reinterpret_cast<char*>(&other->_impl_.cluster_id_));

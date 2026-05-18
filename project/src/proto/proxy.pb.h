@@ -4887,6 +4887,7 @@ class AppendStripeDataPlacement final :
     kBlockidsFieldNumber = 8,
     kOffsetsFieldNumber = 9,
     kSizesFieldNumber = 10,
+    kBlockClusterIdsFieldNumber = 21,
     kKeyFieldNumber = 1,
     kAppendModeFieldNumber = 12,
     kClusterIdFieldNumber = 2,
@@ -4894,6 +4895,13 @@ class AppendStripeDataPlacement final :
     kAppendSizeFieldNumber = 4,
     kIsMergeParityFieldNumber = 11,
     kIsSerializedFieldNumber = 13,
+    kXueComputeGlobalParityFieldNumber = 14,
+    kXueClass1RelayPathFieldNumber = 15,
+    kXueRelayClusterIdFieldNumber = 16,
+    kXueGlobalParityClusterIdFieldNumber = 17,
+    kXueDataSlicesAreDeltaFieldNumber = 18,
+    kXueSendAckFieldNumber = 19,
+    kXueTcpSliceCountFieldNumber = 20,
   };
   // repeated string datanodeip = 5;
   int datanodeip_size() const;
@@ -5031,6 +5039,28 @@ class AppendStripeDataPlacement final :
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t >*
       mutable_sizes();
 
+  // repeated int32 block_cluster_ids = 21;
+  int block_cluster_ids_size() const;
+  private:
+  int _internal_block_cluster_ids_size() const;
+  public:
+  void clear_block_cluster_ids();
+  private:
+  int32_t _internal_block_cluster_ids(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_block_cluster_ids() const;
+  void _internal_add_block_cluster_ids(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_block_cluster_ids();
+  public:
+  int32_t block_cluster_ids(int index) const;
+  void set_block_cluster_ids(int index, int32_t value);
+  void add_block_cluster_ids(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      block_cluster_ids() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_block_cluster_ids();
+
   // string key = 1;
   void clear_key();
   const std::string& key() const;
@@ -5104,6 +5134,69 @@ class AppendStripeDataPlacement final :
   void _internal_set_is_serialized(bool value);
   public:
 
+  // bool xue_compute_global_parity = 14;
+  void clear_xue_compute_global_parity();
+  bool xue_compute_global_parity() const;
+  void set_xue_compute_global_parity(bool value);
+  private:
+  bool _internal_xue_compute_global_parity() const;
+  void _internal_set_xue_compute_global_parity(bool value);
+  public:
+
+  // bool xue_class1_relay_path = 15;
+  void clear_xue_class1_relay_path();
+  bool xue_class1_relay_path() const;
+  void set_xue_class1_relay_path(bool value);
+  private:
+  bool _internal_xue_class1_relay_path() const;
+  void _internal_set_xue_class1_relay_path(bool value);
+  public:
+
+  // int32 xue_relay_cluster_id = 16;
+  void clear_xue_relay_cluster_id();
+  int32_t xue_relay_cluster_id() const;
+  void set_xue_relay_cluster_id(int32_t value);
+  private:
+  int32_t _internal_xue_relay_cluster_id() const;
+  void _internal_set_xue_relay_cluster_id(int32_t value);
+  public:
+
+  // int32 xue_global_parity_cluster_id = 17;
+  void clear_xue_global_parity_cluster_id();
+  int32_t xue_global_parity_cluster_id() const;
+  void set_xue_global_parity_cluster_id(int32_t value);
+  private:
+  int32_t _internal_xue_global_parity_cluster_id() const;
+  void _internal_set_xue_global_parity_cluster_id(int32_t value);
+  public:
+
+  // bool xue_data_slices_are_delta = 18;
+  void clear_xue_data_slices_are_delta();
+  bool xue_data_slices_are_delta() const;
+  void set_xue_data_slices_are_delta(bool value);
+  private:
+  bool _internal_xue_data_slices_are_delta() const;
+  void _internal_set_xue_data_slices_are_delta(bool value);
+  public:
+
+  // bool xue_send_ack = 19;
+  void clear_xue_send_ack();
+  bool xue_send_ack() const;
+  void set_xue_send_ack(bool value);
+  private:
+  bool _internal_xue_send_ack() const;
+  void _internal_set_xue_send_ack(bool value);
+  public:
+
+  // int32 xue_tcp_slice_count = 20;
+  void clear_xue_tcp_slice_count();
+  int32_t xue_tcp_slice_count() const;
+  void set_xue_tcp_slice_count(int32_t value);
+  private:
+  int32_t _internal_xue_tcp_slice_count() const;
+  void _internal_set_xue_tcp_slice_count(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:proxy_proto.AppendStripeDataPlacement)
  private:
   class _Internal;
@@ -5122,6 +5215,8 @@ class AppendStripeDataPlacement final :
     mutable std::atomic<int> _offsets_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t > sizes_;
     mutable std::atomic<int> _sizes_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > block_cluster_ids_;
+    mutable std::atomic<int> _block_cluster_ids_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr append_mode_;
     int32_t cluster_id_;
@@ -5129,6 +5224,13 @@ class AppendStripeDataPlacement final :
     uint64_t append_size_;
     bool is_merge_parity_;
     bool is_serialized_;
+    bool xue_compute_global_parity_;
+    bool xue_class1_relay_path_;
+    int32_t xue_relay_cluster_id_;
+    int32_t xue_global_parity_cluster_id_;
+    bool xue_data_slices_are_delta_;
+    bool xue_send_ack_;
+    int32_t xue_tcp_slice_count_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -10909,6 +11011,193 @@ inline void AppendStripeDataPlacement::_internal_set_is_serialized(bool value) {
 inline void AppendStripeDataPlacement::set_is_serialized(bool value) {
   _internal_set_is_serialized(value);
   // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.is_serialized)
+}
+
+// bool xue_compute_global_parity = 14;
+inline void AppendStripeDataPlacement::clear_xue_compute_global_parity() {
+  _impl_.xue_compute_global_parity_ = false;
+}
+inline bool AppendStripeDataPlacement::_internal_xue_compute_global_parity() const {
+  return _impl_.xue_compute_global_parity_;
+}
+inline bool AppendStripeDataPlacement::xue_compute_global_parity() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.xue_compute_global_parity)
+  return _internal_xue_compute_global_parity();
+}
+inline void AppendStripeDataPlacement::_internal_set_xue_compute_global_parity(bool value) {
+  
+  _impl_.xue_compute_global_parity_ = value;
+}
+inline void AppendStripeDataPlacement::set_xue_compute_global_parity(bool value) {
+  _internal_set_xue_compute_global_parity(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.xue_compute_global_parity)
+}
+
+// bool xue_class1_relay_path = 15;
+inline void AppendStripeDataPlacement::clear_xue_class1_relay_path() {
+  _impl_.xue_class1_relay_path_ = false;
+}
+inline bool AppendStripeDataPlacement::_internal_xue_class1_relay_path() const {
+  return _impl_.xue_class1_relay_path_;
+}
+inline bool AppendStripeDataPlacement::xue_class1_relay_path() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.xue_class1_relay_path)
+  return _internal_xue_class1_relay_path();
+}
+inline void AppendStripeDataPlacement::_internal_set_xue_class1_relay_path(bool value) {
+  
+  _impl_.xue_class1_relay_path_ = value;
+}
+inline void AppendStripeDataPlacement::set_xue_class1_relay_path(bool value) {
+  _internal_set_xue_class1_relay_path(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.xue_class1_relay_path)
+}
+
+// int32 xue_relay_cluster_id = 16;
+inline void AppendStripeDataPlacement::clear_xue_relay_cluster_id() {
+  _impl_.xue_relay_cluster_id_ = 0;
+}
+inline int32_t AppendStripeDataPlacement::_internal_xue_relay_cluster_id() const {
+  return _impl_.xue_relay_cluster_id_;
+}
+inline int32_t AppendStripeDataPlacement::xue_relay_cluster_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.xue_relay_cluster_id)
+  return _internal_xue_relay_cluster_id();
+}
+inline void AppendStripeDataPlacement::_internal_set_xue_relay_cluster_id(int32_t value) {
+  
+  _impl_.xue_relay_cluster_id_ = value;
+}
+inline void AppendStripeDataPlacement::set_xue_relay_cluster_id(int32_t value) {
+  _internal_set_xue_relay_cluster_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.xue_relay_cluster_id)
+}
+
+// int32 xue_global_parity_cluster_id = 17;
+inline void AppendStripeDataPlacement::clear_xue_global_parity_cluster_id() {
+  _impl_.xue_global_parity_cluster_id_ = 0;
+}
+inline int32_t AppendStripeDataPlacement::_internal_xue_global_parity_cluster_id() const {
+  return _impl_.xue_global_parity_cluster_id_;
+}
+inline int32_t AppendStripeDataPlacement::xue_global_parity_cluster_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.xue_global_parity_cluster_id)
+  return _internal_xue_global_parity_cluster_id();
+}
+inline void AppendStripeDataPlacement::_internal_set_xue_global_parity_cluster_id(int32_t value) {
+  
+  _impl_.xue_global_parity_cluster_id_ = value;
+}
+inline void AppendStripeDataPlacement::set_xue_global_parity_cluster_id(int32_t value) {
+  _internal_set_xue_global_parity_cluster_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.xue_global_parity_cluster_id)
+}
+
+// bool xue_data_slices_are_delta = 18;
+inline void AppendStripeDataPlacement::clear_xue_data_slices_are_delta() {
+  _impl_.xue_data_slices_are_delta_ = false;
+}
+inline bool AppendStripeDataPlacement::_internal_xue_data_slices_are_delta() const {
+  return _impl_.xue_data_slices_are_delta_;
+}
+inline bool AppendStripeDataPlacement::xue_data_slices_are_delta() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.xue_data_slices_are_delta)
+  return _internal_xue_data_slices_are_delta();
+}
+inline void AppendStripeDataPlacement::_internal_set_xue_data_slices_are_delta(bool value) {
+  
+  _impl_.xue_data_slices_are_delta_ = value;
+}
+inline void AppendStripeDataPlacement::set_xue_data_slices_are_delta(bool value) {
+  _internal_set_xue_data_slices_are_delta(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.xue_data_slices_are_delta)
+}
+
+// bool xue_send_ack = 19;
+inline void AppendStripeDataPlacement::clear_xue_send_ack() {
+  _impl_.xue_send_ack_ = false;
+}
+inline bool AppendStripeDataPlacement::_internal_xue_send_ack() const {
+  return _impl_.xue_send_ack_;
+}
+inline bool AppendStripeDataPlacement::xue_send_ack() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.xue_send_ack)
+  return _internal_xue_send_ack();
+}
+inline void AppendStripeDataPlacement::_internal_set_xue_send_ack(bool value) {
+  
+  _impl_.xue_send_ack_ = value;
+}
+inline void AppendStripeDataPlacement::set_xue_send_ack(bool value) {
+  _internal_set_xue_send_ack(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.xue_send_ack)
+}
+
+// int32 xue_tcp_slice_count = 20;
+inline void AppendStripeDataPlacement::clear_xue_tcp_slice_count() {
+  _impl_.xue_tcp_slice_count_ = 0;
+}
+inline int32_t AppendStripeDataPlacement::_internal_xue_tcp_slice_count() const {
+  return _impl_.xue_tcp_slice_count_;
+}
+inline int32_t AppendStripeDataPlacement::xue_tcp_slice_count() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.xue_tcp_slice_count)
+  return _internal_xue_tcp_slice_count();
+}
+inline void AppendStripeDataPlacement::_internal_set_xue_tcp_slice_count(int32_t value) {
+  
+  _impl_.xue_tcp_slice_count_ = value;
+}
+inline void AppendStripeDataPlacement::set_xue_tcp_slice_count(int32_t value) {
+  _internal_set_xue_tcp_slice_count(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.xue_tcp_slice_count)
+}
+
+// repeated int32 block_cluster_ids = 21;
+inline int AppendStripeDataPlacement::_internal_block_cluster_ids_size() const {
+  return _impl_.block_cluster_ids_.size();
+}
+inline int AppendStripeDataPlacement::block_cluster_ids_size() const {
+  return _internal_block_cluster_ids_size();
+}
+inline void AppendStripeDataPlacement::clear_block_cluster_ids() {
+  _impl_.block_cluster_ids_.Clear();
+}
+inline int32_t AppendStripeDataPlacement::_internal_block_cluster_ids(int index) const {
+  return _impl_.block_cluster_ids_.Get(index);
+}
+inline int32_t AppendStripeDataPlacement::block_cluster_ids(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.block_cluster_ids)
+  return _internal_block_cluster_ids(index);
+}
+inline void AppendStripeDataPlacement::set_block_cluster_ids(int index, int32_t value) {
+  _impl_.block_cluster_ids_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.block_cluster_ids)
+}
+inline void AppendStripeDataPlacement::_internal_add_block_cluster_ids(int32_t value) {
+  _impl_.block_cluster_ids_.Add(value);
+}
+inline void AppendStripeDataPlacement::add_block_cluster_ids(int32_t value) {
+  _internal_add_block_cluster_ids(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.AppendStripeDataPlacement.block_cluster_ids)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+AppendStripeDataPlacement::_internal_block_cluster_ids() const {
+  return _impl_.block_cluster_ids_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+AppendStripeDataPlacement::block_cluster_ids() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.AppendStripeDataPlacement.block_cluster_ids)
+  return _internal_block_cluster_ids();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+AppendStripeDataPlacement::_internal_mutable_block_cluster_ids() {
+  return &_impl_.block_cluster_ids_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+AppendStripeDataPlacement::mutable_block_cluster_ids() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.AppendStripeDataPlacement.block_cluster_ids)
+  return _internal_mutable_block_cluster_ids();
 }
 
 // -------------------------------------------------------------------

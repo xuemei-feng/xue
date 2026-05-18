@@ -80,6 +80,10 @@ namespace ECProject
             grpc::ServerContext *context,
             const datanode_proto::WriteRangeInfo *request,
             datanode_proto::RequestResult *response) override;
+        grpc::Status handleXorWriteRange(
+            grpc::ServerContext *context,
+            const datanode_proto::WriteRangeInfo *request,
+            datanode_proto::RequestResult *response) override;
 
         void serialize(const std::string &filename, const ParitySlice &slice);
         std::vector<ParitySlice> deserialize(const std::string &filename);
