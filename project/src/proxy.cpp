@@ -35,6 +35,60 @@ namespace
     oss << std::put_time(&st, "%F %T");
     return oss.str();
   }
+
+  // 第1类：本地校验块仅在 plan 元数据中（j >= tcp_slice_count），且与数据块同 cluster
+  bool infer_class1_local_parity_cluster(const proxy_proto::AppendStripeDataPlacement &placement,
+                                         int k, int r, int *out_local_cluster)
+  {
+    if (out_local_cluster == nullptr)
+    {
+      return false;
+    }
+    *out_local_cluster = -1;
+    if (placement.append_mode() != "XUE_UPDATE")
+    {
+      return false;
+    }
+    const int tcp = placement.xue_tcp_slice_count() > 0 ? placement.xue_tcp_slice_count() : 0;
+    int data_cluster = -1;
+    bool has_local_meta = false;
+    int local_cluster = -1;
+    const int slice_num = placement.blockids_size();
+    for (int j = 0; j < slice_num; ++j)
+    {
+      const int bid = placement.blockids(j);
+      const int cl = (j < placement.block_cluster_ids_size()) ? placement.block_cluster_ids(j) : -1;
+      if (bid >= 0 && bid < k && j < tcp)
+      {
+        if (data_cluster < 0)
+        {
+          data_cluster = cl;
+        }
+        else if (cl >= 0 && data_cluster >= 0 && cl != data_cluster)
+        {
+          return false;
+        }
+      }
+      if (bid >= k && bid < k + r && j >= tcp)
+      {
+        has_local_meta = true;
+        if (local_cluster < 0)
+        {
+          local_cluster = cl;
+        }
+        else if (cl >= 0 && local_cluster >= 0 && cl != local_cluster)
+        {
+          return false;
+        }
+      }
+    }
+    if (!has_local_meta || data_cluster < 0 || local_cluster < 0 || data_cluster != local_cluster)
+    {
+      return false;
+    }
+    *out_local_cluster = local_cluster;
+    return true;
+  }
 } // namespace
 
 template <typename T>
@@ -324,6 +378,120 @@ namespace ECProject
       }
     }
     return global_updated;
+  }
+
+  int ProxyImpl::applyXueLocalParityFromDataDeltas(const proxy_proto::AppendStripeDataPlacement &placement,
+                                                   const std::vector<char *> &slices, int tcp_slice_count)
+  {
+    const bool azure_like =
+        m_sys_config->CodeType == "AzureLRC" || m_sys_config->CodeType == "XueLRC";
+    if (!azure_like)
+    {
+      return 0;
+    }
+    const int k0 = m_sys_config->k;
+    const int r0 = m_sys_config->r;
+    const int z0 = m_sys_config->z;
+    const int slice_num = placement.blockkeys_size();
+    const int local_begin = k0;
+    const int local_end = k0 + r0;
+    const int local_count = local_end - local_begin;
+
+    std::vector<int> local_parity_indices;
+    local_parity_indices.reserve(static_cast<size_t>(local_count));
+    for (int j = 0; j < slice_num; ++j)
+    {
+      const int bid = placement.blockids(j);
+      if (bid >= local_begin && bid < local_end)
+      {
+        local_parity_indices.push_back(j);
+      }
+    }
+    if (local_parity_indices.empty())
+    {
+      return 0;
+    }
+
+    static std::atomic<bool> gf8_inited_local{false};
+    if (!gf8_inited_local.exchange(true))
+    {
+      galois_init_default_field(8);
+    }
+    const int m = k0 + r0;
+    std::vector<unsigned char> enc(static_cast<size_t>((m + z0) * k0));
+    gen_azure_lrc_matrix(enc.data(), k0, r0, z0);
+
+    using RangeKey = std::pair<int, int>;
+    std::map<RangeKey, std::vector<int>> data_slices_by_range;
+    for (int j = 0; j < tcp_slice_count && j < slice_num; ++j)
+    {
+      const int bid = placement.blockids(j);
+      if (bid < 0 || bid >= k0)
+      {
+        continue;
+      }
+      const int o = static_cast<int>(placement.offsets(j));
+      const int l = static_cast<int>(placement.sizes(j));
+      data_slices_by_range[{o, l}].push_back(j);
+    }
+
+    int local_updated = 0;
+    for (const auto &range_kv : data_slices_by_range)
+    {
+      const int ref_off = range_kv.first.first;
+      const int ref_len = range_kv.first.second;
+      if (ref_len <= 0)
+      {
+        continue;
+      }
+      std::vector<std::vector<char>> p_acc(static_cast<size_t>(local_count),
+                                           std::vector<char>(static_cast<size_t>(ref_len), 0));
+      for (int j : range_kv.second)
+      {
+        const int bid = placement.blockids(j);
+        for (int li = 0; li < local_count; ++li)
+        {
+          const int matrix_row = k0 + li;
+          const unsigned char coeff = enc[static_cast<size_t>(matrix_row * k0 + bid)];
+          if (coeff == 0)
+          {
+            continue;
+          }
+          for (int t = 0; t < ref_len; ++t)
+          {
+            const unsigned char v = static_cast<unsigned char>(galois_single_multiply(
+                coeff, static_cast<unsigned char>(slices[j][static_cast<size_t>(t)]), 8));
+            p_acc[static_cast<size_t>(li)][static_cast<size_t>(t)] = static_cast<char>(
+                static_cast<unsigned char>(p_acc[static_cast<size_t>(li)][static_cast<size_t>(t)]) ^ v);
+          }
+        }
+      }
+      for (int idx : local_parity_indices)
+      {
+        if (static_cast<int>(placement.offsets(idx)) != ref_off ||
+            static_cast<int>(placement.sizes(idx)) != ref_len)
+        {
+          continue;
+        }
+        const int bid = placement.blockids(idx);
+        const int li = bid - local_begin;
+        if (li < 0 || li >= local_count)
+        {
+          continue;
+        }
+        const std::string &pbk = placement.blockkeys(idx);
+        if (!XorWriteRangeToDatanode(pbk.c_str(), bid, ref_off, p_acc[static_cast<size_t>(li)].data(), ref_len,
+                                     placement.datanodeip(idx).c_str(), placement.datanodeport(idx)))
+        {
+          std::cerr << "[Proxy] XUE local parity XorWriteRange failed block " << pbk << std::endl;
+        }
+        else
+        {
+          ++local_updated;
+        }
+      }
+    }
+    return local_updated;
   }
 
   grpc::Status ProxyImpl::checkalive(grpc::ServerContext *context,
@@ -1038,6 +1206,27 @@ namespace ECProject
           return;
         }
 
+        if (append_mode_str == "XUE_COMPUTE_LOCAL_PARITY")
+        {
+          const int updated =
+              applyXueLocalParityFromDataDeltas(*placement_copy, slices, tcp_slice_count);
+          const bool ok = updated > 0;
+          if (ok)
+          {
+            std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp()
+                      << " XUE_COMPUTE_LOCAL_PARITY applied local parity for " << updated << " slice(s)"
+                      << std::endl;
+          }
+          if (send_ack)
+          {
+            const char ack = ok ? static_cast<char>(1) : static_cast<char>(0);
+            asio::error_code ack_ec;
+            asio::write(socket_data, asio::buffer(&ack, 1), ack_ec);
+          }
+          close_socket();
+          return;
+        }
+
         if (!send_ack)
         {
           asio::error_code ignore_ec;
@@ -1130,6 +1319,44 @@ namespace ECProject
         for (int j = 0; j < int(senders.size()); j++)
         {
           senders[j].join();
+        }
+
+        if (append_mode_str == "XUE_UPDATE" && azure_like)
+        {
+          int local_parity_cluster = -1;
+          if (infer_class1_local_parity_cluster(*placement_copy, m_sys_config->k, m_sys_config->r,
+                                                &local_parity_cluster) &&
+              local_parity_cluster >= 0)
+          {
+            if (m_self_cluster_id == local_parity_cluster)
+            {
+              const int local_updated =
+                  applyXueLocalParityFromDataDeltas(*placement_copy, slices, tcp_slice_count);
+              if (local_updated > 0)
+              {
+                std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp()
+                          << " XUE_UPDATE class1 local parity: matrix delta + XorWriteRange for "
+                          << local_updated << " slice(s) at cluster " << local_parity_cluster << std::endl;
+              }
+            }
+            else if (tcp_slice_count > 0)
+            {
+              const bool lp_fwd_ok = forwardXueDataDeltaSync(
+                  local_parity_cluster, "XUE_COMPUTE_LOCAL_PARITY", *placement_copy, append_buf.data(),
+                  cluster_append_size);
+              if (!lp_fwd_ok)
+              {
+                std::cerr << "[Proxy] XUE class1 forward data delta to local parity cluster failed"
+                          << std::endl;
+              }
+              else
+              {
+                std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp()
+                          << " XUE class1 forwarded data deltas to local parity cluster "
+                          << local_parity_cluster << " for local parity update" << std::endl;
+              }
+            }
+          }
         }
 
         if (append_mode_str == "XUE_UPDATE" && placement_copy->xue_class1_relay_path())
