@@ -36,6 +36,89 @@ namespace
     return oss.str();
   }
 
+  std::string fmt_proxy_cluster(int cluster_id)
+  {
+    return "cluster-" + std::to_string(cluster_id);
+  }
+
+  std::string fmt_xfer_party(int party_id)
+  {
+    if (party_id < 0)
+    {
+      return "client";
+    }
+    return fmt_proxy_cluster(party_id);
+  }
+
+  std::string xue_xfer_payload_desc(const std::string &append_mode)
+  {
+    if (append_mode == "XUE_DELTA_TO_RELAY" || append_mode == "XUE_DELTA_TO_GLOBAL" ||
+        append_mode == "XUE_COMPUTE_LOCAL_PARITY")
+    {
+      return "数据增量(data_delta)";
+    }
+    return "载荷(" + append_mode + ")";
+  }
+
+  std::string xue_tcp_payload_desc(const proxy_proto::AppendStripeDataPlacement &placement)
+  {
+    const std::string &mode = placement.append_mode();
+    if (mode == "XUE_UPDATE")
+    {
+      if (placement.xue_data_slices_are_delta())
+      {
+        return "数据增量(data_delta)";
+      }
+      return "数据新值(client_new_value)";
+    }
+    return xue_xfer_payload_desc(mode);
+  }
+
+  std::string xue_route_tag(const proxy_proto::AppendStripeDataPlacement &placement)
+  {
+    if (placement.append_mode() != "XUE_UPDATE")
+    {
+      return "";
+    }
+    if (placement.xue_class1_relay_path())
+    {
+      return "route=class1_relay";
+    }
+    if (placement.xue_data_slices_are_delta())
+    {
+      return "route=proxy_forward_hop";
+    }
+    if (placement.xue_compute_global_parity())
+    {
+      return "route=class1_direct_ingress_global";
+    }
+    return "route=xue_update";
+  }
+
+  void log_proxy_cluster_xfer(const std::string &ts, const std::string &action, int from_cluster,
+                              int to_cluster, const std::string &payload, const std::string &detail = "")
+  {
+    std::cout << "[Proxy][XFERT] " << ts << " " << action << " 从 " << fmt_xfer_party(from_cluster)
+              << " 到 " << fmt_xfer_party(to_cluster) << " 发送 " << payload;
+    if (!detail.empty())
+    {
+      std::cout << " | " << detail;
+    }
+    std::cout << std::endl;
+  }
+
+  void log_proxy_local_compute(const std::string &ts, int at_cluster, const std::string &compute_desc,
+                               const std::string &detail = "")
+  {
+    std::cout << "[Proxy][XFERT] " << ts << " 在 " << fmt_proxy_cluster(at_cluster) << " 本地"
+              << compute_desc;
+    if (!detail.empty())
+    {
+      std::cout << " | " << detail;
+    }
+    std::cout << std::endl;
+  }
+
   // 第1类：本地校验块仅在 plan 元数据中（j >= tcp_slice_count），且与数据块同 cluster
   bool infer_class1_local_parity_cluster(const proxy_proto::AppendStripeDataPlacement &placement,
                                          int k, int r, int *out_local_cluster)
@@ -199,15 +282,27 @@ namespace ECProject
                                           const proxy_proto::AppendStripeDataPlacement &placement,
                                           const char *delta_buf, size_t delta_size)
   {
+    const std::string ts = proxy_xfer_timestamp();
+    const std::string payload = xue_xfer_payload_desc(append_mode);
+    const std::string fwd_detail = "mode=" + append_mode + " bytes=" + std::to_string(delta_size) +
+                                   " append_key=" + placement.key() + " stripe_id=" +
+                                   std::to_string(placement.stripe_id());
+    log_proxy_cluster_xfer(ts, "proxy_forward", m_self_cluster_id, dest_cluster_id, payload, fwd_detail);
+
     proxy_proto::proxyService::Stub *stub = getProxyStubForCluster(dest_cluster_id);
     if (stub == nullptr)
     {
-      std::cerr << "[Proxy] forwardXueDataDeltaSync: no stub for cluster " << dest_cluster_id << std::endl;
+      std::cerr << "[Proxy][XFERT] " << ts << " proxy_forward 失败: 从 "
+                << fmt_proxy_cluster(m_self_cluster_id) << " 到 "
+                << fmt_proxy_cluster(dest_cluster_id) << " 无可用 stub | " << fwd_detail << std::endl;
       return false;
     }
     auto ep_it = m_cluster_proxy_endpoints.find(dest_cluster_id);
     if (ep_it == m_cluster_proxy_endpoints.end())
     {
+      std::cerr << "[Proxy][XFERT] " << ts << " proxy_forward 失败: 从 "
+                << fmt_proxy_cluster(m_self_cluster_id) << " 到 "
+                << fmt_proxy_cluster(dest_cluster_id) << " 无 endpoint | " << fwd_detail << std::endl;
       return false;
     }
 
@@ -225,7 +320,10 @@ namespace ECProject
     grpc::Status st = stub->scheduleAppend2Datanode(&ctx, fwd, &rep);
     if (!st.ok())
     {
-      std::cerr << "[Proxy] forwardXueDataDeltaSync schedule failed cluster " << dest_cluster_id << std::endl;
+      std::cerr << "[Proxy][XFERT] " << ts << " proxy_forward 失败: 从 "
+                << fmt_proxy_cluster(m_self_cluster_id) << " 到 "
+                << fmt_proxy_cluster(dest_cluster_id) << " scheduleAppend2Datanode 错误 | " << fwd_detail
+                << std::endl;
       return false;
     }
 
@@ -241,12 +339,20 @@ namespace ECProject
                     con_error);
       if (con_error)
       {
+        std::cerr << "[Proxy][XFERT] " << ts << " proxy_forward 失败: 从 "
+                  << fmt_proxy_cluster(m_self_cluster_id) << " 到 "
+                  << fmt_proxy_cluster(dest_cluster_id) << " TCP 连接失败 | " << fwd_detail
+                  << std::endl;
         return false;
       }
       asio::error_code write_ec;
       asio::write(socket, asio::buffer(delta_buf, delta_size), write_ec);
       if (write_ec)
       {
+        std::cerr << "[Proxy][XFERT] " << ts << " proxy_forward 失败: 从 "
+                  << fmt_proxy_cluster(m_self_cluster_id) << " 到 "
+                  << fmt_proxy_cluster(dest_cluster_id) << " TCP 写入失败 | " << fwd_detail
+                  << std::endl;
         return false;
       }
       char ack = 0;
@@ -255,13 +361,110 @@ namespace ECProject
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
-      return !read_ec && ack == 1;
+      const bool ok = !read_ec && ack == 1;
+      if (ok)
+      {
+        log_proxy_cluster_xfer(ts, "proxy_forward_ok", m_self_cluster_id, dest_cluster_id, payload,
+                               fwd_detail + " ack=1");
+      }
+      else
+      {
+        std::cerr << "[Proxy][XFERT] " << ts << " proxy_forward 失败: 从 "
+                  << fmt_proxy_cluster(m_self_cluster_id) << " 到 "
+                  << fmt_proxy_cluster(dest_cluster_id) << " 对端 ack 失败 | " << fwd_detail
+                  << std::endl;
+      }
+      return ok;
     }
     catch (const std::exception &e)
     {
-      std::cerr << e.what() << '\n';
+      std::cerr << "[Proxy][XFERT] " << ts << " proxy_forward 异常: 从 "
+                << fmt_proxy_cluster(m_self_cluster_id) << " 到 "
+                << fmt_proxy_cluster(dest_cluster_id) << " | " << e.what() << std::endl;
       return false;
     }
+  }
+
+  int ProxyImpl::applyXueDataBlocksNewValueToDataDelta(const proxy_proto::AppendStripeDataPlacement &placement,
+                                                       std::vector<char *> &slices, int tcp_slice_count)
+  {
+    const int k0 = m_sys_config->k;
+    const int slice_num = placement.blockkeys_size();
+    int updated = 0;
+    for (int j = 0; j < tcp_slice_count && j < slice_num; ++j)
+    {
+      const int bid = placement.blockids(j);
+      if (bid < 0 || bid >= k0)
+      {
+        continue;
+      }
+      const std::string &bk = placement.blockkeys(j);
+      const size_t sz = placement.sizes(j);
+      const int off = static_cast<int>(placement.offsets(j));
+      const std::string dip = placement.datanodeip(j);
+      const int dport = placement.datanodeport(j);
+      std::vector<char> oldbuf(sz);
+      if (!ReadRangeFromDatanode(bk.c_str(), bid, off, static_cast<int>(sz), oldbuf.data(), dip.c_str(), dport))
+      {
+        std::memset(oldbuf.data(), 0, sz);
+      }
+      std::vector<char> newbuf(sz);
+      std::memcpy(newbuf.data(), slices[j], sz);
+      for (size_t i = 0; i < sz; ++i)
+      {
+        slices[j][i] = static_cast<char>(
+            static_cast<unsigned char>(newbuf[i]) ^ static_cast<unsigned char>(oldbuf[i]));
+      }
+      if (WriteRangeToDatanode(bk.c_str(), bid, off, newbuf.data(), static_cast<int>(sz), dip.c_str(), dport))
+      {
+        ++updated;
+      }
+      else
+      {
+        std::cerr << "[Proxy] XUE data block WriteRange failed block " << bk << std::endl;
+      }
+    }
+    return updated;
+  }
+
+  bool ProxyImpl::handleXueClass1RelayAtDataCluster(const proxy_proto::AppendStripeDataPlacement &placement,
+                                                    std::vector<char *> &slices, int tcp_slice_count,
+                                                    const char *delta_buf, size_t delta_size)
+  {
+    const bool azure_like =
+        m_sys_config->CodeType == "AzureLRC" || m_sys_config->CodeType == "XueLRC";
+    const std::string ts = proxy_xfer_timestamp();
+    const int data_updated = applyXueDataBlocksNewValueToDataDelta(placement, slices, tcp_slice_count);
+    log_proxy_local_compute(ts, m_self_cluster_id,
+                            "读旧值算 data_delta、落盘新数据块，缓冲区已置为 data_delta",
+                            "data_blocks_updated=" + std::to_string(data_updated));
+
+    if (azure_like)
+    {
+      int local_parity_cluster = -1;
+      if (infer_class1_local_parity_cluster(placement, m_sys_config->k, m_sys_config->r,
+                                            &local_parity_cluster) &&
+          local_parity_cluster >= 0 && m_self_cluster_id == local_parity_cluster)
+      {
+        const int local_updated = applyXueLocalParityFromDataDeltas(placement, slices, tcp_slice_count);
+        if (local_updated > 0)
+        {
+          log_proxy_local_compute(ts, local_parity_cluster,
+                                  "根据 data_delta 计算 parity_delta 并写入新本地校验数据",
+                                  "updated_slices=" + std::to_string(local_updated) + " class1_relay");
+        }
+      }
+    }
+
+    if (placement.xue_relay_cluster_id() < 0)
+    {
+      std::cerr << "[Proxy] class1 relay: missing relay cluster id" << std::endl;
+      return false;
+    }
+    proxy_proto::AppendStripeDataPlacement fwd_placement = placement;
+    fwd_placement.set_xue_data_slices_are_delta(true);
+    return forwardXueDataDeltaSync(placement.xue_relay_cluster_id(), "XUE_DELTA_TO_RELAY", fwd_placement,
+                                   delta_buf, delta_size);
   }
 
   int ProxyImpl::applyXueGlobalParityFromDataDeltas(const proxy_proto::AppendStripeDataPlacement &placement,
@@ -366,14 +569,27 @@ namespace ECProject
           continue;
         }
         const std::string &pbk = placement.blockkeys(idx);
-        if (!XorWriteRangeToDatanode(pbk.c_str(), bid, ref_off, p_acc[static_cast<size_t>(gi)].data(), ref_len,
-                                     placement.datanodeip(idx).c_str(), placement.datanodeport(idx)))
+        const std::string dip = placement.datanodeip(idx);
+        const int dport = placement.datanodeport(idx);
+        std::vector<char> oldbuf(static_cast<size_t>(ref_len), 0);
+        if (!ReadRangeFromDatanode(pbk.c_str(), bid, ref_off, ref_len, oldbuf.data(), dip.c_str(), dport))
         {
-          std::cerr << "[Proxy] XUE global parity XorWriteRange failed block " << pbk << std::endl;
+          std::memset(oldbuf.data(), 0, static_cast<size_t>(ref_len));
+        }
+        std::vector<char> newbuf(static_cast<size_t>(ref_len));
+        for (int t = 0; t < ref_len; ++t)
+        {
+          newbuf[static_cast<size_t>(t)] = static_cast<char>(
+              static_cast<unsigned char>(oldbuf[static_cast<size_t>(t)]) ^
+              static_cast<unsigned char>(p_acc[static_cast<size_t>(gi)][static_cast<size_t>(t)]));
+        }
+        if (WriteRangeToDatanode(pbk.c_str(), bid, ref_off, newbuf.data(), ref_len, dip.c_str(), dport))
+        {
+          ++global_updated;
         }
         else
         {
-          ++global_updated;
+          std::cerr << "[Proxy] XUE global parity WriteRange failed block " << pbk << std::endl;
         }
       }
     }
@@ -480,14 +696,27 @@ namespace ECProject
           continue;
         }
         const std::string &pbk = placement.blockkeys(idx);
-        if (!XorWriteRangeToDatanode(pbk.c_str(), bid, ref_off, p_acc[static_cast<size_t>(li)].data(), ref_len,
-                                     placement.datanodeip(idx).c_str(), placement.datanodeport(idx)))
+        const std::string dip = placement.datanodeip(idx);
+        const int dport = placement.datanodeport(idx);
+        std::vector<char> oldbuf(static_cast<size_t>(ref_len), 0);
+        if (!ReadRangeFromDatanode(pbk.c_str(), bid, ref_off, ref_len, oldbuf.data(), dip.c_str(), dport))
         {
-          std::cerr << "[Proxy] XUE local parity XorWriteRange failed block " << pbk << std::endl;
+          std::memset(oldbuf.data(), 0, static_cast<size_t>(ref_len));
+        }
+        std::vector<char> newbuf(static_cast<size_t>(ref_len));
+        for (int t = 0; t < ref_len; ++t)
+        {
+          newbuf[static_cast<size_t>(t)] = static_cast<char>(
+              static_cast<unsigned char>(oldbuf[static_cast<size_t>(t)]) ^
+              static_cast<unsigned char>(p_acc[static_cast<size_t>(li)][static_cast<size_t>(t)]));
+        }
+        if (WriteRangeToDatanode(pbk.c_str(), bid, ref_off, newbuf.data(), ref_len, dip.c_str(), dport))
+        {
+          ++local_updated;
         }
         else
         {
-          ++local_updated;
+          std::cerr << "[Proxy] XUE local parity WriteRange failed block " << pbk << std::endl;
         }
       }
     }
@@ -1106,12 +1335,19 @@ namespace ECProject
 
     auto placement_copy = std::make_shared<proxy_proto::AppendStripeDataPlacement>(*append_stripe_data_placement);
 
-    std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " grpc scheduleAppend2Datanode"
-              << " ingress_proxy_cluster=" << m_self_cluster_id
-              << " plan_ingress_cluster=" << append_stripe_data_placement->cluster_id()
-              << " append_key=" << append_stripe_data_placement->key()
-              << " stripe_id=" << stripe_id << " mode=" << append_stripe_data_placement->append_mode()
-              << " append_bytes=" << cluster_append_size << " slices=" << slice_num << std::endl;
+    {
+      const std::string ts = proxy_xfer_timestamp();
+      const int plan_cluster = append_stripe_data_placement->cluster_id();
+      const std::string route = xue_route_tag(*append_stripe_data_placement);
+      std::cout << "[Proxy][XFERT] " << ts << " schedule_append 计划入口="
+                << fmt_proxy_cluster(plan_cluster) << " 实际处理 proxy="
+                << fmt_proxy_cluster(m_self_cluster_id) << " mode="
+                << append_stripe_data_placement->append_mode()
+                << " tcp_payload=" << xue_tcp_payload_desc(*append_stripe_data_placement)
+                << (route.empty() ? "" : " " + route)
+                << " | append_key=" << append_stripe_data_placement->key() << " stripe_id=" << stripe_id
+                << " bytes=" << cluster_append_size << " tcp_slices=" << slice_num << std::endl;
+    }
 
     auto append_and_save = [this, stripe_id, cluster_append_size, slice_num, placement_copy, is_serialized]() mutable
     {
@@ -1137,10 +1373,6 @@ namespace ECProject
         {
           throw asio::system_error(error);
         }
-
-        std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " client_tcp->proxy_cluster=" << m_self_cluster_id
-                  << " append_key=" << placement_copy->key() << " stripe_id=" << stripe_id
-                  << " received_bytes=" << cluster_append_size << std::endl;
 
         if (IF_DEBUG)
         {
@@ -1171,10 +1403,78 @@ namespace ECProject
         const bool azure_like =
             m_sys_config->CodeType == "AzureLRC" || m_sys_config->CodeType == "XueLRC";
 
+        {
+          const std::string ts = proxy_xfer_timestamp();
+          const std::string route = xue_route_tag(*placement_copy);
+          std::string recv_detail = "append_key=" + placement_copy->key() + " stripe_id=" +
+                                    std::to_string(stripe_id) + " bytes=" +
+                                    std::to_string(cluster_append_size);
+          if (!route.empty())
+          {
+            recv_detail += " " + route;
+          }
+          if (append_mode_str == "XUE_UPDATE" && placement_copy->xue_class1_relay_path() &&
+              !placement_copy->xue_data_slices_are_delta())
+          {
+            recv_detail += " | 下一步: 读旧值算 data_delta 落盘新数据 再转发 relay";
+          }
+          log_proxy_cluster_xfer(ts, "client_receive", -1, m_self_cluster_id,
+                                 xue_tcp_payload_desc(*placement_copy), recv_detail);
+        }
+
+        if (append_mode_str == "XUE_UPDATE" && placement_copy->xue_class1_relay_path() &&
+            !placement_copy->xue_data_slices_are_delta())
+        {
+          const bool relay_ok = handleXueClass1RelayAtDataCluster(*placement_copy, slices, tcp_slice_count,
+                                                                append_buf.data(), cluster_append_size);
+          if (!relay_ok)
+          {
+            std::cerr << "[Proxy] class1 relay: data cluster -> relay 转发 data_delta 失败" << std::endl;
+          }
+          if (send_ack)
+          {
+            const char ack = relay_ok ? static_cast<char>(1) : static_cast<char>(0);
+            asio::error_code ack_ec;
+            asio::write(socket_data, asio::buffer(&ack, 1), ack_ec);
+          }
+          close_socket();
+          coordinator_proto::CommitAbortKey commit_abort_key;
+          coordinator_proto::ReplyFromCoordinator result;
+          grpc::ClientContext context;
+          commit_abort_key.set_opp(APPEND);
+          commit_abort_key.set_key(placement_copy->key());
+          commit_abort_key.set_stripe_id(stripe_id);
+          commit_abort_key.set_ifcommitmetadata(true);
+          m_coordinator_ptr->reportCommitAbort(&context, commit_abort_key, &result);
+          return;
+        }
+
         if (append_mode_str == "XUE_DELTA_TO_RELAY")
         {
+          const std::string ts = proxy_xfer_timestamp();
+          if (!placement_copy->xue_data_slices_are_delta())
+          {
+            std::cerr << "[Proxy][XFERT] " << ts
+                      << " 警告: 中继 cluster 收到的 TCP 载荷未标记为 data_delta" << std::endl;
+          }
+          int src_cluster = -1;
+          for (int si = 0; si < tcp_slice_count && si < placement_copy->blockids_size(); ++si)
+          {
+            if (placement_copy->blockids(si) >= 0 &&
+                placement_copy->blockids(si) < m_sys_config->k &&
+                si < placement_copy->block_cluster_ids_size())
+            {
+              src_cluster = placement_copy->block_cluster_ids(si);
+              break;
+            }
+          }
+          log_proxy_cluster_xfer(ts, "proxy_receive", src_cluster, m_self_cluster_id,
+                                 xue_xfer_payload_desc("XUE_DELTA_TO_RELAY"),
+                                 "中继 cluster 仅透传 data_delta，不写 datanode");
+          proxy_proto::AppendStripeDataPlacement fwd_placement = *placement_copy;
+          fwd_placement.set_xue_data_slices_are_delta(true);
           bool ok = forwardXueDataDeltaSync(placement_copy->xue_global_parity_cluster_id(), "XUE_DELTA_TO_GLOBAL",
-                                            *placement_copy, append_buf.data(), cluster_append_size);
+                                            fwd_placement, append_buf.data(), cluster_append_size);
           if (send_ack)
           {
             const char ack = ok ? static_cast<char>(1) : static_cast<char>(0);
@@ -1192,9 +1492,10 @@ namespace ECProject
           const bool ok = updated > 0;
           if (ok)
           {
-            std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp()
-                      << " XUE_DELTA_TO_GLOBAL applied global parity for " << updated << " slice(s)"
-                      << std::endl;
+            log_proxy_local_compute(
+                proxy_xfer_timestamp(), m_self_cluster_id,
+                "根据 data_delta 计算 parity_delta 并写入新全局校验数据",
+                "updated_slices=" + std::to_string(updated) + " mode=XUE_DELTA_TO_GLOBAL");
           }
           if (send_ack)
           {
@@ -1208,14 +1509,19 @@ namespace ECProject
 
         if (append_mode_str == "XUE_COMPUTE_LOCAL_PARITY")
         {
+          const std::string ts = proxy_xfer_timestamp();
+          log_proxy_cluster_xfer(ts, "proxy_receive", -1, m_self_cluster_id,
+                                 xue_xfer_payload_desc("XUE_COMPUTE_LOCAL_PARITY"),
+                                 "将在本 proxy 计算本地校验增量并 XOR 落盘");
           const int updated =
               applyXueLocalParityFromDataDeltas(*placement_copy, slices, tcp_slice_count);
           const bool ok = updated > 0;
           if (ok)
           {
-            std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp()
-                      << " XUE_COMPUTE_LOCAL_PARITY applied local parity for " << updated << " slice(s)"
-                      << std::endl;
+            log_proxy_local_compute(
+                ts, m_self_cluster_id,
+                "根据 data_delta 计算 parity_delta 并 XOR 更新本地校验块",
+                "updated_slices=" + std::to_string(updated) + " mode=XUE_COMPUTE_LOCAL_PARITY");
           }
           if (send_ack)
           {
@@ -1269,16 +1575,22 @@ namespace ECProject
                                         ? placement_copy->block_cluster_ids(j)
                                         : clusterIdForDatanodeEndpoint(placement_copy->datanodeip(j),
                                                                        placement_copy->datanodeport(j));
-          std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " slice_plan ingress_proxy_cluster="
-                    << m_self_cluster_id << " block_cluster="
-                    << (block_cluster >= 0 ? std::to_string(block_cluster) : "?")
-                    << " ->datanode=" << placement_copy->datanodeip(j) << ":" << placement_copy->datanodeport(j)
-                    << " block_id=" << bid << " off=" << placement_copy->offsets(j) << " len=" << placement_copy->sizes(j)
-                    << " block_key=" << placement_copy->blockkeys(j)
-                    << (xue_data_path ? " op=XUE_READ_XOR_WRITE"
-                                      : (xue_global_parity_deferred ? " op=XUE_GLOBAL_PARITY_MATRIX_DEFER"
-                                                                    : " op=APPEND_TCP_TO_DATANODE"))
-                    << std::endl;
+          {
+            const std::string ts = proxy_xfer_timestamp();
+            const std::string payload =
+                xue_data_path ? "数据新值(client_new_value)" :
+                (xue_global_parity_deferred ? "校验增量(parity_delta，延后矩阵计算)" : "块数据(append)");
+            const std::string op =
+                xue_data_path ? "读旧算△后WriteRange新数据" :
+                (xue_global_parity_deferred ? "延后全局校验" : "APPEND到校验块");
+            std::cout << "[Proxy][XFERT] " << ts << " datanode_write proxy="
+                      << fmt_proxy_cluster(m_self_cluster_id) << " block_cluster="
+                      << fmt_proxy_cluster(block_cluster) << " 内容=" << payload
+                      << " | op=" << op << " block_id=" << bid << " off=" << placement_copy->offsets(j)
+                      << " len=" << placement_copy->sizes(j) << " dn="
+                      << placement_copy->datanodeip(j) << ":" << placement_copy->datanodeport(j)
+                      << " key=" << placement_copy->blockkeys(j) << std::endl;
+          }
           if (xue_data_path)
           {
             senders.push_back(std::thread(
@@ -1334,63 +1646,26 @@ namespace ECProject
                   applyXueLocalParityFromDataDeltas(*placement_copy, slices, tcp_slice_count);
               if (local_updated > 0)
               {
-                std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp()
-                          << " XUE_UPDATE class1 local parity: matrix delta + XorWriteRange for "
-                          << local_updated << " slice(s) at cluster " << local_parity_cluster << std::endl;
+                log_proxy_local_compute(
+                    proxy_xfer_timestamp(), local_parity_cluster,
+                    "根据 data_delta 计算 parity_delta 并 XOR 更新本地校验块",
+                    "updated_slices=" + std::to_string(local_updated) + " class1");
               }
             }
             else if (tcp_slice_count > 0)
             {
-              const bool lp_fwd_ok = forwardXueDataDeltaSync(
-                  local_parity_cluster, "XUE_COMPUTE_LOCAL_PARITY", *placement_copy, append_buf.data(),
-                  cluster_append_size);
-              if (!lp_fwd_ok)
-              {
-                std::cerr << "[Proxy] XUE class1 forward data delta to local parity cluster failed"
-                          << std::endl;
-              }
-              else
-              {
-                std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp()
-                          << " XUE class1 forwarded data deltas to local parity cluster "
-                          << local_parity_cluster << " for local parity update" << std::endl;
-              }
+              forwardXueDataDeltaSync(local_parity_cluster, "XUE_COMPUTE_LOCAL_PARITY", *placement_copy,
+                                      append_buf.data(), cluster_append_size);
             }
           }
         }
 
-        if (append_mode_str == "XUE_UPDATE" && placement_copy->xue_class1_relay_path())
-        {
-          const bool fwd_ok = forwardXueDataDeltaSync(placement_copy->xue_relay_cluster_id(), "XUE_DELTA_TO_RELAY",
-                                                      *placement_copy, append_buf.data(), cluster_append_size);
-          if (!fwd_ok)
-          {
-            std::cerr << "[Proxy] XUE class1 relay forward data cluster -> relay failed" << std::endl;
-          }
-          else
-          {
-            std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp()
-                      << " XUE class1 relay forwarded data deltas to relay cluster "
-                      << placement_copy->xue_relay_cluster_id() << std::endl;
-          }
-        }
         else if (append_mode_str == "XUE_UPDATE" && azure_like &&
                  placement_copy->xue_global_parity_cluster_id() >= 0 &&
                  placement_copy->xue_global_parity_cluster_id() != m_self_cluster_id && tcp_slice_count > 0)
         {
-          const bool fwd_ok = forwardXueDataDeltaSync(placement_copy->xue_global_parity_cluster_id(),
-                                                      "XUE_DELTA_TO_GLOBAL", *placement_copy, append_buf.data(),
-                                                      cluster_append_size);
-          if (!fwd_ok)
-          {
-            std::cerr << "[Proxy] XUE forward data delta to global parity cluster failed" << std::endl;
-          }
-          else
-          {
-            std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp()
-                      << " XUE forwarded data deltas to global parity cluster "
-                      << placement_copy->xue_global_parity_cluster_id() << std::endl;
-          }
+          forwardXueDataDeltaSync(placement_copy->xue_global_parity_cluster_id(), "XUE_DELTA_TO_GLOBAL",
+                                  *placement_copy, append_buf.data(), cluster_append_size);
         }
         else if (append_mode_str == "XUE_UPDATE" && azure_like && placement_copy->xue_compute_global_parity())
         {
@@ -1398,9 +1673,10 @@ namespace ECProject
               applyXueGlobalParityFromDataDeltas(*placement_copy, slices, tcp_slice_count);
           if (global_updated > 0)
           {
-            std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp()
-                      << " XUE_UPDATE global parity: proxy computed deltas, datanode read-xor-write for "
-                      << global_updated << " slice(s)" << std::endl;
+            log_proxy_local_compute(
+                proxy_xfer_timestamp(), m_self_cluster_id,
+                "根据 data_delta 计算 parity_delta 并 XOR 更新全局校验块",
+                "updated_slices=" + std::to_string(global_updated) + " class1_direct_or_ingress_global");
           }
           else if (!global_parity_indices.empty())
           {
@@ -1412,8 +1688,8 @@ namespace ECProject
                                  is_serialized);
             }
             std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp()
-                      << " XUE_UPDATE global parity fallback APPEND_TCP (no matching data slices or range mismatch)"
-                      << std::endl;
+                      << " datanode_write_fallback 在 " << fmt_proxy_cluster(m_self_cluster_id)
+                      << " 对全局校验块 APPEND（矩阵计算未匹配区间）" << std::endl;
           }
         }
 
@@ -1454,8 +1730,9 @@ namespace ECProject
         commit_abort_key.set_ifcommitmetadata(true);
         grpc::Status status;
         status = m_coordinator_ptr->reportCommitAbort(&context, commit_abort_key, &result);
-        std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " append_commit_report proxy_cluster="
-                  << m_self_cluster_id << " append_key=" << placement_copy->key() << " stripe_id=" << stripe_id
+        std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " commit_report 在 "
+                  << fmt_proxy_cluster(m_self_cluster_id) << " 上报 coordinator | append_key="
+                  << placement_copy->key() << " stripe_id=" << stripe_id
                   << " grpc_ok=" << (status.ok() ? "true" : "false") << std::endl;
         if (status.ok() && IF_DEBUG)
         {
@@ -1567,9 +1844,10 @@ namespace ECProject
         socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
         socket_data.close(ignore_ec);
 
-        std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " SET client_tcp->proxy_cluster=" << m_self_cluster_id
-                  << " object_key=" << key << " key_match=" << (flag ? "true" : "false")
-                  << " value_bytes_expected=" << value_size_bytes << std::endl;
+        log_proxy_cluster_xfer(proxy_xfer_timestamp(), "client_receive", -1, m_self_cluster_id,
+                               "对象数据(set_value)",
+                               "object_key=" + key + " key_match=" + (flag ? "true" : "false") +
+                                   " bytes=" + std::to_string(value_size_bytes));
 
         // set the blocks to the datanode
         char *buf = v_buf.data();
@@ -1638,8 +1916,9 @@ namespace ECProject
         {
           senders[j].join();
         }
-        std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " SET proxy_cluster=" << m_self_cluster_id
-                  << " object_key=" << key << " datanode_block_pushes=" << senders.size()
+        std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " datanode_distribute 在 "
+                  << fmt_proxy_cluster(m_self_cluster_id) << " 分发编码块到各 datanode"
+                  << " | object_key=" << key << " blocks=" << senders.size()
                   << " block_size=" << block_size << std::endl;
         if (IF_DEBUG)
         {
@@ -1657,8 +1936,9 @@ namespace ECProject
         commit_abort_key.set_ifcommitmetadata(true);
         grpc::Status status;
         status = m_coordinator_ptr->reportCommitAbort(&context, commit_abort_key, &result);
-        std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " SET_commit_report proxy_cluster=" << m_self_cluster_id
-                  << " object_key=" << key << " grpc_ok=" << (status.ok() ? "true" : "false") << std::endl;
+        std::cout << "[Proxy][XFERT] " << proxy_xfer_timestamp() << " commit_report 在 "
+                  << fmt_proxy_cluster(m_self_cluster_id) << " 上报 coordinator (SET) | object_key=" << key
+                  << " grpc_ok=" << (status.ok() ? "true" : "false") << std::endl;
         if (status.ok() && IF_DEBUG)
         {
           std::cout << "[Proxy" << m_self_cluster_id << "][SET]"

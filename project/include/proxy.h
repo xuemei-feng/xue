@@ -117,6 +117,11 @@ namespace ECProject
     bool forwardXueDataDeltaSync(int dest_cluster_id, const std::string &append_mode,
                                  const proxy_proto::AppendStripeDataPlacement &placement,
                                  const char *delta_buf, size_t delta_size);
+    int applyXueDataBlocksNewValueToDataDelta(const proxy_proto::AppendStripeDataPlacement &placement,
+                                              std::vector<char *> &slices, int tcp_slice_count);
+    bool handleXueClass1RelayAtDataCluster(const proxy_proto::AppendStripeDataPlacement &placement,
+                                           std::vector<char *> &slices, int tcp_slice_count,
+                                           const char *delta_buf, size_t delta_size);
     int applyXueGlobalParityFromDataDeltas(const proxy_proto::AppendStripeDataPlacement &placement,
                                            const std::vector<char *> &slices, int tcp_slice_count);
     int applyXueLocalParityFromDataDeltas(const proxy_proto::AppendStripeDataPlacement &placement,

@@ -2568,10 +2568,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       const bool class1_relay = relay_it != group_to_class1_relay.end() && relay_it->second.enabled;
       if (class1_relay)
       {
+        // Client 仅向数据块所在 cluster 发 TCP 新值；data_delta 经 data→relay→global 两跳转发
         plan.set_xue_class1_relay_path(true);
         plan.set_xue_relay_cluster_id(relay_it->second.relay_cluster);
         plan.set_xue_global_parity_cluster_id(relay_it->second.global_parity_cluster);
         plan.set_xue_compute_global_parity(false);
+        plan.set_xue_data_slices_are_delta(false);
         global_data_forward_assigned = true;
       }
       else
