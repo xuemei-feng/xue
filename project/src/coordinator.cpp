@@ -273,6 +273,36 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           std::sort(idxs.begin(), idxs.end(),
                     [&plan](int a, int b) { return plan.blockids(a) < plan.blockids(b); });
         }
+        // 第3类（及同类入口）：client TCP 落在 data cluster 子 plan 时，需携带 local/global parity
+        // 元数据，供 proxy 计算校验增量并转发；否则仅 plan_blocks=1，global/local 均失败。
+        else if (plan.append_mode() == "XUE_UPDATE" && !plan.xue_class1_relay_path())
+        {
+          bool sub_has_tcp = false;
+          for (int j : idxs)
+          {
+            if (j < tcp_n)
+            {
+              sub_has_tcp = true;
+              break;
+            }
+          }
+          if (sub_has_tcp)
+          {
+            for (int j = 0; j < n; ++j)
+            {
+              if (j < tcp_n)
+              {
+                continue;
+              }
+              if (std::find(idxs.begin(), idxs.end(), j) == idxs.end())
+              {
+                idxs.push_back(j);
+              }
+            }
+            std::sort(idxs.begin(), idxs.end(),
+                      [&plan](int a, int b) { return plan.blockids(a) < plan.blockids(b); });
+          }
+        }
         std::vector<int> tcp_block_ids;
         std::vector<int> meta_block_ids;
         tcp_block_ids.reserve(idxs.size());
