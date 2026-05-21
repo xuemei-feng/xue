@@ -107,6 +107,15 @@ message CommitAbortKey {
 }
 
 // append
+message AppendPlanLayout {
+  int32 group_id = 1;
+  int32 cluster_id = 2;
+  int32 data_block_num = 3;
+  int32 global_parity_block_num = 4;
+  int32 local_parity_block_num = 5;
+  repeated int32 block_ids = 6;
+}
+
 message ReplyProxyIPsPorts {
   uint64 sum_append_size = 1;
   repeated string append_keys = 2;
@@ -114,6 +123,7 @@ message ReplyProxyIPsPorts {
   repeated int32 proxyports = 4;
   repeated uint64 cluster_slice_sizes = 5;
   repeated int32 group_ids = 6;
+  repeated AppendPlanLayout plan_layouts = 7;
 }
 
 // set, del, merge

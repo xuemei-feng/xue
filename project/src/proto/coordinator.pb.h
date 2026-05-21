@@ -45,6 +45,9 @@ struct TableStruct_coordinator_2eproto {
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_coordinator_2eproto;
 namespace coordinator_proto {
+class AppendPlanLayout;
+struct AppendPlanLayoutDefaultTypeInternal;
+extern AppendPlanLayoutDefaultTypeInternal _AppendPlanLayout_default_instance_;
 class AskIfSuccess;
 struct AskIfSuccessDefaultTypeInternal;
 extern AskIfSuccessDefaultTypeInternal _AskIfSuccess_default_instance_;
@@ -119,6 +122,7 @@ struct XueUpdateRequestDefaultTypeInternal;
 extern XueUpdateRequestDefaultTypeInternal _XueUpdateRequest_default_instance_;
 }  // namespace coordinator_proto
 PROTOBUF_NAMESPACE_OPEN
+template<> ::coordinator_proto::AppendPlanLayout* Arena::CreateMaybeMessage<::coordinator_proto::AppendPlanLayout>(Arena*);
 template<> ::coordinator_proto::AskIfSuccess* Arena::CreateMaybeMessage<::coordinator_proto::AskIfSuccess>(Arena*);
 template<> ::coordinator_proto::BlockIDsAndClientIP* Arena::CreateMaybeMessage<::coordinator_proto::BlockIDsAndClientIP>(Arena*);
 template<> ::coordinator_proto::CommitAbortKey* Arena::CreateMaybeMessage<::coordinator_proto::CommitAbortKey>(Arena*);
@@ -1368,6 +1372,223 @@ class CommitAbortKey final :
 };
 // -------------------------------------------------------------------
 
+class AppendPlanLayout final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coordinator_proto.AppendPlanLayout) */ {
+ public:
+  inline AppendPlanLayout() : AppendPlanLayout(nullptr) {}
+  ~AppendPlanLayout() override;
+  explicit PROTOBUF_CONSTEXPR AppendPlanLayout(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  AppendPlanLayout(const AppendPlanLayout& from);
+  AppendPlanLayout(AppendPlanLayout&& from) noexcept
+    : AppendPlanLayout() {
+    *this = ::std::move(from);
+  }
+
+  inline AppendPlanLayout& operator=(const AppendPlanLayout& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline AppendPlanLayout& operator=(AppendPlanLayout&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const AppendPlanLayout& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const AppendPlanLayout* internal_default_instance() {
+    return reinterpret_cast<const AppendPlanLayout*>(
+               &_AppendPlanLayout_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    7;
+
+  friend void swap(AppendPlanLayout& a, AppendPlanLayout& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(AppendPlanLayout* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(AppendPlanLayout* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  AppendPlanLayout* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<AppendPlanLayout>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const AppendPlanLayout& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const AppendPlanLayout& from) {
+    AppendPlanLayout::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(AppendPlanLayout* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coordinator_proto.AppendPlanLayout";
+  }
+  protected:
+  explicit AppendPlanLayout(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kBlockIdsFieldNumber = 6,
+    kGroupIdFieldNumber = 1,
+    kClusterIdFieldNumber = 2,
+    kDataBlockNumFieldNumber = 3,
+    kGlobalParityBlockNumFieldNumber = 4,
+    kLocalParityBlockNumFieldNumber = 5,
+  };
+  // repeated int32 block_ids = 6;
+  int block_ids_size() const;
+  private:
+  int _internal_block_ids_size() const;
+  public:
+  void clear_block_ids();
+  private:
+  int32_t _internal_block_ids(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_block_ids() const;
+  void _internal_add_block_ids(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_block_ids();
+  public:
+  int32_t block_ids(int index) const;
+  void set_block_ids(int index, int32_t value);
+  void add_block_ids(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      block_ids() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_block_ids();
+
+  // int32 group_id = 1;
+  void clear_group_id();
+  int32_t group_id() const;
+  void set_group_id(int32_t value);
+  private:
+  int32_t _internal_group_id() const;
+  void _internal_set_group_id(int32_t value);
+  public:
+
+  // int32 cluster_id = 2;
+  void clear_cluster_id();
+  int32_t cluster_id() const;
+  void set_cluster_id(int32_t value);
+  private:
+  int32_t _internal_cluster_id() const;
+  void _internal_set_cluster_id(int32_t value);
+  public:
+
+  // int32 data_block_num = 3;
+  void clear_data_block_num();
+  int32_t data_block_num() const;
+  void set_data_block_num(int32_t value);
+  private:
+  int32_t _internal_data_block_num() const;
+  void _internal_set_data_block_num(int32_t value);
+  public:
+
+  // int32 global_parity_block_num = 4;
+  void clear_global_parity_block_num();
+  int32_t global_parity_block_num() const;
+  void set_global_parity_block_num(int32_t value);
+  private:
+  int32_t _internal_global_parity_block_num() const;
+  void _internal_set_global_parity_block_num(int32_t value);
+  public:
+
+  // int32 local_parity_block_num = 5;
+  void clear_local_parity_block_num();
+  int32_t local_parity_block_num() const;
+  void set_local_parity_block_num(int32_t value);
+  private:
+  int32_t _internal_local_parity_block_num() const;
+  void _internal_set_local_parity_block_num(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:coordinator_proto.AppendPlanLayout)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > block_ids_;
+    mutable std::atomic<int> _block_ids_cached_byte_size_;
+    int32_t group_id_;
+    int32_t cluster_id_;
+    int32_t data_block_num_;
+    int32_t global_parity_block_num_;
+    int32_t local_parity_block_num_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coordinator_2eproto;
+};
+// -------------------------------------------------------------------
+
 class ReplyProxyIPsPorts final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coordinator_proto.ReplyProxyIPsPorts) */ {
  public:
@@ -1416,7 +1637,7 @@ class ReplyProxyIPsPorts final :
                &_ReplyProxyIPsPorts_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    8;
 
   friend void swap(ReplyProxyIPsPorts& a, ReplyProxyIPsPorts& b) {
     a.Swap(&b);
@@ -1494,6 +1715,7 @@ class ReplyProxyIPsPorts final :
     kProxyportsFieldNumber = 4,
     kClusterSliceSizesFieldNumber = 5,
     kGroupIdsFieldNumber = 6,
+    kPlanLayoutsFieldNumber = 7,
     kSumAppendSizeFieldNumber = 1,
   };
   // repeated string append_keys = 2;
@@ -1610,6 +1832,24 @@ class ReplyProxyIPsPorts final :
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
       mutable_group_ids();
 
+  // repeated .coordinator_proto.AppendPlanLayout plan_layouts = 7;
+  int plan_layouts_size() const;
+  private:
+  int _internal_plan_layouts_size() const;
+  public:
+  void clear_plan_layouts();
+  ::coordinator_proto::AppendPlanLayout* mutable_plan_layouts(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::AppendPlanLayout >*
+      mutable_plan_layouts();
+  private:
+  const ::coordinator_proto::AppendPlanLayout& _internal_plan_layouts(int index) const;
+  ::coordinator_proto::AppendPlanLayout* _internal_add_plan_layouts();
+  public:
+  const ::coordinator_proto::AppendPlanLayout& plan_layouts(int index) const;
+  ::coordinator_proto::AppendPlanLayout* add_plan_layouts();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::AppendPlanLayout >&
+      plan_layouts() const;
+
   // uint64 sum_append_size = 1;
   void clear_sum_append_size();
   uint64_t sum_append_size() const;
@@ -1635,6 +1875,7 @@ class ReplyProxyIPsPorts final :
     mutable std::atomic<int> _cluster_slice_sizes_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > group_ids_;
     mutable std::atomic<int> _group_ids_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::AppendPlanLayout > plan_layouts_;
     uint64_t sum_append_size_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -1691,7 +1932,7 @@ class AskIfSuccess final :
                &_AskIfSuccess_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    9;
 
   friend void swap(AskIfSuccess& a, AskIfSuccess& b) {
     a.Swap(&b);
@@ -1866,7 +2107,7 @@ class RepIfSuccess final :
                &_RepIfSuccess_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    10;
 
   friend void swap(RepIfSuccess& a, RepIfSuccess& b) {
     a.Swap(&b);
@@ -2014,7 +2255,7 @@ class KeyAndClientIP final :
                &_KeyAndClientIP_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    11;
 
   friend void swap(KeyAndClientIP& a, KeyAndClientIP& b) {
     a.Swap(&b);
@@ -2194,7 +2435,7 @@ class RepIfGetSuccess final :
                &_RepIfGetSuccess_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    12;
 
   friend void swap(RepIfGetSuccess& a, RepIfGetSuccess& b) {
     a.Swap(&b);
@@ -2353,7 +2594,7 @@ class BlockIDsAndClientIP final :
                &_BlockIDsAndClientIP_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    13;
 
   friend void swap(BlockIDsAndClientIP& a, BlockIDsAndClientIP& b) {
     a.Swap(&b);
@@ -2550,7 +2791,7 @@ class LogicalRange final :
                &_LogicalRange_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    13;
+    14;
 
   friend void swap(LogicalRange& a, LogicalRange& b) {
     a.Swap(&b);
@@ -2709,7 +2950,7 @@ class XueUpdateRequest final :
                &_XueUpdateRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    14;
+    15;
 
   friend void swap(XueUpdateRequest& a, XueUpdateRequest& b) {
     a.Swap(&b);
@@ -2893,7 +3134,7 @@ class KeyFromClient final :
                &_KeyFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    15;
+    16;
 
   friend void swap(KeyFromClient& a, KeyFromClient& b) {
     a.Swap(&b);
@@ -3046,7 +3287,7 @@ class StripeIdFromClient final :
                &_StripeIdFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    16;
+    17;
 
   friend void swap(StripeIdFromClient& a, StripeIdFromClient& b) {
     a.Swap(&b);
@@ -3194,7 +3435,7 @@ class StripeIdAndBlockIDsFromClient final :
                &_StripeIdAndBlockIDsFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    17;
+    18;
 
   friend void swap(StripeIdAndBlockIDsFromClient& a, StripeIdAndBlockIDsFromClient& b) {
     a.Swap(&b);
@@ -3367,7 +3608,7 @@ class NodeIdFromClient final :
                &_NodeIdFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    19;
 
   friend void swap(NodeIdFromClient& a, NodeIdFromClient& b) {
     a.Swap(&b);
@@ -3515,7 +3756,7 @@ class RepIfDeling final :
                &_RepIfDeling_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    20;
 
   friend void swap(RepIfDeling& a, RepIfDeling& b) {
     a.Swap(&b);
@@ -3663,7 +3904,7 @@ class RepStripeIds final :
                &_RepStripeIds_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    21;
 
   friend void swap(RepStripeIds& a, RepStripeIds& b) {
     a.Swap(&b);
@@ -3825,7 +4066,7 @@ class RepBlockNum final :
                &_RepBlockNum_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    22;
 
   friend void swap(RepBlockNum& a, RepBlockNum& b) {
     a.Swap(&b);
@@ -3973,7 +4214,7 @@ class DegradedReadReply final :
                &_DegradedReadReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    23;
 
   friend void swap(DegradedReadReply& a, DegradedReadReply& b) {
     a.Swap(&b);
@@ -4154,7 +4395,7 @@ class RecoveryReply final :
                &_RecoveryReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    24;
 
   friend void swap(RecoveryReply& a, RecoveryReply& b) {
     a.Swap(&b);
@@ -4933,6 +5174,157 @@ inline void CommitAbortKey::set_stripe_id(int32_t value) {
 
 // -------------------------------------------------------------------
 
+// AppendPlanLayout
+
+// int32 group_id = 1;
+inline void AppendPlanLayout::clear_group_id() {
+  _impl_.group_id_ = 0;
+}
+inline int32_t AppendPlanLayout::_internal_group_id() const {
+  return _impl_.group_id_;
+}
+inline int32_t AppendPlanLayout::group_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.AppendPlanLayout.group_id)
+  return _internal_group_id();
+}
+inline void AppendPlanLayout::_internal_set_group_id(int32_t value) {
+  
+  _impl_.group_id_ = value;
+}
+inline void AppendPlanLayout::set_group_id(int32_t value) {
+  _internal_set_group_id(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.AppendPlanLayout.group_id)
+}
+
+// int32 cluster_id = 2;
+inline void AppendPlanLayout::clear_cluster_id() {
+  _impl_.cluster_id_ = 0;
+}
+inline int32_t AppendPlanLayout::_internal_cluster_id() const {
+  return _impl_.cluster_id_;
+}
+inline int32_t AppendPlanLayout::cluster_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.AppendPlanLayout.cluster_id)
+  return _internal_cluster_id();
+}
+inline void AppendPlanLayout::_internal_set_cluster_id(int32_t value) {
+  
+  _impl_.cluster_id_ = value;
+}
+inline void AppendPlanLayout::set_cluster_id(int32_t value) {
+  _internal_set_cluster_id(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.AppendPlanLayout.cluster_id)
+}
+
+// int32 data_block_num = 3;
+inline void AppendPlanLayout::clear_data_block_num() {
+  _impl_.data_block_num_ = 0;
+}
+inline int32_t AppendPlanLayout::_internal_data_block_num() const {
+  return _impl_.data_block_num_;
+}
+inline int32_t AppendPlanLayout::data_block_num() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.AppendPlanLayout.data_block_num)
+  return _internal_data_block_num();
+}
+inline void AppendPlanLayout::_internal_set_data_block_num(int32_t value) {
+  
+  _impl_.data_block_num_ = value;
+}
+inline void AppendPlanLayout::set_data_block_num(int32_t value) {
+  _internal_set_data_block_num(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.AppendPlanLayout.data_block_num)
+}
+
+// int32 global_parity_block_num = 4;
+inline void AppendPlanLayout::clear_global_parity_block_num() {
+  _impl_.global_parity_block_num_ = 0;
+}
+inline int32_t AppendPlanLayout::_internal_global_parity_block_num() const {
+  return _impl_.global_parity_block_num_;
+}
+inline int32_t AppendPlanLayout::global_parity_block_num() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.AppendPlanLayout.global_parity_block_num)
+  return _internal_global_parity_block_num();
+}
+inline void AppendPlanLayout::_internal_set_global_parity_block_num(int32_t value) {
+  
+  _impl_.global_parity_block_num_ = value;
+}
+inline void AppendPlanLayout::set_global_parity_block_num(int32_t value) {
+  _internal_set_global_parity_block_num(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.AppendPlanLayout.global_parity_block_num)
+}
+
+// int32 local_parity_block_num = 5;
+inline void AppendPlanLayout::clear_local_parity_block_num() {
+  _impl_.local_parity_block_num_ = 0;
+}
+inline int32_t AppendPlanLayout::_internal_local_parity_block_num() const {
+  return _impl_.local_parity_block_num_;
+}
+inline int32_t AppendPlanLayout::local_parity_block_num() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.AppendPlanLayout.local_parity_block_num)
+  return _internal_local_parity_block_num();
+}
+inline void AppendPlanLayout::_internal_set_local_parity_block_num(int32_t value) {
+  
+  _impl_.local_parity_block_num_ = value;
+}
+inline void AppendPlanLayout::set_local_parity_block_num(int32_t value) {
+  _internal_set_local_parity_block_num(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.AppendPlanLayout.local_parity_block_num)
+}
+
+// repeated int32 block_ids = 6;
+inline int AppendPlanLayout::_internal_block_ids_size() const {
+  return _impl_.block_ids_.size();
+}
+inline int AppendPlanLayout::block_ids_size() const {
+  return _internal_block_ids_size();
+}
+inline void AppendPlanLayout::clear_block_ids() {
+  _impl_.block_ids_.Clear();
+}
+inline int32_t AppendPlanLayout::_internal_block_ids(int index) const {
+  return _impl_.block_ids_.Get(index);
+}
+inline int32_t AppendPlanLayout::block_ids(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.AppendPlanLayout.block_ids)
+  return _internal_block_ids(index);
+}
+inline void AppendPlanLayout::set_block_ids(int index, int32_t value) {
+  _impl_.block_ids_.Set(index, value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.AppendPlanLayout.block_ids)
+}
+inline void AppendPlanLayout::_internal_add_block_ids(int32_t value) {
+  _impl_.block_ids_.Add(value);
+}
+inline void AppendPlanLayout::add_block_ids(int32_t value) {
+  _internal_add_block_ids(value);
+  // @@protoc_insertion_point(field_add:coordinator_proto.AppendPlanLayout.block_ids)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+AppendPlanLayout::_internal_block_ids() const {
+  return _impl_.block_ids_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+AppendPlanLayout::block_ids() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.AppendPlanLayout.block_ids)
+  return _internal_block_ids();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+AppendPlanLayout::_internal_mutable_block_ids() {
+  return &_impl_.block_ids_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+AppendPlanLayout::mutable_block_ids() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.AppendPlanLayout.block_ids)
+  return _internal_mutable_block_ids();
+}
+
+// -------------------------------------------------------------------
+
 // ReplyProxyIPsPorts
 
 // uint64 sum_append_size = 1;
@@ -5244,6 +5636,46 @@ inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
 ReplyProxyIPsPorts::mutable_group_ids() {
   // @@protoc_insertion_point(field_mutable_list:coordinator_proto.ReplyProxyIPsPorts.group_ids)
   return _internal_mutable_group_ids();
+}
+
+// repeated .coordinator_proto.AppendPlanLayout plan_layouts = 7;
+inline int ReplyProxyIPsPorts::_internal_plan_layouts_size() const {
+  return _impl_.plan_layouts_.size();
+}
+inline int ReplyProxyIPsPorts::plan_layouts_size() const {
+  return _internal_plan_layouts_size();
+}
+inline void ReplyProxyIPsPorts::clear_plan_layouts() {
+  _impl_.plan_layouts_.Clear();
+}
+inline ::coordinator_proto::AppendPlanLayout* ReplyProxyIPsPorts::mutable_plan_layouts(int index) {
+  // @@protoc_insertion_point(field_mutable:coordinator_proto.ReplyProxyIPsPorts.plan_layouts)
+  return _impl_.plan_layouts_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::AppendPlanLayout >*
+ReplyProxyIPsPorts::mutable_plan_layouts() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.ReplyProxyIPsPorts.plan_layouts)
+  return &_impl_.plan_layouts_;
+}
+inline const ::coordinator_proto::AppendPlanLayout& ReplyProxyIPsPorts::_internal_plan_layouts(int index) const {
+  return _impl_.plan_layouts_.Get(index);
+}
+inline const ::coordinator_proto::AppendPlanLayout& ReplyProxyIPsPorts::plan_layouts(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.ReplyProxyIPsPorts.plan_layouts)
+  return _internal_plan_layouts(index);
+}
+inline ::coordinator_proto::AppendPlanLayout* ReplyProxyIPsPorts::_internal_add_plan_layouts() {
+  return _impl_.plan_layouts_.Add();
+}
+inline ::coordinator_proto::AppendPlanLayout* ReplyProxyIPsPorts::add_plan_layouts() {
+  ::coordinator_proto::AppendPlanLayout* _add = _internal_add_plan_layouts();
+  // @@protoc_insertion_point(field_add:coordinator_proto.ReplyProxyIPsPorts.plan_layouts)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::AppendPlanLayout >&
+ReplyProxyIPsPorts::plan_layouts() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.ReplyProxyIPsPorts.plan_layouts)
+  return _impl_.plan_layouts_;
 }
 
 // -------------------------------------------------------------------
@@ -6287,6 +6719,8 @@ inline void RecoveryReply::set_grpc_start_time(double value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

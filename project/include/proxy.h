@@ -116,7 +116,7 @@ namespace ECProject
     bool XorWriteRangeToDatanode(const char *block_key, int block_id, int range_offset, const char *delta, int range_size, const char *ip, int port);
     bool forwardXueDataDeltaSync(int dest_cluster_id, const std::string &append_mode,
                                  const proxy_proto::AppendStripeDataPlacement &placement,
-                                 const char *delta_buf, size_t delta_size);
+                                 const char *delta_buf, size_t delta_size, bool log_send = true);
     int applyXueDataBlocksNewValueToDataDelta(const proxy_proto::AppendStripeDataPlacement &placement,
                                               std::vector<char *> &slices, int tcp_slice_count);
     bool handleXueClass1RelayAtDataCluster(const proxy_proto::AppendStripeDataPlacement &placement,

@@ -1,4 +1,5 @@
 #include "toolbox.h"
+#include <sstream>
 #include <ctime>
 #include <cstring>
 #include <random>
@@ -51,6 +52,96 @@ namespace ECProject
   std::string ToolBox::gen_append_key(int stripe_id, int group_id)
   {
     return std::to_string(stripe_id) + "_" + std::to_string(group_id);
+  }
+
+  namespace
+  {
+    void format_block_id_list(std::ostringstream &oss, const std::vector<int> &block_ids)
+    {
+      for (size_t i = 0; i < block_ids.size(); ++i)
+      {
+        if (i > 0)
+        {
+          oss << ",";
+        }
+        oss << block_ids[i];
+      }
+    }
+  }
+
+  std::string ToolBox::gen_append_key_cluster_plan(int stripe_id, int group_id, int cluster_id,
+                                                   const std::vector<int> &tcp_block_ids,
+                                                   const std::vector<int> &meta_block_ids)
+  {
+    std::ostringstream oss;
+    oss << stripe_id << "_" << group_id << "c" << cluster_id << "#";
+    format_block_id_list(oss, tcp_block_ids);
+    if (!meta_block_ids.empty())
+    {
+      oss << "@";
+      format_block_id_list(oss, meta_block_ids);
+    }
+    return oss.str();
+  }
+
+  std::string ToolBox::gen_append_key_cluster_blocks(int stripe_id, int group_id, int cluster_id,
+                                                     const std::vector<int> &block_ids)
+  {
+    return gen_append_key_cluster_plan(stripe_id, group_id, cluster_id, block_ids, {});
+  }
+
+  bool ToolBox::parse_append_key_tcp_block_ids(const std::string &key, std::vector<int> *block_ids)
+  {
+    if (block_ids == nullptr)
+    {
+      return false;
+    }
+    block_ids->clear();
+    const size_t hash_pos = key.find('#');
+    if (hash_pos == std::string::npos)
+    {
+      return false;
+    }
+    const size_t at_pos = key.find('@', hash_pos + 1);
+    const size_t end = (at_pos == std::string::npos) ? key.size() : at_pos;
+    if (hash_pos + 1 >= end)
+    {
+      return false;
+    }
+    std::stringstream ss(key.substr(hash_pos + 1, end - hash_pos - 1));
+    std::string token;
+    while (std::getline(ss, token, ','))
+    {
+      if (!token.empty())
+      {
+        block_ids->push_back(std::stoi(token));
+      }
+    }
+    return !block_ids->empty();
+  }
+
+  bool ToolBox::parse_append_key_meta_block_ids(const std::string &key, std::vector<int> *block_ids)
+  {
+    if (block_ids == nullptr)
+    {
+      return false;
+    }
+    block_ids->clear();
+    const size_t at_pos = key.find('@');
+    if (at_pos == std::string::npos || at_pos + 1 >= key.size())
+    {
+      return false;
+    }
+    std::stringstream ss(key.substr(at_pos + 1));
+    std::string token;
+    while (std::getline(ss, token, ','))
+    {
+      if (!token.empty())
+      {
+        block_ids->push_back(std::stoi(token));
+      }
+    }
+    return !block_ids->empty();
   }
 
   bool ToolBox::random_generate_kv(std::string &key, std::string &value,

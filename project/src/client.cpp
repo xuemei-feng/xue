@@ -5,6 +5,9 @@
 #include <thread>
 #include <assert.h>
 #include <chrono>
+#include <sstream>
+#include <cstring>
+#include <map>
 #include "unilrc_encoder.h"
 namespace ECProject
 {
@@ -14,7 +17,254 @@ namespace ECProject
     {
       return code_type == "AzureLRC" || code_type == "XueLRC";
     }
-  }
+
+    bool append_key_uses_cluster_ingress(const std::string &key)
+    {
+      return key.find('c') != std::string::npos && key.find('#') != std::string::npos;
+    }
+
+    bool reply_uses_cluster_ingress(const coordinator_proto::ReplyProxyIPsPorts *reply)
+    {
+      if (reply == nullptr || reply->append_keys_size() <= 0)
+      {
+        return false;
+      }
+      return append_key_uses_cluster_ingress(reply->append_keys(0));
+    }
+
+    bool parse_append_key_block_ids(const std::string &key, std::vector<int> *block_ids)
+    {
+      return ToolBox::getInstance()->parse_append_key_tcp_block_ids(key, block_ids);
+    }
+
+    bool parse_append_key_cluster_id(const std::string &key, int *cluster_id)
+    {
+      if (cluster_id == nullptr)
+      {
+        return false;
+      }
+      const size_t cpos = key.find('c');
+      const size_t hash_pos = key.find('#');
+      if (cpos == std::string::npos || hash_pos == std::string::npos || cpos >= hash_pos)
+      {
+        return false;
+      }
+      *cluster_id = std::stoi(key.substr(cpos + 1, hash_pos - cpos - 1));
+      return true;
+    }
+
+    void log_layout_client_send(int proxy_cluster, const std::string &append_key, int cluster_slice_size)
+    {
+      const size_t us = append_key.find('_');
+      if (us == std::string::npos)
+      {
+        return;
+      }
+      const int stripe_id = std::stoi(append_key.substr(0, us));
+      std::vector<int> tcp_block_ids;
+      std::vector<int> meta_block_ids;
+      if (!parse_append_key_block_ids(append_key, &tcp_block_ids))
+      {
+        return;
+      }
+      ToolBox::getInstance()->parse_append_key_meta_block_ids(append_key, &meta_block_ids);
+      std::ostringstream oss;
+      oss << "[XFERT] layout client->proxy_cluster=" << proxy_cluster << " stripe_id=" << stripe_id
+          << " tcp_blocks=";
+      for (size_t i = 0; i < tcp_block_ids.size(); ++i)
+      {
+        if (i > 0)
+        {
+          oss << ",";
+        }
+        oss << tcp_block_ids[i];
+      }
+      oss << " bytes=" << cluster_slice_size << " slices=" << tcp_block_ids.size();
+      if (!meta_block_ids.empty())
+      {
+        oss << " meta_blocks=";
+        for (size_t i = 0; i < meta_block_ids.size(); ++i)
+        {
+          if (i > 0)
+          {
+            oss << ",";
+          }
+          oss << meta_block_ids[i];
+        }
+      }
+      std::cout << oss.str() << std::endl;
+    }
+
+    void count_blocks_by_role(const std::vector<int> &block_ids, int k, int r, int z,
+                              const std::string &code_type, int *data_n, int *global_n,
+                              int *local_n)
+    {
+      if (data_n)
+      {
+        *data_n = 0;
+      }
+      if (global_n)
+      {
+        *global_n = 0;
+      }
+      if (local_n)
+      {
+        *local_n = 0;
+      }
+      for (int bid : block_ids)
+      {
+        if (code_type == "XueLRC")
+        {
+          if (bid < k)
+          {
+            if (data_n)
+            {
+              ++(*data_n);
+            }
+          }
+          else if (bid < k + r)
+          {
+            if (local_n)
+            {
+              ++(*local_n);
+            }
+          }
+          else if (global_n)
+          {
+            ++(*global_n);
+          }
+        }
+        else if (is_azure_like_code(code_type))
+        {
+          if (bid < k)
+          {
+            if (data_n)
+            {
+              ++(*data_n);
+            }
+          }
+          else if (bid < k + r)
+          {
+            if (global_n)
+            {
+              ++(*global_n);
+            }
+          }
+          else if (local_n)
+          {
+            ++(*local_n);
+          }
+        }
+      }
+      (void)z;
+    }
+
+    void repack_logical_buffer_for_cluster_plans(
+        char *dst, const char *src_logical, const coordinator_proto::ReplyProxyIPsPorts *reply,
+        int block_size)
+    {
+      size_t off = 0;
+      for (int i = 0; i < reply->append_keys_size(); ++i)
+      {
+        std::vector<int> block_ids;
+        if (!parse_append_key_block_ids(reply->append_keys(i), &block_ids))
+        {
+          continue;
+        }
+        for (int bid : block_ids)
+        {
+          std::memcpy(dst + off, src_logical + static_cast<size_t>(bid) * block_size,
+                      static_cast<size_t>(block_size));
+          off += static_cast<size_t>(block_size);
+        }
+      }
+    }
+
+    void split_for_set_data_and_parity_by_cluster_plans(
+        const coordinator_proto::ReplyProxyIPsPorts *reply, const std::vector<char *> &cluster_slice_data,
+        int k, int r, int z, const std::string &code_type, int block_size,
+        std::vector<char *> &data_ptr_array, std::vector<char *> &global_parity_ptr_array,
+        std::vector<char *> &local_parity_ptr_array)
+    {
+      std::map<int, char *> data_by_id;
+      std::map<int, char *> global_by_id;
+      std::map<int, char *> local_by_id;
+      for (int i = 0; i < reply->append_keys_size() && i < static_cast<int>(cluster_slice_data.size());
+           ++i)
+      {
+        std::vector<int> block_ids;
+        if (!parse_append_key_block_ids(reply->append_keys(i), &block_ids))
+        {
+          continue;
+        }
+        int data_n = 0;
+        int global_n = 0;
+        int local_n = 0;
+        count_blocks_by_role(block_ids, k, r, z, code_type, &data_n, &global_n, &local_n);
+        std::vector<size_t> node_slice_sizes(static_cast<size_t>(data_n + global_n + local_n),
+                                               static_cast<size_t>(block_size));
+        std::vector<char *> node_slices = ToolBox::getInstance()->splitCharPointer(
+            cluster_slice_data[i], reply->cluster_slice_sizes(i), node_slice_sizes);
+        int slice_idx = 0;
+        for (int bid : block_ids)
+        {
+          if (slice_idx >= static_cast<int>(node_slices.size()))
+          {
+            break;
+          }
+          if (code_type == "XueLRC")
+          {
+            if (bid < k)
+            {
+              data_by_id[bid] = node_slices[slice_idx++];
+            }
+            else if (bid < k + r)
+            {
+              local_by_id[bid] = node_slices[slice_idx++];
+            }
+            else
+            {
+              global_by_id[bid] = node_slices[slice_idx++];
+            }
+          }
+          else if (is_azure_like_code(code_type))
+          {
+            if (bid < k)
+            {
+              data_by_id[bid] = node_slices[slice_idx++];
+            }
+            else if (bid < k + r)
+            {
+              global_by_id[bid] = node_slices[slice_idx++];
+            }
+            else
+            {
+              local_by_id[bid] = node_slices[slice_idx++];
+            }
+          }
+        }
+      }
+      for (int bid = 0; bid < k; ++bid)
+      {
+        auto it = data_by_id.find(bid);
+        data_ptr_array.push_back(it != data_by_id.end() ? it->second : nullptr);
+      }
+      const int global_begin = (code_type == "XueLRC") ? (k + r) : k;
+      const int global_end = (code_type == "XueLRC") ? (k + r + z) : (k + r);
+      for (int bid = global_begin; bid < global_end; ++bid)
+      {
+        auto it = global_by_id.find(bid);
+        global_parity_ptr_array.push_back(it != global_by_id.end() ? it->second : nullptr);
+      }
+      const int local_begin = (code_type == "XueLRC") ? k : (k + r);
+      const int local_end = (code_type == "XueLRC") ? (k + r) : (k + r + z);
+      for (int bid = local_begin; bid < local_end; ++bid)
+      {
+        auto it = local_by_id.find(bid);
+        local_parity_ptr_array.push_back(it != local_by_id.end() ? it->second : nullptr);
+      }
+    }
+  } // namespace
 
   std::string Client::sayHelloToCoordinatorByGrpc(std::string hello)
   {
@@ -331,7 +581,14 @@ namespace ECProject
 
   void Client::async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr)
   {
-    // std::cout << "[Append174] Appending size " << cluster_slice_size << " to proxy_address:" << proxy_ip << ":" << proxy_port << std::endl;
+    if (append_key_uses_cluster_ingress(append_key))
+    {
+      int proxy_cluster = -1;
+      if (parse_append_key_cluster_id(append_key, &proxy_cluster))
+      {
+        log_layout_client_send(proxy_cluster, append_key, cluster_slice_size);
+      }
+    }
     asio::io_context io_context;
     asio::error_code error;
     asio::ip::tcp::resolver resolver(io_context);
@@ -633,16 +890,45 @@ namespace ECProject
     else
     {
       std::vector<std::thread> threads;
-      std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
+      const int k = m_sys_config->k;
+      const int r = m_sys_config->r;
+      const int z = m_sys_config->z;
+      const int block_size = static_cast<int>(m_sys_config->BlockSize);
+      std::vector<char> plan_order_buffer;
+      const char *send_buf = m_pre_allocated_buffer;
+      if (reply_uses_cluster_ingress(&reply))
+      {
+        plan_order_buffer.resize(static_cast<size_t>(reply.sum_append_size()), 0);
+        repack_logical_buffer_for_cluster_plans(plan_order_buffer.data(), m_pre_allocated_buffer,
+                                                &reply, block_size);
+        send_buf = plan_order_buffer.data();
+      }
+      std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(send_buf, &reply);
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
 
       assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
-      std::vector<int> data_block_num_per_group = get_data_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      std::vector<int> global_parity_block_num_per_group = get_global_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      std::vector<int> local_parity_block_num_per_group = get_local_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
       std::vector<char *> data_ptr_array, global_parity_ptr_array, local_parity_ptr_array;
-      split_for_set_data_and_parity(&reply, cluster_slice_data, data_block_num_per_group, global_parity_block_num_per_group, local_parity_block_num_per_group, data_ptr_array, global_parity_ptr_array, local_parity_ptr_array);
+      if (reply_uses_cluster_ingress(&reply))
+      {
+        split_for_set_data_and_parity_by_cluster_plans(&reply, cluster_slice_data, k, r, z,
+                                                       m_sys_config->CodeType, block_size,
+                                                       data_ptr_array, global_parity_ptr_array,
+                                                       local_parity_ptr_array);
+      }
+      else
+      {
+        std::vector<int> data_block_num_per_group =
+            get_data_block_num_per_group(k, r, z, m_sys_config->CodeType);
+        std::vector<int> global_parity_block_num_per_group =
+            get_global_parity_block_num_per_group(k, r, z, m_sys_config->CodeType);
+        std::vector<int> local_parity_block_num_per_group =
+            get_local_parity_block_num_per_group(k, r, z, m_sys_config->CodeType);
+        split_for_set_data_and_parity(&reply, cluster_slice_data, data_block_num_per_group,
+                                      global_parity_block_num_per_group,
+                                      local_parity_block_num_per_group, data_ptr_array,
+                                      global_parity_ptr_array, local_parity_ptr_array);
+      }
       std::vector<char *> parity_ptr_array;
       parity_ptr_array.insert(parity_ptr_array.end(), global_parity_ptr_array.begin(), global_parity_ptr_array.end());
       parity_ptr_array.insert(parity_ptr_array.end(), local_parity_ptr_array.begin(), local_parity_ptr_array.end());
@@ -713,26 +999,56 @@ namespace ECProject
     else
     {
       std::vector<std::thread> threads;
-      std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
+      const int k = m_sys_config->k;
+      const int r = m_sys_config->r;
+      const int z = m_sys_config->z;
+      const int block_size = static_cast<int>(m_sys_config->BlockSize);
+      std::vector<char> plan_order_buffer;
+      const char *send_buf = m_pre_allocated_buffer;
+      if (reply_uses_cluster_ingress(&reply))
+      {
+        plan_order_buffer.resize(static_cast<size_t>(reply.sum_append_size()), 0);
+        repack_logical_buffer_for_cluster_plans(plan_order_buffer.data(), m_pre_allocated_buffer,
+                                                &reply, block_size);
+        send_buf = plan_order_buffer.data();
+      }
+      std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(send_buf, &reply);
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
 
       assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
-      std::vector<int> data_block_num_per_group = get_data_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      int capacity = block_num;
-      for(int i = 0; i < data_block_num_per_group.size(); i++)
-      {
-        if(data_block_num_per_group[i] > capacity){
-          data_block_num_per_group[i] = capacity;
-        } 
-        capacity -= data_block_num_per_group[i];
-      }
-      std::vector<int> global_parity_block_num_per_group = get_global_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      std::vector<int> local_parity_block_num_per_group = get_local_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      m_toolbox->remove_common_zeros(data_block_num_per_group, global_parity_block_num_per_group, local_parity_block_num_per_group);
-
       std::vector<char *> data_ptr_array, global_parity_ptr_array, local_parity_ptr_array;
-      split_for_set_data_and_parity(&reply, cluster_slice_data, data_block_num_per_group, global_parity_block_num_per_group, local_parity_block_num_per_group, data_ptr_array, global_parity_ptr_array, local_parity_ptr_array);
+      if (reply_uses_cluster_ingress(&reply))
+      {
+        split_for_set_data_and_parity_by_cluster_plans(&reply, cluster_slice_data, k, r, z,
+                                                       m_sys_config->CodeType, block_size,
+                                                       data_ptr_array, global_parity_ptr_array,
+                                                       local_parity_ptr_array);
+      }
+      else
+      {
+        std::vector<int> data_block_num_per_group =
+            get_data_block_num_per_group(k, r, z, m_sys_config->CodeType);
+        int capacity = block_num;
+        for (int i = 0; i < static_cast<int>(data_block_num_per_group.size()); i++)
+        {
+          if (data_block_num_per_group[i] > capacity)
+          {
+            data_block_num_per_group[i] = capacity;
+          }
+          capacity -= data_block_num_per_group[i];
+        }
+        std::vector<int> global_parity_block_num_per_group =
+            get_global_parity_block_num_per_group(k, r, z, m_sys_config->CodeType);
+        std::vector<int> local_parity_block_num_per_group =
+            get_local_parity_block_num_per_group(k, r, z, m_sys_config->CodeType);
+        m_toolbox->remove_common_zeros(data_block_num_per_group, global_parity_block_num_per_group,
+                                       local_parity_block_num_per_group);
+        split_for_set_data_and_parity(&reply, cluster_slice_data, data_block_num_per_group,
+                                      global_parity_block_num_per_group,
+                                      local_parity_block_num_per_group, data_ptr_array,
+                                      global_parity_ptr_array, local_parity_ptr_array);
+      }
       std::vector<char *> parity_ptr_array;
       parity_ptr_array.insert(parity_ptr_array.end(), global_parity_ptr_array.begin(), global_parity_ptr_array.end());
       parity_ptr_array.insert(parity_ptr_array.end(), local_parity_ptr_array.begin(), local_parity_ptr_array.end());
