@@ -126,6 +126,13 @@ namespace ECProject
                                            const std::vector<char *> &slices, int tcp_slice_count);
     int applyXueLocalParityFromDataDeltas(const proxy_proto::AppendStripeDataPlacement &placement,
                                           const std::vector<char *> &slices, int tcp_slice_count);
+    bool needsClass3MergedLocalParityForward(const proxy_proto::AppendStripeDataPlacement &placement,
+                                             int tcp_slice_count) const;
+    bool forwardMergedLocalParityDelta(int dest_local_cluster,
+                                       const proxy_proto::AppendStripeDataPlacement &placement,
+                                       const std::vector<char *> &data_delta_slices, int tcp_slice_count);
+    int applyReceivedLocalParityDelta(const proxy_proto::AppendStripeDataPlacement &placement,
+                                      const char *delta_buf, size_t delta_size);
     bool MergeParityOnDatanode(const char *block_key, int block_id, const char *ip, int port, const std::string &append_mode);
     void printAppendStripeDataPlacement(const proxy_proto::AppendStripeDataPlacement *append_stripe_data_placement);
     std::vector<unsigned char *> convertToUnsignedCharArray(std::vector<char*> &input);

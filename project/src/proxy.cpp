@@ -69,7 +69,84 @@ namespace
   bool is_xue_proxy_forward_tcp_mode(const std::string &append_mode)
   {
     return append_mode == "XUE_DELTA_TO_RELAY" || append_mode == "XUE_DELTA_TO_GLOBAL" ||
-           append_mode == "XUE_COMPUTE_LOCAL_PARITY";
+           append_mode == "XUE_COMPUTE_LOCAL_PARITY" || append_mode == "XUE_LOCAL_PARITY_DELTA";
+  }
+
+  struct ParityDeltaSlice
+  {
+    int offset = 0;
+    int length = 0;
+    std::vector<char> delta;
+  };
+
+  void xor_delta_into_merged(std::vector<char> *merged, int merged_base_off, const ParityDeltaSlice &slice)
+  {
+    if (merged == nullptr || slice.length <= 0)
+    {
+      return;
+    }
+    const int rel = slice.offset - merged_base_off;
+    if (rel < 0 || rel + slice.length > static_cast<int>(merged->size()))
+    {
+      return;
+    }
+    for (int t = 0; t < slice.length; ++t)
+    {
+      (*merged)[static_cast<size_t>(rel + t)] = static_cast<char>(
+          static_cast<unsigned char>((*merged)[static_cast<size_t>(rel + t)]) ^
+          static_cast<unsigned char>(slice.delta[static_cast<size_t>(t)]));
+    }
+  }
+
+  std::vector<ParityDeltaSlice> merge_parity_delta_slices(std::vector<ParityDeltaSlice> slices)
+  {
+    if (slices.empty())
+    {
+      return slices;
+    }
+    std::sort(slices.begin(), slices.end(),
+              [](const ParityDeltaSlice &a, const ParityDeltaSlice &b) { return a.offset < b.offset; });
+    std::vector<ParityDeltaSlice> merged;
+    ParityDeltaSlice cur = std::move(slices[0]);
+    for (size_t i = 1; i < slices.size(); ++i)
+    {
+      const ParityDeltaSlice &n = slices[i];
+      const int cur_r = cur.offset + cur.length - 1;
+      if (n.offset <= cur_r + 1)
+      {
+        const int new_r = std::max(cur_r, n.offset + n.length - 1);
+        const int new_off = cur.offset;
+        const int new_len = new_r - new_off + 1;
+        std::vector<char> acc(static_cast<size_t>(new_len), 0);
+        xor_delta_into_merged(&acc, new_off, cur);
+        xor_delta_into_merged(&acc, new_off, n);
+        cur.offset = new_off;
+        cur.length = new_len;
+        cur.delta = std::move(acc);
+      }
+      else
+      {
+        merged.push_back(std::move(cur));
+        cur = std::move(slices[i]);
+      }
+    }
+    merged.push_back(std::move(cur));
+    return merged;
+  }
+
+  int find_local_parity_plan_index(const proxy_proto::AppendStripeDataPlacement &placement, int k, int r)
+  {
+    const int local_begin = k;
+    const int local_end = k + r;
+    for (int j = 0; j < placement.blockids_size(); ++j)
+    {
+      const int bid = placement.blockids(j);
+      if (bid >= local_begin && bid < local_end)
+      {
+        return j;
+      }
+    }
+    return -1;
   }
 
   int infer_data_block_cluster_from_placement(const proxy_proto::AppendStripeDataPlacement &placement,
@@ -104,7 +181,7 @@ namespace
       }
       return -1;
     }
-    if (append_mode == "XUE_COMPUTE_LOCAL_PARITY")
+    if (append_mode == "XUE_COMPUTE_LOCAL_PARITY" || append_mode == "XUE_LOCAL_PARITY_DELTA")
     {
       return infer_data_block_cluster_from_placement(placement, tcp_slice_count, k);
     }
@@ -212,6 +289,10 @@ namespace
 
   std::string xue_xfer_payload_desc(const std::string &append_mode)
   {
+    if (append_mode == "XUE_LOCAL_PARITY_DELTA")
+    {
+      return "本地校验增量(local_parity_delta)";
+    }
     if (append_mode == "XUE_DELTA_TO_RELAY" || append_mode == "XUE_DELTA_TO_GLOBAL" ||
         append_mode == "XUE_COMPUTE_LOCAL_PARITY")
     {
@@ -728,36 +809,24 @@ namespace ECProject
     return global_updated;
   }
 
-  int ProxyImpl::applyXueLocalParityFromDataDeltas(const proxy_proto::AppendStripeDataPlacement &placement,
-                                                   const std::vector<char *> &slices, int tcp_slice_count)
+  static std::vector<ParityDeltaSlice> compute_local_parity_delta_slices(
+      int k0, int r0, int z0, const proxy_proto::AppendStripeDataPlacement &placement,
+      const std::vector<char *> &slices, int tcp_slice_count, int local_parity_plan_idx)
   {
-    const bool azure_like =
-        m_sys_config->CodeType == "AzureLRC" || m_sys_config->CodeType == "XueLRC";
-    if (!azure_like)
+    std::vector<ParityDeltaSlice> out;
+    if (local_parity_plan_idx < 0 || tcp_slice_count <= 0)
     {
-      return 0;
+      return out;
     }
-    const int k0 = m_sys_config->k;
-    const int r0 = m_sys_config->r;
-    const int z0 = m_sys_config->z;
-    const int slice_num = placement.blockkeys_size();
+    const int slice_num = placement.blockids_size();
     const int local_begin = k0;
     const int local_end = k0 + r0;
     const int local_count = local_end - local_begin;
-
-    std::vector<int> local_parity_indices;
-    local_parity_indices.reserve(static_cast<size_t>(local_count));
-    for (int j = 0; j < slice_num; ++j)
+    const int local_bid = placement.blockids(local_parity_plan_idx);
+    const int li = local_bid - local_begin;
+    if (li < 0 || li >= local_count)
     {
-      const int bid = placement.blockids(j);
-      if (bid >= local_begin && bid < local_end)
-      {
-        local_parity_indices.push_back(j);
-      }
-    }
-    if (local_parity_indices.empty())
-    {
-      return 0;
+      return out;
     }
 
     static std::atomic<bool> gf8_inited_local{false};
@@ -783,7 +852,6 @@ namespace ECProject
       data_slices_by_range[{o, l}].push_back(j);
     }
 
-    int local_updated = 0;
     for (const auto &range_kv : data_slices_by_range)
     {
       const int ref_off = range_kv.first.first;
@@ -792,64 +860,215 @@ namespace ECProject
       {
         continue;
       }
-      std::vector<std::vector<char>> p_acc(static_cast<size_t>(local_count),
-                                           std::vector<char>(static_cast<size_t>(ref_len), 0));
+      std::vector<char> p_acc(static_cast<size_t>(ref_len), 0);
       for (int j : range_kv.second)
       {
         const int bid = placement.blockids(j);
-        for (int li = 0; li < local_count; ++li)
-        {
-          const int matrix_row = k0 + li;
-          const unsigned char coeff = enc[static_cast<size_t>(matrix_row * k0 + bid)];
-          if (coeff == 0)
-          {
-            continue;
-          }
-          for (int t = 0; t < ref_len; ++t)
-          {
-            const unsigned char v = static_cast<unsigned char>(galois_single_multiply(
-                coeff, static_cast<unsigned char>(slices[j][static_cast<size_t>(t)]), 8));
-            p_acc[static_cast<size_t>(li)][static_cast<size_t>(t)] = static_cast<char>(
-                static_cast<unsigned char>(p_acc[static_cast<size_t>(li)][static_cast<size_t>(t)]) ^ v);
-          }
-        }
-      }
-      for (int idx : local_parity_indices)
-      {
-        if (static_cast<int>(placement.offsets(idx)) != ref_off ||
-            static_cast<int>(placement.sizes(idx)) != ref_len)
+        const int matrix_row = k0 + li;
+        const unsigned char coeff = enc[static_cast<size_t>(matrix_row * k0 + bid)];
+        if (coeff == 0)
         {
           continue;
         }
-        const int bid = placement.blockids(idx);
-        const int li = bid - local_begin;
-        if (li < 0 || li >= local_count)
-        {
-          continue;
-        }
-        const std::string &pbk = placement.blockkeys(idx);
-        const std::string dip = placement.datanodeip(idx);
-        const int dport = placement.datanodeport(idx);
-        std::vector<char> oldbuf(static_cast<size_t>(ref_len), 0);
-        if (!ReadRangeFromDatanode(pbk.c_str(), bid, ref_off, ref_len, oldbuf.data(), dip.c_str(), dport))
-        {
-          std::memset(oldbuf.data(), 0, static_cast<size_t>(ref_len));
-        }
-        std::vector<char> newbuf(static_cast<size_t>(ref_len));
         for (int t = 0; t < ref_len; ++t)
         {
-          newbuf[static_cast<size_t>(t)] = static_cast<char>(
-              static_cast<unsigned char>(oldbuf[static_cast<size_t>(t)]) ^
-              static_cast<unsigned char>(p_acc[static_cast<size_t>(li)][static_cast<size_t>(t)]));
+          const unsigned char v = static_cast<unsigned char>(galois_single_multiply(
+              coeff, static_cast<unsigned char>(slices[j][static_cast<size_t>(t)]), 8));
+          p_acc[static_cast<size_t>(t)] = static_cast<char>(
+              static_cast<unsigned char>(p_acc[static_cast<size_t>(t)]) ^ v);
         }
-        if (WriteRangeToDatanode(pbk.c_str(), bid, ref_off, newbuf.data(), ref_len, dip.c_str(), dport))
-        {
-          ++local_updated;
-        }
-        else
-        {
-          std::cerr << "[Proxy] XUE local parity WriteRange failed block " << pbk << std::endl;
-        }
+      }
+      ParityDeltaSlice sl;
+      sl.offset = ref_off;
+      sl.length = ref_len;
+      sl.delta = std::move(p_acc);
+      out.push_back(std::move(sl));
+    }
+    return out;
+  }
+
+  bool ProxyImpl::needsClass3MergedLocalParityForward(
+      const proxy_proto::AppendStripeDataPlacement &placement, int tcp_slice_count) const
+  {
+    if (placement.append_mode() != "XUE_UPDATE" || placement.xue_class1_relay_path() || tcp_slice_count <= 0)
+    {
+      return false;
+    }
+    const int k0 = m_sys_config->k;
+    const int r0 = m_sys_config->r;
+    int local_cluster = -1;
+    if (!infer_class1_local_parity_cluster(placement, k0, r0, &local_cluster) || local_cluster < 0)
+    {
+      return false;
+    }
+    if (local_cluster == m_self_cluster_id)
+    {
+      return false;
+    }
+    const int data_cluster = infer_data_block_cluster_from_placement(placement, tcp_slice_count, k0);
+    return data_cluster >= 0 && data_cluster != local_cluster;
+  }
+
+  int ProxyImpl::applyReceivedLocalParityDelta(const proxy_proto::AppendStripeDataPlacement &placement,
+                                                 const char *delta_buf, size_t delta_size)
+  {
+    const int k0 = m_sys_config->k;
+    const int r0 = m_sys_config->r;
+    const int lp_idx = find_local_parity_plan_index(placement, k0, r0);
+    if (lp_idx < 0)
+    {
+      return 0;
+    }
+    const int tcp_slices = placement.xue_tcp_slice_count() > 0 ? placement.xue_tcp_slice_count()
+                                                                 : placement.blockkeys_size();
+    std::vector<size_t> tcp_slice_sizes;
+    tcp_slice_sizes.reserve(static_cast<size_t>(tcp_slices));
+    for (int i = 0; i < tcp_slices && i < placement.sizes_size(); ++i)
+    {
+      tcp_slice_sizes.push_back(placement.sizes(i));
+    }
+    std::vector<char *> slices =
+        m_toolbox->splitCharPointer(delta_buf, delta_size, tcp_slice_sizes);
+    const int local_bid = placement.blockids(lp_idx);
+    const std::string &pbk = placement.blockkeys(lp_idx);
+    const std::string dip = placement.datanodeip(lp_idx);
+    const int dport = placement.datanodeport(lp_idx);
+    int updated = 0;
+    for (int i = 0; i < tcp_slices && i < placement.blockids_size(); ++i)
+    {
+      if (placement.blockids(i) != local_bid)
+      {
+        continue;
+      }
+      const int off = static_cast<int>(placement.offsets(i));
+      const int len = static_cast<int>(placement.sizes(i));
+      if (XorWriteRangeToDatanode(pbk.c_str(), local_bid, off, slices[i], len, dip.c_str(), dport))
+      {
+        ++updated;
+      }
+      else
+      {
+        std::cerr << "[Proxy] XUE_LOCAL_PARITY_DELTA XorWrite failed block " << pbk << " off=" << off
+                  << " len=" << len << std::endl;
+      }
+    }
+    return updated;
+  }
+
+  bool ProxyImpl::forwardMergedLocalParityDelta(
+      int dest_local_cluster, const proxy_proto::AppendStripeDataPlacement &placement,
+      const std::vector<char *> &data_delta_slices, int tcp_slice_count)
+  {
+    const int k0 = m_sys_config->k;
+    const int r0 = m_sys_config->r;
+    const int z0 = m_sys_config->z;
+    const int lp_idx = find_local_parity_plan_index(placement, k0, r0);
+    if (lp_idx < 0)
+    {
+      return false;
+    }
+    std::vector<ParityDeltaSlice> raw =
+        compute_local_parity_delta_slices(k0, r0, z0, placement, data_delta_slices, tcp_slice_count, lp_idx);
+    if (raw.empty())
+    {
+      return false;
+    }
+    const size_t slices_before_merge = raw.size();
+    const std::vector<ParityDeltaSlice> merged = merge_parity_delta_slices(std::move(raw));
+
+    proxy_proto::AppendStripeDataPlacement fwd = placement;
+    fwd.clear_datanodeip();
+    fwd.clear_datanodeport();
+    fwd.clear_blockkeys();
+    fwd.clear_blockids();
+    fwd.clear_block_cluster_ids();
+    fwd.clear_offsets();
+    fwd.clear_sizes();
+    const int local_bid = placement.blockids(lp_idx);
+    const std::string lp_key = placement.blockkeys(lp_idx);
+    const std::string lp_ip = placement.datanodeip(lp_idx);
+    const int lp_port = placement.datanodeport(lp_idx);
+    const int lp_cluster = (lp_idx < placement.block_cluster_ids_size())
+                               ? placement.block_cluster_ids(lp_idx)
+                               : dest_local_cluster;
+
+    size_t total = 0;
+    std::vector<char> wire;
+    for (const auto &sl : merged)
+    {
+      fwd.add_datanodeip(lp_ip);
+      fwd.add_datanodeport(lp_port);
+      fwd.add_blockkeys(lp_key);
+      fwd.add_blockids(local_bid);
+      fwd.add_block_cluster_ids(lp_cluster);
+      fwd.add_offsets(static_cast<uint64_t>(sl.offset));
+      fwd.add_sizes(static_cast<uint64_t>(sl.length));
+      wire.insert(wire.end(), sl.delta.begin(), sl.delta.end());
+      total += static_cast<size_t>(sl.length);
+    }
+    fwd.set_cluster_id(dest_local_cluster);
+    fwd.set_append_size(total);
+    fwd.set_xue_tcp_slice_count(static_cast<int>(merged.size()));
+    fwd.set_xue_data_slices_are_delta(true);
+    fwd.set_xue_class1_relay_path(false);
+    fwd.set_xue_compute_global_parity(false);
+
+    const std::string ts = proxy_xfer_timestamp();
+    std::ostringstream oss;
+    oss << "class3_local_parity_delta_merge proxy_cluster=" << m_self_cluster_id << " -> "
+        << dest_local_cluster << " slices_before=" << slices_before_merge
+        << " slices_after=" << merged.size()
+        << " bytes=" << total << " ranges=";
+    for (size_t i = 0; i < merged.size(); ++i)
+    {
+      if (i > 0)
+      {
+        oss << ";";
+      }
+      oss << "[" << merged[i].offset << "," << (merged[i].offset + merged[i].length) << ")";
+    }
+    log_xfert_line(ts, oss.str());
+
+    return forwardXueDataDeltaSync(dest_local_cluster, "XUE_LOCAL_PARITY_DELTA", fwd, wire.data(),
+                                   total);
+  }
+
+  int ProxyImpl::applyXueLocalParityFromDataDeltas(const proxy_proto::AppendStripeDataPlacement &placement,
+                                                   const std::vector<char *> &slices, int tcp_slice_count)
+  {
+    const bool azure_like =
+        m_sys_config->CodeType == "AzureLRC" || m_sys_config->CodeType == "XueLRC";
+    if (!azure_like)
+    {
+      return 0;
+    }
+    const int k0 = m_sys_config->k;
+    const int r0 = m_sys_config->r;
+    const int z0 = m_sys_config->z;
+    const int lp_idx = find_local_parity_plan_index(placement, k0, r0);
+    if (lp_idx < 0)
+    {
+      return 0;
+    }
+    std::vector<ParityDeltaSlice> raw =
+        compute_local_parity_delta_slices(k0, r0, z0, placement, slices, tcp_slice_count, lp_idx);
+    const std::vector<ParityDeltaSlice> merged = merge_parity_delta_slices(std::move(raw));
+    const int local_bid = placement.blockids(lp_idx);
+    const std::string &pbk = placement.blockkeys(lp_idx);
+    const std::string dip = placement.datanodeip(lp_idx);
+    const int dport = placement.datanodeport(lp_idx);
+    int local_updated = 0;
+    for (const auto &sl : merged)
+    {
+      if (XorWriteRangeToDatanode(pbk.c_str(), local_bid, sl.offset, sl.delta.data(), sl.length, dip.c_str(),
+                                  dport))
+      {
+        ++local_updated;
+      }
+      else
+      {
+        std::cerr << "[Proxy] XUE local parity XorWrite failed block " << pbk << " off=" << sl.offset
+                  << " len=" << sl.length << std::endl;
       }
     }
     return local_updated;
@@ -1655,6 +1874,34 @@ namespace ECProject
           return;
         }
 
+        if (append_mode_str == "XUE_LOCAL_PARITY_DELTA")
+        {
+          const std::string ts = proxy_xfer_timestamp();
+          const int updated =
+              applyReceivedLocalParityDelta(*placement_copy, append_buf.data(), cluster_append_size);
+          const bool ok = updated > 0;
+          if (ok)
+          {
+            log_xfert_line(ts, "XUE_LOCAL_PARITY_DELTA applied proxy_cluster=" +
+                                   std::to_string(m_self_cluster_id) + " append_key=" +
+                                   placement_copy->key() + " ranges=" +
+                                   std::to_string(updated));
+          }
+          else
+          {
+            std::cerr << "[Proxy][XFERT] " << ts << " XUE_LOCAL_PARITY_DELTA_FAILED proxy_cluster="
+                      << m_self_cluster_id << " append_key=" << placement_copy->key() << std::endl;
+          }
+          if (send_ack)
+          {
+            const char ack = ok ? static_cast<char>(1) : static_cast<char>(0);
+            asio::error_code ack_ec;
+            asio::write(socket_data, asio::buffer(&ack, 1), ack_ec);
+          }
+          close_socket();
+          return;
+        }
+
         if (append_mode_str == "XUE_COMPUTE_LOCAL_PARITY")
         {
           const std::string ts = proxy_xfer_timestamp();
@@ -1795,6 +2042,16 @@ namespace ECProject
                                    std::to_string(local_parity_cluster));
               }
             }
+            else if (tcp_slice_count > 0 && needsClass3MergedLocalParityForward(*placement_copy, tcp_slice_count))
+            {
+              const bool fwd_ok = forwardMergedLocalParityDelta(local_parity_cluster, *placement_copy,
+                                                                slices, tcp_slice_count);
+              if (!fwd_ok)
+              {
+                std::cerr << "[Proxy] class3 merged local parity delta forward failed append_key="
+                          << placement_copy->key() << std::endl;
+              }
+            }
             else if (tcp_slice_count > 0)
             {
               forwardXueDataDeltaSync(local_parity_cluster, "XUE_COMPUTE_LOCAL_PARITY", *placement_copy,
@@ -1820,6 +2077,15 @@ namespace ECProject
                            "XUE_UPDATE applied global parity for " + std::to_string(global_updated) +
                                " slice(s) proxy_cluster=" + std::to_string(m_self_cluster_id) +
                                " route=class1_direct_ingress_global");
+          }
+          int local_parity_cluster_after_global = -1;
+          if (infer_class1_local_parity_cluster(*placement_copy, m_sys_config->k, m_sys_config->r,
+                                                &local_parity_cluster_after_global) &&
+              local_parity_cluster_after_global >= 0 &&
+              needsClass3MergedLocalParityForward(*placement_copy, tcp_slice_count))
+          {
+            forwardMergedLocalParityDelta(local_parity_cluster_after_global, *placement_copy, slices,
+                                        tcp_slice_count);
           }
           else if (!global_parity_indices.empty())
           {

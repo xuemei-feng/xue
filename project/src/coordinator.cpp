@@ -2880,9 +2880,21 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       {
         add_block_slices(j, true);
       }
+      const bool class3_group =
+          (lp_blk != nullptr && data_blk0 != nullptr &&
+           data_blk0->map2cluster != lp_blk->map2cluster);
       if (class1_group)
       {
         // 第1类：本地校验由 data cluster 的 proxy 用编码矩阵计算增量并 XOR 落盘，不走 TCP 覆盖写
+        for (int j = stripe->k + i * stripe->r / stripe->z;
+             j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
+        {
+          add_block_slices(j, false);
+        }
+      }
+      else if (class3_group)
+      {
+        // 第3类：本地校验增量由源 proxy 按编码矩阵计算后合并区间，再以 XUE_LOCAL_PARITY_DELTA 发往 local cluster
         for (int j = stripe->k + i * stripe->r / stripe->z;
              j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
         {
