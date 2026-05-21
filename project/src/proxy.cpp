@@ -268,13 +268,34 @@ namespace
   }
 
   void log_proxy_tcp_global_done(const std::string &ts, int global_cluster, int from_cluster,
-                                 const std::string &append_key, size_t byte_count, int tcp_slices,
-                                 int parity_updated)
+                                 const std::string &append_key, size_t tcp_byte_count, int tcp_slices,
+                                 const ECProject::XueParityWriteStats &parity_write)
   {
     std::ostringstream oss;
     oss << "proxy_tcp_global proxy_cluster=" << global_cluster << " from=" << from_cluster
-        << " append_key=" << append_key << " bytes=" << byte_count << " slices=" << tcp_slices
-        << " parity_updated=" << parity_updated;
+        << " append_key=" << append_key << " tcp_bytes=" << tcp_byte_count
+        << " tcp_slices=" << tcp_slices << " parity_ranges=" << parity_write.ranges
+        << " parity_bytes=" << parity_write.bytes;
+    log_xfert_line(ts, oss.str());
+  }
+
+  void log_xue_parity_write_applied(const std::string &ts, const char *event, int proxy_cluster,
+                                    const std::string &append_key,
+                                    const ECProject::XueParityWriteStats &parity_write,
+                                    const char *route_tag = nullptr, size_t tcp_bytes = 0,
+                                    int tcp_slices = 0)
+  {
+    std::ostringstream oss;
+    oss << event << " proxy_cluster=" << proxy_cluster << " append_key=" << append_key;
+    if (tcp_bytes > 0 || tcp_slices > 0)
+    {
+      oss << " tcp_bytes=" << tcp_bytes << " tcp_slices=" << tcp_slices;
+    }
+    oss << " parity_ranges=" << parity_write.ranges << " parity_bytes=" << parity_write.bytes;
+    if (route_tag != nullptr && route_tag[0] != '\0')
+    {
+      oss << " " << route_tag;
+    }
     log_xfert_line(ts, oss.str());
   }
 
@@ -659,12 +680,12 @@ namespace ECProject
                                             &local_parity_cluster) &&
           local_parity_cluster >= 0 && m_self_cluster_id == local_parity_cluster)
       {
-        const int local_updated = applyXueLocalParityFromDataDeltas(placement, slices, tcp_slice_count);
-        if (local_updated > 0)
+        const XueParityWriteStats local_write =
+            applyXueLocalParityFromDataDeltas(placement, slices, tcp_slice_count);
+        if (local_write.ranges > 0)
         {
-          log_xfert_line(ts, "XUE_COMPUTE_LOCAL_PARITY applied local parity for " +
-                                 std::to_string(local_updated) + " slice(s) proxy_cluster=" +
-                                 std::to_string(local_parity_cluster));
+          log_xue_parity_write_applied(ts, "XUE_COMPUTE_LOCAL_PARITY applied", local_parity_cluster,
+                                       placement.key(), local_write, "route=class1_data_cluster");
         }
       }
     }
@@ -680,14 +701,16 @@ namespace ECProject
                                    fwd_placement, delta_buf, delta_size);
   }
 
-  int ProxyImpl::applyXueGlobalParityFromDataDeltas(const proxy_proto::AppendStripeDataPlacement &placement,
-                                                    const std::vector<char *> &slices, int tcp_slice_count)
+  XueParityWriteStats ProxyImpl::applyXueGlobalParityFromDataDeltas(
+      const proxy_proto::AppendStripeDataPlacement &placement, const std::vector<char *> &slices,
+      int tcp_slice_count)
   {
+    XueParityWriteStats stats;
     const bool azure_like =
         m_sys_config->CodeType == "AzureLRC" || m_sys_config->CodeType == "XueLRC";
     if (!azure_like)
     {
-      return 0;
+      return stats;
     }
     const int k0 = m_sys_config->k;
     const int r0 = m_sys_config->r;
@@ -711,7 +734,7 @@ namespace ECProject
     }
     if (global_parity_indices.empty())
     {
-      return 0;
+      return stats;
     }
 
     static std::atomic<bool> gf8_inited{false};
@@ -737,7 +760,6 @@ namespace ECProject
       data_slices_by_range[{o, l}].push_back(j);
     }
 
-    int global_updated = 0;
     for (const auto &range_kv : data_slices_by_range)
     {
       const int ref_off = range_kv.first.first;
@@ -798,7 +820,8 @@ namespace ECProject
         }
         if (WriteRangeToDatanode(pbk.c_str(), bid, ref_off, newbuf.data(), ref_len, dip.c_str(), dport))
         {
-          ++global_updated;
+          ++stats.ranges;
+          stats.bytes += static_cast<size_t>(ref_len);
         }
         else
         {
@@ -806,7 +829,7 @@ namespace ECProject
         }
       }
     }
-    return global_updated;
+    return stats;
   }
 
   static std::vector<ParityDeltaSlice> compute_local_parity_delta_slices(
@@ -909,15 +932,17 @@ namespace ECProject
     return data_cluster >= 0 && data_cluster != local_cluster;
   }
 
-  int ProxyImpl::applyReceivedLocalParityDelta(const proxy_proto::AppendStripeDataPlacement &placement,
-                                                 const char *delta_buf, size_t delta_size)
+  XueParityWriteStats ProxyImpl::applyReceivedLocalParityDelta(
+      const proxy_proto::AppendStripeDataPlacement &placement, const char *delta_buf,
+      size_t delta_size)
   {
+    XueParityWriteStats stats;
     const int k0 = m_sys_config->k;
     const int r0 = m_sys_config->r;
     const int lp_idx = find_local_parity_plan_index(placement, k0, r0);
     if (lp_idx < 0)
     {
-      return 0;
+      return stats;
     }
     const int tcp_slices = placement.xue_tcp_slice_count() > 0 ? placement.xue_tcp_slice_count()
                                                                  : placement.blockkeys_size();
@@ -933,7 +958,6 @@ namespace ECProject
     const std::string &pbk = placement.blockkeys(lp_idx);
     const std::string dip = placement.datanodeip(lp_idx);
     const int dport = placement.datanodeport(lp_idx);
-    int updated = 0;
     for (int i = 0; i < tcp_slices && i < placement.blockids_size(); ++i)
     {
       if (placement.blockids(i) != local_bid)
@@ -944,7 +968,8 @@ namespace ECProject
       const int len = static_cast<int>(placement.sizes(i));
       if (XorWriteRangeToDatanode(pbk.c_str(), local_bid, off, slices[i], len, dip.c_str(), dport))
       {
-        ++updated;
+        ++stats.ranges;
+        stats.bytes += static_cast<size_t>(len);
       }
       else
       {
@@ -952,7 +977,7 @@ namespace ECProject
                   << " len=" << len << std::endl;
       }
     }
-    return updated;
+    return stats;
   }
 
   bool ProxyImpl::forwardMergedLocalParityDelta(
@@ -1033,14 +1058,16 @@ namespace ECProject
                                    total);
   }
 
-  int ProxyImpl::applyXueLocalParityFromDataDeltas(const proxy_proto::AppendStripeDataPlacement &placement,
-                                                   const std::vector<char *> &slices, int tcp_slice_count)
+  XueParityWriteStats ProxyImpl::applyXueLocalParityFromDataDeltas(
+      const proxy_proto::AppendStripeDataPlacement &placement, const std::vector<char *> &slices,
+      int tcp_slice_count)
   {
+    XueParityWriteStats stats;
     const bool azure_like =
         m_sys_config->CodeType == "AzureLRC" || m_sys_config->CodeType == "XueLRC";
     if (!azure_like)
     {
-      return 0;
+      return stats;
     }
     const int k0 = m_sys_config->k;
     const int r0 = m_sys_config->r;
@@ -1048,7 +1075,7 @@ namespace ECProject
     const int lp_idx = find_local_parity_plan_index(placement, k0, r0);
     if (lp_idx < 0)
     {
-      return 0;
+      return stats;
     }
     std::vector<ParityDeltaSlice> raw =
         compute_local_parity_delta_slices(k0, r0, z0, placement, slices, tcp_slice_count, lp_idx);
@@ -1057,13 +1084,13 @@ namespace ECProject
     const std::string &pbk = placement.blockkeys(lp_idx);
     const std::string dip = placement.datanodeip(lp_idx);
     const int dport = placement.datanodeport(lp_idx);
-    int local_updated = 0;
     for (const auto &sl : merged)
     {
       if (XorWriteRangeToDatanode(pbk.c_str(), local_bid, sl.offset, sl.delta.data(), sl.length, dip.c_str(),
                                   dport))
       {
-        ++local_updated;
+        ++stats.ranges;
+        stats.bytes += static_cast<size_t>(sl.length);
       }
       else
       {
@@ -1071,7 +1098,7 @@ namespace ECProject
                   << " len=" << sl.length << std::endl;
       }
     }
-    return local_updated;
+    return stats;
   }
 
   grpc::Status ProxyImpl::checkalive(grpc::ServerContext *context,
@@ -1847,13 +1874,13 @@ namespace ECProject
           const std::string ts = proxy_xfer_timestamp();
           const int src_cluster = infer_tcp_source_cluster_for_recv(
               *placement_copy, append_mode_str, m_self_cluster_id, tcp_slice_count, m_sys_config->k);
-          const int updated =
+          const XueParityWriteStats parity_write =
               applyXueGlobalParityFromDataDeltas(*placement_copy, slices, tcp_slice_count);
-          const bool ok = updated > 0;
+          const bool ok = parity_write.ranges > 0;
           if (ok)
           {
             log_proxy_tcp_global_done(ts, m_self_cluster_id, src_cluster, placement_copy->key(),
-                                      cluster_append_size, tcp_slice_count, updated);
+                                      cluster_append_size, tcp_slice_count, parity_write);
           }
           else
           {
@@ -1877,15 +1904,14 @@ namespace ECProject
         if (append_mode_str == "XUE_LOCAL_PARITY_DELTA")
         {
           const std::string ts = proxy_xfer_timestamp();
-          const int updated =
-              applyReceivedLocalParityDelta(*placement_copy, append_buf.data(), cluster_append_size);
-          const bool ok = updated > 0;
+          const XueParityWriteStats parity_write = applyReceivedLocalParityDelta(
+              *placement_copy, append_buf.data(), cluster_append_size);
+          const bool ok = parity_write.ranges > 0;
           if (ok)
           {
-            log_xfert_line(ts, "XUE_LOCAL_PARITY_DELTA applied proxy_cluster=" +
-                                   std::to_string(m_self_cluster_id) + " append_key=" +
-                                   placement_copy->key() + " ranges=" +
-                                   std::to_string(updated));
+            log_xue_parity_write_applied(ts, "XUE_LOCAL_PARITY_DELTA applied", m_self_cluster_id,
+                                         placement_copy->key(), parity_write, nullptr,
+                                         cluster_append_size, tcp_slice_count);
           }
           else
           {
@@ -1905,15 +1931,14 @@ namespace ECProject
         if (append_mode_str == "XUE_COMPUTE_LOCAL_PARITY")
         {
           const std::string ts = proxy_xfer_timestamp();
-          const int updated =
+          const XueParityWriteStats parity_write =
               applyXueLocalParityFromDataDeltas(*placement_copy, slices, tcp_slice_count);
-          const bool ok = updated > 0;
+          const bool ok = parity_write.ranges > 0;
           if (ok)
           {
-            log_xfert_line(ts, "proxy_tcp_local_parity proxy_cluster=" +
-                                   std::to_string(m_self_cluster_id) + " append_key=" +
-                                   placement_copy->key() + " parity_updated=" +
-                                   std::to_string(updated));
+            log_xue_parity_write_applied(ts, "proxy_tcp_local_parity applied", m_self_cluster_id,
+                                         placement_copy->key(), parity_write, nullptr,
+                                         cluster_append_size, tcp_slice_count);
           }
           if (send_ack)
           {
@@ -2032,14 +2057,13 @@ namespace ECProject
           {
             if (m_self_cluster_id == local_parity_cluster)
             {
-              const int local_updated =
+              const XueParityWriteStats local_write =
                   applyXueLocalParityFromDataDeltas(*placement_copy, slices, tcp_slice_count);
-              if (local_updated > 0)
+              if (local_write.ranges > 0)
               {
-                log_xfert_line(proxy_xfer_timestamp(),
-                               "XUE_COMPUTE_LOCAL_PARITY applied local parity for " +
-                                   std::to_string(local_updated) + " slice(s) proxy_cluster=" +
-                                   std::to_string(local_parity_cluster));
+                log_xue_parity_write_applied(proxy_xfer_timestamp(),
+                                             "XUE_COMPUTE_LOCAL_PARITY applied", local_parity_cluster,
+                                             placement_copy->key(), local_write, "route=xue_update");
               }
             }
             else if (tcp_slice_count > 0 && needsClass3MergedLocalParityForward(*placement_copy, tcp_slice_count))
@@ -2069,14 +2093,13 @@ namespace ECProject
         }
         else if (append_mode_str == "XUE_UPDATE" && azure_like && placement_copy->xue_compute_global_parity())
         {
-          const int global_updated =
+          const XueParityWriteStats global_write =
               applyXueGlobalParityFromDataDeltas(*placement_copy, slices, tcp_slice_count);
-          if (global_updated > 0)
+          if (global_write.ranges > 0)
           {
-            log_xfert_line(proxy_xfer_timestamp(),
-                           "XUE_UPDATE applied global parity for " + std::to_string(global_updated) +
-                               " slice(s) proxy_cluster=" + std::to_string(m_self_cluster_id) +
-                               " route=class1_direct_ingress_global");
+            log_xue_parity_write_applied(proxy_xfer_timestamp(), "XUE_UPDATE global_parity applied",
+                                         m_self_cluster_id, placement_copy->key(), global_write,
+                                         "route=class1_direct_ingress_global");
           }
           int local_parity_cluster_after_global = -1;
           if (infer_class1_local_parity_cluster(*placement_copy, m_sys_config->k, m_sys_config->r,
