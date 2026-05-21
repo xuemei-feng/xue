@@ -53,6 +53,199 @@ namespace ECProject
       return true;
     }
 
+    void add_sparse_slice(std::map<int, std::vector<std::pair<int, int>>> &dst, int block_id,
+                          int len, int off)
+    {
+      if (len <= 0)
+      {
+        return;
+      }
+      auto &vec = dst[block_id];
+      vec.push_back(std::make_pair(len, off));
+      std::sort(vec.begin(), vec.end(),
+                [](const auto &a, const auto &b) { return a.second < b.second; });
+      std::vector<std::pair<int, int>> merged;
+      for (const auto &s : vec)
+      {
+        const int cur_l = s.second;
+        const int cur_r = s.second + s.first - 1;
+        if (merged.empty())
+        {
+          merged.push_back(s);
+          continue;
+        }
+        int prev_l = merged.back().second;
+        int prev_r = merged.back().second + merged.back().first - 1;
+        if (cur_l <= prev_r + 1)
+        {
+          const int new_r = std::max(prev_r, cur_r);
+          merged.back().second = prev_l;
+          merged.back().first = new_r - prev_l + 1;
+        }
+        else
+        {
+          merged.push_back(s);
+        }
+      }
+      vec.swap(merged);
+    }
+
+    std::vector<std::pair<int, int>> pad_xue_logical_ranges_to_unit_size(
+        const std::vector<std::pair<int, int>> &logical_ranges, int block_size, int unit_size)
+    {
+      std::vector<std::pair<int, int>> padded;
+      auto push_merged = [&](int logical_start, int logical_end) {
+        if (logical_end <= logical_start)
+        {
+          return;
+        }
+        if (!padded.empty() && padded.back().second == logical_start)
+        {
+          padded.back().second = logical_end;
+        }
+        else
+        {
+          padded.emplace_back(logical_start, logical_end);
+        }
+      };
+      for (const auto &r : logical_ranges)
+      {
+        int pos = r.first;
+        const int end = r.second;
+        while (pos < end)
+        {
+          const int block_id = pos / block_size;
+          const int block_offset = pos % block_size;
+          const int take = std::min(block_size - block_offset, end - pos);
+          const int block_end_incl = block_offset + take - 1;
+          const int u1 = block_end_incl / unit_size;
+          const int padded_block_end = std::min(block_size, (u1 + 1) * unit_size);
+          push_merged(pos, block_id * block_size + padded_block_end);
+          pos += take;
+        }
+      }
+      return padded;
+    }
+
+    void zero_fill_xue_unit_padding_gaps(char *stripe_buf,
+                                         const std::vector<std::pair<int, int>> &logical_ranges,
+                                         int block_size, int unit_size)
+    {
+      for (const auto &r : logical_ranges)
+      {
+        int pos = r.first;
+        const int end = r.second;
+        while (pos < end)
+        {
+          const int block_offset = pos % block_size;
+          const int take = std::min(block_size - block_offset, end - pos);
+          const int block_end_incl = block_offset + take - 1;
+          const int u1 = block_end_incl / unit_size;
+          const int padded_block_end = std::min(block_size, (u1 + 1) * unit_size);
+          const int gap_start = block_offset + take;
+          if (padded_block_end > gap_start)
+          {
+            std::memset(stripe_buf + static_cast<size_t>(pos + take), 0,
+                        static_cast<size_t>(padded_block_end - gap_start));
+          }
+          pos += take;
+        }
+      }
+    }
+
+    std::map<int, std::vector<std::pair<int, int>>> build_xue_block_to_slices_from_ranges(
+        const std::vector<std::pair<int, int>> &logical_ranges, int block_size)
+    {
+      std::map<int, std::vector<std::pair<int, int>>> block_to_slices;
+      for (const auto &r : logical_ranges)
+      {
+        int pos = r.first;
+        const int end = r.second;
+        while (pos < end)
+        {
+          const int block_id = pos / block_size;
+          const int block_offset = pos % block_size;
+          const int take = std::min(block_size - block_offset, end - pos);
+          add_sparse_slice(block_to_slices, block_id, take, block_offset);
+          pos += take;
+        }
+      }
+      return block_to_slices;
+    }
+
+    void extend_xue_parity_slices_in_block_map(
+        std::map<int, std::vector<std::pair<int, int>>> *block_to_slices, int k, int n,
+        int block_size, int unit_size)
+    {
+      if (block_to_slices == nullptr)
+      {
+        return;
+      }
+      std::map<int, std::vector<std::pair<int, int>>> data_only;
+      for (const auto &kv : *block_to_slices)
+      {
+        if (kv.first >= 0 && kv.first < k)
+        {
+          data_only[kv.first] = kv.second;
+        }
+      }
+      for (const auto &kv : data_only)
+      {
+        for (const auto &slice : kv.second)
+        {
+          const int block_off = slice.second;
+          const int block_end = block_off + slice.first - 1;
+          const int u0 = block_off / unit_size;
+          const int u1 = block_end / unit_size;
+          const int parity_off = u0 * unit_size;
+          const int parity_end = std::min(block_size - 1, (u1 + 1) * unit_size - 1);
+          const int parity_len = parity_end - parity_off + 1;
+          for (int i = k; i < n; i++)
+          {
+            add_sparse_slice(*block_to_slices, i, parity_len, parity_off);
+          }
+        }
+      }
+    }
+
+    bool pack_xue_tcp_payload_for_append_key(
+        const char *stripe_buf,
+        const std::map<int, std::vector<std::pair<int, int>>> &block_to_slices,
+        const std::string &append_key, int block_size, std::vector<char> *out)
+    {
+      if (out == nullptr)
+      {
+        return false;
+      }
+      std::vector<int> tcp_block_ids;
+      if (!ToolBox::getInstance()->parse_append_key_tcp_block_ids(append_key, &tcp_block_ids))
+      {
+        return false;
+      }
+      out->clear();
+      std::map<int, size_t> slice_cursor;
+      for (int bid : tcp_block_ids)
+      {
+        auto it = block_to_slices.find(bid);
+        if (it == block_to_slices.end())
+        {
+          return false;
+        }
+        size_t &idx = slice_cursor[bid];
+        if (idx >= it->second.size())
+        {
+          return false;
+        }
+        const auto &slice = it->second[idx];
+        const char *src =
+            stripe_buf + static_cast<size_t>(bid) * static_cast<size_t>(block_size) +
+            static_cast<size_t>(slice.second);
+        out->insert(out->end(), src, src + static_cast<size_t>(slice.first));
+        ++idx;
+      }
+      return true;
+    }
+
     void log_layout_client_send(int proxy_cluster, const std::string &append_key, int cluster_slice_size)
     {
       const size_t us = append_key.find('_');
@@ -1107,11 +1300,11 @@ namespace ECProject
       std::cout << "[XUE_UPDATE] Empty logical ranges." << std::endl;
       return false;
     }
-    grpc::ClientContext get_proxy_ip_port;
-    coordinator_proto::XueUpdateRequest request;
-    coordinator_proto::ReplyProxyIPsPorts reply;
-    request.set_client_id(m_clientID);
-    request.set_stripe_id(stripe_id);
+    const int block_size = static_cast<int>(m_sys_config->BlockSize);
+    const int unit_size = static_cast<int>(m_sys_config->UnitSize);
+    const int k = m_sys_config->k;
+    const int n = m_sys_config->n;
+
     for (const auto &r : logical_ranges)
     {
       if (r.second <= r.first)
@@ -1120,6 +1313,24 @@ namespace ECProject
                   << ", " << r.second << ") (require start < end)" << std::endl;
         return false;
       }
+    }
+
+    const std::vector<std::pair<int, int>> padded_ranges =
+        pad_xue_logical_ranges_to_unit_size(logical_ranges, block_size, unit_size);
+    if (padded_ranges != logical_ranges)
+    {
+      std::cout << "[XUE_UPDATE] padded logical ranges to unit_size=" << unit_size
+                << " for coordinator/plan alignment" << std::endl;
+    }
+    zero_fill_xue_unit_padding_gaps(m_pre_allocated_buffer, logical_ranges, block_size, unit_size);
+
+    grpc::ClientContext get_proxy_ip_port;
+    coordinator_proto::XueUpdateRequest request;
+    coordinator_proto::ReplyProxyIPsPorts reply;
+    request.set_client_id(m_clientID);
+    request.set_stripe_id(stripe_id);
+    for (const auto &r : padded_ranges)
+    {
       auto *range = request.add_ranges();
       range->set_logical_offset_start(r.first);
       range->set_logical_offset_end(r.second);
@@ -1132,13 +1343,50 @@ namespace ECProject
       return false;
     }
 
+    std::map<int, std::vector<std::pair<int, int>>> block_to_slices =
+        build_xue_block_to_slices_from_ranges(padded_ranges, block_size);
+    extend_xue_parity_slices_in_block_map(&block_to_slices, k, n, block_size, unit_size);
+
+    std::vector<char> tcp_pack_buffer;
+    const char *send_buf = m_pre_allocated_buffer;
+    if (reply_uses_cluster_ingress(&reply))
+    {
+      tcp_pack_buffer.resize(static_cast<size_t>(reply.sum_append_size()), 0);
+      size_t off = 0;
+      for (int i = 0; i < reply.append_keys_size(); ++i)
+      {
+        std::vector<char> cluster_payload;
+        if (!pack_xue_tcp_payload_for_append_key(m_pre_allocated_buffer, block_to_slices,
+                                                 reply.append_keys(i), block_size, &cluster_payload))
+        {
+          std::cout << "[XUE_UPDATE] failed to pack TCP payload for key=" << reply.append_keys(i)
+                    << std::endl;
+          return false;
+        }
+        if (cluster_payload.size() !=
+            static_cast<size_t>(reply.cluster_slice_sizes(i)))
+        {
+          std::cout << "[XUE_UPDATE] cluster payload size mismatch key=" << reply.append_keys(i)
+                    << " packed=" << cluster_payload.size()
+                    << " expected=" << reply.cluster_slice_sizes(i) << std::endl;
+          return false;
+        }
+        std::memcpy(tcp_pack_buffer.data() + off, cluster_payload.data(), cluster_payload.size());
+        off += cluster_payload.size();
+      }
+      send_buf = tcp_pack_buffer.data();
+    }
+
     std::vector<std::thread> threads;
-    std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
+    std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(send_buf, &reply);
     std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
     std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
 
     for (int i = 0; i < reply.append_keys_size(); i++)
     {
+      int proxy_cluster = -1;
+      parse_append_key_cluster_id(reply.append_keys(i), &proxy_cluster);
+      log_layout_client_send(proxy_cluster, reply.append_keys(i), reply.cluster_slice_sizes(i));
       threads.push_back(std::thread(&Client::async_append_to_proxies,
                                     this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get()));
     }
