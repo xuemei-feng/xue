@@ -56,6 +56,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       {
         return 0;
       }
+      const size_t class_pos = key.find("_class", us + 1);
+      if (class_pos != std::string::npos)
+      {
+        return std::stoi(key.substr(us + 1, class_pos - us - 1));
+      }
       const size_t cpos = key.find('c', us + 1);
       size_t end = key.find('#', us + 1);
       if (end == std::string::npos)
@@ -189,6 +194,22 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return merged;
     }
 
+    int parse_xue_class_subgroup_from_plan_key(const std::string &key)
+    {
+      const size_t class_pos = key.find("_class");
+      if (class_pos == std::string::npos)
+      {
+        return 0;
+      }
+      const size_t num_begin = class_pos + 6;
+      const size_t cpos = key.find('c', num_begin);
+      if (cpos == std::string::npos || cpos <= num_begin)
+      {
+        return 0;
+      }
+      return std::stoi(key.substr(num_begin, cpos - num_begin));
+    }
+
     std::vector<proxy_proto::AppendStripeDataPlacement> split_placement_by_map2cluster(
         const proxy_proto::AppendStripeDataPlacement &plan, int group_id)
     {
@@ -277,7 +298,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         sub.clear_sizes();
         sub.set_cluster_id(cluster_id);
         sub.set_key(ToolBox::getInstance()->gen_append_key_cluster_plan(
-            plan.stripe_id(), group_id, cluster_id, tcp_block_ids, meta_block_ids));
+            plan.stripe_id(), group_id, cluster_id, tcp_block_ids, meta_block_ids,
+            parse_xue_class_subgroup_from_plan_key(plan.key())));
         int sub_tcp = 0;
         size_t sub_append = 0;
         for (int j : idxs)
@@ -1104,6 +1126,40 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
       }
       return nullptr;
+    }
+
+    int xue_class_subgroup_from_kind(DataUpdateClass klass)
+    {
+      switch (klass)
+      {
+      case DataUpdateClass::kLocalParitySameCluster:
+        return 1;
+      case DataUpdateClass::kGlobalParitySameCluster:
+        return 2;
+      case DataUpdateClass::kDataOnlyCluster:
+        return 3;
+      default:
+        return 0;
+      }
+    }
+
+    DataUpdateClass classify_xue_data_block(const Stripe *stripe, int data_block_id,
+                                            int global_parity_cluster_id, const Block *lp_blk)
+    {
+      const Block *data_block = find_block_by_id(stripe, data_block_id);
+      if (data_block == nullptr || lp_blk == nullptr)
+      {
+        return DataUpdateClass::kDataOnlyCluster;
+      }
+      if (data_block->map2cluster == lp_blk->map2cluster)
+      {
+        return DataUpdateClass::kLocalParitySameCluster;
+      }
+      if (global_parity_cluster_id >= 0 && data_block->map2cluster == global_parity_cluster_id)
+      {
+        return DataUpdateClass::kGlobalParitySameCluster;
+      }
+      return DataUpdateClass::kDataOnlyCluster;
     }
 
     XueUpdateResult xue_update(
@@ -2815,179 +2871,166 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       {
         continue;
       }
-      proxy_proto::AppendStripeDataPlacement plan;
-      plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, i));
-      plan.set_stripe_id(stripe->stripe_id);
-      plan.set_is_merge_parity(is_merge_parity);
-      auto ingress_it = group_to_ingress_cluster.find(i);
-      if (ingress_it != group_to_ingress_cluster.end())
-      {
-        plan.set_cluster_id(ingress_it->second);
-      }
-      else
-      {
-        const Block *ingress_block = find_block_by_id(stripe, stripe->group_to_blocks[i][0]);
-        if (ingress_block != nullptr)
-        {
-          plan.set_cluster_id(ingress_block->map2cluster);
-        }
-      }
-      plan.set_append_mode("XUE_UPDATE");
-      plan.set_is_serialized(true);
       const int lp_id = get_local_parity_block_id(stripe, i);
       const Block *lp_blk = find_block_by_id(stripe, lp_id);
-      const Block *data_blk0 = find_block_by_id(stripe, i * stripe->k / stripe->z);
+      const int group_data_begin = i * stripe->k / stripe->z;
+      const int group_data_end = (i + 1) * stripe->k / stripe->z;
+      auto ingress_it = group_to_ingress_cluster.find(i);
       const auto relay_it = group_to_class1_relay.find(i);
       const bool class1_relay = relay_it != group_to_class1_relay.end() && relay_it->second.enabled;
+
+      std::map<int, std::vector<int>> tcp_blocks_by_class;
+      for (int j = group_data_begin; j < group_data_end; ++j)
+      {
+        if (block_to_slices.find(j) == block_to_slices.end())
+        {
+          continue;
+        }
+        const DataUpdateClass klass =
+            classify_xue_data_block(stripe, j, global_parity_cluster_id, lp_blk);
+        const int class_sub = xue_class_subgroup_from_kind(klass);
+        tcp_blocks_by_class[class_sub].push_back(j);
+      }
+
+      auto push_cluster_plans = [&](proxy_proto::AppendStripeDataPlacement &plan) {
+        if (plan.append_size() <= 0)
+        {
+          return;
+        }
+        const auto cluster_plans = split_placement_by_map2cluster(plan, i);
+        for (const auto &cp : cluster_plans)
+        {
+          append_plans.push_back(cp);
+        }
+      };
+
+      auto build_xue_subgroup_plan = [&](int class_sub,
+                                         const std::vector<int> &tcp_data_blocks) {
+        proxy_proto::AppendStripeDataPlacement plan;
+        plan.set_key(m_toolbox->gen_append_key_xue_subgroup(stripe->stripe_id, i, class_sub));
+        plan.set_stripe_id(stripe->stripe_id);
+        plan.set_is_merge_parity(is_merge_parity);
+        plan.set_append_mode("XUE_UPDATE");
+        plan.set_is_serialized(true);
+        plan.set_xue_class1_relay_path(false);
+        plan.set_xue_data_slices_are_delta(false);
+        plan.set_xue_compute_global_parity(false);
+        if (ingress_it != group_to_ingress_cluster.end())
+        {
+          plan.set_cluster_id(ingress_it->second);
+        }
+        else if (!tcp_data_blocks.empty())
+        {
+          const Block *ingress_block = find_block_by_id(stripe, tcp_data_blocks.front());
+          if (ingress_block != nullptr)
+          {
+            plan.set_cluster_id(ingress_block->map2cluster);
+          }
+        }
+        if (global_parity_cluster_id >= 0)
+        {
+          plan.set_xue_global_parity_cluster_id(global_parity_cluster_id);
+          if (!global_data_forward_assigned)
+          {
+            global_data_forward_assigned = true;
+          }
+        }
+        if (class_sub == 2 && global_parity_cluster_id >= 0)
+        {
+          for (int bid : tcp_data_blocks)
+          {
+            const Block *db = find_block_by_id(stripe, bid);
+            if (db != nullptr && db->map2cluster == global_parity_cluster_id)
+            {
+              plan.set_xue_compute_global_parity(true);
+              break;
+            }
+          }
+        }
+        int plan_append_size = 0;
+        int tcp_slice_count = 0;
+        auto add_block_slices = [&](int block_id, bool count_tcp) {
+          const Block *block = find_block_by_id(stripe, block_id);
+          if (block == nullptr)
+          {
+            return;
+          }
+          auto it = block_to_slices.find(block_id);
+          if (it == block_to_slices.end())
+          {
+            return;
+          }
+          for (const auto &slice : it->second)
+          {
+            addBlockToAppendPlan(plan, block, m_node_table[block->map2node], slice);
+            if (count_tcp)
+            {
+              plan_append_size += slice.first;
+              ++tcp_slice_count;
+            }
+          }
+        };
+        for (int bid : tcp_data_blocks)
+        {
+          add_block_slices(bid, true);
+        }
+        auto add_local_parity_meta = [&]() {
+          for (int j = stripe->k + i * stripe->r / stripe->z;
+               j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
+          {
+            add_block_slices(j, false);
+          }
+        };
+        if (class_sub == 1 || class_sub == 2 || class_sub == 3)
+        {
+          add_local_parity_meta();
+        }
+        if (class_sub == 1 || class_sub == 2)
+        {
+          add_all_global_parity_metadata(plan, add_block_slices);
+        }
+        else if (class_sub == 3)
+        {
+          add_all_global_parity_metadata(plan, add_block_slices);
+        }
+        plan.set_xue_tcp_slice_count(tcp_slice_count);
+        plan.set_append_size(plan_append_size);
+        return plan;
+      };
+
       if (class1_relay)
       {
-        // Client 仅向数据块所在 cluster 发 TCP 新值；data_delta 经 data→relay→global 两跳转发
+        std::vector<int> all_tcp;
+        for (int j = group_data_begin; j < group_data_end; ++j)
+        {
+          if (block_to_slices.find(j) != block_to_slices.end())
+          {
+            all_tcp.push_back(j);
+          }
+        }
+        proxy_proto::AppendStripeDataPlacement plan =
+            build_xue_subgroup_plan(0, all_tcp);
+        plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, i));
         plan.set_xue_class1_relay_path(true);
         plan.set_xue_relay_cluster_id(relay_it->second.relay_cluster);
         plan.set_xue_global_parity_cluster_id(relay_it->second.global_parity_cluster);
         plan.set_xue_compute_global_parity(false);
-        plan.set_xue_data_slices_are_delta(false);
         global_data_forward_assigned = true;
+        push_cluster_plans(plan);
       }
       else
       {
-        plan.set_xue_class1_relay_path(false);
-        bool compute_global_parity = false;
-        if (ingress_it != group_to_ingress_cluster.end() && global_parity_cluster_id >= 0 &&
-            ingress_it->second == global_parity_cluster_id)
+        for (int class_sub = 1; class_sub <= 3; ++class_sub)
         {
-          compute_global_parity = true;
-        }
-        plan.set_xue_compute_global_parity(compute_global_parity);
-        if (global_parity_cluster_id >= 0)
-        {
-          if (compute_global_parity)
+          const auto it = tcp_blocks_by_class.find(class_sub);
+          if (it == tcp_blocks_by_class.end() || it->second.empty())
           {
-            plan.set_xue_global_parity_cluster_id(global_parity_cluster_id);
+            continue;
           }
-          else if (!global_data_forward_assigned)
-          {
-            plan.set_xue_global_parity_cluster_id(global_parity_cluster_id);
-            global_data_forward_assigned = true;
-          }
+          proxy_proto::AppendStripeDataPlacement plan =
+              build_xue_subgroup_plan(class_sub, it->second);
+          push_cluster_plans(plan);
         }
-      }
-      int plan_append_size = 0;
-      int tcp_slice_count = 0;
-      auto add_block_slices = [&](int block_id, bool count_tcp) {
-        const Block *block = find_block_by_id(stripe, block_id);
-        if (block == nullptr)
-        {
-          return;
-        }
-        auto it = block_to_slices.find(block_id);
-        if (it == block_to_slices.end())
-        {
-          return;
-        }
-        for (const auto &slice : it->second)
-        {
-          addBlockToAppendPlan(plan, block, m_node_table[block->map2node], slice);
-          if (count_tcp)
-          {
-            plan_append_size += slice.first;
-            ++tcp_slice_count;
-          }
-        }
-      };
-
-      int data_cluster_updated = -1;
-      const int group_data_begin = i * stripe->k / stripe->z;
-      const int group_data_end = (i + 1) * stripe->k / stripe->z;
-      for (int j = group_data_begin; j < group_data_end; ++j)
-      {
-        if (block_to_slices.find(j) != block_to_slices.end())
-        {
-          const Block *db = find_block_by_id(stripe, j);
-          if (db != nullptr)
-          {
-            data_cluster_updated = db->map2cluster;
-            break;
-          }
-        }
-      }
-      if (data_cluster_updated < 0 && data_blk0 != nullptr)
-      {
-        data_cluster_updated = data_blk0->map2cluster;
-      }
-
-      if (!class1_relay && global_parity_cluster_id >= 0 && data_cluster_updated >= 0 &&
-          data_cluster_updated == global_parity_cluster_id)
-      {
-        plan.set_xue_compute_global_parity(true);
-        plan.set_xue_global_parity_cluster_id(global_parity_cluster_id);
-      }
-
-      const bool class1_group =
-          (lp_blk != nullptr && data_cluster_updated >= 0 &&
-           data_cluster_updated == lp_blk->map2cluster);
-      const bool class2_group =
-          (lp_blk != nullptr && global_parity_cluster_id >= 0 && data_cluster_updated >= 0 &&
-           data_cluster_updated == global_parity_cluster_id &&
-           data_cluster_updated != lp_blk->map2cluster);
-      const bool class3_group =
-          (lp_blk != nullptr && data_cluster_updated >= 0 &&
-           data_cluster_updated != lp_blk->map2cluster &&
-           (global_parity_cluster_id < 0 ||
-            data_cluster_updated != global_parity_cluster_id));
-
-      for (int j = group_data_begin; j < group_data_end; j++)
-      {
-        add_block_slices(j, true);
-      }
-      auto add_local_parity_meta = [&]() {
-        for (int j = stripe->k + i * stripe->r / stripe->z;
-             j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
-        {
-          add_block_slices(j, false);
-        }
-      };
-      if (class1_group)
-      {
-        // 第1类：本地校验由 data cluster 的 proxy 用编码矩阵计算增量并 XOR 落盘
-        add_local_parity_meta();
-      }
-      else if (class2_group)
-      {
-        // 第2类：data/global 同 cluster；local 元数据供 ingress 转发 data_delta 到 local cluster
-        add_local_parity_meta();
-      }
-      else if (class3_group)
-      {
-        // 第3类：源 proxy 合并 local parity delta 后转发
-        add_local_parity_meta();
-      }
-      else if (!class1_relay)
-      {
-        for (int j = stripe->k + i * stripe->r / stripe->z;
-             j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
-        {
-          add_block_slices(j, true);
-        }
-      }
-      if (class1_relay)
-      {
-        add_all_global_parity_metadata(plan, add_block_slices);
-      }
-      else if (plan.xue_compute_global_parity() || class1_group)
-      {
-        add_all_global_parity_metadata(plan, add_block_slices);
-      }
-      plan.set_xue_tcp_slice_count(tcp_slice_count);
-      plan.set_append_size(plan_append_size);
-      if (plan_append_size <= 0)
-      {
-        continue;
-      }
-      const auto cluster_plans = split_placement_by_map2cluster(plan, i);
-      for (const auto &cp : cluster_plans)
-      {
-        append_plans.push_back(cp);
       }
     }
 

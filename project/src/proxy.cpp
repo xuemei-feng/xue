@@ -371,6 +371,29 @@ namespace
     {
       return "route=class2_ingress_data_global";
     }
+    const std::string &plan_key = placement.key();
+    const size_t class_pos = plan_key.find("_class");
+    if (class_pos != std::string::npos)
+    {
+      const size_t num_begin = class_pos + 6;
+      const size_t cpos = plan_key.find('c', num_begin);
+      if (cpos != std::string::npos && cpos > num_begin)
+      {
+        const int class_sub = std::stoi(plan_key.substr(num_begin, cpos - num_begin));
+        if (class_sub == 1)
+        {
+          return "route=class1_subgroup";
+        }
+        if (class_sub == 2)
+        {
+          return "route=class2_subgroup";
+        }
+        if (class_sub == 3)
+        {
+          return "route=class3_subgroup";
+        }
+      }
+    }
     return "route=xue_update";
   }
 

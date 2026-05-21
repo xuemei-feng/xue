@@ -1,8 +1,10 @@
 #!/bin/bash
 
 cd /users/xue
-sudo chmod 777 -R UniLRC
-cd xue
+if [[ -d xue ]]; then
+  sudo chmod 777 -R xue
+  cd xue
+fi
 
 
 # 定义源文件夹路径

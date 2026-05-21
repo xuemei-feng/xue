@@ -43,9 +43,13 @@ namespace ECProject
       {
         return false;
       }
-      const size_t cpos = key.find('c');
       const size_t hash_pos = key.find('#');
-      if (cpos == std::string::npos || hash_pos == std::string::npos || cpos >= hash_pos)
+      if (hash_pos == std::string::npos)
+      {
+        return false;
+      }
+      const size_t cpos = key.rfind('c', hash_pos);
+      if (cpos == std::string::npos)
       {
         return false;
       }

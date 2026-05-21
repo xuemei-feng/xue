@@ -54,6 +54,17 @@ namespace ECProject
     return std::to_string(stripe_id) + "_" + std::to_string(group_id);
   }
 
+  std::string ToolBox::gen_append_key_xue_subgroup(int stripe_id, int group_id, int xue_class_subgroup)
+  {
+    std::ostringstream oss;
+    oss << stripe_id << "_" << group_id;
+    if (xue_class_subgroup >= 1 && xue_class_subgroup <= 3)
+    {
+      oss << "_class" << xue_class_subgroup;
+    }
+    return oss.str();
+  }
+
   namespace
   {
     void format_block_id_list(std::ostringstream &oss, const std::vector<int> &block_ids)
@@ -71,10 +82,16 @@ namespace ECProject
 
   std::string ToolBox::gen_append_key_cluster_plan(int stripe_id, int group_id, int cluster_id,
                                                    const std::vector<int> &tcp_block_ids,
-                                                   const std::vector<int> &meta_block_ids)
+                                                   const std::vector<int> &meta_block_ids,
+                                                   int xue_class_subgroup)
   {
     std::ostringstream oss;
-    oss << stripe_id << "_" << group_id << "c" << cluster_id << "#";
+    oss << stripe_id << "_" << group_id;
+    if (xue_class_subgroup >= 1 && xue_class_subgroup <= 3)
+    {
+      oss << "_class" << xue_class_subgroup;
+    }
+    oss << "c" << cluster_id << "#";
     format_block_id_list(oss, tcp_block_ids);
     if (!meta_block_ids.empty())
     {
