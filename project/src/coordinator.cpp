@@ -227,19 +227,25 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       {
         const int cluster_id = kv.first;
         std::vector<int> idxs = kv.second;
-        // 第1类 relay：数据 cluster 子计划需携带全局校验块元数据，供 proxy 链式转发到 global cluster 落盘
-        if (plan.xue_class1_relay_path() && plan.xue_global_parity_cluster_id() >= 0 &&
-            cluster_id == plan.cluster_id())
-        {
-          for (int j = 0; j < n; ++j)
+        // 含 client TCP 的 XUE_UPDATE 子 plan 需携带全部 parity 元数据（跨 cluster），
+        // 供 proxy 链式转发/编码；仅按 map2cluster 拆分或只挂 global cluster 会漏块（XueLRC 尤甚）。
+        const auto attach_all_parity_meta_to_tcp_subplan = [&]() {
+          bool sub_has_tcp = false;
+          for (int j : idxs)
           {
             if (j < tcp_n)
             {
-              continue;
+              sub_has_tcp = true;
+              break;
             }
-            const int bcl =
-                (j < plan.block_cluster_ids_size()) ? plan.block_cluster_ids(j) : -1;
-            if (bcl != plan.xue_global_parity_cluster_id())
+          }
+          if (!sub_has_tcp || plan.append_mode() != "XUE_UPDATE")
+          {
+            return;
+          }
+          for (int j = 0; j < n; ++j)
+          {
+            if (j < tcp_n)
             {
               continue;
             }
@@ -250,8 +256,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           }
           std::sort(idxs.begin(), idxs.end(),
                     [&plan](int a, int b) { return plan.blockids(a) < plan.blockids(b); });
+        };
+        if (plan.xue_class1_relay_path() && cluster_id == plan.cluster_id())
+        {
+          attach_all_parity_meta_to_tcp_subplan();
         }
-        // 第2类：data/global 同 cluster 子 plan 需携带 local parity 元数据，供 ingress proxy 转发 data_delta
+        // 第2类：data/global 同 cluster 子 plan 需携带其它 cluster 的 local parity 元数据
         else if (plan.append_mode() == "XUE_UPDATE" && !plan.xue_class1_relay_path() &&
                  plan.xue_compute_global_parity() && plan.xue_global_parity_cluster_id() >= 0 &&
                  cluster_id == plan.xue_global_parity_cluster_id())
@@ -273,35 +283,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           std::sort(idxs.begin(), idxs.end(),
                     [&plan](int a, int b) { return plan.blockids(a) < plan.blockids(b); });
         }
-        // 第3类（及同类入口）：client TCP 落在 data cluster 子 plan 时，需携带 local/global parity
-        // 元数据，供 proxy 计算校验增量并转发；否则仅 plan_blocks=1，global/local 均失败。
         else if (plan.append_mode() == "XUE_UPDATE" && !plan.xue_class1_relay_path())
         {
-          bool sub_has_tcp = false;
-          for (int j : idxs)
-          {
-            if (j < tcp_n)
-            {
-              sub_has_tcp = true;
-              break;
-            }
-          }
-          if (sub_has_tcp)
-          {
-            for (int j = 0; j < n; ++j)
-            {
-              if (j < tcp_n)
-              {
-                continue;
-              }
-              if (std::find(idxs.begin(), idxs.end(), j) == idxs.end())
-              {
-                idxs.push_back(j);
-              }
-            }
-            std::sort(idxs.begin(), idxs.end(),
-                      [&plan](int a, int b) { return plan.blockids(a) < plan.blockids(b); });
-          }
+          attach_all_parity_meta_to_tcp_subplan();
         }
         std::vector<int> tcp_block_ids;
         std::vector<int> meta_block_ids;
@@ -3039,7 +3023,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           }
         }
         proxy_proto::AppendStripeDataPlacement plan =
-            build_xue_subgroup_plan(0, all_tcp);
+            build_xue_subgroup_plan(1, all_tcp);
         plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, i));
         plan.set_xue_class1_relay_path(true);
         plan.set_xue_relay_cluster_id(relay_it->second.relay_cluster);
