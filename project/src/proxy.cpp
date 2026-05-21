@@ -789,6 +789,15 @@ namespace ECProject
     {
       return stats;
     }
+    std::map<int, int> global_block_plan_idx;
+    for (int idx : global_parity_indices)
+    {
+      const int bid = placement.blockids(idx);
+      if (global_block_plan_idx.find(bid) == global_block_plan_idx.end())
+      {
+        global_block_plan_idx[bid] = idx;
+      }
+    }
 
     static std::atomic<bool> gf8_inited{false};
     if (!gf8_inited.exchange(true))
@@ -843,14 +852,10 @@ namespace ECProject
           }
         }
       }
-      for (int idx : global_parity_indices)
+      for (const auto &gkv : global_block_plan_idx)
       {
-        if (static_cast<int>(placement.offsets(idx)) != ref_off ||
-            static_cast<int>(placement.sizes(idx)) != ref_len)
-        {
-          continue;
-        }
-        const int bid = placement.blockids(idx);
+        const int bid = gkv.first;
+        const int idx = gkv.second;
         const int gi = bid - global_begin;
         if (gi < 0 || gi >= global_count)
         {
@@ -878,7 +883,8 @@ namespace ECProject
         }
         else
         {
-          std::cerr << "[Proxy] XUE global parity WriteRange failed block " << pbk << std::endl;
+          std::cerr << "[Proxy] XUE global parity WriteRange failed block " << pbk << " off=" << ref_off
+                    << " len=" << ref_len << std::endl;
         }
       }
     }
