@@ -230,6 +230,28 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           std::sort(idxs.begin(), idxs.end(),
                     [&plan](int a, int b) { return plan.blockids(a) < plan.blockids(b); });
         }
+        // 第2类：data/global 同 cluster 子 plan 需携带 local parity 元数据，供 ingress proxy 转发 data_delta
+        else if (plan.append_mode() == "XUE_UPDATE" && !plan.xue_class1_relay_path() &&
+                 plan.xue_compute_global_parity() && plan.xue_global_parity_cluster_id() >= 0 &&
+                 cluster_id == plan.xue_global_parity_cluster_id())
+        {
+          for (int j = 0; j < n; ++j)
+          {
+            if (j < tcp_n)
+            {
+              continue;
+            }
+            const int bcl =
+                (j < plan.block_cluster_ids_size()) ? plan.block_cluster_ids(j) : -1;
+            if (bcl >= 0 && bcl != cluster_id &&
+                std::find(idxs.begin(), idxs.end(), j) == idxs.end())
+            {
+              idxs.push_back(j);
+            }
+          }
+          std::sort(idxs.begin(), idxs.end(),
+                    [&plan](int a, int b) { return plan.blockids(a) < plan.blockids(b); });
+        }
         std::vector<int> tcp_block_ids;
         std::vector<int> meta_block_ids;
         tcp_block_ids.reserve(idxs.size());
@@ -275,6 +297,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
         sub.set_xue_tcp_slice_count(sub_tcp);
         sub.set_append_size(sub_append);
+        // 第2类：client TCP 落在 data/global 同 cluster 的子 plan 上，由该 proxy 计算 global parity
+        if (plan.append_mode() == "XUE_UPDATE" && plan.xue_global_parity_cluster_id() >= 0 &&
+            cluster_id == plan.xue_global_parity_cluster_id())
+        {
+          sub.set_xue_compute_global_parity(true);
+        }
         if (sub_append <= 0 && plan.append_mode() != "XUE_UPDATE")
         {
           continue;
@@ -2806,6 +2834,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       plan.set_append_mode("XUE_UPDATE");
       plan.set_is_serialized(true);
+      const int lp_id = get_local_parity_block_id(stripe, i);
+      const Block *lp_blk = find_block_by_id(stripe, lp_id);
+      const Block *data_blk0 = find_block_by_id(stripe, i * stripe->k / stripe->z);
       const auto relay_it = group_to_class1_relay.find(i);
       const bool class1_relay = relay_it != group_to_class1_relay.end() && relay_it->second.enabled;
       if (class1_relay)
@@ -2865,41 +2896,71 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
       };
 
-      bool class1_group = false;
-      const int lp_id = get_local_parity_block_id(stripe, i);
-      const Block *lp_blk = find_block_by_id(stripe, lp_id);
-      const Block *data_blk0 = find_block_by_id(stripe, i * stripe->k / stripe->z);
-      if (data_blk0 != nullptr && lp_blk != nullptr &&
-          data_blk0->map2cluster == lp_blk->map2cluster)
+      int data_cluster_updated = -1;
+      const int group_data_begin = i * stripe->k / stripe->z;
+      const int group_data_end = (i + 1) * stripe->k / stripe->z;
+      for (int j = group_data_begin; j < group_data_end; ++j)
       {
-        class1_group = true;
+        if (block_to_slices.find(j) != block_to_slices.end())
+        {
+          const Block *db = find_block_by_id(stripe, j);
+          if (db != nullptr)
+          {
+            data_cluster_updated = db->map2cluster;
+            break;
+          }
+        }
+      }
+      if (data_cluster_updated < 0 && data_blk0 != nullptr)
+      {
+        data_cluster_updated = data_blk0->map2cluster;
       }
 
-      for (int j = i * stripe->k / stripe->z;
-           j < (i + 1) * stripe->k / stripe->z; j++)
+      if (!class1_relay && global_parity_cluster_id >= 0 && data_cluster_updated >= 0 &&
+          data_cluster_updated == global_parity_cluster_id)
+      {
+        plan.set_xue_compute_global_parity(true);
+        plan.set_xue_global_parity_cluster_id(global_parity_cluster_id);
+      }
+
+      const bool class1_group =
+          (lp_blk != nullptr && data_cluster_updated >= 0 &&
+           data_cluster_updated == lp_blk->map2cluster);
+      const bool class2_group =
+          (lp_blk != nullptr && global_parity_cluster_id >= 0 && data_cluster_updated >= 0 &&
+           data_cluster_updated == global_parity_cluster_id &&
+           data_cluster_updated != lp_blk->map2cluster);
+      const bool class3_group =
+          (lp_blk != nullptr && data_cluster_updated >= 0 &&
+           data_cluster_updated != lp_blk->map2cluster &&
+           (global_parity_cluster_id < 0 ||
+            data_cluster_updated != global_parity_cluster_id));
+
+      for (int j = group_data_begin; j < group_data_end; j++)
       {
         add_block_slices(j, true);
       }
-      const bool class3_group =
-          (lp_blk != nullptr && data_blk0 != nullptr &&
-           data_blk0->map2cluster != lp_blk->map2cluster);
-      if (class1_group)
-      {
-        // 第1类：本地校验由 data cluster 的 proxy 用编码矩阵计算增量并 XOR 落盘，不走 TCP 覆盖写
+      auto add_local_parity_meta = [&]() {
         for (int j = stripe->k + i * stripe->r / stripe->z;
              j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
         {
           add_block_slices(j, false);
         }
+      };
+      if (class1_group)
+      {
+        // 第1类：本地校验由 data cluster 的 proxy 用编码矩阵计算增量并 XOR 落盘
+        add_local_parity_meta();
+      }
+      else if (class2_group)
+      {
+        // 第2类：data/global 同 cluster；local 元数据供 ingress 转发 data_delta 到 local cluster
+        add_local_parity_meta();
       }
       else if (class3_group)
       {
-        // 第3类：本地校验增量由源 proxy 按编码矩阵计算后合并区间，再以 XUE_LOCAL_PARITY_DELTA 发往 local cluster
-        for (int j = stripe->k + i * stripe->r / stripe->z;
-             j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
-        {
-          add_block_slices(j, false);
-        }
+        // 第3类：源 proxy 合并 local parity delta 后转发
+        add_local_parity_meta();
       }
       else if (!class1_relay)
       {

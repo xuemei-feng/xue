@@ -138,6 +138,9 @@ namespace ECProject
         int tcp_slice_count);
     bool needsClass3MergedLocalParityForward(const proxy_proto::AppendStripeDataPlacement &placement,
                                              int tcp_slice_count) const;
+    void handleXueClass2Or3LocalParityOnDataCluster(
+        const proxy_proto::AppendStripeDataPlacement &placement, const std::vector<char *> &slices,
+        int tcp_slice_count, const char *append_buf, size_t cluster_append_size);
     bool forwardMergedLocalParityDelta(int dest_local_cluster,
                                        const proxy_proto::AppendStripeDataPlacement &placement,
                                        const std::vector<char *> &data_delta_slices, int tcp_slice_count);

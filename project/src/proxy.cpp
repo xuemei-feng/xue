@@ -163,6 +163,23 @@ namespace
     return -1;
   }
 
+  bool infer_local_parity_cluster_from_plan(const proxy_proto::AppendStripeDataPlacement &placement,
+                                            int k, int r, int *out_local_cluster)
+  {
+    if (out_local_cluster == nullptr)
+    {
+      return false;
+    }
+    *out_local_cluster = -1;
+    const int lp_idx = find_local_parity_plan_index(placement, k, r);
+    if (lp_idx >= 0 && lp_idx < placement.block_cluster_ids_size())
+    {
+      *out_local_cluster = placement.block_cluster_ids(lp_idx);
+      return *out_local_cluster >= 0;
+    }
+    return false;
+  }
+
   // 仅用于日志：推断本 proxy TCP 接收的上一跳 cluster（不改变传输）
   int infer_tcp_source_cluster_for_recv(const proxy_proto::AppendStripeDataPlacement &placement,
                                         const std::string &append_mode, int recv_proxy_cluster,
@@ -352,9 +369,22 @@ namespace
     }
     if (placement.xue_compute_global_parity())
     {
-      return "route=class1_direct_ingress_global";
+      return "route=class2_ingress_data_global";
     }
     return "route=xue_update";
+  }
+
+  void append_xue_global_parity_plan_suffix(std::ostringstream &oss,
+                                            const proxy_proto::AppendStripeDataPlacement &placement)
+  {
+    if (placement.append_mode() != "XUE_UPDATE")
+    {
+      return;
+    }
+    oss << " global_parity_cluster=" << placement.xue_global_parity_cluster_id()
+        << " compute_global_parity="
+        << (placement.xue_compute_global_parity() ? "true" : "false")
+        << " class1_relay=" << (placement.xue_class1_relay_path() ? "true" : "false");
   }
 
   // 第1类：本地校验块仅在 plan 元数据中（j >= tcp_slice_count），且与数据块同 cluster
@@ -920,7 +950,7 @@ namespace ECProject
     const int k0 = m_sys_config->k;
     const int r0 = m_sys_config->r;
     int local_cluster = -1;
-    if (!infer_class1_local_parity_cluster(placement, k0, r0, &local_cluster) || local_cluster < 0)
+    if (!infer_local_parity_cluster_from_plan(placement, k0, r0, &local_cluster) || local_cluster < 0)
     {
       return false;
     }
@@ -929,7 +959,12 @@ namespace ECProject
       return false;
     }
     const int data_cluster = infer_data_block_cluster_from_placement(placement, tcp_slice_count, k0);
-    return data_cluster >= 0 && data_cluster != local_cluster;
+    if (data_cluster < 0 || data_cluster == local_cluster)
+    {
+      return false;
+    }
+    const int global_cluster = placement.xue_global_parity_cluster_id();
+    return global_cluster < 0 || data_cluster != global_cluster;
   }
 
   XueParityWriteStats ProxyImpl::applyReceivedLocalParityDelta(
@@ -1099,6 +1134,58 @@ namespace ECProject
       }
     }
     return stats;
+  }
+
+  void ProxyImpl::handleXueClass2Or3LocalParityOnDataCluster(
+      const proxy_proto::AppendStripeDataPlacement &placement, const std::vector<char *> &slices,
+      int tcp_slice_count, const char *append_buf, size_t cluster_append_size)
+  {
+    const int k0 = m_sys_config->k;
+    const int r0 = m_sys_config->r;
+    const int data_cluster =
+        infer_data_block_cluster_from_placement(placement, tcp_slice_count, k0);
+    int local_cluster = -1;
+    if (!infer_local_parity_cluster_from_plan(placement, k0, r0, &local_cluster) || local_cluster < 0 ||
+        data_cluster < 0 || data_cluster == local_cluster || m_self_cluster_id != data_cluster)
+    {
+      if (m_self_cluster_id == data_cluster && data_cluster >= 0 && local_cluster < 0)
+      {
+        log_xfert_line(proxy_xfer_timestamp(),
+                       "class2_local_parity_skipped proxy_cluster=" +
+                           std::to_string(m_self_cluster_id) + " append_key=" + placement.key() +
+                           " reason=no_local_parity_meta_in_plan");
+      }
+      return;
+    }
+    const int global_cluster = placement.xue_global_parity_cluster_id();
+    const std::string ts = proxy_xfer_timestamp();
+    if (global_cluster >= 0 && data_cluster == global_cluster)
+    {
+      const bool fwd_ok = forwardXueDataDeltaSync(local_cluster, "XUE_COMPUTE_LOCAL_PARITY", placement,
+                                                  append_buf, cluster_append_size);
+      if (fwd_ok)
+      {
+        log_xfert_line(ts, "class2_local_parity_forward proxy_cluster=" +
+                               std::to_string(m_self_cluster_id) + " -> " +
+                               std::to_string(local_cluster) + " append_key=" + placement.key());
+      }
+      else
+      {
+        std::cerr << "[Proxy] class2 local parity forward failed append_key=" << placement.key()
+                  << std::endl;
+      }
+      return;
+    }
+    if (needsClass3MergedLocalParityForward(placement, tcp_slice_count))
+    {
+      const bool fwd_ok =
+          forwardMergedLocalParityDelta(local_cluster, placement, slices, tcp_slice_count);
+      if (!fwd_ok)
+      {
+        std::cerr << "[Proxy] class3 merged local parity delta forward failed append_key="
+                  << placement.key() << std::endl;
+      }
+    }
   }
 
   grpc::Status ProxyImpl::checkalive(grpc::ServerContext *context,
@@ -1730,6 +1817,7 @@ namespace ECProject
           << " expect_tcp_bytes=" << cluster_append_size << " tcp_slices=" << tcp_slices
           << " plan_blocks=" << slice_num;
       append_key_tcp_meta_suffix(oss, append_stripe_data_placement->key());
+      append_xue_global_parity_plan_suffix(oss, *append_stripe_data_placement);
       if (!route.empty())
       {
         oss << " " << route;
@@ -2082,16 +2170,30 @@ namespace ECProject
                                       append_buf.data(), cluster_append_size);
             }
           }
+          handleXueClass2Or3LocalParityOnDataCluster(*placement_copy, slices, tcp_slice_count,
+                                                     append_buf.data(), cluster_append_size);
         }
 
-        else if (append_mode_str == "XUE_UPDATE" && azure_like &&
-                 placement_copy->xue_global_parity_cluster_id() >= 0 &&
-                 placement_copy->xue_global_parity_cluster_id() != m_self_cluster_id && tcp_slice_count > 0)
+        // Global parity 与 local parity 独立：此前 else-if 会在进入 local 分支后跳过 global 转发/落盘。
+        if (append_mode_str == "XUE_UPDATE" && azure_like &&
+            placement_copy->xue_global_parity_cluster_id() >= 0 &&
+            placement_copy->xue_global_parity_cluster_id() != m_self_cluster_id && tcp_slice_count > 0)
         {
-          forwardXueDataDeltaSync(placement_copy->xue_global_parity_cluster_id(), "XUE_DELTA_TO_GLOBAL",
-                                  *placement_copy, append_buf.data(), cluster_append_size);
+          const int global_cluster = placement_copy->xue_global_parity_cluster_id();
+          const bool global_fwd =
+              forwardXueDataDeltaSync(global_cluster, "XUE_DELTA_TO_GLOBAL", *placement_copy,
+                                    append_buf.data(), cluster_append_size);
+          if (!global_fwd)
+          {
+            log_xfert_line(proxy_xfer_timestamp(),
+                           "xue_update_global_forward_failed proxy_cluster=" +
+                               std::to_string(m_self_cluster_id) + " -> " +
+                               std::to_string(global_cluster) + " append_key=" +
+                               placement_copy->key());
+          }
         }
-        else if (append_mode_str == "XUE_UPDATE" && azure_like && placement_copy->xue_compute_global_parity())
+        else if (append_mode_str == "XUE_UPDATE" && azure_like &&
+                 placement_copy->xue_compute_global_parity())
         {
           const XueParityWriteStats global_write =
               applyXueGlobalParityFromDataDeltas(*placement_copy, slices, tcp_slice_count);
@@ -2099,7 +2201,15 @@ namespace ECProject
           {
             log_xue_parity_write_applied(proxy_xfer_timestamp(), "XUE_UPDATE global_parity applied",
                                          m_self_cluster_id, placement_copy->key(), global_write,
-                                         "route=class1_direct_ingress_global");
+                                         "route=class2_ingress_data_global");
+          }
+          else
+          {
+            log_xfert_line(proxy_xfer_timestamp(),
+                           "xue_update_global_parity_skipped proxy_cluster=" +
+                               std::to_string(m_self_cluster_id) + " append_key=" +
+                               placement_copy->key() +
+                               " reason=apply_returned_zero meta_blocks_present");
           }
           int local_parity_cluster_after_global = -1;
           if (infer_class1_local_parity_cluster(*placement_copy, m_sys_config->k, m_sys_config->r,
@@ -2123,6 +2233,14 @@ namespace ECProject
                            "datanode_write_fallback proxy_cluster=" + std::to_string(m_self_cluster_id) +
                                " global_parity_blocks=" + std::to_string(global_parity_indices.size()));
           }
+        }
+        else if (append_mode_str == "XUE_UPDATE" && azure_like &&
+                 placement_copy->xue_global_parity_cluster_id() < 0)
+        {
+          log_xfert_line(proxy_xfer_timestamp(),
+                         "xue_update_global_parity_skipped proxy_cluster=" +
+                             std::to_string(m_self_cluster_id) + " append_key=" +
+                             placement_copy->key() + " reason=no_global_parity_cluster_in_plan");
         }
 
         if (IF_DEBUG)
