@@ -1106,6 +1106,7 @@ namespace ECProject
       data_slices_by_range[{o, l}].push_back(j);
     }
 
+    std::map<int, std::vector<XueGlobalParityIngressBatch::RangeAccum>> merged_by_block;
     for (const auto &range_kv : data_slices_by_range)
     {
       const int ref_off = range_kv.first.first;
@@ -1145,30 +1146,49 @@ namespace ECProject
         {
           continue;
         }
-        const std::string &pbk = placement.blockkeys(idx);
-        const std::string dip = placement.datanodeip(idx);
-        const int dport = placement.datanodeport(idx);
-        std::vector<char> oldbuf(static_cast<size_t>(ref_len), 0);
-        if (!ReadRangeFromDatanode(pbk.c_str(), bid, ref_off, ref_len, oldbuf.data(), dip.c_str(), dport))
+        XueGlobalParityIngressBatch::RangeAccum acc;
+        acc.block_id = bid;
+        acc.offset = ref_off;
+        acc.length = ref_len;
+        acc.delta_xor = p_acc[static_cast<size_t>(gi)];
+        acc.block_key = placement.blockkeys(idx);
+        acc.datanode_ip = placement.datanodeip(idx);
+        acc.datanode_port = placement.datanodeport(idx);
+        mergeXueGlobalParityDeltaIntoBlock(merged_by_block[bid], std::move(acc));
+      }
+    }
+
+    for (auto &kv : merged_by_block)
+    {
+      for (XueGlobalParityIngressBatch::RangeAccum &acc : kv.second)
+      {
+        if (acc.length <= 0 || acc.delta_xor.empty())
         {
-          std::memset(oldbuf.data(), 0, static_cast<size_t>(ref_len));
+          continue;
         }
-        std::vector<char> newbuf(static_cast<size_t>(ref_len));
-        for (int t = 0; t < ref_len; ++t)
+        std::vector<char> oldbuf(static_cast<size_t>(acc.length), 0);
+        if (!ReadRangeFromDatanode(acc.block_key.c_str(), acc.block_id, acc.offset, acc.length,
+                                   oldbuf.data(), acc.datanode_ip.c_str(), acc.datanode_port))
+        {
+          std::memset(oldbuf.data(), 0, static_cast<size_t>(acc.length));
+        }
+        std::vector<char> newbuf(static_cast<size_t>(acc.length));
+        for (int t = 0; t < acc.length; ++t)
         {
           newbuf[static_cast<size_t>(t)] = static_cast<char>(
               static_cast<unsigned char>(oldbuf[static_cast<size_t>(t)]) ^
-              static_cast<unsigned char>(p_acc[static_cast<size_t>(gi)][static_cast<size_t>(t)]));
+              static_cast<unsigned char>(acc.delta_xor[static_cast<size_t>(t)]));
         }
-        if (WriteRangeToDatanode(pbk.c_str(), bid, ref_off, newbuf.data(), ref_len, dip.c_str(), dport))
+        if (WriteRangeToDatanode(acc.block_key.c_str(), acc.block_id, acc.offset, newbuf.data(),
+                                 acc.length, acc.datanode_ip.c_str(), acc.datanode_port))
         {
           ++stats.ranges;
-          stats.bytes += static_cast<size_t>(ref_len);
+          stats.bytes += static_cast<size_t>(acc.length);
         }
         else
         {
-          std::cerr << "[Proxy] XUE global parity WriteRange failed block " << pbk << " off=" << ref_off
-                    << " len=" << ref_len << std::endl;
+          std::cerr << "[Proxy] XUE global parity WriteRange failed block " << acc.block_key
+                    << " off=" << acc.offset << " len=" << acc.length << std::endl;
         }
       }
     }
