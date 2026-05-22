@@ -15,6 +15,7 @@
 #include <config.h>
 #include <toolbox.h>
 #include <queue>
+#include <set>
 // #define IF_DEBUG true
 #define IF_DEBUG false
 namespace ECProject
@@ -160,6 +161,35 @@ namespace ECProject
       double *disk_io_start_time, double *disk_io_end_time, double *network_start_time, double *network_end_time, double *grpc_notify_time, double *grpc_start_time);
 
   private:
+    struct XueGlobalParityIngressBatch
+    {
+      std::set<std::string> expected_append_keys;
+      std::set<std::string> staged_append_keys;
+      struct RangeAccum
+      {
+        int block_id = -1;
+        int offset = 0;
+        int length = 0;
+        std::vector<char> delta_xor;
+        std::string block_key;
+        std::string datanode_ip;
+        int datanode_port = 0;
+      };
+      /** Per global parity block_id: non-overlapping intervals with XOR-merged deltas. */
+      std::map<int, std::vector<RangeAccum>> merged_by_block;
+    };
+
+    void registerXueGlobalParityIngressExpected(int stripe_id, const std::string &append_key);
+    static void mergeXueGlobalParityDeltaIntoBlock(
+        std::vector<XueGlobalParityIngressBatch::RangeAccum> &intervals,
+        XueGlobalParityIngressBatch::RangeAccum incoming);
+    XueParityWriteStats applyXueGlobalParityIngressMerged(
+        const proxy_proto::AppendStripeDataPlacement &placement,
+        const std::vector<char *> &slices, int tcp_slice_count);
+    XueParityWriteStats flushXueGlobalParityIngressBatch(int stripe_id);
+    std::mutex m_xue_global_parity_ingress_mutex;
+    std::map<int, XueGlobalParityIngressBatch> m_xue_global_parity_ingress_batches;
+
     std::mutex m_mutex;
     std::condition_variable cv;
     bool init_coordinator();

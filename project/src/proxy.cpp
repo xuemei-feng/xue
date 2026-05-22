@@ -17,6 +17,7 @@
 #include <ctime>
 #include <iomanip>
 #include <map>
+#include <set>
 #include <sstream>
 
 namespace
@@ -754,7 +755,137 @@ namespace ECProject
                                    fwd_placement, delta_buf, delta_size);
   }
 
-  XueParityWriteStats ProxyImpl::applyXueGlobalParityFromDataDeltas(
+  void ProxyImpl::mergeXueGlobalParityDeltaIntoBlock(
+      std::vector<XueGlobalParityIngressBatch::RangeAccum> &intervals,
+      XueGlobalParityIngressBatch::RangeAccum incoming)
+  {
+    if (incoming.length <= 0 || incoming.delta_xor.empty())
+    {
+      return;
+    }
+    const int block_id = incoming.block_id;
+    const std::string block_key = incoming.block_key;
+    const std::string datanode_ip = incoming.datanode_ip;
+    const int datanode_port = incoming.datanode_port;
+    std::vector<XueGlobalParityIngressBatch::RangeAccum> all = intervals;
+    all.push_back(std::move(incoming));
+
+    std::set<int> cut_points;
+    for (const auto &r : all)
+    {
+      cut_points.insert(r.offset);
+      cut_points.insert(r.offset + r.length);
+    }
+
+    std::vector<XueGlobalParityIngressBatch::RangeAccum> merged;
+    std::vector<int> pts(cut_points.begin(), cut_points.end());
+    for (size_t i = 0; i + 1 < pts.size(); ++i)
+    {
+      const int seg_off = pts[i];
+      const int seg_len = pts[i + 1] - pts[i];
+      if (seg_len <= 0)
+      {
+        continue;
+      }
+      bool covered = false;
+      std::vector<char> acc(static_cast<size_t>(seg_len), 0);
+      for (const auto &r : all)
+      {
+        if (r.offset > seg_off || r.offset + r.length < seg_off + seg_len)
+        {
+          continue;
+        }
+        covered = true;
+        const int rel = seg_off - r.offset;
+        for (int t = 0; t < seg_len; ++t)
+        {
+          acc[static_cast<size_t>(t)] = static_cast<char>(
+              static_cast<unsigned char>(acc[static_cast<size_t>(t)]) ^
+              static_cast<unsigned char>(r.delta_xor[static_cast<size_t>(rel + t)]));
+        }
+      }
+      if (!covered)
+      {
+        continue;
+      }
+      XueGlobalParityIngressBatch::RangeAccum seg;
+      seg.block_id = block_id;
+      seg.offset = seg_off;
+      seg.length = seg_len;
+      seg.delta_xor = std::move(acc);
+      seg.block_key = block_key;
+      seg.datanode_ip = datanode_ip;
+      seg.datanode_port = datanode_port;
+      if (!merged.empty() && merged.back().offset + merged.back().length == seg_off &&
+          merged.back().block_id == seg.block_id && merged.back().block_key == seg.block_key &&
+          merged.back().datanode_ip == seg.datanode_ip && merged.back().datanode_port == seg.datanode_port)
+      {
+        XueGlobalParityIngressBatch::RangeAccum &prev = merged.back();
+        prev.length += seg_len;
+        prev.delta_xor.insert(prev.delta_xor.end(), seg.delta_xor.begin(), seg.delta_xor.end());
+      }
+      else
+      {
+        merged.push_back(std::move(seg));
+      }
+    }
+    intervals = std::move(merged);
+  }
+
+  void ProxyImpl::registerXueGlobalParityIngressExpected(int stripe_id, const std::string &append_key)
+  {
+    std::lock_guard<std::mutex> lk(m_xue_global_parity_ingress_mutex);
+    m_xue_global_parity_ingress_batches[stripe_id].expected_append_keys.insert(append_key);
+  }
+
+  XueParityWriteStats ProxyImpl::flushXueGlobalParityIngressBatch(int stripe_id)
+  {
+    XueParityWriteStats stats;
+    auto it = m_xue_global_parity_ingress_batches.find(stripe_id);
+    if (it == m_xue_global_parity_ingress_batches.end())
+    {
+      return stats;
+    }
+    XueGlobalParityIngressBatch &batch = it->second;
+    for (auto &kv : batch.merged_by_block)
+    {
+      for (XueGlobalParityIngressBatch::RangeAccum &acc : kv.second)
+      {
+        if (acc.length <= 0 || acc.delta_xor.empty())
+        {
+          continue;
+        }
+        std::vector<char> oldbuf(static_cast<size_t>(acc.length), 0);
+        if (!ReadRangeFromDatanode(acc.block_key.c_str(), acc.block_id, acc.offset, acc.length,
+                                   oldbuf.data(), acc.datanode_ip.c_str(), acc.datanode_port))
+        {
+          std::memset(oldbuf.data(), 0, static_cast<size_t>(acc.length));
+        }
+        std::vector<char> newbuf(static_cast<size_t>(acc.length));
+        for (int t = 0; t < acc.length; ++t)
+        {
+          newbuf[static_cast<size_t>(t)] = static_cast<char>(
+              static_cast<unsigned char>(oldbuf[static_cast<size_t>(t)]) ^
+              static_cast<unsigned char>(acc.delta_xor[static_cast<size_t>(t)]));
+        }
+        if (WriteRangeToDatanode(acc.block_key.c_str(), acc.block_id, acc.offset, newbuf.data(),
+                                 acc.length, acc.datanode_ip.c_str(), acc.datanode_port))
+        {
+          ++stats.ranges;
+          stats.bytes += static_cast<size_t>(acc.length);
+        }
+        else
+        {
+          std::cerr << "[Proxy] XUE global parity merged WriteRange failed block " << acc.block_key
+                    << " off=" << acc.offset << " len=" << acc.length << std::endl;
+        }
+      }
+    }
+    m_xue_global_parity_ingress_batches.erase(it);
+    return stats;
+  }
+
+  XueParityWriteStats ProxyImpl::applyXueGlobalParityIngressMerged(
       const proxy_proto::AppendStripeDataPlacement &placement, const std::vector<char *> &slices,
       int tcp_slice_count)
   {
@@ -770,7 +901,6 @@ namespace ECProject
     const int z0 = m_sys_config->z;
     const int slice_num = placement.blockkeys_size();
     const bool xue_lrc = m_sys_config->CodeType == "XueLRC";
-    // XueLRC: [k, k+r) local, [k+r, k+r+z) global. Azure/Uni: [k, k+r) global.
     const int global_begin = xue_lrc ? (k0 + r0) : k0;
     const int global_end = xue_lrc ? (k0 + r0 + z0) : (k0 + r0);
     const int global_count = global_end - global_begin;
@@ -801,6 +931,160 @@ namespace ECProject
 
     static std::atomic<bool> gf8_inited{false};
     if (!gf8_inited.exchange(true))
+    {
+      galois_init_default_field(8);
+    }
+    const int m = k0 + r0;
+    std::vector<unsigned char> enc(static_cast<size_t>((m + z0) * k0));
+    gen_azure_lrc_matrix(enc.data(), k0, r0, z0);
+
+    using RangeKey = std::pair<int, int>;
+    std::map<RangeKey, std::vector<int>> data_slices_by_range;
+    for (int j = 0; j < tcp_slice_count && j < slice_num; ++j)
+    {
+      const int bid = placement.blockids(j);
+      if (bid < 0 || bid >= k0)
+      {
+        continue;
+      }
+      const int o = static_cast<int>(placement.offsets(j));
+      const int l = static_cast<int>(placement.sizes(j));
+      data_slices_by_range[{o, l}].push_back(j);
+    }
+
+    const int stripe_id = placement.stripe_id();
+    const std::string &append_key = placement.key();
+    bool should_flush = false;
+
+    {
+      std::lock_guard<std::mutex> lk(m_xue_global_parity_ingress_mutex);
+      XueGlobalParityIngressBatch &batch = m_xue_global_parity_ingress_batches[stripe_id];
+      batch.staged_append_keys.insert(append_key);
+
+      for (const auto &range_kv : data_slices_by_range)
+      {
+        const int ref_off = range_kv.first.first;
+        const int ref_len = range_kv.first.second;
+        if (ref_len <= 0)
+        {
+          continue;
+        }
+        std::vector<std::vector<char>> p_acc(static_cast<size_t>(global_count),
+                                             std::vector<char>(static_cast<size_t>(ref_len), 0));
+        for (int j : range_kv.second)
+        {
+          const int bid = placement.blockids(j);
+          for (int gi = 0; gi < global_count; ++gi)
+          {
+            const int matrix_row = xue_lrc ? (m + gi) : (k0 + gi);
+            const unsigned char coeff = enc[static_cast<size_t>(matrix_row * k0 + bid)];
+            if (coeff == 0)
+            {
+              continue;
+            }
+            for (int t = 0; t < ref_len; ++t)
+            {
+              const unsigned char v = static_cast<unsigned char>(galois_single_multiply(
+                  coeff, static_cast<unsigned char>(slices[j][static_cast<size_t>(t)]), 8));
+              p_acc[static_cast<size_t>(gi)][static_cast<size_t>(t)] = static_cast<char>(
+                  static_cast<unsigned char>(p_acc[static_cast<size_t>(gi)][static_cast<size_t>(t)]) ^ v);
+            }
+          }
+        }
+        for (const auto &gkv : global_block_plan_idx)
+        {
+          const int bid = gkv.first;
+          const int idx = gkv.second;
+          const int gi = bid - global_begin;
+          if (gi < 0 || gi >= global_count)
+          {
+            continue;
+          }
+          XueGlobalParityIngressBatch::RangeAccum acc;
+          acc.block_id = bid;
+          acc.offset = ref_off;
+          acc.length = ref_len;
+          acc.delta_xor = p_acc[static_cast<size_t>(gi)];
+          acc.block_key = placement.blockkeys(idx);
+          acc.datanode_ip = placement.datanodeip(idx);
+          acc.datanode_port = placement.datanodeport(idx);
+          mergeXueGlobalParityDeltaIntoBlock(batch.merged_by_block[bid], std::move(acc));
+        }
+      }
+
+      if (!batch.expected_append_keys.empty() &&
+          batch.staged_append_keys == batch.expected_append_keys)
+      {
+        should_flush = true;
+      }
+      else if (batch.expected_append_keys.empty())
+      {
+        should_flush = true;
+      }
+
+      if (should_flush)
+      {
+        stats = flushXueGlobalParityIngressBatch(stripe_id);
+      }
+    }
+    return stats;
+  }
+
+  XueParityWriteStats ProxyImpl::applyXueGlobalParityFromDataDeltas(
+      const proxy_proto::AppendStripeDataPlacement &placement, const std::vector<char *> &slices,
+      int tcp_slice_count)
+  {
+    const bool ingress_global_compute =
+        placement.append_mode() == "XUE_UPDATE" && placement.xue_compute_global_parity() &&
+        placement.xue_global_parity_cluster_id() == m_self_cluster_id &&
+        placement.cluster_id() == m_self_cluster_id;
+    if (ingress_global_compute)
+    {
+      return applyXueGlobalParityIngressMerged(placement, slices, tcp_slice_count);
+    }
+
+    XueParityWriteStats stats;
+    const bool azure_like =
+        m_sys_config->CodeType == "AzureLRC" || m_sys_config->CodeType == "XueLRC";
+    if (!azure_like)
+    {
+      return stats;
+    }
+    const int k0 = m_sys_config->k;
+    const int r0 = m_sys_config->r;
+    const int z0 = m_sys_config->z;
+    const int slice_num = placement.blockkeys_size();
+    const bool xue_lrc = m_sys_config->CodeType == "XueLRC";
+    const int global_begin = xue_lrc ? (k0 + r0) : k0;
+    const int global_end = xue_lrc ? (k0 + r0 + z0) : (k0 + r0);
+    const int global_count = global_end - global_begin;
+
+    std::vector<int> global_parity_indices;
+    global_parity_indices.reserve(static_cast<size_t>(global_count));
+    for (int j = 0; j < slice_num; ++j)
+    {
+      const int bid = placement.blockids(j);
+      if (bid >= global_begin && bid < global_end)
+      {
+        global_parity_indices.push_back(j);
+      }
+    }
+    if (global_parity_indices.empty())
+    {
+      return stats;
+    }
+    std::map<int, int> global_block_plan_idx;
+    for (int idx : global_parity_indices)
+    {
+      const int bid = placement.blockids(idx);
+      if (global_block_plan_idx.find(bid) == global_block_plan_idx.end())
+      {
+        global_block_plan_idx[bid] = idx;
+      }
+    }
+
+    static std::atomic<bool> gf8_inited_direct{false};
+    if (!gf8_inited_direct.exchange(true))
     {
       galois_init_default_field(8);
     }
@@ -1852,6 +2136,14 @@ namespace ECProject
         oss << " " << route;
       }
       log_xfert_line(ts, oss.str());
+    }
+
+    if (append_stripe_data_placement->append_mode() == "XUE_UPDATE" &&
+        append_stripe_data_placement->xue_compute_global_parity() &&
+        append_stripe_data_placement->cluster_id() == m_self_cluster_id &&
+        append_stripe_data_placement->xue_global_parity_cluster_id() == m_self_cluster_id)
+    {
+      registerXueGlobalParityIngressExpected(stripe_id, append_stripe_data_placement->key());
     }
 
     auto append_and_save = [this, stripe_id, cluster_append_size, slice_num, placement_copy, is_serialized]() mutable
