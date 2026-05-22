@@ -2658,8 +2658,12 @@ namespace ECProject
       {
         std::cout << "[Proxy][APPEND424] Handle append_and_save" << std::endl;
       }
-      std::thread my_thread(append_and_save);
-      my_thread.detach();
+      {
+        std::lock_guard<std::mutex> lk(m_client_append_queue_mutex);
+        m_client_append_tasks.push_back(std::move(append_and_save));
+      }
+      m_client_append_queue_cv.notify_one();
+      ensure_client_append_worker();
     }
     catch (std::exception &e)
     {
@@ -2668,6 +2672,33 @@ namespace ECProject
     }
 
     return grpc::Status::OK;
+  }
+
+  void ProxyImpl::ensure_client_append_worker()
+  {
+    bool expected = false;
+    if (m_client_append_worker_started.compare_exchange_strong(expected, true))
+    {
+      std::thread([this]() { client_append_worker_loop(); }).detach();
+    }
+  }
+
+  void ProxyImpl::client_append_worker_loop()
+  {
+    for (;;)
+    {
+      std::function<void()> task;
+      {
+        std::unique_lock<std::mutex> lk(m_client_append_queue_mutex);
+        m_client_append_queue_cv.wait(lk, [this]() { return !m_client_append_tasks.empty(); });
+        task = std::move(m_client_append_tasks.front());
+        m_client_append_tasks.pop_front();
+      }
+      if (task)
+      {
+        task();
+      }
+    }
   }
 
   grpc::Status ProxyImpl::encodeAndSetObject(

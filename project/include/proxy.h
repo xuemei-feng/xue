@@ -16,6 +16,10 @@
 #include <toolbox.h>
 #include <queue>
 #include <set>
+#include <deque>
+#include <condition_variable>
+#include <atomic>
+#include <functional>
 // #define IF_DEBUG true
 #define IF_DEBUG false
 namespace ECProject
@@ -189,6 +193,14 @@ namespace ECProject
     XueParityWriteStats flushXueGlobalParityIngressBatch(int stripe_id);
     std::mutex m_xue_global_parity_ingress_mutex;
     std::map<int, XueGlobalParityIngressBatch> m_xue_global_parity_ingress_batches;
+
+    void ensure_client_append_worker();
+    void client_append_worker_loop();
+
+    std::mutex m_client_append_queue_mutex;
+    std::condition_variable m_client_append_queue_cv;
+    std::deque<std::function<void()>> m_client_append_tasks;
+    std::atomic<bool> m_client_append_worker_started{false};
 
     std::mutex m_mutex;
     std::condition_variable cv;

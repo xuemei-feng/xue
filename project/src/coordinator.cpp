@@ -3055,14 +3055,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       m_mutex.unlock();
     }
 
-    std::vector<std::thread> threads;
     for (const auto &plan : append_plans)
     {
-      threads.push_back(std::thread(&CoordinatorImpl::notify_proxies_ready, this, plan));
-    }
-    for (auto &thread : threads)
-    {
-      thread.join();
+      notify_proxies_ready(plan);
     }
     fill_reply_from_append_plans(this, append_plans, proxyIPPort);
 

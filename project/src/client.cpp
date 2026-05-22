@@ -8,11 +8,30 @@
 #include <sstream>
 #include <cstring>
 #include <map>
+#include <mutex>
 #include "unilrc_encoder.h"
 namespace ECProject
 {
   namespace
   {
+    std::string proxy_endpoint_key(const std::string &proxy_ip, int proxy_port)
+    {
+      return proxy_ip + ":" + std::to_string(proxy_port);
+    }
+
+    std::mutex &mutex_for_proxy_endpoint(const std::string &proxy_ip, int proxy_port)
+    {
+      static std::mutex map_mutex;
+      static std::map<std::string, std::unique_ptr<std::mutex>> endpoint_mutexes;
+      const std::string key = proxy_endpoint_key(proxy_ip, proxy_port);
+      std::lock_guard<std::mutex> lk(map_mutex);
+      std::unique_ptr<std::mutex> &slot = endpoint_mutexes[key];
+      if (!slot)
+      {
+        slot = std::make_unique<std::mutex>();
+      }
+      return *slot;
+    }
     bool is_azure_like_code(const std::string &code_type)
     {
       return code_type == "AzureLRC" || code_type == "XueLRC";
@@ -742,22 +761,10 @@ namespace ECProject
     }
     else
     {
-      std::vector<std::thread> threads;
-      std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
+      launch_append_to_proxies_serial_per_endpoint(reply, m_pre_allocated_buffer, if_commit_arr.get());
 
-      for (int i = 0; i < reply.append_keys_size(); i++)
-      {
-        threads.push_back(std::thread(&Client::async_append_to_proxies,
-                                      this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get()));
-      }
-      for (auto &thread : threads)
-      {
-        thread.join();
-      }
-
-      // check if all appends are successful
       bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + reply.append_keys_size(), [](bool val)
                                   { return val == true; });
 
@@ -776,8 +783,40 @@ namespace ECProject
     return true;
   }*/
 
+  void Client::launch_append_to_proxies_serial_per_endpoint(
+      const coordinator_proto::ReplyProxyIPsPorts &reply, const char *send_buf, bool *if_commit_arr)
+  {
+    std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(send_buf, &reply);
+    std::map<std::string, std::vector<int>> indices_by_endpoint;
+    for (int i = 0; i < reply.append_keys_size(); ++i)
+    {
+      indices_by_endpoint[proxy_endpoint_key(reply.proxyips(i), reply.proxyports(i))].push_back(i);
+    }
+    std::vector<std::thread> threads;
+    threads.reserve(indices_by_endpoint.size());
+    for (const auto &kv : indices_by_endpoint)
+    {
+      threads.emplace_back([this, &reply, cluster_slice_data, if_commit_arr, indices = kv.second]() {
+        for (int i : indices)
+        {
+          int proxy_cluster = -1;
+          parse_append_key_cluster_id(reply.append_keys(i), &proxy_cluster);
+          log_layout_client_send(proxy_cluster, reply.append_keys(i), reply.cluster_slice_sizes(i));
+          async_append_to_proxies(cluster_slice_data[i], reply.append_keys(i),
+                                  reply.cluster_slice_sizes(i), reply.proxyips(i),
+                                  reply.proxyports(i), i, if_commit_arr);
+        }
+      });
+    }
+    for (auto &thread : threads)
+    {
+      thread.join();
+    }
+  }
+
   void Client::async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr)
   {
+    std::lock_guard<std::mutex> endpoint_lk(mutex_for_proxy_endpoint(proxy_ip, proxy_port));
     if (append_key_uses_cluster_ingress(append_key))
     {
       int proxy_cluster = -1;
@@ -1086,7 +1125,6 @@ namespace ECProject
     }
     else
     {
-      std::vector<std::thread> threads;
       const int k = m_sys_config->k;
       const int r = m_sys_config->r;
       const int z = m_sys_config->z;
@@ -1149,17 +1187,8 @@ namespace ECProject
         //ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
-      for (int i = 0; i < reply.append_keys_size(); i++)
-      {
-        threads.push_back(std::thread(&Client::async_append_to_proxies,
-                                      this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get()));
-      }
-      for (auto &thread : threads)
-      {
-        thread.join();
-      }
+      launch_append_to_proxies_serial_per_endpoint(reply, send_buf, if_commit_arr.get());
 
-      // check if all appends are successful
       bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + reply.append_keys_size(), [](bool val)
                                   { return val == true; });
 
@@ -1195,7 +1224,6 @@ namespace ECProject
     }
     else
     {
-      std::vector<std::thread> threads;
       const int k = m_sys_config->k;
       const int r = m_sys_config->r;
       const int z = m_sys_config->z;
@@ -1269,17 +1297,8 @@ namespace ECProject
         //ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
-      for (int i = 0; i < reply.append_keys_size(); i++)
-      {
-        threads.push_back(std::thread(&Client::async_append_to_proxies,
-                                      this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get()));
-      }
-      for (auto &thread : threads)
-      {
-        thread.join();
-      }
+      launch_append_to_proxies_serial_per_endpoint(reply, send_buf, if_commit_arr.get());
 
-      // check if all appends are successful
       bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + reply.append_keys_size(), [](bool val)
                                   { return val == true; });
 
@@ -1381,23 +1400,9 @@ namespace ECProject
       send_buf = tcp_pack_buffer.data();
     }
 
-    std::vector<std::thread> threads;
-    std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(send_buf, &reply);
     std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
     std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
-
-    for (int i = 0; i < reply.append_keys_size(); i++)
-    {
-      int proxy_cluster = -1;
-      parse_append_key_cluster_id(reply.append_keys(i), &proxy_cluster);
-      log_layout_client_send(proxy_cluster, reply.append_keys(i), reply.cluster_slice_sizes(i));
-      threads.push_back(std::thread(&Client::async_append_to_proxies,
-                                    this, cluster_slice_data[i], reply.append_keys(i), reply.cluster_slice_sizes(i), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get()));
-    }
-    for (auto &thread : threads)
-    {
-      thread.join();
-    }
+    launch_append_to_proxies_serial_per_endpoint(reply, send_buf, if_commit_arr.get());
 
     bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + reply.append_keys_size(), [](bool val)
                                 { return val == true; });
