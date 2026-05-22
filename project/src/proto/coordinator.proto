@@ -35,6 +35,14 @@ service coordinatorService {
   rpc uploadAppendValue (RequestProxyIPPort) returns (ReplyProxyIPsPorts) {};
   // xue update
   rpc uploadXueUpdate (XueUpdateRequest) returns (ReplyProxyIPsPorts) {};
+  // xue strict schedule: ingress barrier + per-step DAG (replaces wave release when steps present)
+  rpc reportXueIngressReady (XueIngressReadyReport) returns (ReplyFromCoordinator) {};
+  rpc waitXueAllIngressReady (XueStripeScheduleId) returns (ReplyFromCoordinator) {};
+  rpc waitXueScheduleStep (XueScheduleStepWait) returns (ReplyFromCoordinator) {};
+  rpc reportXueScheduleStepDone (XueScheduleStepDone) returns (ReplyFromCoordinator) {};
+  // legacy wave/hop barriers (fallback when xue_transfer_steps empty)
+  rpc releaseXueScheduleWave (XueScheduleWaveRelease) returns (ReplyFromCoordinator) {};
+  rpc waitXueScheduleHop (XueScheduleHopWait) returns (ReplyFromCoordinator) {};
   // get
   rpc getValue(KeyAndClientIP) returns (RepIfGetSuccess) {};
 
@@ -116,6 +124,70 @@ message AppendPlanLayout {
   repeated int32 block_ids = 6;
 }
 
+// Strict XUE schedule: one row per scheduled_tasks hop (step_no 1-based, parallel_group = same start_time)
+message XueTransferStepInfo {
+  int32 step_no = 1;
+  int32 parallel_group = 2;
+  string append_key = 3;
+  int32 from_cluster = 4;
+  int32 to_cluster = 5;
+  string payload = 6;
+  string path_desc = 7;
+  double start_time = 8;
+  repeated int32 pred_step_nos = 9;
+  // proxy forward_append_mode: XUE_DELTA_TO_RELAY / XUE_DELTA_TO_GLOBAL / ...
+  string forward_append_mode = 10;
+}
+
+message XueStripeScheduleId {
+  int32 stripe_id = 1;
+}
+
+message XueIngressReadyReport {
+  int32 stripe_id = 1;
+  string append_key = 2;
+}
+
+message XueScheduleStepWait {
+  int32 stripe_id = 1;
+  int32 step_no = 2;
+  string append_key = 3;
+  int32 from_cluster = 4;
+  int32 to_cluster = 5;
+}
+
+message XueScheduleStepDone {
+  int32 stripe_id = 1;
+  int32 step_no = 2;
+  bool success = 3;
+  string append_key = 4;
+  int32 from_cluster = 5;
+  int32 to_cluster = 6;
+}
+
+// Legacy wave schedule (client ingress waves + proxy hop release)
+message XueScheduleClientWave {
+  int32 wave_index = 1;
+  repeated string client_ingress_append_keys = 2;
+}
+
+message XueAppendKeyCommitWave {
+  string append_key = 1;
+  int32 wait_commit_wave = 2;
+}
+
+message XueScheduleWaveRelease {
+  int32 stripe_id = 1;
+  int32 released_wave = 2;
+}
+
+message XueScheduleHopWait {
+  int32 stripe_id = 1;
+  string append_key = 2;
+  int32 from_cluster = 3;
+  int32 to_cluster = 4;
+}
+
 message ReplyProxyIPsPorts {
   uint64 sum_append_size = 1;
   repeated string append_keys = 2;
@@ -124,6 +196,11 @@ message ReplyProxyIPsPorts {
   repeated uint64 cluster_slice_sizes = 5;
   repeated int32 group_ids = 6;
   repeated AppendPlanLayout plan_layouts = 7;
+  repeated XueScheduleClientWave xue_client_waves = 8;
+  repeated XueAppendKeyCommitWave xue_commit_waves = 9;
+  int32 xue_schedule_stripe_id = 10;
+  repeated XueTransferStepInfo xue_transfer_steps = 11;
+  int32 xue_schedule_num_groups = 12;
 }
 
 // set, del, merge

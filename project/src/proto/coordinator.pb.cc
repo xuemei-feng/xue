@@ -145,6 +145,149 @@ struct AppendPlanLayoutDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AppendPlanLayoutDefaultTypeInternal _AppendPlanLayout_default_instance_;
+PROTOBUF_CONSTEXPR XueTransferStepInfo::XueTransferStepInfo(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.pred_step_nos_)*/{}
+  , /*decltype(_impl_._pred_step_nos_cached_byte_size_)*/{0}
+  , /*decltype(_impl_.append_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.payload_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.path_desc_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.forward_append_mode_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.step_no_)*/0
+  , /*decltype(_impl_.parallel_group_)*/0
+  , /*decltype(_impl_.from_cluster_)*/0
+  , /*decltype(_impl_.to_cluster_)*/0
+  , /*decltype(_impl_.start_time_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueTransferStepInfoDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueTransferStepInfoDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueTransferStepInfoDefaultTypeInternal() {}
+  union {
+    XueTransferStepInfo _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueTransferStepInfoDefaultTypeInternal _XueTransferStepInfo_default_instance_;
+PROTOBUF_CONSTEXPR XueStripeScheduleId::XueStripeScheduleId(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueStripeScheduleIdDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueStripeScheduleIdDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueStripeScheduleIdDefaultTypeInternal() {}
+  union {
+    XueStripeScheduleId _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueStripeScheduleIdDefaultTypeInternal _XueStripeScheduleId_default_instance_;
+PROTOBUF_CONSTEXPR XueIngressReadyReport::XueIngressReadyReport(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.append_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueIngressReadyReportDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueIngressReadyReportDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueIngressReadyReportDefaultTypeInternal() {}
+  union {
+    XueIngressReadyReport _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueIngressReadyReportDefaultTypeInternal _XueIngressReadyReport_default_instance_;
+PROTOBUF_CONSTEXPR XueScheduleStepWait::XueScheduleStepWait(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.append_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_.step_no_)*/0
+  , /*decltype(_impl_.from_cluster_)*/0
+  , /*decltype(_impl_.to_cluster_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueScheduleStepWaitDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueScheduleStepWaitDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueScheduleStepWaitDefaultTypeInternal() {}
+  union {
+    XueScheduleStepWait _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueScheduleStepWaitDefaultTypeInternal _XueScheduleStepWait_default_instance_;
+PROTOBUF_CONSTEXPR XueScheduleStepDone::XueScheduleStepDone(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.append_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_.step_no_)*/0
+  , /*decltype(_impl_.success_)*/false
+  , /*decltype(_impl_.from_cluster_)*/0
+  , /*decltype(_impl_.to_cluster_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueScheduleStepDoneDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueScheduleStepDoneDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueScheduleStepDoneDefaultTypeInternal() {}
+  union {
+    XueScheduleStepDone _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueScheduleStepDoneDefaultTypeInternal _XueScheduleStepDone_default_instance_;
+PROTOBUF_CONSTEXPR XueScheduleClientWave::XueScheduleClientWave(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.client_ingress_append_keys_)*/{}
+  , /*decltype(_impl_.wave_index_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueScheduleClientWaveDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueScheduleClientWaveDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueScheduleClientWaveDefaultTypeInternal() {}
+  union {
+    XueScheduleClientWave _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueScheduleClientWaveDefaultTypeInternal _XueScheduleClientWave_default_instance_;
+PROTOBUF_CONSTEXPR XueAppendKeyCommitWave::XueAppendKeyCommitWave(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.append_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.wait_commit_wave_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueAppendKeyCommitWaveDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueAppendKeyCommitWaveDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueAppendKeyCommitWaveDefaultTypeInternal() {}
+  union {
+    XueAppendKeyCommitWave _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueAppendKeyCommitWaveDefaultTypeInternal _XueAppendKeyCommitWave_default_instance_;
+PROTOBUF_CONSTEXPR XueScheduleWaveRelease::XueScheduleWaveRelease(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_.released_wave_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueScheduleWaveReleaseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueScheduleWaveReleaseDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueScheduleWaveReleaseDefaultTypeInternal() {}
+  union {
+    XueScheduleWaveRelease _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueScheduleWaveReleaseDefaultTypeInternal _XueScheduleWaveRelease_default_instance_;
+PROTOBUF_CONSTEXPR XueScheduleHopWait::XueScheduleHopWait(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.append_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_.from_cluster_)*/0
+  , /*decltype(_impl_.to_cluster_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueScheduleHopWaitDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueScheduleHopWaitDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueScheduleHopWaitDefaultTypeInternal() {}
+  union {
+    XueScheduleHopWait _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueScheduleHopWaitDefaultTypeInternal _XueScheduleHopWait_default_instance_;
 PROTOBUF_CONSTEXPR ReplyProxyIPsPorts::ReplyProxyIPsPorts(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.append_keys_)*/{}
@@ -156,7 +299,12 @@ PROTOBUF_CONSTEXPR ReplyProxyIPsPorts::ReplyProxyIPsPorts(
   , /*decltype(_impl_.group_ids_)*/{}
   , /*decltype(_impl_._group_ids_cached_byte_size_)*/{0}
   , /*decltype(_impl_.plan_layouts_)*/{}
+  , /*decltype(_impl_.xue_client_waves_)*/{}
+  , /*decltype(_impl_.xue_commit_waves_)*/{}
+  , /*decltype(_impl_.xue_transfer_steps_)*/{}
   , /*decltype(_impl_.sum_append_size_)*/uint64_t{0u}
+  , /*decltype(_impl_.xue_schedule_stripe_id_)*/0
+  , /*decltype(_impl_.xue_schedule_num_groups_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct ReplyProxyIPsPortsDefaultTypeInternal {
   PROTOBUF_CONSTEXPR ReplyProxyIPsPortsDefaultTypeInternal()
@@ -398,7 +546,7 @@ struct RecoveryReplyDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 RecoveryReplyDefaultTypeInternal _RecoveryReply_default_instance_;
 }  // namespace coordinator_proto
-static ::_pb::Metadata file_level_metadata_coordinator_2eproto[25];
+static ::_pb::Metadata file_level_metadata_coordinator_2eproto[34];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_coordinator_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_coordinator_2eproto = nullptr;
 
@@ -479,6 +627,94 @@ const uint32_t TableStruct_coordinator_2eproto::offsets[] PROTOBUF_SECTION_VARIA
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::AppendPlanLayout, _impl_.local_parity_block_num_),
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::AppendPlanLayout, _impl_.block_ids_),
   ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueTransferStepInfo, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueTransferStepInfo, _impl_.step_no_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueTransferStepInfo, _impl_.parallel_group_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueTransferStepInfo, _impl_.append_key_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueTransferStepInfo, _impl_.from_cluster_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueTransferStepInfo, _impl_.to_cluster_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueTransferStepInfo, _impl_.payload_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueTransferStepInfo, _impl_.path_desc_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueTransferStepInfo, _impl_.start_time_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueTransferStepInfo, _impl_.pred_step_nos_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueTransferStepInfo, _impl_.forward_append_mode_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueStripeScheduleId, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueStripeScheduleId, _impl_.stripe_id_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueIngressReadyReport, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueIngressReadyReport, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueIngressReadyReport, _impl_.append_key_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleStepWait, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleStepWait, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleStepWait, _impl_.step_no_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleStepWait, _impl_.append_key_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleStepWait, _impl_.from_cluster_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleStepWait, _impl_.to_cluster_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleStepDone, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleStepDone, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleStepDone, _impl_.step_no_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleStepDone, _impl_.success_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleStepDone, _impl_.append_key_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleStepDone, _impl_.from_cluster_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleStepDone, _impl_.to_cluster_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleClientWave, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleClientWave, _impl_.wave_index_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleClientWave, _impl_.client_ingress_append_keys_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueAppendKeyCommitWave, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueAppendKeyCommitWave, _impl_.append_key_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueAppendKeyCommitWave, _impl_.wait_commit_wave_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleWaveRelease, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleWaveRelease, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleWaveRelease, _impl_.released_wave_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleHopWait, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleHopWait, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleHopWait, _impl_.append_key_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleHopWait, _impl_.from_cluster_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueScheduleHopWait, _impl_.to_cluster_),
+  ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::ReplyProxyIPsPorts, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -491,6 +727,11 @@ const uint32_t TableStruct_coordinator_2eproto::offsets[] PROTOBUF_SECTION_VARIA
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::ReplyProxyIPsPorts, _impl_.cluster_slice_sizes_),
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::ReplyProxyIPsPorts, _impl_.group_ids_),
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::ReplyProxyIPsPorts, _impl_.plan_layouts_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::ReplyProxyIPsPorts, _impl_.xue_client_waves_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::ReplyProxyIPsPorts, _impl_.xue_commit_waves_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::ReplyProxyIPsPorts, _impl_.xue_schedule_stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::ReplyProxyIPsPorts, _impl_.xue_transfer_steps_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::ReplyProxyIPsPorts, _impl_.xue_schedule_num_groups_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::AskIfSuccess, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -633,23 +874,32 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 45, -1, -1, sizeof(::coordinator_proto::ReplyProxyIPPort)},
   { 53, -1, -1, sizeof(::coordinator_proto::CommitAbortKey)},
   { 63, -1, -1, sizeof(::coordinator_proto::AppendPlanLayout)},
-  { 75, -1, -1, sizeof(::coordinator_proto::ReplyProxyIPsPorts)},
-  { 88, -1, -1, sizeof(::coordinator_proto::AskIfSuccess)},
-  { 97, -1, -1, sizeof(::coordinator_proto::RepIfSuccess)},
-  { 104, -1, -1, sizeof(::coordinator_proto::KeyAndClientIP)},
-  { 113, -1, -1, sizeof(::coordinator_proto::RepIfGetSuccess)},
-  { 121, -1, -1, sizeof(::coordinator_proto::BlockIDsAndClientIP)},
-  { 132, -1, -1, sizeof(::coordinator_proto::LogicalRange)},
-  { 140, -1, -1, sizeof(::coordinator_proto::XueUpdateRequest)},
-  { 149, -1, -1, sizeof(::coordinator_proto::KeyFromClient)},
-  { 156, -1, -1, sizeof(::coordinator_proto::StripeIdFromClient)},
-  { 163, -1, -1, sizeof(::coordinator_proto::StripeIdAndBlockIDsFromClient)},
-  { 171, -1, -1, sizeof(::coordinator_proto::NodeIdFromClient)},
-  { 178, -1, -1, sizeof(::coordinator_proto::RepIfDeling)},
-  { 185, -1, -1, sizeof(::coordinator_proto::RepStripeIds)},
-  { 192, -1, -1, sizeof(::coordinator_proto::RepBlockNum)},
-  { 199, -1, -1, sizeof(::coordinator_proto::DegradedReadReply)},
-  { 209, -1, -1, sizeof(::coordinator_proto::RecoveryReply)},
+  { 75, -1, -1, sizeof(::coordinator_proto::XueTransferStepInfo)},
+  { 91, -1, -1, sizeof(::coordinator_proto::XueStripeScheduleId)},
+  { 98, -1, -1, sizeof(::coordinator_proto::XueIngressReadyReport)},
+  { 106, -1, -1, sizeof(::coordinator_proto::XueScheduleStepWait)},
+  { 117, -1, -1, sizeof(::coordinator_proto::XueScheduleStepDone)},
+  { 129, -1, -1, sizeof(::coordinator_proto::XueScheduleClientWave)},
+  { 137, -1, -1, sizeof(::coordinator_proto::XueAppendKeyCommitWave)},
+  { 145, -1, -1, sizeof(::coordinator_proto::XueScheduleWaveRelease)},
+  { 153, -1, -1, sizeof(::coordinator_proto::XueScheduleHopWait)},
+  { 163, -1, -1, sizeof(::coordinator_proto::ReplyProxyIPsPorts)},
+  { 181, -1, -1, sizeof(::coordinator_proto::AskIfSuccess)},
+  { 190, -1, -1, sizeof(::coordinator_proto::RepIfSuccess)},
+  { 197, -1, -1, sizeof(::coordinator_proto::KeyAndClientIP)},
+  { 206, -1, -1, sizeof(::coordinator_proto::RepIfGetSuccess)},
+  { 214, -1, -1, sizeof(::coordinator_proto::BlockIDsAndClientIP)},
+  { 225, -1, -1, sizeof(::coordinator_proto::LogicalRange)},
+  { 233, -1, -1, sizeof(::coordinator_proto::XueUpdateRequest)},
+  { 242, -1, -1, sizeof(::coordinator_proto::KeyFromClient)},
+  { 249, -1, -1, sizeof(::coordinator_proto::StripeIdFromClient)},
+  { 256, -1, -1, sizeof(::coordinator_proto::StripeIdAndBlockIDsFromClient)},
+  { 264, -1, -1, sizeof(::coordinator_proto::NodeIdFromClient)},
+  { 271, -1, -1, sizeof(::coordinator_proto::RepIfDeling)},
+  { 278, -1, -1, sizeof(::coordinator_proto::RepStripeIds)},
+  { 285, -1, -1, sizeof(::coordinator_proto::RepBlockNum)},
+  { 292, -1, -1, sizeof(::coordinator_proto::DegradedReadReply)},
+  { 302, -1, -1, sizeof(::coordinator_proto::RecoveryReply)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -661,6 +911,15 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::coordinator_proto::_ReplyProxyIPPort_default_instance_._instance,
   &::coordinator_proto::_CommitAbortKey_default_instance_._instance,
   &::coordinator_proto::_AppendPlanLayout_default_instance_._instance,
+  &::coordinator_proto::_XueTransferStepInfo_default_instance_._instance,
+  &::coordinator_proto::_XueStripeScheduleId_default_instance_._instance,
+  &::coordinator_proto::_XueIngressReadyReport_default_instance_._instance,
+  &::coordinator_proto::_XueScheduleStepWait_default_instance_._instance,
+  &::coordinator_proto::_XueScheduleStepDone_default_instance_._instance,
+  &::coordinator_proto::_XueScheduleClientWave_default_instance_._instance,
+  &::coordinator_proto::_XueAppendKeyCommitWave_default_instance_._instance,
+  &::coordinator_proto::_XueScheduleWaveRelease_default_instance_._instance,
+  &::coordinator_proto::_XueScheduleHopWait_default_instance_._instance,
   &::coordinator_proto::_ReplyProxyIPsPorts_default_instance_._instance,
   &::coordinator_proto::_AskIfSuccess_default_instance_._instance,
   &::coordinator_proto::_RepIfSuccess_default_instance_._instance,
@@ -701,103 +960,149 @@ const char descriptor_table_protodef_coordinator_2eproto[] PROTOBUF_SECTION_VARI
   "d\030\001 \001(\005\022\022\n\ncluster_id\030\002 \001(\005\022\026\n\016data_bloc"
   "k_num\030\003 \001(\005\022\037\n\027global_parity_block_num\030\004"
   " \001(\005\022\036\n\026local_parity_block_num\030\005 \001(\005\022\021\n\t"
-  "block_ids\030\006 \003(\005\"\323\001\n\022ReplyProxyIPsPorts\022\027"
-  "\n\017sum_append_size\030\001 \001(\004\022\023\n\013append_keys\030\002"
-  " \003(\t\022\020\n\010proxyips\030\003 \003(\t\022\022\n\nproxyports\030\004 \003"
-  "(\005\022\033\n\023cluster_slice_sizes\030\005 \003(\004\022\021\n\tgroup"
-  "_ids\030\006 \003(\005\0229\n\014plan_layouts\030\007 \003(\0132#.coord"
-  "inator_proto.AppendPlanLayout\";\n\014AskIfSu"
-  "ccess\022\013\n\003key\030\001 \001(\t\022\013\n\003opp\030\002 \001(\005\022\021\n\tstrip"
-  "e_id\030\003 \001(\005\" \n\014RepIfSuccess\022\020\n\010ifcommit\030\001"
-  " \001(\010\"C\n\016KeyAndClientIP\022\013\n\003key\030\001 \001(\t\022\020\n\010c"
-  "lientip\030\002 \001(\t\022\022\n\nclientport\030\003 \001(\005\"\?\n\017Rep"
-  "IfGetSuccess\022\024\n\014ifgetsuccess\030\001 \001(\010\022\026\n\016va"
-  "luesizebytes\030\002 \001(\005\"\202\001\n\023BlockIDsAndClient"
-  "IP\022\026\n\016start_block_id\030\001 \001(\005\022\024\n\014end_block_"
-  "id\030\002 \001(\005\022\020\n\010clientip\030\003 \001(\t\022\022\n\nclientport"
-  "\030\004 \001(\005\022\027\n\017failed_block_id\030\005 \001(\005\"H\n\014Logic"
-  "alRange\022\034\n\024logical_offset_start\030\001 \001(\005\022\032\n"
-  "\022logical_offset_end\030\002 \001(\005\"i\n\020XueUpdateRe"
-  "quest\022\021\n\tclient_id\030\001 \001(\t\022\021\n\tstripe_id\030\002 "
-  "\001(\005\022/\n\006ranges\030\003 \003(\0132\037.coordinator_proto."
-  "LogicalRange\"\034\n\rKeyFromClient\022\013\n\003key\030\001 \001"
-  "(\t\"\'\n\022StripeIdFromClient\022\021\n\tstripe_id\030\001 "
-  "\001(\005\"E\n\035StripeIdAndBlockIDsFromClient\022\021\n\t"
-  "stripe_id\030\001 \001(\005\022\021\n\tblock_ids\030\002 \003(\005\"#\n\020No"
-  "deIdFromClient\022\017\n\007node_id\030\001 \001(\005\"\037\n\013RepIf"
-  "Deling\022\020\n\010ifdeling\030\001 \001(\010\"\"\n\014RepStripeIds"
-  "\022\022\n\nstripe_ids\030\001 \003(\005\" \n\013RepBlockNum\022\021\n\tb"
-  "lock_num\030\001 \001(\005\"m\n\021DegradedReadReply\022\024\n\014d"
-  "isk_io_time\030\001 \001(\001\022\024\n\014network_time\030\002 \001(\001\022"
-  "\023\n\013decode_time\030\003 \001(\001\022\027\n\017grpc_start_time\030"
-  "\004 \001(\001\"\204\001\n\rRecoveryReply\022\026\n\016disk_read_tim"
-  "e\030\001 \001(\001\022\024\n\014network_time\030\002 \001(\001\022\023\n\013decode_"
-  "time\030\003 \001(\001\022\027\n\017disk_write_time\030\004 \001(\001\022\027\n\017g"
-  "rpc_start_time\030\005 \001(\0012\206\022\n\022coordinatorServ"
-  "ice\022k\n\025sayHelloToCoordinator\022\'.coordinat"
-  "or_proto.RequestToCoordinator\032\'.coordina"
-  "tor_proto.ReplyFromCoordinator\"\000\022`\n\nchec"
-  "kalive\022\'.coordinator_proto.RequestToCoor"
-  "dinator\032\'.coordinator_proto.ReplyFromCoo"
-  "rdinator\"\000\022V\n\014setParameter\022\034.coordinator"
-  "_proto.Parameter\032&.coordinator_proto.Rep"
-  "IfSetParaSuccess\"\000\022d\n\024uploadOriginKeyVal"
+  "block_ids\030\006 \003(\005\"\350\001\n\023XueTransferStepInfo\022"
+  "\017\n\007step_no\030\001 \001(\005\022\026\n\016parallel_group\030\002 \001(\005"
+  "\022\022\n\nappend_key\030\003 \001(\t\022\024\n\014from_cluster\030\004 \001"
+  "(\005\022\022\n\nto_cluster\030\005 \001(\005\022\017\n\007payload\030\006 \001(\t\022"
+  "\021\n\tpath_desc\030\007 \001(\t\022\022\n\nstart_time\030\010 \001(\001\022\025"
+  "\n\rpred_step_nos\030\t \003(\005\022\033\n\023forward_append_"
+  "mode\030\n \001(\t\"(\n\023XueStripeScheduleId\022\021\n\tstr"
+  "ipe_id\030\001 \001(\005\">\n\025XueIngressReadyReport\022\021\n"
+  "\tstripe_id\030\001 \001(\005\022\022\n\nappend_key\030\002 \001(\t\"w\n\023"
+  "XueScheduleStepWait\022\021\n\tstripe_id\030\001 \001(\005\022\017"
+  "\n\007step_no\030\002 \001(\005\022\022\n\nappend_key\030\003 \001(\t\022\024\n\014f"
+  "rom_cluster\030\004 \001(\005\022\022\n\nto_cluster\030\005 \001(\005\"\210\001"
+  "\n\023XueScheduleStepDone\022\021\n\tstripe_id\030\001 \001(\005"
+  "\022\017\n\007step_no\030\002 \001(\005\022\017\n\007success\030\003 \001(\010\022\022\n\nap"
+  "pend_key\030\004 \001(\t\022\024\n\014from_cluster\030\005 \001(\005\022\022\n\n"
+  "to_cluster\030\006 \001(\005\"O\n\025XueScheduleClientWav"
+  "e\022\022\n\nwave_index\030\001 \001(\005\022\"\n\032client_ingress_"
+  "append_keys\030\002 \003(\t\"F\n\026XueAppendKeyCommitW"
+  "ave\022\022\n\nappend_key\030\001 \001(\t\022\030\n\020wait_commit_w"
+  "ave\030\002 \001(\005\"B\n\026XueScheduleWaveRelease\022\021\n\ts"
+  "tripe_id\030\001 \001(\005\022\025\n\rreleased_wave\030\002 \001(\005\"e\n"
+  "\022XueScheduleHopWait\022\021\n\tstripe_id\030\001 \001(\005\022\022"
+  "\n\nappend_key\030\002 \001(\t\022\024\n\014from_cluster\030\003 \001(\005"
+  "\022\022\n\nto_cluster\030\004 \001(\005\"\341\003\n\022ReplyProxyIPsPo"
+  "rts\022\027\n\017sum_append_size\030\001 \001(\004\022\023\n\013append_k"
+  "eys\030\002 \003(\t\022\020\n\010proxyips\030\003 \003(\t\022\022\n\nproxyport"
+  "s\030\004 \003(\005\022\033\n\023cluster_slice_sizes\030\005 \003(\004\022\021\n\t"
+  "group_ids\030\006 \003(\005\0229\n\014plan_layouts\030\007 \003(\0132#."
+  "coordinator_proto.AppendPlanLayout\022B\n\020xu"
+  "e_client_waves\030\010 \003(\0132(.coordinator_proto"
+  ".XueScheduleClientWave\022C\n\020xue_commit_wav"
+  "es\030\t \003(\0132).coordinator_proto.XueAppendKe"
+  "yCommitWave\022\036\n\026xue_schedule_stripe_id\030\n "
+  "\001(\005\022B\n\022xue_transfer_steps\030\013 \003(\0132&.coordi"
+  "nator_proto.XueTransferStepInfo\022\037\n\027xue_s"
+  "chedule_num_groups\030\014 \001(\005\";\n\014AskIfSuccess"
+  "\022\013\n\003key\030\001 \001(\t\022\013\n\003opp\030\002 \001(\005\022\021\n\tstripe_id\030"
+  "\003 \001(\005\" \n\014RepIfSuccess\022\020\n\010ifcommit\030\001 \001(\010\""
+  "C\n\016KeyAndClientIP\022\013\n\003key\030\001 \001(\t\022\020\n\010client"
+  "ip\030\002 \001(\t\022\022\n\nclientport\030\003 \001(\005\"\?\n\017RepIfGet"
+  "Success\022\024\n\014ifgetsuccess\030\001 \001(\010\022\026\n\016valuesi"
+  "zebytes\030\002 \001(\005\"\202\001\n\023BlockIDsAndClientIP\022\026\n"
+  "\016start_block_id\030\001 \001(\005\022\024\n\014end_block_id\030\002 "
+  "\001(\005\022\020\n\010clientip\030\003 \001(\t\022\022\n\nclientport\030\004 \001("
+  "\005\022\027\n\017failed_block_id\030\005 \001(\005\"H\n\014LogicalRan"
+  "ge\022\034\n\024logical_offset_start\030\001 \001(\005\022\032\n\022logi"
+  "cal_offset_end\030\002 \001(\005\"i\n\020XueUpdateRequest"
+  "\022\021\n\tclient_id\030\001 \001(\t\022\021\n\tstripe_id\030\002 \001(\005\022/"
+  "\n\006ranges\030\003 \003(\0132\037.coordinator_proto.Logic"
+  "alRange\"\034\n\rKeyFromClient\022\013\n\003key\030\001 \001(\t\"\'\n"
+  "\022StripeIdFromClient\022\021\n\tstripe_id\030\001 \001(\005\"E"
+  "\n\035StripeIdAndBlockIDsFromClient\022\021\n\tstrip"
+  "e_id\030\001 \001(\005\022\021\n\tblock_ids\030\002 \003(\005\"#\n\020NodeIdF"
+  "romClient\022\017\n\007node_id\030\001 \001(\005\"\037\n\013RepIfDelin"
+  "g\022\020\n\010ifdeling\030\001 \001(\010\"\"\n\014RepStripeIds\022\022\n\ns"
+  "tripe_ids\030\001 \003(\005\" \n\013RepBlockNum\022\021\n\tblock_"
+  "num\030\001 \001(\005\"m\n\021DegradedReadReply\022\024\n\014disk_i"
+  "o_time\030\001 \001(\001\022\024\n\014network_time\030\002 \001(\001\022\023\n\013de"
+  "code_time\030\003 \001(\001\022\027\n\017grpc_start_time\030\004 \001(\001"
+  "\"\204\001\n\rRecoveryReply\022\026\n\016disk_read_time\030\001 \001"
+  "(\001\022\024\n\014network_time\030\002 \001(\001\022\023\n\013decode_time\030"
+  "\003 \001(\001\022\027\n\017disk_write_time\030\004 \001(\001\022\027\n\017grpc_s"
+  "tart_time\030\005 \001(\0012\223\027\n\022coordinatorService\022k"
+  "\n\025sayHelloToCoordinator\022\'.coordinator_pr"
+  "oto.RequestToCoordinator\032\'.coordinator_p"
+  "roto.ReplyFromCoordinator\"\000\022`\n\ncheckaliv"
+  "e\022\'.coordinator_proto.RequestToCoordinat"
+  "or\032\'.coordinator_proto.ReplyFromCoordina"
+  "tor\"\000\022V\n\014setParameter\022\034.coordinator_prot"
+  "o.Parameter\032&.coordinator_proto.RepIfSet"
+  "ParaSuccess\"\000\022d\n\024uploadOriginKeyValue\022%."
+  "coordinator_proto.RequestProxyIPPort\032#.c"
+  "oordinator_proto.ReplyProxyIPPort\"\000\022a\n\021r"
+  "eportCommitAbort\022!.coordinator_proto.Com"
+  "mitAbortKey\032\'.coordinator_proto.ReplyFro"
+  "mCoordinator\"\000\022V\n\020checkCommitAbort\022\037.coo"
+  "rdinator_proto.AskIfSuccess\032\037.coordinato"
+  "r_proto.RepIfSuccess\"\000\022`\n\016uploadSetValue"
+  "\022%.coordinator_proto.RequestProxyIPPort\032"
+  "%.coordinator_proto.ReplyProxyIPsPorts\"\000"
+  "\022c\n\021uploadSubsetValue\022%.coordinator_prot"
+  "o.RequestProxyIPPort\032%.coordinator_proto"
+  ".ReplyProxyIPsPorts\"\000\022c\n\021uploadAppendVal"
   "ue\022%.coordinator_proto.RequestProxyIPPor"
-  "t\032#.coordinator_proto.ReplyProxyIPPort\"\000"
-  "\022a\n\021reportCommitAbort\022!.coordinator_prot"
-  "o.CommitAbortKey\032\'.coordinator_proto.Rep"
-  "lyFromCoordinator\"\000\022V\n\020checkCommitAbort\022"
-  "\037.coordinator_proto.AskIfSuccess\032\037.coord"
-  "inator_proto.RepIfSuccess\"\000\022`\n\016uploadSet"
-  "Value\022%.coordinator_proto.RequestProxyIP"
-  "Port\032%.coordinator_proto.ReplyProxyIPsPo"
-  "rts\"\000\022c\n\021uploadSubsetValue\022%.coordinator"
-  "_proto.RequestProxyIPPort\032%.coordinator_"
-  "proto.ReplyProxyIPsPorts\"\000\022c\n\021uploadAppe"
-  "ndValue\022%.coordinator_proto.RequestProxy"
-  "IPPort\032%.coordinator_proto.ReplyProxyIPs"
-  "Ports\"\000\022_\n\017uploadXueUpdate\022#.coordinator"
-  "_proto.XueUpdateRequest\032%.coordinator_pr"
-  "oto.ReplyProxyIPsPorts\"\000\022S\n\010getValue\022!.c"
-  "oordinator_proto.KeyAndClientIP\032\".coordi"
-  "nator_proto.RepIfGetSuccess\"\000\022W\n\tgetStri"
-  "pe\022!.coordinator_proto.KeyAndClientIP\032%."
-  "coordinator_proto.ReplyProxyIPsPorts\"\000\022\\"
-  "\n\tgetBlocks\022&.coordinator_proto.BlockIDs"
-  "AndClientIP\032%.coordinator_proto.ReplyPro"
-  "xyIPsPorts\"\000\022h\n\025getDegradedReadBlocks\022&."
-  "coordinator_proto.BlockIDsAndClientIP\032%."
-  "coordinator_proto.ReplyProxyIPsPorts\"\000\022a"
-  "\n\024getDegradedReadBlock\022!.coordinator_pro"
-  "to.KeyAndClientIP\032$.coordinator_proto.De"
-  "gradedReadReply\"\000\022j\n\035getDegradedReadBloc"
-  "kBreakdown\022!.coordinator_proto.KeyAndCli"
-  "entIP\032$.coordinator_proto.DegradedReadRe"
-  "ply\"\000\022T\n\013getRecovery\022!.coordinator_proto"
-  ".KeyAndClientIP\032 .coordinator_proto.Reco"
-  "veryReply\"\000\022]\n\024getRecoveryBreakdown\022!.co"
-  "ordinator_proto.KeyAndClientIP\032 .coordin"
-  "ator_proto.RecoveryReply\"\000\022Y\n\020fullNodeRe"
-  "covery\022#.coordinator_proto.NodeIdFromCli"
-  "ent\032\036.coordinator_proto.RepBlockNum\"\000\022j\n"
-  "\022multiBlockRecovery\0220.coordinator_proto."
-  "StripeIdAndBlockIDsFromClient\032 .coordina"
-  "tor_proto.RecoveryReply\"\000\022N\n\010delByKey\022 ."
-  "coordinator_proto.KeyFromClient\032\036.coordi"
-  "nator_proto.RepIfDeling\"\000\022V\n\013delByStripe"
-  "\022%.coordinator_proto.StripeIdFromClient\032"
-  "\036.coordinator_proto.RepIfDeling\"\000\022Y\n\013lis"
-  "tStripes\022\'.coordinator_proto.RequestToCo"
-  "ordinator\032\037.coordinator_proto.RepStripeI"
-  "ds\"\000\022W\n\ndecodeTest\022!.coordinator_proto.K"
+  "t\032%.coordinator_proto.ReplyProxyIPsPorts"
+  "\"\000\022_\n\017uploadXueUpdate\022#.coordinator_prot"
+  "o.XueUpdateRequest\032%.coordinator_proto.R"
+  "eplyProxyIPsPorts\"\000\022l\n\025reportXueIngressR"
+  "eady\022(.coordinator_proto.XueIngressReady"
+  "Report\032\'.coordinator_proto.ReplyFromCoor"
+  "dinator\"\000\022k\n\026waitXueAllIngressReady\022&.co"
+  "ordinator_proto.XueStripeScheduleId\032\'.co"
+  "ordinator_proto.ReplyFromCoordinator\"\000\022h"
+  "\n\023waitXueScheduleStep\022&.coordinator_prot"
+  "o.XueScheduleStepWait\032\'.coordinator_prot"
+  "o.ReplyFromCoordinator\"\000\022n\n\031reportXueSch"
+  "eduleStepDone\022&.coordinator_proto.XueSch"
+  "eduleStepDone\032\'.coordinator_proto.ReplyF"
+  "romCoordinator\"\000\022n\n\026releaseXueScheduleWa"
+  "ve\022).coordinator_proto.XueScheduleWaveRe"
+  "lease\032\'.coordinator_proto.ReplyFromCoord"
+  "inator\"\000\022f\n\022waitXueScheduleHop\022%.coordin"
+  "ator_proto.XueScheduleHopWait\032\'.coordina"
+  "tor_proto.ReplyFromCoordinator\"\000\022S\n\010getV"
+  "alue\022!.coordinator_proto.KeyAndClientIP\032"
+  "\".coordinator_proto.RepIfGetSuccess\"\000\022W\n"
+  "\tgetStripe\022!.coordinator_proto.KeyAndCli"
+  "entIP\032%.coordinator_proto.ReplyProxyIPsP"
+  "orts\"\000\022\\\n\tgetBlocks\022&.coordinator_proto."
+  "BlockIDsAndClientIP\032%.coordinator_proto."
+  "ReplyProxyIPsPorts\"\000\022h\n\025getDegradedReadB"
+  "locks\022&.coordinator_proto.BlockIDsAndCli"
+  "entIP\032%.coordinator_proto.ReplyProxyIPsP"
+  "orts\"\000\022a\n\024getDegradedReadBlock\022!.coordin"
+  "ator_proto.KeyAndClientIP\032$.coordinator_"
+  "proto.DegradedReadReply\"\000\022j\n\035getDegraded"
+  "ReadBlockBreakdown\022!.coordinator_proto.K"
   "eyAndClientIP\032$.coordinator_proto.Degrad"
-  "edReadReply\"\000b\006proto3"
+  "edReadReply\"\000\022T\n\013getRecovery\022!.coordinat"
+  "or_proto.KeyAndClientIP\032 .coordinator_pr"
+  "oto.RecoveryReply\"\000\022]\n\024getRecoveryBreakd"
+  "own\022!.coordinator_proto.KeyAndClientIP\032 "
+  ".coordinator_proto.RecoveryReply\"\000\022Y\n\020fu"
+  "llNodeRecovery\022#.coordinator_proto.NodeI"
+  "dFromClient\032\036.coordinator_proto.RepBlock"
+  "Num\"\000\022j\n\022multiBlockRecovery\0220.coordinato"
+  "r_proto.StripeIdAndBlockIDsFromClient\032 ."
+  "coordinator_proto.RecoveryReply\"\000\022N\n\010del"
+  "ByKey\022 .coordinator_proto.KeyFromClient\032"
+  "\036.coordinator_proto.RepIfDeling\"\000\022V\n\013del"
+  "ByStripe\022%.coordinator_proto.StripeIdFro"
+  "mClient\032\036.coordinator_proto.RepIfDeling\""
+  "\000\022Y\n\013listStripes\022\'.coordinator_proto.Req"
+  "uestToCoordinator\032\037.coordinator_proto.Re"
+  "pStripeIds\"\000\022W\n\ndecodeTest\022!.coordinator"
+  "_proto.KeyAndClientIP\032$.coordinator_prot"
+  "o.DegradedReadReply\"\000b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_coordinator_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_coordinator_2eproto = {
-    false, false, 4421, descriptor_table_protodef_coordinator_2eproto,
+    false, false, 6269, descriptor_table_protodef_coordinator_2eproto,
     "coordinator.proto",
-    &descriptor_table_coordinator_2eproto_once, nullptr, 0, 25,
+    &descriptor_table_coordinator_2eproto_once, nullptr, 0, 34,
     schemas, file_default_instances, TableStruct_coordinator_2eproto::offsets,
     file_level_metadata_coordinator_2eproto, file_level_enum_descriptors_coordinator_2eproto,
     file_level_service_descriptors_coordinator_2eproto,
@@ -2897,6 +3202,2544 @@ void AppendPlanLayout::InternalSwap(AppendPlanLayout* other) {
 
 // ===================================================================
 
+class XueTransferStepInfo::_Internal {
+ public:
+};
+
+XueTransferStepInfo::XueTransferStepInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.XueTransferStepInfo)
+}
+XueTransferStepInfo::XueTransferStepInfo(const XueTransferStepInfo& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueTransferStepInfo* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.pred_step_nos_){from._impl_.pred_step_nos_}
+    , /*decltype(_impl_._pred_step_nos_cached_byte_size_)*/{0}
+    , decltype(_impl_.append_key_){}
+    , decltype(_impl_.payload_){}
+    , decltype(_impl_.path_desc_){}
+    , decltype(_impl_.forward_append_mode_){}
+    , decltype(_impl_.step_no_){}
+    , decltype(_impl_.parallel_group_){}
+    , decltype(_impl_.from_cluster_){}
+    , decltype(_impl_.to_cluster_){}
+    , decltype(_impl_.start_time_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.append_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.append_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_append_key().empty()) {
+    _this->_impl_.append_key_.Set(from._internal_append_key(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.payload_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.payload_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_payload().empty()) {
+    _this->_impl_.payload_.Set(from._internal_payload(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.path_desc_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.path_desc_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_path_desc().empty()) {
+    _this->_impl_.path_desc_.Set(from._internal_path_desc(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.forward_append_mode_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.forward_append_mode_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_forward_append_mode().empty()) {
+    _this->_impl_.forward_append_mode_.Set(from._internal_forward_append_mode(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.step_no_, &from._impl_.step_no_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.start_time_) -
+    reinterpret_cast<char*>(&_impl_.step_no_)) + sizeof(_impl_.start_time_));
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.XueTransferStepInfo)
+}
+
+inline void XueTransferStepInfo::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.pred_step_nos_){arena}
+    , /*decltype(_impl_._pred_step_nos_cached_byte_size_)*/{0}
+    , decltype(_impl_.append_key_){}
+    , decltype(_impl_.payload_){}
+    , decltype(_impl_.path_desc_){}
+    , decltype(_impl_.forward_append_mode_){}
+    , decltype(_impl_.step_no_){0}
+    , decltype(_impl_.parallel_group_){0}
+    , decltype(_impl_.from_cluster_){0}
+    , decltype(_impl_.to_cluster_){0}
+    , decltype(_impl_.start_time_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.append_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.append_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.payload_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.payload_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.path_desc_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.path_desc_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.forward_append_mode_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.forward_append_mode_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+XueTransferStepInfo::~XueTransferStepInfo() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.XueTransferStepInfo)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueTransferStepInfo::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.pred_step_nos_.~RepeatedField();
+  _impl_.append_key_.Destroy();
+  _impl_.payload_.Destroy();
+  _impl_.path_desc_.Destroy();
+  _impl_.forward_append_mode_.Destroy();
+}
+
+void XueTransferStepInfo::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueTransferStepInfo::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.XueTransferStepInfo)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.pred_step_nos_.Clear();
+  _impl_.append_key_.ClearToEmpty();
+  _impl_.payload_.ClearToEmpty();
+  _impl_.path_desc_.ClearToEmpty();
+  _impl_.forward_append_mode_.ClearToEmpty();
+  ::memset(&_impl_.step_no_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.start_time_) -
+      reinterpret_cast<char*>(&_impl_.step_no_)) + sizeof(_impl_.start_time_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueTransferStepInfo::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 step_no = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.step_no_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parallel_group = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.parallel_group_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string append_key = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          auto str = _internal_mutable_append_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coordinator_proto.XueTransferStepInfo.append_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 from_cluster = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.from_cluster_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 to_cluster = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          _impl_.to_cluster_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string payload = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
+          auto str = _internal_mutable_payload();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coordinator_proto.XueTransferStepInfo.payload"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string path_desc = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 58)) {
+          auto str = _internal_mutable_path_desc();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coordinator_proto.XueTransferStepInfo.path_desc"));
+        } else
+          goto handle_unusual;
+        continue;
+      // double start_time = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 65)) {
+          _impl_.start_time_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated int32 pred_step_nos = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 74)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_pred_step_nos(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<uint8_t>(tag) == 72) {
+          _internal_add_pred_step_nos(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string forward_append_mode = 10;
+      case 10:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 82)) {
+          auto str = _internal_mutable_forward_append_mode();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coordinator_proto.XueTransferStepInfo.forward_append_mode"));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueTransferStepInfo::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.XueTransferStepInfo)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 step_no = 1;
+  if (this->_internal_step_no() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_step_no(), target);
+  }
+
+  // int32 parallel_group = 2;
+  if (this->_internal_parallel_group() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_parallel_group(), target);
+  }
+
+  // string append_key = 3;
+  if (!this->_internal_append_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_append_key().data(), static_cast<int>(this->_internal_append_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coordinator_proto.XueTransferStepInfo.append_key");
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_append_key(), target);
+  }
+
+  // int32 from_cluster = 4;
+  if (this->_internal_from_cluster() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_from_cluster(), target);
+  }
+
+  // int32 to_cluster = 5;
+  if (this->_internal_to_cluster() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_to_cluster(), target);
+  }
+
+  // string payload = 6;
+  if (!this->_internal_payload().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_payload().data(), static_cast<int>(this->_internal_payload().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coordinator_proto.XueTransferStepInfo.payload");
+    target = stream->WriteStringMaybeAliased(
+        6, this->_internal_payload(), target);
+  }
+
+  // string path_desc = 7;
+  if (!this->_internal_path_desc().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_path_desc().data(), static_cast<int>(this->_internal_path_desc().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coordinator_proto.XueTransferStepInfo.path_desc");
+    target = stream->WriteStringMaybeAliased(
+        7, this->_internal_path_desc(), target);
+  }
+
+  // double start_time = 8;
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_start_time = this->_internal_start_time();
+  uint64_t raw_start_time;
+  memcpy(&raw_start_time, &tmp_start_time, sizeof(tmp_start_time));
+  if (raw_start_time != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteDoubleToArray(8, this->_internal_start_time(), target);
+  }
+
+  // repeated int32 pred_step_nos = 9;
+  {
+    int byte_size = _impl_._pred_step_nos_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt32Packed(
+          9, _internal_pred_step_nos(), byte_size, target);
+    }
+  }
+
+  // string forward_append_mode = 10;
+  if (!this->_internal_forward_append_mode().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_forward_append_mode().data(), static_cast<int>(this->_internal_forward_append_mode().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coordinator_proto.XueTransferStepInfo.forward_append_mode");
+    target = stream->WriteStringMaybeAliased(
+        10, this->_internal_forward_append_mode(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.XueTransferStepInfo)
+  return target;
+}
+
+size_t XueTransferStepInfo::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.XueTransferStepInfo)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated int32 pred_step_nos = 9;
+  {
+    size_t data_size = ::_pbi::WireFormatLite::
+      Int32Size(this->_impl_.pred_step_nos_);
+    if (data_size > 0) {
+      total_size += 1 +
+        ::_pbi::WireFormatLite::Int32Size(static_cast<int32_t>(data_size));
+    }
+    int cached_size = ::_pbi::ToCachedSize(data_size);
+    _impl_._pred_step_nos_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
+  // string append_key = 3;
+  if (!this->_internal_append_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_append_key());
+  }
+
+  // string payload = 6;
+  if (!this->_internal_payload().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_payload());
+  }
+
+  // string path_desc = 7;
+  if (!this->_internal_path_desc().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_path_desc());
+  }
+
+  // string forward_append_mode = 10;
+  if (!this->_internal_forward_append_mode().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_forward_append_mode());
+  }
+
+  // int32 step_no = 1;
+  if (this->_internal_step_no() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_step_no());
+  }
+
+  // int32 parallel_group = 2;
+  if (this->_internal_parallel_group() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parallel_group());
+  }
+
+  // int32 from_cluster = 4;
+  if (this->_internal_from_cluster() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_from_cluster());
+  }
+
+  // int32 to_cluster = 5;
+  if (this->_internal_to_cluster() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_to_cluster());
+  }
+
+  // double start_time = 8;
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_start_time = this->_internal_start_time();
+  uint64_t raw_start_time;
+  memcpy(&raw_start_time, &tmp_start_time, sizeof(tmp_start_time));
+  if (raw_start_time != 0) {
+    total_size += 1 + 8;
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueTransferStepInfo::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueTransferStepInfo::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueTransferStepInfo::GetClassData() const { return &_class_data_; }
+
+
+void XueTransferStepInfo::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueTransferStepInfo*>(&to_msg);
+  auto& from = static_cast<const XueTransferStepInfo&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.XueTransferStepInfo)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.pred_step_nos_.MergeFrom(from._impl_.pred_step_nos_);
+  if (!from._internal_append_key().empty()) {
+    _this->_internal_set_append_key(from._internal_append_key());
+  }
+  if (!from._internal_payload().empty()) {
+    _this->_internal_set_payload(from._internal_payload());
+  }
+  if (!from._internal_path_desc().empty()) {
+    _this->_internal_set_path_desc(from._internal_path_desc());
+  }
+  if (!from._internal_forward_append_mode().empty()) {
+    _this->_internal_set_forward_append_mode(from._internal_forward_append_mode());
+  }
+  if (from._internal_step_no() != 0) {
+    _this->_internal_set_step_no(from._internal_step_no());
+  }
+  if (from._internal_parallel_group() != 0) {
+    _this->_internal_set_parallel_group(from._internal_parallel_group());
+  }
+  if (from._internal_from_cluster() != 0) {
+    _this->_internal_set_from_cluster(from._internal_from_cluster());
+  }
+  if (from._internal_to_cluster() != 0) {
+    _this->_internal_set_to_cluster(from._internal_to_cluster());
+  }
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_start_time = from._internal_start_time();
+  uint64_t raw_start_time;
+  memcpy(&raw_start_time, &tmp_start_time, sizeof(tmp_start_time));
+  if (raw_start_time != 0) {
+    _this->_internal_set_start_time(from._internal_start_time());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueTransferStepInfo::CopyFrom(const XueTransferStepInfo& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.XueTransferStepInfo)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueTransferStepInfo::IsInitialized() const {
+  return true;
+}
+
+void XueTransferStepInfo::InternalSwap(XueTransferStepInfo* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.pred_step_nos_.InternalSwap(&other->_impl_.pred_step_nos_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.append_key_, lhs_arena,
+      &other->_impl_.append_key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.payload_, lhs_arena,
+      &other->_impl_.payload_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.path_desc_, lhs_arena,
+      &other->_impl_.path_desc_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.forward_append_mode_, lhs_arena,
+      &other->_impl_.forward_append_mode_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(XueTransferStepInfo, _impl_.start_time_)
+      + sizeof(XueTransferStepInfo::_impl_.start_time_)
+      - PROTOBUF_FIELD_OFFSET(XueTransferStepInfo, _impl_.step_no_)>(
+          reinterpret_cast<char*>(&_impl_.step_no_),
+          reinterpret_cast<char*>(&other->_impl_.step_no_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueTransferStepInfo::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[8]);
+}
+
+// ===================================================================
+
+class XueStripeScheduleId::_Internal {
+ public:
+};
+
+XueStripeScheduleId::XueStripeScheduleId(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.XueStripeScheduleId)
+}
+XueStripeScheduleId::XueStripeScheduleId(const XueStripeScheduleId& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueStripeScheduleId* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.stripe_id_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.stripe_id_ = from._impl_.stripe_id_;
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.XueStripeScheduleId)
+}
+
+inline void XueStripeScheduleId::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.stripe_id_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+XueStripeScheduleId::~XueStripeScheduleId() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.XueStripeScheduleId)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueStripeScheduleId::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void XueStripeScheduleId::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueStripeScheduleId::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.XueStripeScheduleId)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.stripe_id_ = 0;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueStripeScheduleId::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueStripeScheduleId::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.XueStripeScheduleId)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.XueStripeScheduleId)
+  return target;
+}
+
+size_t XueStripeScheduleId::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.XueStripeScheduleId)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueStripeScheduleId::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueStripeScheduleId::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueStripeScheduleId::GetClassData() const { return &_class_data_; }
+
+
+void XueStripeScheduleId::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueStripeScheduleId*>(&to_msg);
+  auto& from = static_cast<const XueStripeScheduleId&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.XueStripeScheduleId)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueStripeScheduleId::CopyFrom(const XueStripeScheduleId& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.XueStripeScheduleId)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueStripeScheduleId::IsInitialized() const {
+  return true;
+}
+
+void XueStripeScheduleId::InternalSwap(XueStripeScheduleId* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_.stripe_id_, other->_impl_.stripe_id_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueStripeScheduleId::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[9]);
+}
+
+// ===================================================================
+
+class XueIngressReadyReport::_Internal {
+ public:
+};
+
+XueIngressReadyReport::XueIngressReadyReport(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.XueIngressReadyReport)
+}
+XueIngressReadyReport::XueIngressReadyReport(const XueIngressReadyReport& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueIngressReadyReport* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.append_key_){}
+    , decltype(_impl_.stripe_id_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.append_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.append_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_append_key().empty()) {
+    _this->_impl_.append_key_.Set(from._internal_append_key(), 
+      _this->GetArenaForAllocation());
+  }
+  _this->_impl_.stripe_id_ = from._impl_.stripe_id_;
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.XueIngressReadyReport)
+}
+
+inline void XueIngressReadyReport::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.append_key_){}
+    , decltype(_impl_.stripe_id_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.append_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.append_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+XueIngressReadyReport::~XueIngressReadyReport() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.XueIngressReadyReport)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueIngressReadyReport::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.append_key_.Destroy();
+}
+
+void XueIngressReadyReport::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueIngressReadyReport::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.XueIngressReadyReport)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.append_key_.ClearToEmpty();
+  _impl_.stripe_id_ = 0;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueIngressReadyReport::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string append_key = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          auto str = _internal_mutable_append_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coordinator_proto.XueIngressReadyReport.append_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueIngressReadyReport::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.XueIngressReadyReport)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // string append_key = 2;
+  if (!this->_internal_append_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_append_key().data(), static_cast<int>(this->_internal_append_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coordinator_proto.XueIngressReadyReport.append_key");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_append_key(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.XueIngressReadyReport)
+  return target;
+}
+
+size_t XueIngressReadyReport::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.XueIngressReadyReport)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string append_key = 2;
+  if (!this->_internal_append_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_append_key());
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueIngressReadyReport::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueIngressReadyReport::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueIngressReadyReport::GetClassData() const { return &_class_data_; }
+
+
+void XueIngressReadyReport::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueIngressReadyReport*>(&to_msg);
+  auto& from = static_cast<const XueIngressReadyReport&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.XueIngressReadyReport)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_append_key().empty()) {
+    _this->_internal_set_append_key(from._internal_append_key());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueIngressReadyReport::CopyFrom(const XueIngressReadyReport& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.XueIngressReadyReport)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueIngressReadyReport::IsInitialized() const {
+  return true;
+}
+
+void XueIngressReadyReport::InternalSwap(XueIngressReadyReport* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.append_key_, lhs_arena,
+      &other->_impl_.append_key_, rhs_arena
+  );
+  swap(_impl_.stripe_id_, other->_impl_.stripe_id_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueIngressReadyReport::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[10]);
+}
+
+// ===================================================================
+
+class XueScheduleStepWait::_Internal {
+ public:
+};
+
+XueScheduleStepWait::XueScheduleStepWait(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.XueScheduleStepWait)
+}
+XueScheduleStepWait::XueScheduleStepWait(const XueScheduleStepWait& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueScheduleStepWait* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.append_key_){}
+    , decltype(_impl_.stripe_id_){}
+    , decltype(_impl_.step_no_){}
+    , decltype(_impl_.from_cluster_){}
+    , decltype(_impl_.to_cluster_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.append_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.append_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_append_key().empty()) {
+    _this->_impl_.append_key_.Set(from._internal_append_key(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.stripe_id_, &from._impl_.stripe_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.to_cluster_) -
+    reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.to_cluster_));
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.XueScheduleStepWait)
+}
+
+inline void XueScheduleStepWait::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.append_key_){}
+    , decltype(_impl_.stripe_id_){0}
+    , decltype(_impl_.step_no_){0}
+    , decltype(_impl_.from_cluster_){0}
+    , decltype(_impl_.to_cluster_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.append_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.append_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+XueScheduleStepWait::~XueScheduleStepWait() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.XueScheduleStepWait)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueScheduleStepWait::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.append_key_.Destroy();
+}
+
+void XueScheduleStepWait::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueScheduleStepWait::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.XueScheduleStepWait)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.append_key_.ClearToEmpty();
+  ::memset(&_impl_.stripe_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.to_cluster_) -
+      reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.to_cluster_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueScheduleStepWait::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 step_no = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.step_no_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string append_key = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          auto str = _internal_mutable_append_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coordinator_proto.XueScheduleStepWait.append_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 from_cluster = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.from_cluster_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 to_cluster = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          _impl_.to_cluster_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueScheduleStepWait::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.XueScheduleStepWait)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // int32 step_no = 2;
+  if (this->_internal_step_no() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_step_no(), target);
+  }
+
+  // string append_key = 3;
+  if (!this->_internal_append_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_append_key().data(), static_cast<int>(this->_internal_append_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coordinator_proto.XueScheduleStepWait.append_key");
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_append_key(), target);
+  }
+
+  // int32 from_cluster = 4;
+  if (this->_internal_from_cluster() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_from_cluster(), target);
+  }
+
+  // int32 to_cluster = 5;
+  if (this->_internal_to_cluster() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_to_cluster(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.XueScheduleStepWait)
+  return target;
+}
+
+size_t XueScheduleStepWait::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.XueScheduleStepWait)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string append_key = 3;
+  if (!this->_internal_append_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_append_key());
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  // int32 step_no = 2;
+  if (this->_internal_step_no() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_step_no());
+  }
+
+  // int32 from_cluster = 4;
+  if (this->_internal_from_cluster() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_from_cluster());
+  }
+
+  // int32 to_cluster = 5;
+  if (this->_internal_to_cluster() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_to_cluster());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueScheduleStepWait::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueScheduleStepWait::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueScheduleStepWait::GetClassData() const { return &_class_data_; }
+
+
+void XueScheduleStepWait::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueScheduleStepWait*>(&to_msg);
+  auto& from = static_cast<const XueScheduleStepWait&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.XueScheduleStepWait)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_append_key().empty()) {
+    _this->_internal_set_append_key(from._internal_append_key());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  if (from._internal_step_no() != 0) {
+    _this->_internal_set_step_no(from._internal_step_no());
+  }
+  if (from._internal_from_cluster() != 0) {
+    _this->_internal_set_from_cluster(from._internal_from_cluster());
+  }
+  if (from._internal_to_cluster() != 0) {
+    _this->_internal_set_to_cluster(from._internal_to_cluster());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueScheduleStepWait::CopyFrom(const XueScheduleStepWait& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.XueScheduleStepWait)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueScheduleStepWait::IsInitialized() const {
+  return true;
+}
+
+void XueScheduleStepWait::InternalSwap(XueScheduleStepWait* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.append_key_, lhs_arena,
+      &other->_impl_.append_key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(XueScheduleStepWait, _impl_.to_cluster_)
+      + sizeof(XueScheduleStepWait::_impl_.to_cluster_)
+      - PROTOBUF_FIELD_OFFSET(XueScheduleStepWait, _impl_.stripe_id_)>(
+          reinterpret_cast<char*>(&_impl_.stripe_id_),
+          reinterpret_cast<char*>(&other->_impl_.stripe_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueScheduleStepWait::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[11]);
+}
+
+// ===================================================================
+
+class XueScheduleStepDone::_Internal {
+ public:
+};
+
+XueScheduleStepDone::XueScheduleStepDone(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.XueScheduleStepDone)
+}
+XueScheduleStepDone::XueScheduleStepDone(const XueScheduleStepDone& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueScheduleStepDone* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.append_key_){}
+    , decltype(_impl_.stripe_id_){}
+    , decltype(_impl_.step_no_){}
+    , decltype(_impl_.success_){}
+    , decltype(_impl_.from_cluster_){}
+    , decltype(_impl_.to_cluster_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.append_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.append_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_append_key().empty()) {
+    _this->_impl_.append_key_.Set(from._internal_append_key(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.stripe_id_, &from._impl_.stripe_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.to_cluster_) -
+    reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.to_cluster_));
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.XueScheduleStepDone)
+}
+
+inline void XueScheduleStepDone::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.append_key_){}
+    , decltype(_impl_.stripe_id_){0}
+    , decltype(_impl_.step_no_){0}
+    , decltype(_impl_.success_){false}
+    , decltype(_impl_.from_cluster_){0}
+    , decltype(_impl_.to_cluster_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.append_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.append_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+XueScheduleStepDone::~XueScheduleStepDone() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.XueScheduleStepDone)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueScheduleStepDone::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.append_key_.Destroy();
+}
+
+void XueScheduleStepDone::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueScheduleStepDone::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.XueScheduleStepDone)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.append_key_.ClearToEmpty();
+  ::memset(&_impl_.stripe_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.to_cluster_) -
+      reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.to_cluster_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueScheduleStepDone::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 step_no = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.step_no_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bool success = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.success_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string append_key = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          auto str = _internal_mutable_append_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coordinator_proto.XueScheduleStepDone.append_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 from_cluster = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          _impl_.from_cluster_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 to_cluster = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
+          _impl_.to_cluster_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueScheduleStepDone::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.XueScheduleStepDone)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // int32 step_no = 2;
+  if (this->_internal_step_no() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_step_no(), target);
+  }
+
+  // bool success = 3;
+  if (this->_internal_success() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(3, this->_internal_success(), target);
+  }
+
+  // string append_key = 4;
+  if (!this->_internal_append_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_append_key().data(), static_cast<int>(this->_internal_append_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coordinator_proto.XueScheduleStepDone.append_key");
+    target = stream->WriteStringMaybeAliased(
+        4, this->_internal_append_key(), target);
+  }
+
+  // int32 from_cluster = 5;
+  if (this->_internal_from_cluster() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_from_cluster(), target);
+  }
+
+  // int32 to_cluster = 6;
+  if (this->_internal_to_cluster() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(6, this->_internal_to_cluster(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.XueScheduleStepDone)
+  return target;
+}
+
+size_t XueScheduleStepDone::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.XueScheduleStepDone)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string append_key = 4;
+  if (!this->_internal_append_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_append_key());
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  // int32 step_no = 2;
+  if (this->_internal_step_no() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_step_no());
+  }
+
+  // bool success = 3;
+  if (this->_internal_success() != 0) {
+    total_size += 1 + 1;
+  }
+
+  // int32 from_cluster = 5;
+  if (this->_internal_from_cluster() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_from_cluster());
+  }
+
+  // int32 to_cluster = 6;
+  if (this->_internal_to_cluster() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_to_cluster());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueScheduleStepDone::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueScheduleStepDone::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueScheduleStepDone::GetClassData() const { return &_class_data_; }
+
+
+void XueScheduleStepDone::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueScheduleStepDone*>(&to_msg);
+  auto& from = static_cast<const XueScheduleStepDone&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.XueScheduleStepDone)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_append_key().empty()) {
+    _this->_internal_set_append_key(from._internal_append_key());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  if (from._internal_step_no() != 0) {
+    _this->_internal_set_step_no(from._internal_step_no());
+  }
+  if (from._internal_success() != 0) {
+    _this->_internal_set_success(from._internal_success());
+  }
+  if (from._internal_from_cluster() != 0) {
+    _this->_internal_set_from_cluster(from._internal_from_cluster());
+  }
+  if (from._internal_to_cluster() != 0) {
+    _this->_internal_set_to_cluster(from._internal_to_cluster());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueScheduleStepDone::CopyFrom(const XueScheduleStepDone& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.XueScheduleStepDone)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueScheduleStepDone::IsInitialized() const {
+  return true;
+}
+
+void XueScheduleStepDone::InternalSwap(XueScheduleStepDone* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.append_key_, lhs_arena,
+      &other->_impl_.append_key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(XueScheduleStepDone, _impl_.to_cluster_)
+      + sizeof(XueScheduleStepDone::_impl_.to_cluster_)
+      - PROTOBUF_FIELD_OFFSET(XueScheduleStepDone, _impl_.stripe_id_)>(
+          reinterpret_cast<char*>(&_impl_.stripe_id_),
+          reinterpret_cast<char*>(&other->_impl_.stripe_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueScheduleStepDone::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[12]);
+}
+
+// ===================================================================
+
+class XueScheduleClientWave::_Internal {
+ public:
+};
+
+XueScheduleClientWave::XueScheduleClientWave(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.XueScheduleClientWave)
+}
+XueScheduleClientWave::XueScheduleClientWave(const XueScheduleClientWave& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueScheduleClientWave* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.client_ingress_append_keys_){from._impl_.client_ingress_append_keys_}
+    , decltype(_impl_.wave_index_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.wave_index_ = from._impl_.wave_index_;
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.XueScheduleClientWave)
+}
+
+inline void XueScheduleClientWave::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.client_ingress_append_keys_){arena}
+    , decltype(_impl_.wave_index_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+XueScheduleClientWave::~XueScheduleClientWave() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.XueScheduleClientWave)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueScheduleClientWave::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.client_ingress_append_keys_.~RepeatedPtrField();
+}
+
+void XueScheduleClientWave::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueScheduleClientWave::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.XueScheduleClientWave)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.client_ingress_append_keys_.Clear();
+  _impl_.wave_index_ = 0;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueScheduleClientWave::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 wave_index = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.wave_index_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated string client_ingress_append_keys = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            auto str = _internal_add_client_ingress_append_keys();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            CHK_(::_pbi::VerifyUTF8(str, "coordinator_proto.XueScheduleClientWave.client_ingress_append_keys"));
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueScheduleClientWave::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.XueScheduleClientWave)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 wave_index = 1;
+  if (this->_internal_wave_index() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_wave_index(), target);
+  }
+
+  // repeated string client_ingress_append_keys = 2;
+  for (int i = 0, n = this->_internal_client_ingress_append_keys_size(); i < n; i++) {
+    const auto& s = this->_internal_client_ingress_append_keys(i);
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      s.data(), static_cast<int>(s.length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coordinator_proto.XueScheduleClientWave.client_ingress_append_keys");
+    target = stream->WriteString(2, s, target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.XueScheduleClientWave)
+  return target;
+}
+
+size_t XueScheduleClientWave::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.XueScheduleClientWave)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated string client_ingress_append_keys = 2;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.client_ingress_append_keys_.size());
+  for (int i = 0, n = _impl_.client_ingress_append_keys_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      _impl_.client_ingress_append_keys_.Get(i));
+  }
+
+  // int32 wave_index = 1;
+  if (this->_internal_wave_index() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_wave_index());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueScheduleClientWave::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueScheduleClientWave::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueScheduleClientWave::GetClassData() const { return &_class_data_; }
+
+
+void XueScheduleClientWave::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueScheduleClientWave*>(&to_msg);
+  auto& from = static_cast<const XueScheduleClientWave&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.XueScheduleClientWave)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.client_ingress_append_keys_.MergeFrom(from._impl_.client_ingress_append_keys_);
+  if (from._internal_wave_index() != 0) {
+    _this->_internal_set_wave_index(from._internal_wave_index());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueScheduleClientWave::CopyFrom(const XueScheduleClientWave& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.XueScheduleClientWave)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueScheduleClientWave::IsInitialized() const {
+  return true;
+}
+
+void XueScheduleClientWave::InternalSwap(XueScheduleClientWave* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.client_ingress_append_keys_.InternalSwap(&other->_impl_.client_ingress_append_keys_);
+  swap(_impl_.wave_index_, other->_impl_.wave_index_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueScheduleClientWave::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[13]);
+}
+
+// ===================================================================
+
+class XueAppendKeyCommitWave::_Internal {
+ public:
+};
+
+XueAppendKeyCommitWave::XueAppendKeyCommitWave(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.XueAppendKeyCommitWave)
+}
+XueAppendKeyCommitWave::XueAppendKeyCommitWave(const XueAppendKeyCommitWave& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueAppendKeyCommitWave* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.append_key_){}
+    , decltype(_impl_.wait_commit_wave_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.append_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.append_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_append_key().empty()) {
+    _this->_impl_.append_key_.Set(from._internal_append_key(), 
+      _this->GetArenaForAllocation());
+  }
+  _this->_impl_.wait_commit_wave_ = from._impl_.wait_commit_wave_;
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.XueAppendKeyCommitWave)
+}
+
+inline void XueAppendKeyCommitWave::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.append_key_){}
+    , decltype(_impl_.wait_commit_wave_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.append_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.append_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+XueAppendKeyCommitWave::~XueAppendKeyCommitWave() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.XueAppendKeyCommitWave)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueAppendKeyCommitWave::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.append_key_.Destroy();
+}
+
+void XueAppendKeyCommitWave::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueAppendKeyCommitWave::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.XueAppendKeyCommitWave)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.append_key_.ClearToEmpty();
+  _impl_.wait_commit_wave_ = 0;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueAppendKeyCommitWave::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // string append_key = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          auto str = _internal_mutable_append_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coordinator_proto.XueAppendKeyCommitWave.append_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 wait_commit_wave = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.wait_commit_wave_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueAppendKeyCommitWave::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.XueAppendKeyCommitWave)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string append_key = 1;
+  if (!this->_internal_append_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_append_key().data(), static_cast<int>(this->_internal_append_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coordinator_proto.XueAppendKeyCommitWave.append_key");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_append_key(), target);
+  }
+
+  // int32 wait_commit_wave = 2;
+  if (this->_internal_wait_commit_wave() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_wait_commit_wave(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.XueAppendKeyCommitWave)
+  return target;
+}
+
+size_t XueAppendKeyCommitWave::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.XueAppendKeyCommitWave)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string append_key = 1;
+  if (!this->_internal_append_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_append_key());
+  }
+
+  // int32 wait_commit_wave = 2;
+  if (this->_internal_wait_commit_wave() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_wait_commit_wave());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueAppendKeyCommitWave::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueAppendKeyCommitWave::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueAppendKeyCommitWave::GetClassData() const { return &_class_data_; }
+
+
+void XueAppendKeyCommitWave::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueAppendKeyCommitWave*>(&to_msg);
+  auto& from = static_cast<const XueAppendKeyCommitWave&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.XueAppendKeyCommitWave)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_append_key().empty()) {
+    _this->_internal_set_append_key(from._internal_append_key());
+  }
+  if (from._internal_wait_commit_wave() != 0) {
+    _this->_internal_set_wait_commit_wave(from._internal_wait_commit_wave());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueAppendKeyCommitWave::CopyFrom(const XueAppendKeyCommitWave& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.XueAppendKeyCommitWave)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueAppendKeyCommitWave::IsInitialized() const {
+  return true;
+}
+
+void XueAppendKeyCommitWave::InternalSwap(XueAppendKeyCommitWave* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.append_key_, lhs_arena,
+      &other->_impl_.append_key_, rhs_arena
+  );
+  swap(_impl_.wait_commit_wave_, other->_impl_.wait_commit_wave_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueAppendKeyCommitWave::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[14]);
+}
+
+// ===================================================================
+
+class XueScheduleWaveRelease::_Internal {
+ public:
+};
+
+XueScheduleWaveRelease::XueScheduleWaveRelease(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.XueScheduleWaveRelease)
+}
+XueScheduleWaveRelease::XueScheduleWaveRelease(const XueScheduleWaveRelease& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueScheduleWaveRelease* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.stripe_id_){}
+    , decltype(_impl_.released_wave_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.stripe_id_, &from._impl_.stripe_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.released_wave_) -
+    reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.released_wave_));
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.XueScheduleWaveRelease)
+}
+
+inline void XueScheduleWaveRelease::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.stripe_id_){0}
+    , decltype(_impl_.released_wave_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+XueScheduleWaveRelease::~XueScheduleWaveRelease() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.XueScheduleWaveRelease)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueScheduleWaveRelease::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void XueScheduleWaveRelease::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueScheduleWaveRelease::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.XueScheduleWaveRelease)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&_impl_.stripe_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.released_wave_) -
+      reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.released_wave_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueScheduleWaveRelease::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 released_wave = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.released_wave_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueScheduleWaveRelease::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.XueScheduleWaveRelease)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // int32 released_wave = 2;
+  if (this->_internal_released_wave() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_released_wave(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.XueScheduleWaveRelease)
+  return target;
+}
+
+size_t XueScheduleWaveRelease::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.XueScheduleWaveRelease)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  // int32 released_wave = 2;
+  if (this->_internal_released_wave() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_released_wave());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueScheduleWaveRelease::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueScheduleWaveRelease::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueScheduleWaveRelease::GetClassData() const { return &_class_data_; }
+
+
+void XueScheduleWaveRelease::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueScheduleWaveRelease*>(&to_msg);
+  auto& from = static_cast<const XueScheduleWaveRelease&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.XueScheduleWaveRelease)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  if (from._internal_released_wave() != 0) {
+    _this->_internal_set_released_wave(from._internal_released_wave());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueScheduleWaveRelease::CopyFrom(const XueScheduleWaveRelease& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.XueScheduleWaveRelease)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueScheduleWaveRelease::IsInitialized() const {
+  return true;
+}
+
+void XueScheduleWaveRelease::InternalSwap(XueScheduleWaveRelease* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(XueScheduleWaveRelease, _impl_.released_wave_)
+      + sizeof(XueScheduleWaveRelease::_impl_.released_wave_)
+      - PROTOBUF_FIELD_OFFSET(XueScheduleWaveRelease, _impl_.stripe_id_)>(
+          reinterpret_cast<char*>(&_impl_.stripe_id_),
+          reinterpret_cast<char*>(&other->_impl_.stripe_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueScheduleWaveRelease::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[15]);
+}
+
+// ===================================================================
+
+class XueScheduleHopWait::_Internal {
+ public:
+};
+
+XueScheduleHopWait::XueScheduleHopWait(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.XueScheduleHopWait)
+}
+XueScheduleHopWait::XueScheduleHopWait(const XueScheduleHopWait& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueScheduleHopWait* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.append_key_){}
+    , decltype(_impl_.stripe_id_){}
+    , decltype(_impl_.from_cluster_){}
+    , decltype(_impl_.to_cluster_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.append_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.append_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_append_key().empty()) {
+    _this->_impl_.append_key_.Set(from._internal_append_key(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.stripe_id_, &from._impl_.stripe_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.to_cluster_) -
+    reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.to_cluster_));
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.XueScheduleHopWait)
+}
+
+inline void XueScheduleHopWait::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.append_key_){}
+    , decltype(_impl_.stripe_id_){0}
+    , decltype(_impl_.from_cluster_){0}
+    , decltype(_impl_.to_cluster_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.append_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.append_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+XueScheduleHopWait::~XueScheduleHopWait() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.XueScheduleHopWait)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueScheduleHopWait::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.append_key_.Destroy();
+}
+
+void XueScheduleHopWait::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueScheduleHopWait::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.XueScheduleHopWait)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.append_key_.ClearToEmpty();
+  ::memset(&_impl_.stripe_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.to_cluster_) -
+      reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.to_cluster_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueScheduleHopWait::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string append_key = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          auto str = _internal_mutable_append_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coordinator_proto.XueScheduleHopWait.append_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 from_cluster = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.from_cluster_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 to_cluster = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.to_cluster_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueScheduleHopWait::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.XueScheduleHopWait)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // string append_key = 2;
+  if (!this->_internal_append_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_append_key().data(), static_cast<int>(this->_internal_append_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coordinator_proto.XueScheduleHopWait.append_key");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_append_key(), target);
+  }
+
+  // int32 from_cluster = 3;
+  if (this->_internal_from_cluster() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_from_cluster(), target);
+  }
+
+  // int32 to_cluster = 4;
+  if (this->_internal_to_cluster() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_to_cluster(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.XueScheduleHopWait)
+  return target;
+}
+
+size_t XueScheduleHopWait::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.XueScheduleHopWait)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string append_key = 2;
+  if (!this->_internal_append_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_append_key());
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  // int32 from_cluster = 3;
+  if (this->_internal_from_cluster() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_from_cluster());
+  }
+
+  // int32 to_cluster = 4;
+  if (this->_internal_to_cluster() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_to_cluster());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueScheduleHopWait::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueScheduleHopWait::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueScheduleHopWait::GetClassData() const { return &_class_data_; }
+
+
+void XueScheduleHopWait::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueScheduleHopWait*>(&to_msg);
+  auto& from = static_cast<const XueScheduleHopWait&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.XueScheduleHopWait)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_append_key().empty()) {
+    _this->_internal_set_append_key(from._internal_append_key());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  if (from._internal_from_cluster() != 0) {
+    _this->_internal_set_from_cluster(from._internal_from_cluster());
+  }
+  if (from._internal_to_cluster() != 0) {
+    _this->_internal_set_to_cluster(from._internal_to_cluster());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueScheduleHopWait::CopyFrom(const XueScheduleHopWait& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.XueScheduleHopWait)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueScheduleHopWait::IsInitialized() const {
+  return true;
+}
+
+void XueScheduleHopWait::InternalSwap(XueScheduleHopWait* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.append_key_, lhs_arena,
+      &other->_impl_.append_key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(XueScheduleHopWait, _impl_.to_cluster_)
+      + sizeof(XueScheduleHopWait::_impl_.to_cluster_)
+      - PROTOBUF_FIELD_OFFSET(XueScheduleHopWait, _impl_.stripe_id_)>(
+          reinterpret_cast<char*>(&_impl_.stripe_id_),
+          reinterpret_cast<char*>(&other->_impl_.stripe_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueScheduleHopWait::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[16]);
+}
+
+// ===================================================================
+
 class ReplyProxyIPsPorts::_Internal {
  public:
 };
@@ -2920,11 +5763,18 @@ ReplyProxyIPsPorts::ReplyProxyIPsPorts(const ReplyProxyIPsPorts& from)
     , decltype(_impl_.group_ids_){from._impl_.group_ids_}
     , /*decltype(_impl_._group_ids_cached_byte_size_)*/{0}
     , decltype(_impl_.plan_layouts_){from._impl_.plan_layouts_}
+    , decltype(_impl_.xue_client_waves_){from._impl_.xue_client_waves_}
+    , decltype(_impl_.xue_commit_waves_){from._impl_.xue_commit_waves_}
+    , decltype(_impl_.xue_transfer_steps_){from._impl_.xue_transfer_steps_}
     , decltype(_impl_.sum_append_size_){}
+    , decltype(_impl_.xue_schedule_stripe_id_){}
+    , decltype(_impl_.xue_schedule_num_groups_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _this->_impl_.sum_append_size_ = from._impl_.sum_append_size_;
+  ::memcpy(&_impl_.sum_append_size_, &from._impl_.sum_append_size_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.xue_schedule_num_groups_) -
+    reinterpret_cast<char*>(&_impl_.sum_append_size_)) + sizeof(_impl_.xue_schedule_num_groups_));
   // @@protoc_insertion_point(copy_constructor:coordinator_proto.ReplyProxyIPsPorts)
 }
 
@@ -2942,7 +5792,12 @@ inline void ReplyProxyIPsPorts::SharedCtor(
     , decltype(_impl_.group_ids_){arena}
     , /*decltype(_impl_._group_ids_cached_byte_size_)*/{0}
     , decltype(_impl_.plan_layouts_){arena}
+    , decltype(_impl_.xue_client_waves_){arena}
+    , decltype(_impl_.xue_commit_waves_){arena}
+    , decltype(_impl_.xue_transfer_steps_){arena}
     , decltype(_impl_.sum_append_size_){uint64_t{0u}}
+    , decltype(_impl_.xue_schedule_stripe_id_){0}
+    , decltype(_impl_.xue_schedule_num_groups_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
 }
@@ -2964,6 +5819,9 @@ inline void ReplyProxyIPsPorts::SharedDtor() {
   _impl_.cluster_slice_sizes_.~RepeatedField();
   _impl_.group_ids_.~RepeatedField();
   _impl_.plan_layouts_.~RepeatedPtrField();
+  _impl_.xue_client_waves_.~RepeatedPtrField();
+  _impl_.xue_commit_waves_.~RepeatedPtrField();
+  _impl_.xue_transfer_steps_.~RepeatedPtrField();
 }
 
 void ReplyProxyIPsPorts::SetCachedSize(int size) const {
@@ -2982,7 +5840,12 @@ void ReplyProxyIPsPorts::Clear() {
   _impl_.cluster_slice_sizes_.Clear();
   _impl_.group_ids_.Clear();
   _impl_.plan_layouts_.Clear();
-  _impl_.sum_append_size_ = uint64_t{0u};
+  _impl_.xue_client_waves_.Clear();
+  _impl_.xue_commit_waves_.Clear();
+  _impl_.xue_transfer_steps_.Clear();
+  ::memset(&_impl_.sum_append_size_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.xue_schedule_num_groups_) -
+      reinterpret_cast<char*>(&_impl_.sum_append_size_)) + sizeof(_impl_.xue_schedule_num_groups_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -3076,6 +5939,61 @@ const char* ReplyProxyIPsPorts::_InternalParse(const char* ptr, ::_pbi::ParseCon
         } else
           goto handle_unusual;
         continue;
+      // repeated .coordinator_proto.XueScheduleClientWave xue_client_waves = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_xue_client_waves(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<66>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated .coordinator_proto.XueAppendKeyCommitWave xue_commit_waves = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 74)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_xue_commit_waves(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<74>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 xue_schedule_stripe_id = 10;
+      case 10:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 80)) {
+          _impl_.xue_schedule_stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated .coordinator_proto.XueTransferStepInfo xue_transfer_steps = 11;
+      case 11:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 90)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_xue_transfer_steps(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<90>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 xue_schedule_num_groups = 12;
+      case 12:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 96)) {
+          _impl_.xue_schedule_num_groups_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
       default:
         goto handle_unusual;
     }  // switch
@@ -3166,6 +6084,42 @@ uint8_t* ReplyProxyIPsPorts::_InternalSerialize(
         InternalWriteMessage(7, repfield, repfield.GetCachedSize(), target, stream);
   }
 
+  // repeated .coordinator_proto.XueScheduleClientWave xue_client_waves = 8;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_xue_client_waves_size()); i < n; i++) {
+    const auto& repfield = this->_internal_xue_client_waves(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(8, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
+  // repeated .coordinator_proto.XueAppendKeyCommitWave xue_commit_waves = 9;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_xue_commit_waves_size()); i < n; i++) {
+    const auto& repfield = this->_internal_xue_commit_waves(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(9, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
+  // int32 xue_schedule_stripe_id = 10;
+  if (this->_internal_xue_schedule_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(10, this->_internal_xue_schedule_stripe_id(), target);
+  }
+
+  // repeated .coordinator_proto.XueTransferStepInfo xue_transfer_steps = 11;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_xue_transfer_steps_size()); i < n; i++) {
+    const auto& repfield = this->_internal_xue_transfer_steps(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(11, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
+  // int32 xue_schedule_num_groups = 12;
+  if (this->_internal_xue_schedule_num_groups() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(12, this->_internal_xue_schedule_num_groups(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -3247,9 +6201,40 @@ size_t ReplyProxyIPsPorts::ByteSizeLong() const {
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
   }
 
+  // repeated .coordinator_proto.XueScheduleClientWave xue_client_waves = 8;
+  total_size += 1UL * this->_internal_xue_client_waves_size();
+  for (const auto& msg : this->_impl_.xue_client_waves_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // repeated .coordinator_proto.XueAppendKeyCommitWave xue_commit_waves = 9;
+  total_size += 1UL * this->_internal_xue_commit_waves_size();
+  for (const auto& msg : this->_impl_.xue_commit_waves_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // repeated .coordinator_proto.XueTransferStepInfo xue_transfer_steps = 11;
+  total_size += 1UL * this->_internal_xue_transfer_steps_size();
+  for (const auto& msg : this->_impl_.xue_transfer_steps_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
   // uint64 sum_append_size = 1;
   if (this->_internal_sum_append_size() != 0) {
     total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_sum_append_size());
+  }
+
+  // int32 xue_schedule_stripe_id = 10;
+  if (this->_internal_xue_schedule_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_xue_schedule_stripe_id());
+  }
+
+  // int32 xue_schedule_num_groups = 12;
+  if (this->_internal_xue_schedule_num_groups() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_xue_schedule_num_groups());
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
@@ -3276,8 +6261,17 @@ void ReplyProxyIPsPorts::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, con
   _this->_impl_.cluster_slice_sizes_.MergeFrom(from._impl_.cluster_slice_sizes_);
   _this->_impl_.group_ids_.MergeFrom(from._impl_.group_ids_);
   _this->_impl_.plan_layouts_.MergeFrom(from._impl_.plan_layouts_);
+  _this->_impl_.xue_client_waves_.MergeFrom(from._impl_.xue_client_waves_);
+  _this->_impl_.xue_commit_waves_.MergeFrom(from._impl_.xue_commit_waves_);
+  _this->_impl_.xue_transfer_steps_.MergeFrom(from._impl_.xue_transfer_steps_);
   if (from._internal_sum_append_size() != 0) {
     _this->_internal_set_sum_append_size(from._internal_sum_append_size());
+  }
+  if (from._internal_xue_schedule_stripe_id() != 0) {
+    _this->_internal_set_xue_schedule_stripe_id(from._internal_xue_schedule_stripe_id());
+  }
+  if (from._internal_xue_schedule_num_groups() != 0) {
+    _this->_internal_set_xue_schedule_num_groups(from._internal_xue_schedule_num_groups());
   }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -3302,13 +6296,21 @@ void ReplyProxyIPsPorts::InternalSwap(ReplyProxyIPsPorts* other) {
   _impl_.cluster_slice_sizes_.InternalSwap(&other->_impl_.cluster_slice_sizes_);
   _impl_.group_ids_.InternalSwap(&other->_impl_.group_ids_);
   _impl_.plan_layouts_.InternalSwap(&other->_impl_.plan_layouts_);
-  swap(_impl_.sum_append_size_, other->_impl_.sum_append_size_);
+  _impl_.xue_client_waves_.InternalSwap(&other->_impl_.xue_client_waves_);
+  _impl_.xue_commit_waves_.InternalSwap(&other->_impl_.xue_commit_waves_);
+  _impl_.xue_transfer_steps_.InternalSwap(&other->_impl_.xue_transfer_steps_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ReplyProxyIPsPorts, _impl_.xue_schedule_num_groups_)
+      + sizeof(ReplyProxyIPsPorts::_impl_.xue_schedule_num_groups_)
+      - PROTOBUF_FIELD_OFFSET(ReplyProxyIPsPorts, _impl_.sum_append_size_)>(
+          reinterpret_cast<char*>(&_impl_.sum_append_size_),
+          reinterpret_cast<char*>(&other->_impl_.sum_append_size_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata ReplyProxyIPsPorts::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[8]);
+      file_level_metadata_coordinator_2eproto[17]);
 }
 
 // ===================================================================
@@ -3571,7 +6573,7 @@ void AskIfSuccess::InternalSwap(AskIfSuccess* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata AskIfSuccess::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[9]);
+      file_level_metadata_coordinator_2eproto[18]);
 }
 
 // ===================================================================
@@ -3749,7 +6751,7 @@ void RepIfSuccess::InternalSwap(RepIfSuccess* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RepIfSuccess::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[10]);
+      file_level_metadata_coordinator_2eproto[19]);
 }
 
 // ===================================================================
@@ -4029,7 +7031,7 @@ void KeyAndClientIP::InternalSwap(KeyAndClientIP* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata KeyAndClientIP::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[11]);
+      file_level_metadata_coordinator_2eproto[20]);
 }
 
 // ===================================================================
@@ -4240,7 +7242,7 @@ void RepIfGetSuccess::InternalSwap(RepIfGetSuccess* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RepIfGetSuccess::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[12]);
+      file_level_metadata_coordinator_2eproto[21]);
 }
 
 // ===================================================================
@@ -4551,7 +7553,7 @@ void BlockIDsAndClientIP::InternalSwap(BlockIDsAndClientIP* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata BlockIDsAndClientIP::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[13]);
+      file_level_metadata_coordinator_2eproto[22]);
 }
 
 // ===================================================================
@@ -4762,7 +7764,7 @@ void LogicalRange::InternalSwap(LogicalRange* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata LogicalRange::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[14]);
+      file_level_metadata_coordinator_2eproto[23]);
 }
 
 // ===================================================================
@@ -5026,7 +8028,7 @@ void XueUpdateRequest::InternalSwap(XueUpdateRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata XueUpdateRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[15]);
+      file_level_metadata_coordinator_2eproto[24]);
 }
 
 // ===================================================================
@@ -5229,7 +8231,7 @@ void KeyFromClient::InternalSwap(KeyFromClient* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata KeyFromClient::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[16]);
+      file_level_metadata_coordinator_2eproto[25]);
 }
 
 // ===================================================================
@@ -5407,7 +8409,7 @@ void StripeIdFromClient::InternalSwap(StripeIdFromClient* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata StripeIdFromClient::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[17]);
+      file_level_metadata_coordinator_2eproto[26]);
 }
 
 // ===================================================================
@@ -5627,7 +8629,7 @@ void StripeIdAndBlockIDsFromClient::InternalSwap(StripeIdAndBlockIDsFromClient* 
 ::PROTOBUF_NAMESPACE_ID::Metadata StripeIdAndBlockIDsFromClient::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[18]);
+      file_level_metadata_coordinator_2eproto[27]);
 }
 
 // ===================================================================
@@ -5805,7 +8807,7 @@ void NodeIdFromClient::InternalSwap(NodeIdFromClient* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata NodeIdFromClient::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[19]);
+      file_level_metadata_coordinator_2eproto[28]);
 }
 
 // ===================================================================
@@ -5983,7 +8985,7 @@ void RepIfDeling::InternalSwap(RepIfDeling* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RepIfDeling::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[20]);
+      file_level_metadata_coordinator_2eproto[29]);
 }
 
 // ===================================================================
@@ -6176,7 +9178,7 @@ void RepStripeIds::InternalSwap(RepStripeIds* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RepStripeIds::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[21]);
+      file_level_metadata_coordinator_2eproto[30]);
 }
 
 // ===================================================================
@@ -6354,7 +9356,7 @@ void RepBlockNum::InternalSwap(RepBlockNum* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RepBlockNum::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[22]);
+      file_level_metadata_coordinator_2eproto[31]);
 }
 
 // ===================================================================
@@ -6661,7 +9663,7 @@ void DegradedReadReply::InternalSwap(DegradedReadReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata DegradedReadReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[23]);
+      file_level_metadata_coordinator_2eproto[32]);
 }
 
 // ===================================================================
@@ -7004,7 +10006,7 @@ void RecoveryReply::InternalSwap(RecoveryReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RecoveryReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[24]);
+      file_level_metadata_coordinator_2eproto[33]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -7041,6 +10043,42 @@ Arena::CreateMaybeMessage< ::coordinator_proto::CommitAbortKey >(Arena* arena) {
 template<> PROTOBUF_NOINLINE ::coordinator_proto::AppendPlanLayout*
 Arena::CreateMaybeMessage< ::coordinator_proto::AppendPlanLayout >(Arena* arena) {
   return Arena::CreateMessageInternal< ::coordinator_proto::AppendPlanLayout >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::XueTransferStepInfo*
+Arena::CreateMaybeMessage< ::coordinator_proto::XueTransferStepInfo >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::XueTransferStepInfo >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::XueStripeScheduleId*
+Arena::CreateMaybeMessage< ::coordinator_proto::XueStripeScheduleId >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::XueStripeScheduleId >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::XueIngressReadyReport*
+Arena::CreateMaybeMessage< ::coordinator_proto::XueIngressReadyReport >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::XueIngressReadyReport >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::XueScheduleStepWait*
+Arena::CreateMaybeMessage< ::coordinator_proto::XueScheduleStepWait >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::XueScheduleStepWait >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::XueScheduleStepDone*
+Arena::CreateMaybeMessage< ::coordinator_proto::XueScheduleStepDone >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::XueScheduleStepDone >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::XueScheduleClientWave*
+Arena::CreateMaybeMessage< ::coordinator_proto::XueScheduleClientWave >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::XueScheduleClientWave >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::XueAppendKeyCommitWave*
+Arena::CreateMaybeMessage< ::coordinator_proto::XueAppendKeyCommitWave >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::XueAppendKeyCommitWave >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::XueScheduleWaveRelease*
+Arena::CreateMaybeMessage< ::coordinator_proto::XueScheduleWaveRelease >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::XueScheduleWaveRelease >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::XueScheduleHopWait*
+Arena::CreateMaybeMessage< ::coordinator_proto::XueScheduleHopWait >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::XueScheduleHopWait >(arena);
 }
 template<> PROTOBUF_NOINLINE ::coordinator_proto::ReplyProxyIPsPorts*
 Arena::CreateMaybeMessage< ::coordinator_proto::ReplyProxyIPsPorts >(Arena* arena) {

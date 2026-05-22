@@ -257,7 +257,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           std::sort(idxs.begin(), idxs.end(),
                     [&plan](int a, int b) { return plan.blockids(a) < plan.blockids(b); });
         };
-        if (plan.xue_class1_relay_path() && cluster_id == plan.cluster_id())
+        // 任意带 client TCP 的子 plan 挂全量 parity/global 元数据（勿依赖 plan.cluster_id==子 plan cluster，
+        // 同 group 多类并存时 group_to_ingress_cluster 可能指向其它 cluster）。
+        if (plan.append_mode() == "XUE_UPDATE")
         {
           attach_all_parity_meta_to_tcp_subplan();
         }
@@ -282,10 +284,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           }
           std::sort(idxs.begin(), idxs.end(),
                     [&plan](int a, int b) { return plan.blockids(a) < plan.blockids(b); });
-        }
-        else if (plan.append_mode() == "XUE_UPDATE" && !plan.xue_class1_relay_path())
-        {
-          attach_all_parity_meta_to_tcp_subplan();
         }
         std::vector<int> tcp_block_ids;
         std::vector<int> meta_block_ids;
@@ -402,6 +400,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       double start_time = 0.0; // 开始时间
       double end_time = 0.0; // 结束时间
       std::string path_desc; // 路径描述
+      std::vector<int> pred_task_ids; // DAG 前驱（schedule_transfer_steps 内部 task_id）
     };
 
     struct Class1RelayRoute
@@ -418,6 +417,550 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       std::vector<TransferPlanDecision> route_decisions; //所有路径决策
       std::vector<ScheduledTask> scheduled_tasks; // 所有调度任务
     };
+
+    std::string make_xue_hop_map_key(const std::string &append_key, int from_cluster, int to_cluster)
+    {
+      return append_key + "\t" + std::to_string(from_cluster) + "\t" + std::to_string(to_cluster);
+    }
+
+    int get_group_id_for_data_block(const Stripe *stripe, int data_block_id);
+    const Block *find_block_by_id(const Stripe *stripe, int block_id);
+
+    struct XueExecSchedulePlan
+    {
+      std::vector<coordinator_proto::XueScheduleClientWave> client_waves;
+      std::vector<coordinator_proto::XueAppendKeyCommitWave> commit_waves;
+      std::map<std::string, int> hop_wave;
+      int max_wave = -1;
+    };
+
+    XueExecSchedulePlan build_xue_exec_schedule(
+        Stripe *stripe,
+        const std::vector<TransferPlanDecision> &decisions,
+        const std::vector<ScheduledTask> &scheduled_tasks,
+        const std::vector<proxy_proto::AppendStripeDataPlacement> &append_plans)
+    {
+      XueExecSchedulePlan plan;
+      if (stripe == nullptr || scheduled_tasks.empty())
+      {
+        return plan;
+      }
+
+      std::map<int, std::string> group_primary_append_key;
+      for (const auto &ap : append_plans)
+      {
+        const int gid = parse_group_id_from_cluster_append_key(ap.key());
+        if (gid < 0)
+        {
+          continue;
+        }
+        if (group_primary_append_key.find(gid) == group_primary_append_key.end())
+        {
+          group_primary_append_key[gid] = ap.key();
+        }
+      }
+
+      std::map<int, std::string> decision_append_key;
+      for (size_t d = 0; d < decisions.size(); ++d)
+      {
+        if (decisions[d].block_ids.empty())
+        {
+          continue;
+        }
+        const int bid = decisions[d].block_ids[0];
+        const int gid = get_group_id_for_data_block(stripe, bid);
+        const auto git = group_primary_append_key.find(gid);
+        if (git != group_primary_append_key.end())
+        {
+          decision_append_key[static_cast<int>(d)] = git->second;
+        }
+      }
+
+      std::vector<double> unique_times;
+      unique_times.reserve(scheduled_tasks.size());
+      for (const auto &t : scheduled_tasks)
+      {
+        unique_times.push_back(t.start_time);
+      }
+      std::sort(unique_times.begin(), unique_times.end());
+      unique_times.erase(std::unique(unique_times.begin(), unique_times.end()), unique_times.end());
+      std::map<double, int> time_to_wave;
+      for (size_t i = 0; i < unique_times.size(); ++i)
+      {
+        time_to_wave[unique_times[i]] = static_cast<int>(i);
+      }
+
+      std::map<int, std::vector<std::tuple<int, int, int>>> hops_by_group;
+      for (const auto &task : scheduled_tasks)
+      {
+        const auto wit = time_to_wave.find(task.start_time);
+        if (wit == time_to_wave.end())
+        {
+          continue;
+        }
+        const int wave = wit->second;
+        plan.max_wave = std::max(plan.max_wave, wave);
+        const auto kit = decision_append_key.find(task.decision_id);
+        if (kit == decision_append_key.end() || decisions[task.decision_id].block_ids.empty())
+        {
+          continue;
+        }
+        const int bid = decisions[task.decision_id].block_ids[0];
+        const int gid = get_group_id_for_data_block(stripe, bid);
+        if (gid < 0)
+        {
+          continue;
+        }
+        hops_by_group[gid].emplace_back(task.from_cluster, task.to_cluster, wave);
+      }
+
+      std::map<int, int> ingress_wave_by_group;
+      std::map<int, int> wait_commit_wave_by_group;
+      for (const auto &gv : hops_by_group)
+      {
+        int min_wave = INT_MAX;
+        int max_wave = -1;
+        for (const auto &hop : gv.second)
+        {
+          const int wave = std::get<2>(hop);
+          min_wave = std::min(min_wave, wave);
+          max_wave = std::max(max_wave, wave);
+        }
+        if (min_wave != INT_MAX)
+        {
+          ingress_wave_by_group[gv.first] = min_wave;
+          wait_commit_wave_by_group[gv.first] = max_wave;
+        }
+      }
+
+      for (const auto &ap : append_plans)
+      {
+        const int gid = parse_group_id_from_cluster_append_key(ap.key());
+        if (gid < 0)
+        {
+          continue;
+        }
+        const auto hit = hops_by_group.find(gid);
+        if (hit != hops_by_group.end())
+        {
+          for (const auto &hop : hit->second)
+          {
+            plan.hop_wave[make_xue_hop_map_key(ap.key(), std::get<0>(hop), std::get<1>(hop))] =
+                std::get<2>(hop);
+          }
+        }
+      }
+
+      std::map<int, std::set<std::string>> keys_by_ingress_wave_set;
+      for (const auto &ap : append_plans)
+      {
+        const int gid = parse_group_id_from_cluster_append_key(ap.key());
+        if (gid < 0)
+        {
+          continue;
+        }
+        const auto iit = ingress_wave_by_group.find(gid);
+        if (iit == ingress_wave_by_group.end())
+        {
+          continue;
+        }
+        keys_by_ingress_wave_set[iit->second].insert(ap.key());
+      }
+      std::map<int, std::vector<std::string>> keys_by_ingress_wave;
+      for (const auto &kv : keys_by_ingress_wave_set)
+      {
+        keys_by_ingress_wave[kv.first].assign(kv.second.begin(), kv.second.end());
+      }
+      for (const auto &kv : keys_by_ingress_wave)
+      {
+        coordinator_proto::XueScheduleClientWave cw;
+        cw.set_wave_index(kv.first);
+        for (const auto &k : kv.second)
+        {
+          cw.add_client_ingress_append_keys(k);
+        }
+        plan.client_waves.push_back(cw);
+      }
+      std::sort(plan.client_waves.begin(), plan.client_waves.end(),
+                [](const coordinator_proto::XueScheduleClientWave &a,
+                   const coordinator_proto::XueScheduleClientWave &b) {
+                  return a.wave_index() < b.wave_index();
+                });
+
+      for (const auto &ap : append_plans)
+      {
+        const int gid = parse_group_id_from_cluster_append_key(ap.key());
+        if (gid < 0)
+        {
+          continue;
+        }
+        const auto wit = wait_commit_wave_by_group.find(gid);
+        if (wit == wait_commit_wave_by_group.end())
+        {
+          continue;
+        }
+        coordinator_proto::XueAppendKeyCommitWave cw;
+        cw.set_append_key(ap.key());
+        cw.set_wait_commit_wave(wit->second);
+        plan.commit_waves.push_back(cw);
+      }
+      return plan;
+    }
+
+    void fill_xue_schedule_in_reply(coordinator_proto::ReplyProxyIPsPorts *proxyIPPort,
+                                    const XueExecSchedulePlan &exec, int stripe_id)
+    {
+      proxyIPPort->set_xue_schedule_stripe_id(stripe_id);
+      for (const auto &cw : exec.client_waves)
+      {
+        *proxyIPPort->add_xue_client_waves() = cw;
+      }
+      for (const auto &cw : exec.commit_waves)
+      {
+        *proxyIPPort->add_xue_commit_waves() = cw;
+      }
+    }
+
+    struct XueStrictTransferPlan
+    {
+      std::vector<coordinator_proto::XueTransferStepInfo> steps;
+      int num_parallel_groups = 0;
+    };
+
+    std::string infer_strict_forward_append_mode(
+        const proxy_proto::AppendStripeDataPlacement *ingress_plan,
+        int to_cluster,
+        const std::string &payload)
+    {
+      if (payload == "parity_delta")
+      {
+        return "XUE_LOCAL_PARITY_DELTA";
+      }
+      if (ingress_plan == nullptr)
+      {
+        return "XUE_UPDATE";
+      }
+      if (ingress_plan->xue_relay_cluster_id() >= 0 &&
+          to_cluster == ingress_plan->xue_relay_cluster_id())
+      {
+        return "XUE_DELTA_TO_RELAY";
+      }
+      if (ingress_plan->xue_global_parity_cluster_id() >= 0 &&
+          to_cluster == ingress_plan->xue_global_parity_cluster_id())
+      {
+        return "XUE_DELTA_TO_GLOBAL";
+      }
+      return "XUE_UPDATE";
+    }
+
+    const proxy_proto::AppendStripeDataPlacement *find_ingress_plan_for_key(
+        const std::vector<proxy_proto::AppendStripeDataPlacement> &append_plans,
+        const std::string &append_key)
+    {
+      for (const auto &ap : append_plans)
+      {
+        if (ap.key() == append_key && ap.append_mode() == "XUE_UPDATE" &&
+            ap.xue_tcp_slice_count() > 0 && !ap.xue_data_slices_are_delta())
+        {
+          return &ap;
+        }
+      }
+      for (const auto &ap : append_plans)
+      {
+        if (ap.key() == append_key)
+        {
+          return &ap;
+        }
+      }
+      return nullptr;
+    }
+
+    // Relay 集群仅 proxy 间转发，不向 client 暴露（append_size=0）；单独 notify，勿并入 fill_reply。
+    std::vector<proxy_proto::AppendStripeDataPlacement> build_relay_strict_notify_plans(
+        const std::vector<proxy_proto::AppendStripeDataPlacement> &client_ingress_plans,
+        const XueStrictTransferPlan &strict)
+    {
+      std::vector<proxy_proto::AppendStripeDataPlacement> relay_notify_plans;
+      for (const auto &s : strict.steps)
+      {
+        if (s.from_cluster() == s.to_cluster())
+        {
+          continue;
+        }
+        bool has_ingress_on_from = false;
+        for (const auto &plan : client_ingress_plans)
+        {
+          if (plan.cluster_id() != s.from_cluster())
+          {
+            continue;
+          }
+          if (plan.append_mode() == "XUE_UPDATE" && plan.xue_tcp_slice_count() > 0 &&
+              !plan.xue_data_slices_are_delta())
+          {
+            has_ingress_on_from = true;
+            break;
+          }
+        }
+        if (has_ingress_on_from)
+        {
+          continue;
+        }
+        const proxy_proto::AppendStripeDataPlacement *template_plan =
+            find_ingress_plan_for_key(client_ingress_plans, s.append_key());
+        if (template_plan == nullptr)
+        {
+          continue;
+        }
+        bool already = false;
+        for (const auto &existing : relay_notify_plans)
+        {
+          if (existing.cluster_id() == s.from_cluster() &&
+              existing.key() == template_plan->key())
+          {
+            already = true;
+            break;
+          }
+        }
+        if (already)
+        {
+          continue;
+        }
+        proxy_proto::AppendStripeDataPlacement relay_plan = *template_plan;
+        relay_plan.set_cluster_id(s.from_cluster());
+        relay_plan.set_xue_strict_schedule(true);
+        relay_plan.set_xue_data_slices_are_delta(true);
+        relay_plan.set_xue_tcp_slice_count(0);
+        relay_plan.set_append_size(0);
+        relay_plan.set_xue_class1_relay_path(false);
+        relay_plan.clear_xue_strict_outgoing();
+        proxy_proto::XueStrictOutgoingHop *hop = relay_plan.add_xue_strict_outgoing();
+        hop->set_to_cluster(s.to_cluster());
+        hop->set_forward_append_mode(s.forward_append_mode());
+        std::cout << "[XUE_SCHEDULE] relay_notify_only key=" << relay_plan.key()
+                  << " cluster=" << relay_plan.cluster_id() << " hop->" << s.to_cluster()
+                  << " mode=" << s.forward_append_mode() << std::endl;
+        relay_notify_plans.push_back(relay_plan);
+      }
+      return relay_notify_plans;
+    }
+
+    void attach_strict_outgoing_to_plans(
+        std::vector<proxy_proto::AppendStripeDataPlacement> &append_plans,
+        const XueStrictTransferPlan &strict)
+    {
+      for (auto &plan : append_plans)
+      {
+        plan.clear_xue_strict_outgoing();
+        bool has_relay_hop = false;
+        const int plan_gid = parse_group_id_from_cluster_append_key(plan.key());
+        for (const auto &s : strict.steps)
+        {
+          if (s.from_cluster() != plan.cluster_id())
+          {
+            continue;
+          }
+          const bool key_match = (s.append_key() == plan.key());
+          if (!key_match)
+          {
+            continue;
+          }
+          proxy_proto::XueStrictOutgoingHop *hop = plan.add_xue_strict_outgoing();
+          hop->set_to_cluster(s.to_cluster());
+          hop->set_forward_append_mode(s.forward_append_mode());
+          if (s.forward_append_mode() == "XUE_DELTA_TO_RELAY")
+          {
+            has_relay_hop = true;
+          }
+        }
+        if (plan.xue_class1_relay_path() && !has_relay_hop)
+        {
+          plan.set_xue_class1_relay_path(false);
+          plan.set_xue_relay_cluster_id(-1);
+        }
+        std::cout << "[XUE_SCHEDULE] plan_outgoing key=" << plan.key()
+                  << " cluster=" << plan.cluster_id()
+                  << " hops=" << plan.xue_strict_outgoing_size() << std::endl;
+      }
+    }
+
+    std::string resolve_strict_step_append_key(
+        Stripe *stripe,
+        const TransferPlanDecision &decision,
+        int from_cluster,
+        const std::map<int, std::string> &group_primary_append_key,
+        const std::vector<proxy_proto::AppendStripeDataPlacement> &append_plans)
+    {
+      if (stripe == nullptr || decision.block_ids.empty())
+      {
+        return "";
+      }
+      const int gid = get_group_id_for_data_block(stripe, decision.block_ids[0]);
+      std::string from_cluster_ingress_key;
+      std::string data_cluster_ingress_key;
+      std::string any_ingress_tcp_key;
+      int data_cluster = -1;
+      if (!decision.block_ids.empty())
+      {
+        const Block *db = find_block_by_id(stripe, decision.block_ids[0]);
+        if (db != nullptr)
+        {
+          data_cluster = db->map2cluster;
+        }
+      }
+      for (const auto &ap : append_plans)
+      {
+        if (parse_group_id_from_cluster_append_key(ap.key()) != gid)
+        {
+          continue;
+        }
+        const bool is_client_ingress =
+            ap.append_mode() == "XUE_UPDATE" && ap.xue_tcp_slice_count() > 0 &&
+            !ap.xue_data_slices_are_delta();
+        if (!is_client_ingress)
+        {
+          continue;
+        }
+        if (ap.cluster_id() == from_cluster)
+        {
+          from_cluster_ingress_key = ap.key();
+        }
+        if (data_cluster >= 0 && ap.cluster_id() == data_cluster && data_cluster_ingress_key.empty())
+        {
+          data_cluster_ingress_key = ap.key();
+        }
+        if (any_ingress_tcp_key.empty())
+        {
+          any_ingress_tcp_key = ap.key();
+        }
+      }
+      // 中转 hop（如 class1 relay 的 3->0）须用数据所在 cluster 的 ingress key，不能用 relay 上的 key。
+      if (!data_cluster_ingress_key.empty())
+      {
+        return data_cluster_ingress_key;
+      }
+      if (!from_cluster_ingress_key.empty() &&
+          (data_cluster < 0 || from_cluster == data_cluster))
+      {
+        return from_cluster_ingress_key;
+      }
+      if (!any_ingress_tcp_key.empty())
+      {
+        return any_ingress_tcp_key;
+      }
+      const auto git = group_primary_append_key.find(gid);
+      if (git != group_primary_append_key.end())
+      {
+        return git->second;
+      }
+      return "";
+    }
+
+    XueStrictTransferPlan build_xue_strict_transfer_steps(
+        Stripe *stripe,
+        const std::vector<TransferPlanDecision> &decisions,
+        const std::vector<ScheduledTask> &scheduled_tasks,
+        const std::vector<proxy_proto::AppendStripeDataPlacement> &append_plans)
+    {
+      XueStrictTransferPlan out;
+      if (stripe == nullptr || scheduled_tasks.empty())
+      {
+        return out;
+      }
+
+      std::map<int, std::string> group_primary_append_key;
+      for (const auto &ap : append_plans)
+      {
+        const int gid = parse_group_id_from_cluster_append_key(ap.key());
+        if (gid < 0)
+        {
+          continue;
+        }
+        if (group_primary_append_key.find(gid) == group_primary_append_key.end())
+        {
+          group_primary_append_key[gid] = ap.key();
+        }
+      }
+
+      std::vector<const ScheduledTask *> ordered;
+      ordered.reserve(scheduled_tasks.size());
+      for (const auto &t : scheduled_tasks)
+      {
+        ordered.push_back(&t);
+      }
+      std::sort(ordered.begin(), ordered.end(),
+                [](const ScheduledTask *a, const ScheduledTask *b) {
+                  if (a->start_time != b->start_time)
+                  {
+                    return a->start_time < b->start_time;
+                  }
+                  return a->task_id < b->task_id;
+                });
+
+      std::map<double, int> time_to_parallel_group;
+      std::map<int, int> task_id_to_step_no;
+      for (size_t i = 0; i < ordered.size(); ++i)
+      {
+        const ScheduledTask *t = ordered[i];
+        const int step_no = static_cast<int>(i) + 1;
+        task_id_to_step_no[t->task_id] = step_no;
+
+        int parallel_group = 0;
+        const auto pgit = time_to_parallel_group.find(t->start_time);
+        if (pgit == time_to_parallel_group.end())
+        {
+          parallel_group = static_cast<int>(time_to_parallel_group.size());
+          time_to_parallel_group[t->start_time] = parallel_group;
+        }
+        else
+        {
+          parallel_group = pgit->second;
+        }
+
+        std::string append_key;
+        const proxy_proto::AppendStripeDataPlacement *ingress_plan = nullptr;
+        if (t->decision_id >= 0 && t->decision_id < static_cast<int>(decisions.size()))
+        {
+          append_key = resolve_strict_step_append_key(stripe, decisions[t->decision_id],
+                                                      t->from_cluster, group_primary_append_key,
+                                                      append_plans);
+          ingress_plan = find_ingress_plan_for_key(append_plans, append_key);
+        }
+
+        coordinator_proto::XueTransferStepInfo info;
+        info.set_step_no(step_no);
+        info.set_parallel_group(parallel_group);
+        info.set_append_key(append_key);
+        info.set_from_cluster(t->from_cluster);
+        info.set_to_cluster(t->to_cluster);
+        info.set_payload(t->payload);
+        info.set_path_desc(t->path_desc);
+        info.set_start_time(t->start_time);
+        info.set_forward_append_mode(
+            infer_strict_forward_append_mode(ingress_plan, t->to_cluster, t->payload));
+        for (int pred_tid : t->pred_task_ids)
+        {
+          const auto pit = task_id_to_step_no.find(pred_tid);
+          if (pit != task_id_to_step_no.end())
+          {
+            info.add_pred_step_nos(pit->second);
+          }
+        }
+        out.steps.push_back(info);
+      }
+      out.num_parallel_groups = static_cast<int>(time_to_parallel_group.size());
+      return out;
+    }
+
+    void fill_xue_strict_schedule_in_reply(coordinator_proto::ReplyProxyIPsPorts *proxyIPPort,
+                                           const XueStrictTransferPlan &strict, int stripe_id)
+    {
+      proxyIPPort->set_xue_schedule_stripe_id(stripe_id);
+      proxyIPPort->set_xue_schedule_num_groups(strict.num_parallel_groups);
+      for (const auto &s : strict.steps)
+      {
+        *proxyIPPort->add_xue_transfer_steps() = s;
+      }
+    }
 
     struct RunningTask  // 运行任务
     {
@@ -879,7 +1422,16 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             send_next[t.from_cluster] = ed;
             recv_next[t.to_cluster] = ed;
             running.push({ed, tid});
-            scheduled.push_back({tid, t.decision_id, t.from_cluster, t.to_cluster, t.payload, t.duration, st, ed, t.path_desc});
+            std::vector<int> pred_ids;
+            for (int v = 0; v < n; ++v)
+            {
+              if (std::find(succ[v].begin(), succ[v].end(), tid) != succ[v].end())
+              {
+                pred_ids.push_back(v);
+              }
+            }
+            scheduled.push_back({tid, t.decision_id, t.from_cluster, t.to_cluster, t.payload, t.duration,
+                                 st, ed, t.path_desc, pred_ids});
             std::cout << "[debug] start-task: " << tid << " at t=" << st << " ends t=" << ed
                       << " : " << t.path_desc << std::endl;
           }
@@ -2733,6 +3285,135 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     return grpc::Status::OK;
   }
 
+  void CoordinatorImpl::XueStrictScheduleSession::try_advance_ready_steps()
+  {
+    if (!ingress_complete)
+    {
+      if (required_ingress_keys.empty() ||
+          ingress_ready_keys.size() >= required_ingress_keys.size())
+      {
+        bool all_ready = true;
+        for (const auto &k : required_ingress_keys)
+        {
+          if (ingress_ready_keys.find(k) == ingress_ready_keys.end())
+          {
+            all_ready = false;
+            break;
+          }
+        }
+        if (all_ready)
+        {
+          ingress_complete = true;
+        }
+      }
+      if (!ingress_complete)
+      {
+        return;
+      }
+    }
+    for (size_t i = 0; i < steps.size(); ++i)
+    {
+      if (step_states[i] != XueStepRuntimeState::PENDING)
+      {
+        continue;
+      }
+      bool preds_done = true;
+      for (int pred_no : steps[i].pred_step_nos())
+      {
+        const int idx = pred_no - 1;
+        if (idx < 0 || idx >= static_cast<int>(step_states.size()) ||
+            step_states[static_cast<size_t>(idx)] != XueStepRuntimeState::DONE)
+        {
+          preds_done = false;
+          break;
+        }
+      }
+      if (preds_done)
+      {
+        step_states[i] = XueStepRuntimeState::READY;
+      }
+    }
+    cv.notify_all();
+  }
+
+  int CoordinatorImpl::XueStrictScheduleSession::find_step_index_by_no(int step_no) const
+  {
+    if (step_no <= 0)
+    {
+      return -1;
+    }
+    const size_t idx = static_cast<size_t>(step_no - 1);
+    if (idx >= steps.size())
+    {
+      return -1;
+    }
+    return static_cast<int>(idx);
+  }
+
+  int CoordinatorImpl::XueStrictScheduleSession::find_step_index_by_hop(const std::string &append_key,
+                                                                        int from_cluster,
+                                                                        int to_cluster) const
+  {
+    for (size_t i = 0; i < steps.size(); ++i)
+    {
+      if (steps[i].append_key() == append_key && steps[i].from_cluster() == from_cluster &&
+          steps[i].to_cluster() == to_cluster)
+      {
+        return static_cast<int>(i);
+      }
+    }
+    const int hop_group_id = parse_group_id_from_cluster_append_key(append_key);
+    const size_t hop_cpos = append_key.find('c', append_key.find('_'));
+    int hop_ingress_cluster = -1;
+    if (hop_cpos != std::string::npos)
+    {
+      const size_t hash_pos = append_key.find('#', hop_cpos);
+      if (hash_pos != std::string::npos && hash_pos > hop_cpos + 1)
+      {
+        hop_ingress_cluster = std::stoi(append_key.substr(hop_cpos + 1, hash_pos - hop_cpos - 1));
+      }
+    }
+    int fallback_idx = -1;
+    int fallback_count = 0;
+    for (size_t i = 0; i < steps.size(); ++i)
+    {
+      if (steps[i].from_cluster() != from_cluster || steps[i].to_cluster() != to_cluster)
+      {
+        continue;
+      }
+      if (!steps[i].append_key().empty() &&
+          parse_group_id_from_cluster_append_key(steps[i].append_key()) != hop_group_id)
+      {
+        continue;
+      }
+      if (hop_ingress_cluster >= 0 && !steps[i].append_key().empty())
+      {
+        const size_t step_cpos = steps[i].append_key().find('c', steps[i].append_key().find('_'));
+        int step_ingress_cluster = -1;
+        if (step_cpos != std::string::npos)
+        {
+          const size_t step_hash = steps[i].append_key().find('#', step_cpos);
+          if (step_hash != std::string::npos && step_hash > step_cpos + 1)
+          {
+            step_ingress_cluster =
+                std::stoi(steps[i].append_key().substr(step_cpos + 1, step_hash - step_cpos - 1));
+          }
+        }
+        if (step_ingress_cluster >= 0 && step_ingress_cluster != hop_ingress_cluster)
+        {
+          continue;
+        }
+      }
+      fallback_idx = static_cast<int>(i);
+      ++fallback_count;
+    }
+    if (fallback_count == 1)
+    {
+      return fallback_idx;
+    }
+    return -1;
+  }
+
   grpc::Status CoordinatorImpl::uploadXueUpdate(
       grpc::ServerContext *context,
       const coordinator_proto::XueUpdateRequest *request,
@@ -2929,17 +3610,22 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         plan.set_xue_class1_relay_path(false);
         plan.set_xue_data_slices_are_delta(false);
         plan.set_xue_compute_global_parity(false);
-        if (ingress_it != group_to_ingress_cluster.end())
-        {
-          plan.set_cluster_id(ingress_it->second);
-        }
-        else if (!tcp_data_blocks.empty())
+        int ingress_cluster = -1;
+        if (!tcp_data_blocks.empty())
         {
           const Block *ingress_block = find_block_by_id(stripe, tcp_data_blocks.front());
           if (ingress_block != nullptr)
           {
-            plan.set_cluster_id(ingress_block->map2cluster);
+            ingress_cluster = ingress_block->map2cluster;
           }
+        }
+        if (ingress_cluster < 0 && ingress_it != group_to_ingress_cluster.end())
+        {
+          ingress_cluster = ingress_it->second;
+        }
+        if (ingress_cluster >= 0)
+        {
+          plan.set_cluster_id(ingress_cluster);
         }
         if (global_parity_cluster_id >= 0)
         {
@@ -3048,6 +3734,39 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
     }
 
+    const XueStrictTransferPlan strict_schedule =
+        build_xue_strict_transfer_steps(stripe, update_result.route_decisions,
+                                        update_result.scheduled_tasks, append_plans);
+    const bool use_strict_schedule = !strict_schedule.steps.empty();
+
+    const XueExecSchedulePlan exec_schedule =
+        build_xue_exec_schedule(stripe, update_result.route_decisions,
+                                update_result.scheduled_tasks, append_plans);
+    {
+      std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
+      m_xue_strict_by_stripe.erase(stripe_id);
+      m_xue_wave_by_stripe.erase(stripe_id);
+      if (use_strict_schedule)
+      {
+        auto session = std::make_shared<XueStrictScheduleSession>();
+        session->stripe_id = stripe_id;
+        session->steps = strict_schedule.steps;
+        session->step_states.assign(strict_schedule.steps.size(), XueStepRuntimeState::PENDING);
+        session->num_parallel_groups = strict_schedule.num_parallel_groups;
+        for (const auto &plan : append_plans)
+        {
+          session->required_ingress_keys.insert(plan.key());
+        }
+        m_xue_strict_by_stripe[stripe_id] = session;
+      }
+      else
+      {
+        XueWaveScheduleState &wave_session = m_xue_wave_by_stripe[stripe_id];
+        wave_session.released_wave = -1;
+        wave_session.hop_wave = exec_schedule.hop_wave;
+      }
+    }
+
     for (const auto &plan : append_plans)
     {
       m_mutex.lock();
@@ -3055,14 +3774,265 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       m_mutex.unlock();
     }
 
+    for (auto &plan : append_plans)
+    {
+      if (use_strict_schedule)
+      {
+        plan.set_xue_strict_schedule(true);
+      }
+    }
+    if (use_strict_schedule)
+    {
+      attach_strict_outgoing_to_plans(append_plans, strict_schedule);
+    }
+
     for (const auto &plan : append_plans)
     {
       notify_proxies_ready(plan);
     }
     fill_reply_from_append_plans(this, append_plans, proxyIPPort);
+    if (use_strict_schedule)
+    {
+      fill_xue_strict_schedule_in_reply(proxyIPPort, strict_schedule, stripe_id);
+    }
+    else
+    {
+      fill_xue_schedule_in_reply(proxyIPPort, exec_schedule, stripe_id);
+    }
+
+    if (use_strict_schedule)
+    {
+      for (const auto &s : strict_schedule.steps)
+      {
+        std::cout << "[XUE_SCHEDULE] step_no=" << s.step_no() << " pg=" << s.parallel_group()
+                  << " key=" << s.append_key() << " " << s.from_cluster() << "->" << s.to_cluster()
+                  << " mode=" << s.forward_append_mode() << " preds=";
+        for (int p : s.pred_step_nos())
+        {
+          std::cout << p << ",";
+        }
+        std::cout << " t=" << s.start_time() << std::endl;
+      }
+    }
 
     std::cout << "[XUE_UPDATE] client=" << client_id << " stripe=" << stripe_id
-              << " merged_ranges=" << request->ranges_size() << std::endl;
+              << " merged_ranges=" << request->ranges_size()
+              << " strict_steps=" << strict_schedule.steps.size()
+              << " parallel_groups=" << strict_schedule.num_parallel_groups
+              << " schedule_waves=" << (exec_schedule.max_wave + 1)
+              << " hop_entries=" << exec_schedule.hop_wave.size()
+              << " client_waves=" << exec_schedule.client_waves.size() << std::endl;
+    return grpc::Status::OK;
+  }
+
+  grpc::Status CoordinatorImpl::releaseXueScheduleWave(
+      grpc::ServerContext *context,
+      const coordinator_proto::XueScheduleWaveRelease *request,
+      coordinator_proto::ReplyFromCoordinator *reply)
+  {
+    (void)context;
+    (void)reply;
+    const int stripe_id = request->stripe_id();
+    const int wave = request->released_wave();
+    std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
+    auto it = m_xue_wave_by_stripe.find(stripe_id);
+    if (it == m_xue_wave_by_stripe.end())
+    {
+      return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, "no xue wave schedule session for stripe");
+    }
+    {
+      std::lock_guard<std::mutex> session_lk(it->second.mutex);
+      if (wave > it->second.released_wave)
+      {
+        it->second.released_wave = wave;
+      }
+      it->second.cv.notify_all();
+    }
+    return grpc::Status::OK;
+  }
+
+  grpc::Status CoordinatorImpl::reportXueIngressReady(
+      grpc::ServerContext *context,
+      const coordinator_proto::XueIngressReadyReport *request,
+      coordinator_proto::ReplyFromCoordinator *reply)
+  {
+    (void)context;
+    (void)reply;
+    const int stripe_id = request->stripe_id();
+    const std::string append_key = request->append_key();
+    std::shared_ptr<XueStrictScheduleSession> session;
+    {
+      std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
+      auto it = m_xue_strict_by_stripe.find(stripe_id);
+      if (it == m_xue_strict_by_stripe.end())
+      {
+        return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
+                            "no strict xue schedule session for stripe");
+      }
+      session = it->second;
+    }
+    std::lock_guard<std::mutex> session_lk(session->mutex);
+    session->ingress_ready_keys.insert(append_key);
+    session->try_advance_ready_steps();
+    std::cout << "[XUE_SCHEDULE] ingress_ready stripe=" << stripe_id << " key=" << append_key
+              << " ready=" << session->ingress_ready_keys.size() << "/"
+              << session->required_ingress_keys.size() << std::endl;
+    return grpc::Status::OK;
+  }
+
+  grpc::Status CoordinatorImpl::waitXueAllIngressReady(
+      grpc::ServerContext *context,
+      const coordinator_proto::XueStripeScheduleId *request,
+      coordinator_proto::ReplyFromCoordinator *reply)
+  {
+    (void)context;
+    (void)reply;
+    const int stripe_id = request->stripe_id();
+    std::shared_ptr<XueStrictScheduleSession> session;
+    {
+      std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
+      auto it = m_xue_strict_by_stripe.find(stripe_id);
+      if (it == m_xue_strict_by_stripe.end())
+      {
+        return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
+                            "no strict xue schedule session for stripe");
+      }
+      session = it->second;
+    }
+    std::unique_lock<std::mutex> session_lk(session->mutex);
+    session->cv.wait(session_lk, [&session]() { return session->ingress_complete; });
+    return grpc::Status::OK;
+  }
+
+  grpc::Status CoordinatorImpl::waitXueScheduleStep(
+      grpc::ServerContext *context,
+      const coordinator_proto::XueScheduleStepWait *request,
+      coordinator_proto::ReplyFromCoordinator *reply)
+  {
+    (void)context;
+    (void)reply;
+    const int stripe_id = request->stripe_id();
+    std::shared_ptr<XueStrictScheduleSession> session;
+    {
+      std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
+      auto it = m_xue_strict_by_stripe.find(stripe_id);
+      if (it == m_xue_strict_by_stripe.end())
+      {
+        return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
+                            "no strict xue schedule session for stripe");
+      }
+      session = it->second;
+    }
+    int step_idx = -1;
+    if (request->step_no() > 0)
+    {
+      step_idx = session->find_step_index_by_no(request->step_no());
+    }
+    else
+    {
+      step_idx = session->find_step_index_by_hop(request->append_key(), request->from_cluster(),
+                                                 request->to_cluster());
+    }
+    if (step_idx < 0)
+    {
+      return grpc::Status(grpc::StatusCode::NOT_FOUND, "no matching schedule step");
+    }
+    std::unique_lock<std::mutex> session_lk(session->mutex);
+    session->cv.wait(session_lk, [&session, step_idx]() {
+      const auto st = session->step_states[static_cast<size_t>(step_idx)];
+      return st == XueStepRuntimeState::READY || st == XueStepRuntimeState::RUNNING ||
+             st == XueStepRuntimeState::DONE;
+    });
+    if (session->step_states[static_cast<size_t>(step_idx)] == XueStepRuntimeState::READY)
+    {
+      session->step_states[static_cast<size_t>(step_idx)] = XueStepRuntimeState::RUNNING;
+    }
+    return grpc::Status::OK;
+  }
+
+  grpc::Status CoordinatorImpl::reportXueScheduleStepDone(
+      grpc::ServerContext *context,
+      const coordinator_proto::XueScheduleStepDone *request,
+      coordinator_proto::ReplyFromCoordinator *reply)
+  {
+    (void)context;
+    (void)reply;
+    const int stripe_id = request->stripe_id();
+    std::shared_ptr<XueStrictScheduleSession> session;
+    {
+      std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
+      auto it = m_xue_strict_by_stripe.find(stripe_id);
+      if (it == m_xue_strict_by_stripe.end())
+      {
+        return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
+                            "no strict xue schedule session for stripe");
+      }
+      session = it->second;
+    }
+    int step_idx = -1;
+    if (request->step_no() > 0)
+    {
+      step_idx = session->find_step_index_by_no(request->step_no());
+    }
+    else
+    {
+      step_idx = session->find_step_index_by_hop(request->append_key(), request->from_cluster(),
+                                                 request->to_cluster());
+    }
+    if (step_idx < 0)
+    {
+      return grpc::Status(grpc::StatusCode::NOT_FOUND, "no matching schedule step");
+    }
+    std::lock_guard<std::mutex> session_lk(session->mutex);
+    if (request->success())
+    {
+      session->step_states[static_cast<size_t>(step_idx)] = XueStepRuntimeState::DONE;
+    }
+    else
+    {
+      session->step_states[static_cast<size_t>(step_idx)] = XueStepRuntimeState::PENDING;
+    }
+    session->try_advance_ready_steps();
+    std::cout << "[XUE_SCHEDULE] step_done stripe=" << stripe_id
+              << " step_no=" << session->steps[static_cast<size_t>(step_idx)].step_no()
+              << " ok=" << request->success() << std::endl;
+    return grpc::Status::OK;
+  }
+
+  grpc::Status CoordinatorImpl::waitXueScheduleHop(
+      grpc::ServerContext *context,
+      const coordinator_proto::XueScheduleHopWait *request,
+      coordinator_proto::ReplyFromCoordinator *reply)
+  {
+    (void)context;
+    (void)reply;
+    const int stripe_id = request->stripe_id();
+    const std::string hop_key = request->append_key() + "\t" + std::to_string(request->from_cluster()) +
+                                "\t" + std::to_string(request->to_cluster());
+    XueWaveScheduleState *session_ptr = nullptr;
+    int required_wave = -1;
+    {
+      std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
+      auto it = m_xue_wave_by_stripe.find(stripe_id);
+      if (it == m_xue_wave_by_stripe.end())
+      {
+        return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, "no xue wave schedule session for stripe");
+      }
+      session_ptr = &it->second;
+      const auto hit = session_ptr->hop_wave.find(hop_key);
+      if (hit == session_ptr->hop_wave.end())
+      {
+        std::cerr << "[XUE_SCHEDULE] waitXueScheduleHop: no hop entry stripe=" << stripe_id
+                  << " key=" << request->append_key() << " " << request->from_cluster() << "->"
+                  << request->to_cluster() << " (forward not gated)" << std::endl;
+        return grpc::Status::OK;
+      }
+      required_wave = hit->second;
+    }
+    std::unique_lock<std::mutex> session_lk(session_ptr->mutex);
+    session_ptr->cv.wait(session_lk, [session_ptr, required_wave]() {
+      return session_ptr->released_wave >= required_wave;
+    });
     return grpc::Status::OK;
   }
 

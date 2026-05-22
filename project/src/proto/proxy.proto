@@ -264,6 +264,15 @@ message AppendStripeDataPlacement{
   int32 xue_tcp_slice_count = 20;
   // coordinator placement: map2cluster for each slice (parallel to blockids)
   repeated int32 block_cluster_ids = 21;
+  // true: client ingress only (delta+persist); proxy hops follow xue_transfer_steps DAG
+  bool xue_strict_schedule = 22;
+  // strict schedule: network hops this ingress proxy must run (from scheduled_tasks)
+  repeated XueStrictOutgoingHop xue_strict_outgoing = 23;
+}
+
+message XueStrictOutgoingHop {
+  int32 to_cluster = 1;
+  string forward_append_mode = 2;
 }
 
 message SetReply {

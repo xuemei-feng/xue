@@ -8,7 +8,9 @@
 #include <grpcpp/health_check_service_interface.h>
 #include <meta_definition.h>
 #include <map>
+#include <memory>
 #include <mutex>
+#include <set>
 #include <string>
 #include <thread>
 #include <condition_variable>
@@ -71,6 +73,30 @@ namespace ECProject
         grpc::ServerContext *context,
         const coordinator_proto::XueUpdateRequest *request,
         coordinator_proto::ReplyProxyIPsPorts *proxyIPPort) override;
+    grpc::Status releaseXueScheduleWave(
+        grpc::ServerContext *context,
+        const coordinator_proto::XueScheduleWaveRelease *request,
+        coordinator_proto::ReplyFromCoordinator *reply) override;
+    grpc::Status waitXueScheduleHop(
+        grpc::ServerContext *context,
+        const coordinator_proto::XueScheduleHopWait *request,
+        coordinator_proto::ReplyFromCoordinator *reply) override;
+    grpc::Status reportXueIngressReady(
+        grpc::ServerContext *context,
+        const coordinator_proto::XueIngressReadyReport *request,
+        coordinator_proto::ReplyFromCoordinator *reply) override;
+    grpc::Status waitXueAllIngressReady(
+        grpc::ServerContext *context,
+        const coordinator_proto::XueStripeScheduleId *request,
+        coordinator_proto::ReplyFromCoordinator *reply) override;
+    grpc::Status waitXueScheduleStep(
+        grpc::ServerContext *context,
+        const coordinator_proto::XueScheduleStepWait *request,
+        coordinator_proto::ReplyFromCoordinator *reply) override;
+    grpc::Status reportXueScheduleStepDone(
+        grpc::ServerContext *context,
+        const coordinator_proto::XueScheduleStepDone *request,
+        coordinator_proto::ReplyFromCoordinator *reply) override;
     // get
     grpc::Status getValue(
         grpc::ServerContext *context,
@@ -192,6 +218,43 @@ namespace ECProject
     std::map<int, std::vector<int>> m_recovery_group_lookup_table;
     
     std::vector<int> get_data_block_num_per_group(int k, int r, int z, std::string code_type);
+
+    enum class XueStepRuntimeState
+    {
+      PENDING = 0,
+      READY = 1,
+      RUNNING = 2,
+      DONE = 3
+    };
+
+    struct XueStrictScheduleSession
+    {
+      int stripe_id = -1;
+      bool ingress_complete = false;
+      std::set<std::string> required_ingress_keys;
+      std::set<std::string> ingress_ready_keys;
+      std::vector<coordinator_proto::XueTransferStepInfo> steps;
+      std::vector<XueStepRuntimeState> step_states;
+      int num_parallel_groups = 0;
+      std::mutex mutex;
+      std::condition_variable cv;
+      void try_advance_ready_steps();
+      int find_step_index_by_no(int step_no) const;
+      int find_step_index_by_hop(const std::string &append_key, int from_cluster,
+                                 int to_cluster) const;
+    };
+
+    struct XueWaveScheduleState
+    {
+      int released_wave = -1;
+      std::map<std::string, int> hop_wave;
+      std::mutex mutex;
+      std::condition_variable cv;
+    };
+
+    std::mutex m_xue_schedule_mutex;
+    std::map<int, std::shared_ptr<XueStrictScheduleSession>> m_xue_strict_by_stripe;
+    std::map<int, XueWaveScheduleState> m_xue_wave_by_stripe;
 
   private:
     std::mutex m_mutex;

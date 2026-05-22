@@ -99,6 +99,9 @@ extern SetReplyDefaultTypeInternal _SetReply_default_instance_;
 class StripeAndBlockIDs;
 struct StripeAndBlockIDsDefaultTypeInternal;
 extern StripeAndBlockIDsDefaultTypeInternal _StripeAndBlockIDs_default_instance_;
+class XueStrictOutgoingHop;
+struct XueStrictOutgoingHopDefaultTypeInternal;
+extern XueStrictOutgoingHopDefaultTypeInternal _XueStrictOutgoingHop_default_instance_;
 class blockRelocPlan;
 struct blockRelocPlanDefaultTypeInternal;
 extern blockRelocPlanDefaultTypeInternal _blockRelocPlan_default_instance_;
@@ -134,6 +137,7 @@ template<> ::proxy_proto::RepIfSuccess* Arena::CreateMaybeMessage<::proxy_proto:
 template<> ::proxy_proto::RequestResult* Arena::CreateMaybeMessage<::proxy_proto::RequestResult>(Arena*);
 template<> ::proxy_proto::SetReply* Arena::CreateMaybeMessage<::proxy_proto::SetReply>(Arena*);
 template<> ::proxy_proto::StripeAndBlockIDs* Arena::CreateMaybeMessage<::proxy_proto::StripeAndBlockIDs>(Arena*);
+template<> ::proxy_proto::XueStrictOutgoingHop* Arena::CreateMaybeMessage<::proxy_proto::XueStrictOutgoingHop>(Arena*);
 template<> ::proxy_proto::blockRelocPlan* Arena::CreateMaybeMessage<::proxy_proto::blockRelocPlan>(Arena*);
 template<> ::proxy_proto::blockRelocReply* Arena::CreateMaybeMessage<::proxy_proto::blockRelocReply>(Arena*);
 template<> ::proxy_proto::helpRecalPlan* Arena::CreateMaybeMessage<::proxy_proto::helpRecalPlan>(Arena*);
@@ -4888,6 +4892,7 @@ class AppendStripeDataPlacement final :
     kOffsetsFieldNumber = 9,
     kSizesFieldNumber = 10,
     kBlockClusterIdsFieldNumber = 21,
+    kXueStrictOutgoingFieldNumber = 23,
     kKeyFieldNumber = 1,
     kAppendModeFieldNumber = 12,
     kClusterIdFieldNumber = 2,
@@ -4901,6 +4906,7 @@ class AppendStripeDataPlacement final :
     kXueGlobalParityClusterIdFieldNumber = 17,
     kXueDataSlicesAreDeltaFieldNumber = 18,
     kXueSendAckFieldNumber = 19,
+    kXueStrictScheduleFieldNumber = 22,
     kXueTcpSliceCountFieldNumber = 20,
   };
   // repeated string datanodeip = 5;
@@ -5061,6 +5067,24 @@ class AppendStripeDataPlacement final :
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
       mutable_block_cluster_ids();
 
+  // repeated .proxy_proto.XueStrictOutgoingHop xue_strict_outgoing = 23;
+  int xue_strict_outgoing_size() const;
+  private:
+  int _internal_xue_strict_outgoing_size() const;
+  public:
+  void clear_xue_strict_outgoing();
+  ::proxy_proto::XueStrictOutgoingHop* mutable_xue_strict_outgoing(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueStrictOutgoingHop >*
+      mutable_xue_strict_outgoing();
+  private:
+  const ::proxy_proto::XueStrictOutgoingHop& _internal_xue_strict_outgoing(int index) const;
+  ::proxy_proto::XueStrictOutgoingHop* _internal_add_xue_strict_outgoing();
+  public:
+  const ::proxy_proto::XueStrictOutgoingHop& xue_strict_outgoing(int index) const;
+  ::proxy_proto::XueStrictOutgoingHop* add_xue_strict_outgoing();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueStrictOutgoingHop >&
+      xue_strict_outgoing() const;
+
   // string key = 1;
   void clear_key();
   const std::string& key() const;
@@ -5188,6 +5212,15 @@ class AppendStripeDataPlacement final :
   void _internal_set_xue_send_ack(bool value);
   public:
 
+  // bool xue_strict_schedule = 22;
+  void clear_xue_strict_schedule();
+  bool xue_strict_schedule() const;
+  void set_xue_strict_schedule(bool value);
+  private:
+  bool _internal_xue_strict_schedule() const;
+  void _internal_set_xue_strict_schedule(bool value);
+  public:
+
   // int32 xue_tcp_slice_count = 20;
   void clear_xue_tcp_slice_count();
   int32_t xue_tcp_slice_count() const;
@@ -5217,6 +5250,7 @@ class AppendStripeDataPlacement final :
     mutable std::atomic<int> _sizes_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > block_cluster_ids_;
     mutable std::atomic<int> _block_cluster_ids_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueStrictOutgoingHop > xue_strict_outgoing_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr append_mode_;
     int32_t cluster_id_;
@@ -5230,7 +5264,172 @@ class AppendStripeDataPlacement final :
     int32_t xue_global_parity_cluster_id_;
     bool xue_data_slices_are_delta_;
     bool xue_send_ack_;
+    bool xue_strict_schedule_;
     int32_t xue_tcp_slice_count_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class XueStrictOutgoingHop final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.XueStrictOutgoingHop) */ {
+ public:
+  inline XueStrictOutgoingHop() : XueStrictOutgoingHop(nullptr) {}
+  ~XueStrictOutgoingHop() override;
+  explicit PROTOBUF_CONSTEXPR XueStrictOutgoingHop(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  XueStrictOutgoingHop(const XueStrictOutgoingHop& from);
+  XueStrictOutgoingHop(XueStrictOutgoingHop&& from) noexcept
+    : XueStrictOutgoingHop() {
+    *this = ::std::move(from);
+  }
+
+  inline XueStrictOutgoingHop& operator=(const XueStrictOutgoingHop& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline XueStrictOutgoingHop& operator=(XueStrictOutgoingHop&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const XueStrictOutgoingHop& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const XueStrictOutgoingHop* internal_default_instance() {
+    return reinterpret_cast<const XueStrictOutgoingHop*>(
+               &_XueStrictOutgoingHop_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    20;
+
+  friend void swap(XueStrictOutgoingHop& a, XueStrictOutgoingHop& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(XueStrictOutgoingHop* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(XueStrictOutgoingHop* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  XueStrictOutgoingHop* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<XueStrictOutgoingHop>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const XueStrictOutgoingHop& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const XueStrictOutgoingHop& from) {
+    XueStrictOutgoingHop::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(XueStrictOutgoingHop* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.XueStrictOutgoingHop";
+  }
+  protected:
+  explicit XueStrictOutgoingHop(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kForwardAppendModeFieldNumber = 2,
+    kToClusterFieldNumber = 1,
+  };
+  // string forward_append_mode = 2;
+  void clear_forward_append_mode();
+  const std::string& forward_append_mode() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_forward_append_mode(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_forward_append_mode();
+  PROTOBUF_NODISCARD std::string* release_forward_append_mode();
+  void set_allocated_forward_append_mode(std::string* forward_append_mode);
+  private:
+  const std::string& _internal_forward_append_mode() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_forward_append_mode(const std::string& value);
+  std::string* _internal_mutable_forward_append_mode();
+  public:
+
+  // int32 to_cluster = 1;
+  void clear_to_cluster();
+  int32_t to_cluster() const;
+  void set_to_cluster(int32_t value);
+  private:
+  int32_t _internal_to_cluster() const;
+  void _internal_set_to_cluster(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.XueStrictOutgoingHop)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr forward_append_mode_;
+    int32_t to_cluster_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -5286,7 +5485,7 @@ class SetReply final :
                &_SetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    21;
 
   friend void swap(SetReply& a, SetReply& b) {
     a.Swap(&b);
@@ -5434,7 +5633,7 @@ class GetReply final :
                &_GetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    22;
 
   friend void swap(GetReply& a, GetReply& b) {
     a.Swap(&b);
@@ -5582,7 +5781,7 @@ class StripeAndBlockIDs final :
                &_StripeAndBlockIDs_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    23;
 
   friend void swap(StripeAndBlockIDs& a, StripeAndBlockIDs& b) {
     a.Swap(&b);
@@ -11200,6 +11399,140 @@ AppendStripeDataPlacement::mutable_block_cluster_ids() {
   return _internal_mutable_block_cluster_ids();
 }
 
+// bool xue_strict_schedule = 22;
+inline void AppendStripeDataPlacement::clear_xue_strict_schedule() {
+  _impl_.xue_strict_schedule_ = false;
+}
+inline bool AppendStripeDataPlacement::_internal_xue_strict_schedule() const {
+  return _impl_.xue_strict_schedule_;
+}
+inline bool AppendStripeDataPlacement::xue_strict_schedule() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.xue_strict_schedule)
+  return _internal_xue_strict_schedule();
+}
+inline void AppendStripeDataPlacement::_internal_set_xue_strict_schedule(bool value) {
+  
+  _impl_.xue_strict_schedule_ = value;
+}
+inline void AppendStripeDataPlacement::set_xue_strict_schedule(bool value) {
+  _internal_set_xue_strict_schedule(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.xue_strict_schedule)
+}
+
+// repeated .proxy_proto.XueStrictOutgoingHop xue_strict_outgoing = 23;
+inline int AppendStripeDataPlacement::_internal_xue_strict_outgoing_size() const {
+  return _impl_.xue_strict_outgoing_.size();
+}
+inline int AppendStripeDataPlacement::xue_strict_outgoing_size() const {
+  return _internal_xue_strict_outgoing_size();
+}
+inline void AppendStripeDataPlacement::clear_xue_strict_outgoing() {
+  _impl_.xue_strict_outgoing_.Clear();
+}
+inline ::proxy_proto::XueStrictOutgoingHop* AppendStripeDataPlacement::mutable_xue_strict_outgoing(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.AppendStripeDataPlacement.xue_strict_outgoing)
+  return _impl_.xue_strict_outgoing_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueStrictOutgoingHop >*
+AppendStripeDataPlacement::mutable_xue_strict_outgoing() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.AppendStripeDataPlacement.xue_strict_outgoing)
+  return &_impl_.xue_strict_outgoing_;
+}
+inline const ::proxy_proto::XueStrictOutgoingHop& AppendStripeDataPlacement::_internal_xue_strict_outgoing(int index) const {
+  return _impl_.xue_strict_outgoing_.Get(index);
+}
+inline const ::proxy_proto::XueStrictOutgoingHop& AppendStripeDataPlacement::xue_strict_outgoing(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.xue_strict_outgoing)
+  return _internal_xue_strict_outgoing(index);
+}
+inline ::proxy_proto::XueStrictOutgoingHop* AppendStripeDataPlacement::_internal_add_xue_strict_outgoing() {
+  return _impl_.xue_strict_outgoing_.Add();
+}
+inline ::proxy_proto::XueStrictOutgoingHop* AppendStripeDataPlacement::add_xue_strict_outgoing() {
+  ::proxy_proto::XueStrictOutgoingHop* _add = _internal_add_xue_strict_outgoing();
+  // @@protoc_insertion_point(field_add:proxy_proto.AppendStripeDataPlacement.xue_strict_outgoing)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueStrictOutgoingHop >&
+AppendStripeDataPlacement::xue_strict_outgoing() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.AppendStripeDataPlacement.xue_strict_outgoing)
+  return _impl_.xue_strict_outgoing_;
+}
+
+// -------------------------------------------------------------------
+
+// XueStrictOutgoingHop
+
+// int32 to_cluster = 1;
+inline void XueStrictOutgoingHop::clear_to_cluster() {
+  _impl_.to_cluster_ = 0;
+}
+inline int32_t XueStrictOutgoingHop::_internal_to_cluster() const {
+  return _impl_.to_cluster_;
+}
+inline int32_t XueStrictOutgoingHop::to_cluster() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueStrictOutgoingHop.to_cluster)
+  return _internal_to_cluster();
+}
+inline void XueStrictOutgoingHop::_internal_set_to_cluster(int32_t value) {
+  
+  _impl_.to_cluster_ = value;
+}
+inline void XueStrictOutgoingHop::set_to_cluster(int32_t value) {
+  _internal_set_to_cluster(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueStrictOutgoingHop.to_cluster)
+}
+
+// string forward_append_mode = 2;
+inline void XueStrictOutgoingHop::clear_forward_append_mode() {
+  _impl_.forward_append_mode_.ClearToEmpty();
+}
+inline const std::string& XueStrictOutgoingHop::forward_append_mode() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueStrictOutgoingHop.forward_append_mode)
+  return _internal_forward_append_mode();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void XueStrictOutgoingHop::set_forward_append_mode(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.forward_append_mode_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.XueStrictOutgoingHop.forward_append_mode)
+}
+inline std::string* XueStrictOutgoingHop::mutable_forward_append_mode() {
+  std::string* _s = _internal_mutable_forward_append_mode();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.XueStrictOutgoingHop.forward_append_mode)
+  return _s;
+}
+inline const std::string& XueStrictOutgoingHop::_internal_forward_append_mode() const {
+  return _impl_.forward_append_mode_.Get();
+}
+inline void XueStrictOutgoingHop::_internal_set_forward_append_mode(const std::string& value) {
+  
+  _impl_.forward_append_mode_.Set(value, GetArenaForAllocation());
+}
+inline std::string* XueStrictOutgoingHop::_internal_mutable_forward_append_mode() {
+  
+  return _impl_.forward_append_mode_.Mutable(GetArenaForAllocation());
+}
+inline std::string* XueStrictOutgoingHop::release_forward_append_mode() {
+  // @@protoc_insertion_point(field_release:proxy_proto.XueStrictOutgoingHop.forward_append_mode)
+  return _impl_.forward_append_mode_.Release();
+}
+inline void XueStrictOutgoingHop::set_allocated_forward_append_mode(std::string* forward_append_mode) {
+  if (forward_append_mode != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.forward_append_mode_.SetAllocated(forward_append_mode, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.forward_append_mode_.IsDefault()) {
+    _impl_.forward_append_mode_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.XueStrictOutgoingHop.forward_append_mode)
+}
+
 // -------------------------------------------------------------------
 
 // SetReply
@@ -11609,6 +11942,8 @@ StripeAndBlockIDs::mutable_datanodeports() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

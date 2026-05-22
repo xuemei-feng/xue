@@ -804,7 +804,7 @@ namespace ECProject
           log_layout_client_send(proxy_cluster, reply.append_keys(i), reply.cluster_slice_sizes(i));
           async_append_to_proxies(cluster_slice_data[i], reply.append_keys(i),
                                   reply.cluster_slice_sizes(i), reply.proxyips(i),
-                                  reply.proxyports(i), i, if_commit_arr);
+                                  reply.proxyports(i), i, if_commit_arr, true);
         }
       });
     }
@@ -814,7 +814,195 @@ namespace ECProject
     }
   }
 
-  void Client::async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr)
+  void Client::launch_append_subset_serial_per_endpoint(
+      const coordinator_proto::ReplyProxyIPsPorts &reply, const char *send_buf, bool *if_commit_arr,
+      const std::vector<int> &indices, bool poll_commit_after_send)
+  {
+    std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(send_buf, &reply);
+    std::map<std::string, std::vector<int>> indices_by_endpoint;
+    for (int i : indices)
+    {
+      if (i < 0 || i >= reply.append_keys_size())
+      {
+        continue;
+      }
+      indices_by_endpoint[proxy_endpoint_key(reply.proxyips(i), reply.proxyports(i))].push_back(i);
+    }
+    std::vector<std::thread> threads;
+    threads.reserve(indices_by_endpoint.size());
+    for (const auto &kv : indices_by_endpoint)
+    {
+      threads.emplace_back([this, &reply, cluster_slice_data, if_commit_arr, poll_commit_after_send,
+                            endpoint_indices = kv.second]() {
+        for (int i : endpoint_indices)
+        {
+          async_append_to_proxies(cluster_slice_data[i], reply.append_keys(i),
+                                  reply.cluster_slice_sizes(i), reply.proxyips(i),
+                                  reply.proxyports(i), i, if_commit_arr, poll_commit_after_send);
+        }
+      });
+    }
+    for (auto &thread : threads)
+    {
+      thread.join();
+    }
+  }
+
+  bool Client::poll_append_commit(const std::string &append_key)
+  {
+    grpc::ClientContext check_commit;
+    coordinator_proto::AskIfSuccess request;
+    request.set_key(append_key);
+    request.set_opp(APPEND);
+    coordinator_proto::RepIfSuccess reply;
+    const grpc::Status status = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply);
+    return status.ok() && reply.ifcommit();
+  }
+
+  bool Client::xue_update_strict_schedule(const coordinator_proto::ReplyProxyIPsPorts &reply,
+                                          const char *send_buf, bool *if_commit_arr)
+  {
+    const int stripe_id = reply.xue_schedule_stripe_id();
+    std::map<std::string, int> key_to_index;
+    std::vector<int> all_indices;
+    for (int i = 0; i < reply.append_keys_size(); ++i)
+    {
+      key_to_index[reply.append_keys(i)] = i;
+      all_indices.push_back(i);
+    }
+    if (all_indices.empty())
+    {
+      return false;
+    }
+
+    std::cout << "[XUE_UPDATE] strict_schedule stripe=" << stripe_id
+              << " ingress_keys=" << all_indices.size()
+              << " transfer_steps=" << reply.xue_transfer_steps_size()
+              << " parallel_groups=" << reply.xue_schedule_num_groups() << std::endl;
+
+    launch_append_subset_serial_per_endpoint(reply, send_buf, if_commit_arr, all_indices, false);
+
+    grpc::ClientContext wait_ctx;
+    coordinator_proto::XueStripeScheduleId wait_req;
+    coordinator_proto::ReplyFromCoordinator wait_rep;
+    wait_req.set_stripe_id(stripe_id);
+    const grpc::Status wait_st =
+        m_coordinator_ptr->waitXueAllIngressReady(&wait_ctx, wait_req, &wait_rep);
+    if (!wait_st.ok())
+    {
+      std::cout << "[XUE_UPDATE] waitXueAllIngressReady failed: " << wait_st.error_message()
+                << std::endl;
+      return false;
+    }
+    std::cout << "[XUE_UPDATE] all_ingress_ready stripe=" << stripe_id << std::endl;
+
+    for (int i = 0; i < reply.append_keys_size(); ++i)
+    {
+      while (!if_commit_arr[i])
+      {
+        if (poll_append_commit(reply.append_keys(i)))
+        {
+          if_commit_arr[i] = true;
+          break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+      }
+    }
+    return std::all_of(if_commit_arr, if_commit_arr + reply.append_keys_size(),
+                       [](bool v) { return v; });
+  }
+
+  bool Client::xue_update_follow_schedule(const coordinator_proto::ReplyProxyIPsPorts &reply,
+                                          const char *send_buf, bool *if_commit_arr)
+  {
+    const int stripe_id = reply.xue_schedule_stripe_id();
+    std::map<std::string, int> key_to_index;
+    for (int i = 0; i < reply.append_keys_size(); ++i)
+    {
+      key_to_index[reply.append_keys(i)] = i;
+    }
+    std::map<int, std::vector<int>> ingress_indices_by_wave;
+    int max_wave = -1;
+    for (const auto &cw : reply.xue_client_waves())
+    {
+      max_wave = std::max(max_wave, cw.wave_index());
+      for (const auto &key : cw.client_ingress_append_keys())
+      {
+        const auto it = key_to_index.find(key);
+        if (it != key_to_index.end())
+        {
+          ingress_indices_by_wave[cw.wave_index()].push_back(it->second);
+        }
+      }
+    }
+    std::map<int, std::vector<std::string>> commit_keys_by_wave;
+    for (const auto &cw : reply.xue_commit_waves())
+    {
+      max_wave = std::max(max_wave, cw.wait_commit_wave());
+      commit_keys_by_wave[cw.wait_commit_wave()].push_back(cw.append_key());
+    }
+    if (max_wave < 0)
+    {
+      return false;
+    }
+
+    std::cout << "[XUE_UPDATE] follow_schedule stripe=" << stripe_id << " waves=" << (max_wave + 1)
+              << " client_ingress_waves=" << reply.xue_client_waves_size()
+              << " commit_waves=" << reply.xue_commit_waves_size() << std::endl;
+
+    for (int w = 0; w <= max_wave; ++w)
+    {
+      const auto ingress_it = ingress_indices_by_wave.find(w);
+      if (ingress_it != ingress_indices_by_wave.end() && !ingress_it->second.empty())
+      {
+        launch_append_subset_serial_per_endpoint(reply, send_buf, if_commit_arr, ingress_it->second,
+                                                 false);
+      }
+
+      grpc::ClientContext release_ctx;
+      coordinator_proto::XueScheduleWaveRelease release_req;
+      coordinator_proto::ReplyFromCoordinator release_rep;
+      release_req.set_stripe_id(stripe_id);
+      release_req.set_released_wave(w);
+      const grpc::Status release_st =
+          m_coordinator_ptr->releaseXueScheduleWave(&release_ctx, release_req, &release_rep);
+      if (!release_st.ok())
+      {
+        std::cout << "[XUE_UPDATE] releaseXueScheduleWave failed wave=" << w << " "
+                  << release_st.error_message() << std::endl;
+        return false;
+      }
+      std::cout << "[XUE_UPDATE] released_schedule_wave=" << w << " stripe=" << stripe_id
+                << std::endl;
+
+      const auto commit_it = commit_keys_by_wave.find(w);
+      if (commit_it != commit_keys_by_wave.end())
+      {
+        for (const auto &key : commit_it->second)
+        {
+          const auto kit = key_to_index.find(key);
+          if (kit == key_to_index.end())
+          {
+            continue;
+          }
+          const int idx = kit->second;
+          while (!if_commit_arr[idx])
+          {
+            if (poll_append_commit(key))
+            {
+              if_commit_arr[idx] = true;
+              break;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+          }
+        }
+      }
+    }
+    return std::all_of(if_commit_arr, if_commit_arr + reply.append_keys_size(),
+                       [](bool v) { return v; });
+  }
+
+  void Client::async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr, bool poll_commit_after_send)
   {
     std::lock_guard<std::mutex> endpoint_lk(mutex_for_proxy_endpoint(proxy_ip, proxy_port));
     if (append_key_uses_cluster_ingress(append_key))
@@ -838,29 +1026,20 @@ namespace ECProject
     sock_data.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
     sock_data.close(ignore_ec);
 
-    // check if metadata is saved successfully
-    grpc::ClientContext check_commit;
-    coordinator_proto::AskIfSuccess request;
-    request.set_key(append_key);
-    OpperateType opp = APPEND;
-    request.set_opp(opp);
-    coordinator_proto::RepIfSuccess reply;
-    grpc::Status status;
-    status = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply);
-    if (status.ok())
+    if (!poll_commit_after_send)
     {
-      if (reply.ifcommit())
-      {
-        if_commit_arr[index] = true;
-      }
-      else
-      {
-        std::cout << "[APPEND205] " << append_key << " not commit!!!!!" << " cluster_slice_size: " << cluster_slice_size << " proxy_ip: " << proxy_ip << " proxy_port: " << proxy_port << std::endl;
-      }
+      return;
+    }
+
+    if (poll_append_commit(append_key))
+    {
+      if_commit_arr[index] = true;
     }
     else
     {
-      std::cout << "[APPEND210] " << append_key << " Fail to check!!!!!" << " cluster_slice_size: " << cluster_slice_size << " proxy_ip: " << proxy_ip << " proxy_port: " << proxy_port << std::endl;
+      std::cout << "[APPEND205] " << append_key << " not commit!!!!!" << " cluster_slice_size: "
+                << cluster_slice_size << " proxy_ip: " << proxy_ip << " proxy_port: " << proxy_port
+                << std::endl;
     }
   }
 
@@ -1402,10 +1581,21 @@ namespace ECProject
 
     std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
     std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
-    launch_append_to_proxies_serial_per_endpoint(reply, send_buf, if_commit_arr.get());
-
-    bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + reply.append_keys_size(), [](bool val)
-                                { return val == true; });
+    bool all_true = false;
+    if (reply.xue_transfer_steps_size() > 0)
+    {
+      all_true = xue_update_strict_schedule(reply, send_buf, if_commit_arr.get());
+    }
+    else if (reply.xue_client_waves_size() > 0 || reply.xue_commit_waves_size() > 0)
+    {
+      all_true = xue_update_follow_schedule(reply, send_buf, if_commit_arr.get());
+    }
+    else
+    {
+      launch_append_to_proxies_serial_per_endpoint(reply, send_buf, if_commit_arr.get());
+      all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + reply.append_keys_size(),
+                              [](bool val) { return val == true; });
+    }
     if (!all_true)
     {
       std::cout << "[XUE_UPDATE] commit check failed for at least one cluster slice." << std::endl;

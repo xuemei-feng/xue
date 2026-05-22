@@ -129,7 +129,19 @@ namespace ECProject
     bool XorWriteRangeToDatanode(const char *block_key, int block_id, int range_offset, const char *delta, int range_size, const char *ip, int port);
     bool forwardXueDataDeltaSync(int dest_cluster_id, const std::string &append_mode,
                                  const proxy_proto::AppendStripeDataPlacement &placement,
-                                 const char *delta_buf, size_t delta_size, bool log_send = true);
+                                 const char *delta_buf, size_t delta_size, bool log_send = true,
+                                 bool gate_strict_schedule_step = true);
+    void waitXueScheduleHopBeforeForward(int stripe_id, const std::string &append_key,
+                                         int dest_cluster_id);
+    bool waitXueScheduleStepBeforeForward(int stripe_id, const std::string &append_key,
+                                          int from_cluster, int to_cluster);
+    void reportXueScheduleStepDoneAfterForward(int stripe_id, const std::string &append_key,
+                                               int from_cluster, int to_cluster, bool success);
+    void reportXueIngressReadyToCoordinator(int stripe_id, const std::string &append_key);
+    void runXueStrictDeferredForwards(
+        std::shared_ptr<proxy_proto::AppendStripeDataPlacement> placement,
+        std::shared_ptr<std::vector<char>> append_buf, std::vector<char *> slices,
+        int tcp_slice_count);
     int applyXueDataBlocksNewValueToDataDelta(const proxy_proto::AppendStripeDataPlacement &placement,
                                               std::vector<char *> &slices, int tcp_slice_count);
     bool handleXueClass1RelayAtDataCluster(const proxy_proto::AppendStripeDataPlacement &placement,
