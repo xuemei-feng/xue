@@ -800,8 +800,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             continue;
           }
           // class3：data 在远端 ingress 算 local parity，改由 proxy ingress 侧 merged forward 完成
+          // class2（data/global 同 cluster）仍走 schedule 的 data->local hop
           if (s.payload() == "data_delta" && plan_lp_cluster >= 0 &&
-              s.to_cluster() == plan_lp_cluster && plan.cluster_id() != plan_lp_cluster)
+              s.to_cluster() == plan_lp_cluster && plan.cluster_id() != plan_lp_cluster &&
+              !plan.xue_compute_global_parity())
           {
             continue;
           }

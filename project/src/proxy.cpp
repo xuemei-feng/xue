@@ -195,6 +195,43 @@ namespace
     return false;
   }
 
+  bool infer_class2_remote_local_parity_cluster(
+      const proxy_proto::AppendStripeDataPlacement &placement, int k, int r, int tcp_slice_count,
+      int proxy_cluster_id, int *out_local_cluster)
+  {
+    if (out_local_cluster == nullptr || !placement.xue_compute_global_parity())
+    {
+      return false;
+    }
+    const int data_cluster = infer_data_block_cluster_from_placement(placement, tcp_slice_count, k);
+    const int global_cluster = placement.xue_global_parity_cluster_id();
+    if (data_cluster < 0 || global_cluster < 0 || data_cluster != global_cluster ||
+        proxy_cluster_id != data_cluster)
+    {
+      return false;
+    }
+    if (infer_local_parity_cluster_from_plan(placement, k, r, out_local_cluster) &&
+        *out_local_cluster >= 0 && *out_local_cluster != proxy_cluster_id)
+    {
+      return true;
+    }
+    *out_local_cluster = -1;
+    for (int j = 0; j < placement.blockids_size(); ++j)
+    {
+      const int bid = placement.blockids(j);
+      if (bid >= k && bid < k + r && j < placement.block_cluster_ids_size())
+      {
+        const int cl = placement.block_cluster_ids(j);
+        if (cl >= 0 && cl != proxy_cluster_id)
+        {
+          *out_local_cluster = cl;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   // 仅用于日志：推断本 proxy TCP 接收的上一跳 cluster（不改变传输）
   int infer_tcp_source_cluster_for_recv(const proxy_proto::AppendStripeDataPlacement &placement,
                                         const std::string &append_mode, int recv_proxy_cluster,
@@ -976,6 +1013,28 @@ namespace ECProject
           (hop.forward_append_mode() == "XUE_COMPUTE_LOCAL_PARITY" ||
            hop.forward_append_mode() == "XUE_UPDATE"))
       {
+        continue;
+      }
+      if (placement->xue_compute_global_parity() &&
+          hop.forward_append_mode() == "XUE_COMPUTE_LOCAL_PARITY")
+      {
+        if (!waitXueScheduleStepBeforeForward(placement->stripe_id(), placement->key(),
+                                              m_self_cluster_id, hop.to_cluster()))
+        {
+          ok = false;
+          continue;
+        }
+        const bool merged_ok =
+            forwardMergedLocalParityDelta(hop.to_cluster(), *placement, slices, tcp_slice_count);
+        reportXueScheduleStepDoneAfterForward(placement->stripe_id(), placement->key(),
+                                              m_self_cluster_id, hop.to_cluster(), merged_ok);
+        if (!merged_ok)
+        {
+          std::cerr << "[Proxy] strict class2 scheduled local parity forward failed append_key="
+                    << placement->key() << " " << m_self_cluster_id << "->" << hop.to_cluster()
+                    << std::endl;
+          ok = false;
+        }
         continue;
       }
       proxy_proto::AppendStripeDataPlacement fwd_placement = *placement;
@@ -2845,9 +2904,9 @@ namespace ECProject
                     placement_copy->key(), global_write, "route=strict_class2_ingress_data_global");
               }
               int local_parity_cluster = -1;
-              if (infer_class1_local_parity_cluster(*placement_copy, m_sys_config->k, m_sys_config->r,
-                                                    &local_parity_cluster) &&
-                  local_parity_cluster >= 0 && local_parity_cluster != m_self_cluster_id)
+              if (infer_class2_remote_local_parity_cluster(
+                      *placement_copy, m_sys_config->k, m_sys_config->r, tcp_slice_count,
+                      m_self_cluster_id, &local_parity_cluster))
               {
                 bool scheduled_local_hop = false;
                 for (int hi = 0; hi < placement_copy->xue_strict_outgoing_size(); ++hi)
@@ -2860,9 +2919,22 @@ namespace ECProject
                 }
                 if (!scheduled_local_hop)
                 {
-                  forwardXueDataDeltaSync(local_parity_cluster, "XUE_COMPUTE_LOCAL_PARITY",
-                                          *placement_copy, append_buf.data(), cluster_append_size, true,
-                                          false);
+                  const bool fwd_ok = forwardMergedLocalParityDelta(
+                      local_parity_cluster, *placement_copy, slices, tcp_slice_count);
+                  if (fwd_ok)
+                  {
+                    log_xfert_line(
+                        proxy_xfer_timestamp(),
+                        "class2_local_parity_forward proxy_cluster=" +
+                            std::to_string(m_self_cluster_id) + " -> " +
+                            std::to_string(local_parity_cluster) +
+                            " append_key=" + placement_copy->key() + " route=strict_ingress");
+                  }
+                  else
+                  {
+                    std::cerr << "[Proxy] strict class2 local parity forward failed append_key="
+                              << placement_copy->key() << std::endl;
+                  }
                 }
               }
             }
