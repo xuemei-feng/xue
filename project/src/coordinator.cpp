@@ -627,20 +627,53 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       int num_parallel_groups = 0;
     };
 
+    int local_parity_cluster_from_ingress_plan(
+        const proxy_proto::AppendStripeDataPlacement *plan, int k, int r)
+    {
+      if (plan == nullptr)
+      {
+        return -1;
+      }
+      for (int j = 0; j < plan->blockids_size(); ++j)
+      {
+        const int bid = plan->blockids(j);
+        if (bid >= k && bid < k + r && j < plan->block_cluster_ids_size())
+        {
+          return plan->block_cluster_ids(j);
+        }
+      }
+      return -1;
+    }
+
     std::string infer_strict_forward_append_mode(
         const proxy_proto::AppendStripeDataPlacement *ingress_plan,
         int to_cluster,
-        const std::string &payload)
+        const std::string &payload,
+        int k,
+        int r)
     {
       if (payload == "parity_delta")
       {
+        if (ingress_plan != nullptr && ingress_plan->xue_global_parity_cluster_id() >= 0 &&
+            to_cluster == ingress_plan->xue_global_parity_cluster_id())
+        {
+          return "XUE_DELTA_TO_GLOBAL";
+        }
         return "XUE_LOCAL_PARITY_DELTA";
+      }
+      if (payload == "data_delta" && ingress_plan != nullptr && k > 0 && r > 0)
+      {
+        const int lp_cluster = local_parity_cluster_from_ingress_plan(ingress_plan, k, r);
+        if (lp_cluster >= 0 && to_cluster == lp_cluster)
+        {
+          return "XUE_COMPUTE_LOCAL_PARITY";
+        }
       }
       if (ingress_plan == nullptr)
       {
         return "XUE_UPDATE";
       }
-      if (ingress_plan->xue_relay_cluster_id() >= 0 &&
+      if (ingress_plan->xue_class1_relay_path() && ingress_plan->xue_relay_cluster_id() >= 0 &&
           to_cluster == ingress_plan->xue_relay_cluster_id())
       {
         return "XUE_DELTA_TO_RELAY";
@@ -746,13 +779,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
     void attach_strict_outgoing_to_plans(
         std::vector<proxy_proto::AppendStripeDataPlacement> &append_plans,
-        const XueStrictTransferPlan &strict)
+        const XueStrictTransferPlan &strict,
+        int k,
+        int r)
     {
       for (auto &plan : append_plans)
       {
         plan.clear_xue_strict_outgoing();
         bool has_relay_hop = false;
-        const int plan_gid = parse_group_id_from_cluster_append_key(plan.key());
+        const int plan_lp_cluster = local_parity_cluster_from_ingress_plan(&plan, k, r);
         for (const auto &s : strict.steps)
         {
           if (s.from_cluster() != plan.cluster_id())
@@ -761,6 +796,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           }
           const bool key_match = (s.append_key() == plan.key());
           if (!key_match)
+          {
+            continue;
+          }
+          // class3：data 在远端 ingress 算 local parity，改由 proxy ingress 侧 merged forward 完成
+          if (s.payload() == "data_delta" && plan_lp_cluster >= 0 &&
+              s.to_cluster() == plan_lp_cluster && plan.cluster_id() != plan_lp_cluster)
           {
             continue;
           }
@@ -936,7 +977,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         info.set_path_desc(t->path_desc);
         info.set_start_time(t->start_time);
         info.set_forward_append_mode(
-            infer_strict_forward_append_mode(ingress_plan, t->to_cluster, t->payload));
+            infer_strict_forward_append_mode(ingress_plan, t->to_cluster, t->payload, stripe->k,
+                                             stripe->r));
         for (int pred_tid : t->pred_task_ids)
         {
           const auto pit = task_id_to_step_no.find(pred_tid);
@@ -3608,6 +3650,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         plan.set_append_mode("XUE_UPDATE");
         plan.set_is_serialized(true);
         plan.set_xue_class1_relay_path(false);
+        plan.set_xue_relay_cluster_id(-1);
         plan.set_xue_data_slices_are_delta(false);
         plan.set_xue_compute_global_parity(false);
         int ingress_cluster = -1;
@@ -3783,7 +3826,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     if (use_strict_schedule)
     {
-      attach_strict_outgoing_to_plans(append_plans, strict_schedule);
+      attach_strict_outgoing_to_plans(append_plans, strict_schedule, stripe->k, stripe->r);
     }
 
     for (const auto &plan : append_plans)
