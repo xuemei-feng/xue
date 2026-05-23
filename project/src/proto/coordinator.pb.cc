@@ -305,6 +305,7 @@ PROTOBUF_CONSTEXPR ReplyProxyIPsPorts::ReplyProxyIPsPorts(
   , /*decltype(_impl_.sum_append_size_)*/uint64_t{0u}
   , /*decltype(_impl_.xue_schedule_stripe_id_)*/0
   , /*decltype(_impl_.xue_schedule_num_groups_)*/0
+  , /*decltype(_impl_.xue_xfer_plan_id_)*/uint64_t{0u}
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct ReplyProxyIPsPortsDefaultTypeInternal {
   PROTOBUF_CONSTEXPR ReplyProxyIPsPortsDefaultTypeInternal()
@@ -315,6 +316,51 @@ struct ReplyProxyIPsPortsDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ReplyProxyIPsPortsDefaultTypeInternal _ReplyProxyIPsPorts_default_instance_;
+PROTOBUF_CONSTEXPR XueXferTimingPull::XueXferTimingPull(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.xue_xfer_plan_id_)*/uint64_t{0u}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueXferTimingPullDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueXferTimingPullDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueXferTimingPullDefaultTypeInternal() {}
+  union {
+    XueXferTimingPull _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueXferTimingPullDefaultTypeInternal _XueXferTimingPull_default_instance_;
+PROTOBUF_CONSTEXPR XueXferTimingProxySample::XueXferTimingProxySample(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.proxy_pure_xfer_sec_)*/0
+  , /*decltype(_impl_.wall_span_start_unix_ms_)*/int64_t{0}
+  , /*decltype(_impl_.wall_span_end_unix_ms_)*/int64_t{0}
+  , /*decltype(_impl_.cluster_id_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueXferTimingProxySampleDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueXferTimingProxySampleDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueXferTimingProxySampleDefaultTypeInternal() {}
+  union {
+    XueXferTimingProxySample _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueXferTimingProxySampleDefaultTypeInternal _XueXferTimingProxySample_default_instance_;
+PROTOBUF_CONSTEXPR XueXferTimingSummary::XueXferTimingSummary(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.proxies_)*/{}
+  , /*decltype(_impl_.max_proxy_pure_xfer_sec_)*/0
+  , /*decltype(_impl_.cluster_pure_xfer_span_wall_sec_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueXferTimingSummaryDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueXferTimingSummaryDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueXferTimingSummaryDefaultTypeInternal() {}
+  union {
+    XueXferTimingSummary _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueXferTimingSummaryDefaultTypeInternal _XueXferTimingSummary_default_instance_;
 PROTOBUF_CONSTEXPR AskIfSuccess::AskIfSuccess(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
@@ -546,7 +592,7 @@ struct RecoveryReplyDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 RecoveryReplyDefaultTypeInternal _RecoveryReply_default_instance_;
 }  // namespace coordinator_proto
-static ::_pb::Metadata file_level_metadata_coordinator_2eproto[34];
+static ::_pb::Metadata file_level_metadata_coordinator_2eproto[37];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_coordinator_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_coordinator_2eproto = nullptr;
 
@@ -732,6 +778,34 @@ const uint32_t TableStruct_coordinator_2eproto::offsets[] PROTOBUF_SECTION_VARIA
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::ReplyProxyIPsPorts, _impl_.xue_schedule_stripe_id_),
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::ReplyProxyIPsPorts, _impl_.xue_transfer_steps_),
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::ReplyProxyIPsPorts, _impl_.xue_schedule_num_groups_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::ReplyProxyIPsPorts, _impl_.xue_xfer_plan_id_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueXferTimingPull, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueXferTimingPull, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueXferTimingPull, _impl_.xue_xfer_plan_id_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueXferTimingProxySample, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueXferTimingProxySample, _impl_.cluster_id_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueXferTimingProxySample, _impl_.proxy_pure_xfer_sec_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueXferTimingProxySample, _impl_.wall_span_start_unix_ms_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueXferTimingProxySample, _impl_.wall_span_end_unix_ms_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueXferTimingSummary, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueXferTimingSummary, _impl_.proxies_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueXferTimingSummary, _impl_.max_proxy_pure_xfer_sec_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueXferTimingSummary, _impl_.cluster_pure_xfer_span_wall_sec_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::AskIfSuccess, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -884,22 +958,25 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 145, -1, -1, sizeof(::coordinator_proto::XueScheduleWaveRelease)},
   { 153, -1, -1, sizeof(::coordinator_proto::XueScheduleHopWait)},
   { 163, -1, -1, sizeof(::coordinator_proto::ReplyProxyIPsPorts)},
-  { 181, -1, -1, sizeof(::coordinator_proto::AskIfSuccess)},
-  { 190, -1, -1, sizeof(::coordinator_proto::RepIfSuccess)},
-  { 197, -1, -1, sizeof(::coordinator_proto::KeyAndClientIP)},
-  { 206, -1, -1, sizeof(::coordinator_proto::RepIfGetSuccess)},
-  { 214, -1, -1, sizeof(::coordinator_proto::BlockIDsAndClientIP)},
-  { 225, -1, -1, sizeof(::coordinator_proto::LogicalRange)},
-  { 233, -1, -1, sizeof(::coordinator_proto::XueUpdateRequest)},
-  { 242, -1, -1, sizeof(::coordinator_proto::KeyFromClient)},
-  { 249, -1, -1, sizeof(::coordinator_proto::StripeIdFromClient)},
-  { 256, -1, -1, sizeof(::coordinator_proto::StripeIdAndBlockIDsFromClient)},
-  { 264, -1, -1, sizeof(::coordinator_proto::NodeIdFromClient)},
-  { 271, -1, -1, sizeof(::coordinator_proto::RepIfDeling)},
-  { 278, -1, -1, sizeof(::coordinator_proto::RepStripeIds)},
-  { 285, -1, -1, sizeof(::coordinator_proto::RepBlockNum)},
-  { 292, -1, -1, sizeof(::coordinator_proto::DegradedReadReply)},
-  { 302, -1, -1, sizeof(::coordinator_proto::RecoveryReply)},
+  { 182, -1, -1, sizeof(::coordinator_proto::XueXferTimingPull)},
+  { 190, -1, -1, sizeof(::coordinator_proto::XueXferTimingProxySample)},
+  { 200, -1, -1, sizeof(::coordinator_proto::XueXferTimingSummary)},
+  { 209, -1, -1, sizeof(::coordinator_proto::AskIfSuccess)},
+  { 218, -1, -1, sizeof(::coordinator_proto::RepIfSuccess)},
+  { 225, -1, -1, sizeof(::coordinator_proto::KeyAndClientIP)},
+  { 234, -1, -1, sizeof(::coordinator_proto::RepIfGetSuccess)},
+  { 242, -1, -1, sizeof(::coordinator_proto::BlockIDsAndClientIP)},
+  { 253, -1, -1, sizeof(::coordinator_proto::LogicalRange)},
+  { 261, -1, -1, sizeof(::coordinator_proto::XueUpdateRequest)},
+  { 270, -1, -1, sizeof(::coordinator_proto::KeyFromClient)},
+  { 277, -1, -1, sizeof(::coordinator_proto::StripeIdFromClient)},
+  { 284, -1, -1, sizeof(::coordinator_proto::StripeIdAndBlockIDsFromClient)},
+  { 292, -1, -1, sizeof(::coordinator_proto::NodeIdFromClient)},
+  { 299, -1, -1, sizeof(::coordinator_proto::RepIfDeling)},
+  { 306, -1, -1, sizeof(::coordinator_proto::RepStripeIds)},
+  { 313, -1, -1, sizeof(::coordinator_proto::RepBlockNum)},
+  { 320, -1, -1, sizeof(::coordinator_proto::DegradedReadReply)},
+  { 330, -1, -1, sizeof(::coordinator_proto::RecoveryReply)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -921,6 +998,9 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::coordinator_proto::_XueScheduleWaveRelease_default_instance_._instance,
   &::coordinator_proto::_XueScheduleHopWait_default_instance_._instance,
   &::coordinator_proto::_ReplyProxyIPsPorts_default_instance_._instance,
+  &::coordinator_proto::_XueXferTimingPull_default_instance_._instance,
+  &::coordinator_proto::_XueXferTimingProxySample_default_instance_._instance,
+  &::coordinator_proto::_XueXferTimingSummary_default_instance_._instance,
   &::coordinator_proto::_AskIfSuccess_default_instance_._instance,
   &::coordinator_proto::_RepIfSuccess_default_instance_._instance,
   &::coordinator_proto::_KeyAndClientIP_default_instance_._instance,
@@ -983,7 +1063,7 @@ const char descriptor_table_protodef_coordinator_2eproto[] PROTOBUF_SECTION_VARI
   "tripe_id\030\001 \001(\005\022\025\n\rreleased_wave\030\002 \001(\005\"e\n"
   "\022XueScheduleHopWait\022\021\n\tstripe_id\030\001 \001(\005\022\022"
   "\n\nappend_key\030\002 \001(\t\022\024\n\014from_cluster\030\003 \001(\005"
-  "\022\022\n\nto_cluster\030\004 \001(\005\"\341\003\n\022ReplyProxyIPsPo"
+  "\022\022\n\nto_cluster\030\004 \001(\005\"\373\003\n\022ReplyProxyIPsPo"
   "rts\022\027\n\017sum_append_size\030\001 \001(\004\022\023\n\013append_k"
   "eys\030\002 \003(\t\022\020\n\010proxyips\030\003 \003(\t\022\022\n\nproxyport"
   "s\030\004 \003(\005\022\033\n\023cluster_slice_sizes\030\005 \003(\004\022\021\n\t"
@@ -995,114 +1075,127 @@ const char descriptor_table_protodef_coordinator_2eproto[] PROTOBUF_SECTION_VARI
   "yCommitWave\022\036\n\026xue_schedule_stripe_id\030\n "
   "\001(\005\022B\n\022xue_transfer_steps\030\013 \003(\0132&.coordi"
   "nator_proto.XueTransferStepInfo\022\037\n\027xue_s"
-  "chedule_num_groups\030\014 \001(\005\";\n\014AskIfSuccess"
-  "\022\013\n\003key\030\001 \001(\t\022\013\n\003opp\030\002 \001(\005\022\021\n\tstripe_id\030"
-  "\003 \001(\005\" \n\014RepIfSuccess\022\020\n\010ifcommit\030\001 \001(\010\""
-  "C\n\016KeyAndClientIP\022\013\n\003key\030\001 \001(\t\022\020\n\010client"
-  "ip\030\002 \001(\t\022\022\n\nclientport\030\003 \001(\005\"\?\n\017RepIfGet"
-  "Success\022\024\n\014ifgetsuccess\030\001 \001(\010\022\026\n\016valuesi"
-  "zebytes\030\002 \001(\005\"\202\001\n\023BlockIDsAndClientIP\022\026\n"
-  "\016start_block_id\030\001 \001(\005\022\024\n\014end_block_id\030\002 "
-  "\001(\005\022\020\n\010clientip\030\003 \001(\t\022\022\n\nclientport\030\004 \001("
-  "\005\022\027\n\017failed_block_id\030\005 \001(\005\"H\n\014LogicalRan"
-  "ge\022\034\n\024logical_offset_start\030\001 \001(\005\022\032\n\022logi"
-  "cal_offset_end\030\002 \001(\005\"i\n\020XueUpdateRequest"
-  "\022\021\n\tclient_id\030\001 \001(\t\022\021\n\tstripe_id\030\002 \001(\005\022/"
-  "\n\006ranges\030\003 \003(\0132\037.coordinator_proto.Logic"
-  "alRange\"\034\n\rKeyFromClient\022\013\n\003key\030\001 \001(\t\"\'\n"
-  "\022StripeIdFromClient\022\021\n\tstripe_id\030\001 \001(\005\"E"
-  "\n\035StripeIdAndBlockIDsFromClient\022\021\n\tstrip"
-  "e_id\030\001 \001(\005\022\021\n\tblock_ids\030\002 \003(\005\"#\n\020NodeIdF"
-  "romClient\022\017\n\007node_id\030\001 \001(\005\"\037\n\013RepIfDelin"
-  "g\022\020\n\010ifdeling\030\001 \001(\010\"\"\n\014RepStripeIds\022\022\n\ns"
-  "tripe_ids\030\001 \003(\005\" \n\013RepBlockNum\022\021\n\tblock_"
-  "num\030\001 \001(\005\"m\n\021DegradedReadReply\022\024\n\014disk_i"
-  "o_time\030\001 \001(\001\022\024\n\014network_time\030\002 \001(\001\022\023\n\013de"
-  "code_time\030\003 \001(\001\022\027\n\017grpc_start_time\030\004 \001(\001"
-  "\"\204\001\n\rRecoveryReply\022\026\n\016disk_read_time\030\001 \001"
-  "(\001\022\024\n\014network_time\030\002 \001(\001\022\023\n\013decode_time\030"
-  "\003 \001(\001\022\027\n\017disk_write_time\030\004 \001(\001\022\027\n\017grpc_s"
-  "tart_time\030\005 \001(\0012\223\027\n\022coordinatorService\022k"
-  "\n\025sayHelloToCoordinator\022\'.coordinator_pr"
-  "oto.RequestToCoordinator\032\'.coordinator_p"
-  "roto.ReplyFromCoordinator\"\000\022`\n\ncheckaliv"
-  "e\022\'.coordinator_proto.RequestToCoordinat"
-  "or\032\'.coordinator_proto.ReplyFromCoordina"
-  "tor\"\000\022V\n\014setParameter\022\034.coordinator_prot"
-  "o.Parameter\032&.coordinator_proto.RepIfSet"
-  "ParaSuccess\"\000\022d\n\024uploadOriginKeyValue\022%."
-  "coordinator_proto.RequestProxyIPPort\032#.c"
-  "oordinator_proto.ReplyProxyIPPort\"\000\022a\n\021r"
-  "eportCommitAbort\022!.coordinator_proto.Com"
-  "mitAbortKey\032\'.coordinator_proto.ReplyFro"
-  "mCoordinator\"\000\022V\n\020checkCommitAbort\022\037.coo"
-  "rdinator_proto.AskIfSuccess\032\037.coordinato"
-  "r_proto.RepIfSuccess\"\000\022`\n\016uploadSetValue"
-  "\022%.coordinator_proto.RequestProxyIPPort\032"
-  "%.coordinator_proto.ReplyProxyIPsPorts\"\000"
-  "\022c\n\021uploadSubsetValue\022%.coordinator_prot"
-  "o.RequestProxyIPPort\032%.coordinator_proto"
-  ".ReplyProxyIPsPorts\"\000\022c\n\021uploadAppendVal"
-  "ue\022%.coordinator_proto.RequestProxyIPPor"
-  "t\032%.coordinator_proto.ReplyProxyIPsPorts"
-  "\"\000\022_\n\017uploadXueUpdate\022#.coordinator_prot"
-  "o.XueUpdateRequest\032%.coordinator_proto.R"
-  "eplyProxyIPsPorts\"\000\022l\n\025reportXueIngressR"
-  "eady\022(.coordinator_proto.XueIngressReady"
-  "Report\032\'.coordinator_proto.ReplyFromCoor"
-  "dinator\"\000\022k\n\026waitXueAllIngressReady\022&.co"
-  "ordinator_proto.XueStripeScheduleId\032\'.co"
-  "ordinator_proto.ReplyFromCoordinator\"\000\022h"
-  "\n\023waitXueScheduleStep\022&.coordinator_prot"
-  "o.XueScheduleStepWait\032\'.coordinator_prot"
-  "o.ReplyFromCoordinator\"\000\022n\n\031reportXueSch"
-  "eduleStepDone\022&.coordinator_proto.XueSch"
-  "eduleStepDone\032\'.coordinator_proto.ReplyF"
-  "romCoordinator\"\000\022n\n\026releaseXueScheduleWa"
-  "ve\022).coordinator_proto.XueScheduleWaveRe"
-  "lease\032\'.coordinator_proto.ReplyFromCoord"
-  "inator\"\000\022f\n\022waitXueScheduleHop\022%.coordin"
-  "ator_proto.XueScheduleHopWait\032\'.coordina"
-  "tor_proto.ReplyFromCoordinator\"\000\022S\n\010getV"
-  "alue\022!.coordinator_proto.KeyAndClientIP\032"
-  "\".coordinator_proto.RepIfGetSuccess\"\000\022W\n"
-  "\tgetStripe\022!.coordinator_proto.KeyAndCli"
-  "entIP\032%.coordinator_proto.ReplyProxyIPsP"
-  "orts\"\000\022\\\n\tgetBlocks\022&.coordinator_proto."
-  "BlockIDsAndClientIP\032%.coordinator_proto."
-  "ReplyProxyIPsPorts\"\000\022h\n\025getDegradedReadB"
-  "locks\022&.coordinator_proto.BlockIDsAndCli"
-  "entIP\032%.coordinator_proto.ReplyProxyIPsP"
-  "orts\"\000\022a\n\024getDegradedReadBlock\022!.coordin"
-  "ator_proto.KeyAndClientIP\032$.coordinator_"
-  "proto.DegradedReadReply\"\000\022j\n\035getDegraded"
-  "ReadBlockBreakdown\022!.coordinator_proto.K"
-  "eyAndClientIP\032$.coordinator_proto.Degrad"
-  "edReadReply\"\000\022T\n\013getRecovery\022!.coordinat"
-  "or_proto.KeyAndClientIP\032 .coordinator_pr"
-  "oto.RecoveryReply\"\000\022]\n\024getRecoveryBreakd"
-  "own\022!.coordinator_proto.KeyAndClientIP\032 "
-  ".coordinator_proto.RecoveryReply\"\000\022Y\n\020fu"
-  "llNodeRecovery\022#.coordinator_proto.NodeI"
-  "dFromClient\032\036.coordinator_proto.RepBlock"
-  "Num\"\000\022j\n\022multiBlockRecovery\0220.coordinato"
-  "r_proto.StripeIdAndBlockIDsFromClient\032 ."
-  "coordinator_proto.RecoveryReply\"\000\022N\n\010del"
-  "ByKey\022 .coordinator_proto.KeyFromClient\032"
-  "\036.coordinator_proto.RepIfDeling\"\000\022V\n\013del"
-  "ByStripe\022%.coordinator_proto.StripeIdFro"
-  "mClient\032\036.coordinator_proto.RepIfDeling\""
-  "\000\022Y\n\013listStripes\022\'.coordinator_proto.Req"
-  "uestToCoordinator\032\037.coordinator_proto.Re"
-  "pStripeIds\"\000\022W\n\ndecodeTest\022!.coordinator"
-  "_proto.KeyAndClientIP\032$.coordinator_prot"
-  "o.DegradedReadReply\"\000b\006proto3"
+  "chedule_num_groups\030\014 \001(\005\022\030\n\020xue_xfer_pla"
+  "n_id\030\r \001(\004\"@\n\021XueXferTimingPull\022\021\n\tstrip"
+  "e_id\030\001 \001(\005\022\030\n\020xue_xfer_plan_id\030\002 \001(\004\"\213\001\n"
+  "\030XueXferTimingProxySample\022\022\n\ncluster_id\030"
+  "\001 \001(\005\022\033\n\023proxy_pure_xfer_sec\030\002 \001(\001\022\037\n\027wa"
+  "ll_span_start_unix_ms\030\003 \001(\003\022\035\n\025wall_span"
+  "_end_unix_ms\030\004 \001(\003\"\236\001\n\024XueXferTimingSumm"
+  "ary\022<\n\007proxies\030\001 \003(\0132+.coordinator_proto"
+  ".XueXferTimingProxySample\022\037\n\027max_proxy_p"
+  "ure_xfer_sec\030\002 \001(\001\022\'\n\037cluster_pure_xfer_"
+  "span_wall_sec\030\003 \001(\001\";\n\014AskIfSuccess\022\013\n\003k"
+  "ey\030\001 \001(\t\022\013\n\003opp\030\002 \001(\005\022\021\n\tstripe_id\030\003 \001(\005"
+  "\" \n\014RepIfSuccess\022\020\n\010ifcommit\030\001 \001(\010\"C\n\016Ke"
+  "yAndClientIP\022\013\n\003key\030\001 \001(\t\022\020\n\010clientip\030\002 "
+  "\001(\t\022\022\n\nclientport\030\003 \001(\005\"\?\n\017RepIfGetSucce"
+  "ss\022\024\n\014ifgetsuccess\030\001 \001(\010\022\026\n\016valuesizebyt"
+  "es\030\002 \001(\005\"\202\001\n\023BlockIDsAndClientIP\022\026\n\016star"
+  "t_block_id\030\001 \001(\005\022\024\n\014end_block_id\030\002 \001(\005\022\020"
+  "\n\010clientip\030\003 \001(\t\022\022\n\nclientport\030\004 \001(\005\022\027\n\017"
+  "failed_block_id\030\005 \001(\005\"H\n\014LogicalRange\022\034\n"
+  "\024logical_offset_start\030\001 \001(\005\022\032\n\022logical_o"
+  "ffset_end\030\002 \001(\005\"i\n\020XueUpdateRequest\022\021\n\tc"
+  "lient_id\030\001 \001(\t\022\021\n\tstripe_id\030\002 \001(\005\022/\n\006ran"
+  "ges\030\003 \003(\0132\037.coordinator_proto.LogicalRan"
+  "ge\"\034\n\rKeyFromClient\022\013\n\003key\030\001 \001(\t\"\'\n\022Stri"
+  "peIdFromClient\022\021\n\tstripe_id\030\001 \001(\005\"E\n\035Str"
+  "ipeIdAndBlockIDsFromClient\022\021\n\tstripe_id\030"
+  "\001 \001(\005\022\021\n\tblock_ids\030\002 \003(\005\"#\n\020NodeIdFromCl"
+  "ient\022\017\n\007node_id\030\001 \001(\005\"\037\n\013RepIfDeling\022\020\n\010"
+  "ifdeling\030\001 \001(\010\"\"\n\014RepStripeIds\022\022\n\nstripe"
+  "_ids\030\001 \003(\005\" \n\013RepBlockNum\022\021\n\tblock_num\030\001"
+  " \001(\005\"m\n\021DegradedReadReply\022\024\n\014disk_io_tim"
+  "e\030\001 \001(\001\022\024\n\014network_time\030\002 \001(\001\022\023\n\013decode_"
+  "time\030\003 \001(\001\022\027\n\017grpc_start_time\030\004 \001(\001\"\204\001\n\r"
+  "RecoveryReply\022\026\n\016disk_read_time\030\001 \001(\001\022\024\n"
+  "\014network_time\030\002 \001(\001\022\023\n\013decode_time\030\003 \001(\001"
+  "\022\027\n\017disk_write_time\030\004 \001(\001\022\027\n\017grpc_start_"
+  "time\030\005 \001(\0012\371\027\n\022coordinatorService\022k\n\025say"
+  "HelloToCoordinator\022\'.coordinator_proto.R"
+  "equestToCoordinator\032\'.coordinator_proto."
+  "ReplyFromCoordinator\"\000\022`\n\ncheckalive\022\'.c"
+  "oordinator_proto.RequestToCoordinator\032\'."
+  "coordinator_proto.ReplyFromCoordinator\"\000"
+  "\022V\n\014setParameter\022\034.coordinator_proto.Par"
+  "ameter\032&.coordinator_proto.RepIfSetParaS"
+  "uccess\"\000\022d\n\024uploadOriginKeyValue\022%.coord"
+  "inator_proto.RequestProxyIPPort\032#.coordi"
+  "nator_proto.ReplyProxyIPPort\"\000\022a\n\021report"
+  "CommitAbort\022!.coordinator_proto.CommitAb"
+  "ortKey\032\'.coordinator_proto.ReplyFromCoor"
+  "dinator\"\000\022V\n\020checkCommitAbort\022\037.coordina"
+  "tor_proto.AskIfSuccess\032\037.coordinator_pro"
+  "to.RepIfSuccess\"\000\022`\n\016uploadSetValue\022%.co"
+  "ordinator_proto.RequestProxyIPPort\032%.coo"
+  "rdinator_proto.ReplyProxyIPsPorts\"\000\022c\n\021u"
+  "ploadSubsetValue\022%.coordinator_proto.Req"
+  "uestProxyIPPort\032%.coordinator_proto.Repl"
+  "yProxyIPsPorts\"\000\022c\n\021uploadAppendValue\022%."
+  "coordinator_proto.RequestProxyIPPort\032%.c"
+  "oordinator_proto.ReplyProxyIPsPorts\"\000\022_\n"
+  "\017uploadXueUpdate\022#.coordinator_proto.Xue"
+  "UpdateRequest\032%.coordinator_proto.ReplyP"
+  "roxyIPsPorts\"\000\022l\n\025reportXueIngressReady\022"
+  "(.coordinator_proto.XueIngressReadyRepor"
+  "t\032\'.coordinator_proto.ReplyFromCoordinat"
+  "or\"\000\022k\n\026waitXueAllIngressReady\022&.coordin"
+  "ator_proto.XueStripeScheduleId\032\'.coordin"
+  "ator_proto.ReplyFromCoordinator\"\000\022h\n\023wai"
+  "tXueScheduleStep\022&.coordinator_proto.Xue"
+  "ScheduleStepWait\032\'.coordinator_proto.Rep"
+  "lyFromCoordinator\"\000\022n\n\031reportXueSchedule"
+  "StepDone\022&.coordinator_proto.XueSchedule"
+  "StepDone\032\'.coordinator_proto.ReplyFromCo"
+  "ordinator\"\000\022n\n\026releaseXueScheduleWave\022)."
+  "coordinator_proto.XueScheduleWaveRelease"
+  "\032\'.coordinator_proto.ReplyFromCoordinato"
+  "r\"\000\022f\n\022waitXueScheduleHop\022%.coordinator_"
+  "proto.XueScheduleHopWait\032\'.coordinator_p"
+  "roto.ReplyFromCoordinator\"\000\022d\n\021pullXueXf"
+  "erTiming\022$.coordinator_proto.XueXferTimi"
+  "ngPull\032\'.coordinator_proto.XueXferTiming"
+  "Summary\"\000\022S\n\010getValue\022!.coordinator_prot"
+  "o.KeyAndClientIP\032\".coordinator_proto.Rep"
+  "IfGetSuccess\"\000\022W\n\tgetStripe\022!.coordinato"
+  "r_proto.KeyAndClientIP\032%.coordinator_pro"
+  "to.ReplyProxyIPsPorts\"\000\022\\\n\tgetBlocks\022&.c"
+  "oordinator_proto.BlockIDsAndClientIP\032%.c"
+  "oordinator_proto.ReplyProxyIPsPorts\"\000\022h\n"
+  "\025getDegradedReadBlocks\022&.coordinator_pro"
+  "to.BlockIDsAndClientIP\032%.coordinator_pro"
+  "to.ReplyProxyIPsPorts\"\000\022a\n\024getDegradedRe"
+  "adBlock\022!.coordinator_proto.KeyAndClient"
+  "IP\032$.coordinator_proto.DegradedReadReply"
+  "\"\000\022j\n\035getDegradedReadBlockBreakdown\022!.co"
+  "ordinator_proto.KeyAndClientIP\032$.coordin"
+  "ator_proto.DegradedReadReply\"\000\022T\n\013getRec"
+  "overy\022!.coordinator_proto.KeyAndClientIP"
+  "\032 .coordinator_proto.RecoveryReply\"\000\022]\n\024"
+  "getRecoveryBreakdown\022!.coordinator_proto"
+  ".KeyAndClientIP\032 .coordinator_proto.Reco"
+  "veryReply\"\000\022Y\n\020fullNodeRecovery\022#.coordi"
+  "nator_proto.NodeIdFromClient\032\036.coordinat"
+  "or_proto.RepBlockNum\"\000\022j\n\022multiBlockReco"
+  "very\0220.coordinator_proto.StripeIdAndBloc"
+  "kIDsFromClient\032 .coordinator_proto.Recov"
+  "eryReply\"\000\022N\n\010delByKey\022 .coordinator_pro"
+  "to.KeyFromClient\032\036.coordinator_proto.Rep"
+  "IfDeling\"\000\022V\n\013delByStripe\022%.coordinator_"
+  "proto.StripeIdFromClient\032\036.coordinator_p"
+  "roto.RepIfDeling\"\000\022Y\n\013listStripes\022\'.coor"
+  "dinator_proto.RequestToCoordinator\032\037.coo"
+  "rdinator_proto.RepStripeIds\"\000\022W\n\ndecodeT"
+  "est\022!.coordinator_proto.KeyAndClientIP\032$"
+  ".coordinator_proto.DegradedReadReply\"\000b\006"
+  "proto3"
   ;
 static ::_pbi::once_flag descriptor_table_coordinator_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_coordinator_2eproto = {
-    false, false, 6269, descriptor_table_protodef_coordinator_2eproto,
+    false, false, 6766, descriptor_table_protodef_coordinator_2eproto,
     "coordinator.proto",
-    &descriptor_table_coordinator_2eproto_once, nullptr, 0, 34,
+    &descriptor_table_coordinator_2eproto_once, nullptr, 0, 37,
     schemas, file_default_instances, TableStruct_coordinator_2eproto::offsets,
     file_level_metadata_coordinator_2eproto, file_level_enum_descriptors_coordinator_2eproto,
     file_level_service_descriptors_coordinator_2eproto,
@@ -5769,12 +5862,13 @@ ReplyProxyIPsPorts::ReplyProxyIPsPorts(const ReplyProxyIPsPorts& from)
     , decltype(_impl_.sum_append_size_){}
     , decltype(_impl_.xue_schedule_stripe_id_){}
     , decltype(_impl_.xue_schedule_num_groups_){}
+    , decltype(_impl_.xue_xfer_plan_id_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::memcpy(&_impl_.sum_append_size_, &from._impl_.sum_append_size_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.xue_schedule_num_groups_) -
-    reinterpret_cast<char*>(&_impl_.sum_append_size_)) + sizeof(_impl_.xue_schedule_num_groups_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.xue_xfer_plan_id_) -
+    reinterpret_cast<char*>(&_impl_.sum_append_size_)) + sizeof(_impl_.xue_xfer_plan_id_));
   // @@protoc_insertion_point(copy_constructor:coordinator_proto.ReplyProxyIPsPorts)
 }
 
@@ -5798,6 +5892,7 @@ inline void ReplyProxyIPsPorts::SharedCtor(
     , decltype(_impl_.sum_append_size_){uint64_t{0u}}
     , decltype(_impl_.xue_schedule_stripe_id_){0}
     , decltype(_impl_.xue_schedule_num_groups_){0}
+    , decltype(_impl_.xue_xfer_plan_id_){uint64_t{0u}}
     , /*decltype(_impl_._cached_size_)*/{}
   };
 }
@@ -5844,8 +5939,8 @@ void ReplyProxyIPsPorts::Clear() {
   _impl_.xue_commit_waves_.Clear();
   _impl_.xue_transfer_steps_.Clear();
   ::memset(&_impl_.sum_append_size_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.xue_schedule_num_groups_) -
-      reinterpret_cast<char*>(&_impl_.sum_append_size_)) + sizeof(_impl_.xue_schedule_num_groups_));
+      reinterpret_cast<char*>(&_impl_.xue_xfer_plan_id_) -
+      reinterpret_cast<char*>(&_impl_.sum_append_size_)) + sizeof(_impl_.xue_xfer_plan_id_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -5994,6 +6089,14 @@ const char* ReplyProxyIPsPorts::_InternalParse(const char* ptr, ::_pbi::ParseCon
         } else
           goto handle_unusual;
         continue;
+      // uint64 xue_xfer_plan_id = 13;
+      case 13:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 104)) {
+          _impl_.xue_xfer_plan_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
       default:
         goto handle_unusual;
     }  // switch
@@ -6120,6 +6223,12 @@ uint8_t* ReplyProxyIPsPorts::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(12, this->_internal_xue_schedule_num_groups(), target);
   }
 
+  // uint64 xue_xfer_plan_id = 13;
+  if (this->_internal_xue_xfer_plan_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(13, this->_internal_xue_xfer_plan_id(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -6237,6 +6346,11 @@ size_t ReplyProxyIPsPorts::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_xue_schedule_num_groups());
   }
 
+  // uint64 xue_xfer_plan_id = 13;
+  if (this->_internal_xue_xfer_plan_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_xue_xfer_plan_id());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -6273,6 +6387,9 @@ void ReplyProxyIPsPorts::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, con
   if (from._internal_xue_schedule_num_groups() != 0) {
     _this->_internal_set_xue_schedule_num_groups(from._internal_xue_schedule_num_groups());
   }
+  if (from._internal_xue_xfer_plan_id() != 0) {
+    _this->_internal_set_xue_xfer_plan_id(from._internal_xue_xfer_plan_id());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -6300,8 +6417,8 @@ void ReplyProxyIPsPorts::InternalSwap(ReplyProxyIPsPorts* other) {
   _impl_.xue_commit_waves_.InternalSwap(&other->_impl_.xue_commit_waves_);
   _impl_.xue_transfer_steps_.InternalSwap(&other->_impl_.xue_transfer_steps_);
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(ReplyProxyIPsPorts, _impl_.xue_schedule_num_groups_)
-      + sizeof(ReplyProxyIPsPorts::_impl_.xue_schedule_num_groups_)
+      PROTOBUF_FIELD_OFFSET(ReplyProxyIPsPorts, _impl_.xue_xfer_plan_id_)
+      + sizeof(ReplyProxyIPsPorts::_impl_.xue_xfer_plan_id_)
       - PROTOBUF_FIELD_OFFSET(ReplyProxyIPsPorts, _impl_.sum_append_size_)>(
           reinterpret_cast<char*>(&_impl_.sum_append_size_),
           reinterpret_cast<char*>(&other->_impl_.sum_append_size_));
@@ -6311,6 +6428,757 @@ void ReplyProxyIPsPorts::InternalSwap(ReplyProxyIPsPorts* other) {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
       file_level_metadata_coordinator_2eproto[17]);
+}
+
+// ===================================================================
+
+class XueXferTimingPull::_Internal {
+ public:
+};
+
+XueXferTimingPull::XueXferTimingPull(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.XueXferTimingPull)
+}
+XueXferTimingPull::XueXferTimingPull(const XueXferTimingPull& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueXferTimingPull* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.xue_xfer_plan_id_){}
+    , decltype(_impl_.stripe_id_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.xue_xfer_plan_id_, &from._impl_.xue_xfer_plan_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.stripe_id_) -
+    reinterpret_cast<char*>(&_impl_.xue_xfer_plan_id_)) + sizeof(_impl_.stripe_id_));
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.XueXferTimingPull)
+}
+
+inline void XueXferTimingPull::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.xue_xfer_plan_id_){uint64_t{0u}}
+    , decltype(_impl_.stripe_id_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+XueXferTimingPull::~XueXferTimingPull() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.XueXferTimingPull)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueXferTimingPull::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void XueXferTimingPull::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueXferTimingPull::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.XueXferTimingPull)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&_impl_.xue_xfer_plan_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.stripe_id_) -
+      reinterpret_cast<char*>(&_impl_.xue_xfer_plan_id_)) + sizeof(_impl_.stripe_id_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueXferTimingPull::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 xue_xfer_plan_id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.xue_xfer_plan_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueXferTimingPull::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.XueXferTimingPull)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // uint64 xue_xfer_plan_id = 2;
+  if (this->_internal_xue_xfer_plan_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(2, this->_internal_xue_xfer_plan_id(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.XueXferTimingPull)
+  return target;
+}
+
+size_t XueXferTimingPull::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.XueXferTimingPull)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // uint64 xue_xfer_plan_id = 2;
+  if (this->_internal_xue_xfer_plan_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_xue_xfer_plan_id());
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueXferTimingPull::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueXferTimingPull::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueXferTimingPull::GetClassData() const { return &_class_data_; }
+
+
+void XueXferTimingPull::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueXferTimingPull*>(&to_msg);
+  auto& from = static_cast<const XueXferTimingPull&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.XueXferTimingPull)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_xue_xfer_plan_id() != 0) {
+    _this->_internal_set_xue_xfer_plan_id(from._internal_xue_xfer_plan_id());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueXferTimingPull::CopyFrom(const XueXferTimingPull& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.XueXferTimingPull)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueXferTimingPull::IsInitialized() const {
+  return true;
+}
+
+void XueXferTimingPull::InternalSwap(XueXferTimingPull* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(XueXferTimingPull, _impl_.stripe_id_)
+      + sizeof(XueXferTimingPull::_impl_.stripe_id_)
+      - PROTOBUF_FIELD_OFFSET(XueXferTimingPull, _impl_.xue_xfer_plan_id_)>(
+          reinterpret_cast<char*>(&_impl_.xue_xfer_plan_id_),
+          reinterpret_cast<char*>(&other->_impl_.xue_xfer_plan_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueXferTimingPull::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[18]);
+}
+
+// ===================================================================
+
+class XueXferTimingProxySample::_Internal {
+ public:
+};
+
+XueXferTimingProxySample::XueXferTimingProxySample(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.XueXferTimingProxySample)
+}
+XueXferTimingProxySample::XueXferTimingProxySample(const XueXferTimingProxySample& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueXferTimingProxySample* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.proxy_pure_xfer_sec_){}
+    , decltype(_impl_.wall_span_start_unix_ms_){}
+    , decltype(_impl_.wall_span_end_unix_ms_){}
+    , decltype(_impl_.cluster_id_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.proxy_pure_xfer_sec_, &from._impl_.proxy_pure_xfer_sec_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.cluster_id_) -
+    reinterpret_cast<char*>(&_impl_.proxy_pure_xfer_sec_)) + sizeof(_impl_.cluster_id_));
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.XueXferTimingProxySample)
+}
+
+inline void XueXferTimingProxySample::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.proxy_pure_xfer_sec_){0}
+    , decltype(_impl_.wall_span_start_unix_ms_){int64_t{0}}
+    , decltype(_impl_.wall_span_end_unix_ms_){int64_t{0}}
+    , decltype(_impl_.cluster_id_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+XueXferTimingProxySample::~XueXferTimingProxySample() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.XueXferTimingProxySample)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueXferTimingProxySample::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void XueXferTimingProxySample::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueXferTimingProxySample::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.XueXferTimingProxySample)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&_impl_.proxy_pure_xfer_sec_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.cluster_id_) -
+      reinterpret_cast<char*>(&_impl_.proxy_pure_xfer_sec_)) + sizeof(_impl_.cluster_id_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueXferTimingProxySample::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 cluster_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.cluster_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // double proxy_pure_xfer_sec = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 17)) {
+          _impl_.proxy_pure_xfer_sec_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
+        } else
+          goto handle_unusual;
+        continue;
+      // int64 wall_span_start_unix_ms = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.wall_span_start_unix_ms_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int64 wall_span_end_unix_ms = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.wall_span_end_unix_ms_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueXferTimingProxySample::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.XueXferTimingProxySample)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 cluster_id = 1;
+  if (this->_internal_cluster_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_cluster_id(), target);
+  }
+
+  // double proxy_pure_xfer_sec = 2;
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_proxy_pure_xfer_sec = this->_internal_proxy_pure_xfer_sec();
+  uint64_t raw_proxy_pure_xfer_sec;
+  memcpy(&raw_proxy_pure_xfer_sec, &tmp_proxy_pure_xfer_sec, sizeof(tmp_proxy_pure_xfer_sec));
+  if (raw_proxy_pure_xfer_sec != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteDoubleToArray(2, this->_internal_proxy_pure_xfer_sec(), target);
+  }
+
+  // int64 wall_span_start_unix_ms = 3;
+  if (this->_internal_wall_span_start_unix_ms() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt64ToArray(3, this->_internal_wall_span_start_unix_ms(), target);
+  }
+
+  // int64 wall_span_end_unix_ms = 4;
+  if (this->_internal_wall_span_end_unix_ms() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt64ToArray(4, this->_internal_wall_span_end_unix_ms(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.XueXferTimingProxySample)
+  return target;
+}
+
+size_t XueXferTimingProxySample::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.XueXferTimingProxySample)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // double proxy_pure_xfer_sec = 2;
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_proxy_pure_xfer_sec = this->_internal_proxy_pure_xfer_sec();
+  uint64_t raw_proxy_pure_xfer_sec;
+  memcpy(&raw_proxy_pure_xfer_sec, &tmp_proxy_pure_xfer_sec, sizeof(tmp_proxy_pure_xfer_sec));
+  if (raw_proxy_pure_xfer_sec != 0) {
+    total_size += 1 + 8;
+  }
+
+  // int64 wall_span_start_unix_ms = 3;
+  if (this->_internal_wall_span_start_unix_ms() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(this->_internal_wall_span_start_unix_ms());
+  }
+
+  // int64 wall_span_end_unix_ms = 4;
+  if (this->_internal_wall_span_end_unix_ms() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(this->_internal_wall_span_end_unix_ms());
+  }
+
+  // int32 cluster_id = 1;
+  if (this->_internal_cluster_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_cluster_id());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueXferTimingProxySample::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueXferTimingProxySample::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueXferTimingProxySample::GetClassData() const { return &_class_data_; }
+
+
+void XueXferTimingProxySample::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueXferTimingProxySample*>(&to_msg);
+  auto& from = static_cast<const XueXferTimingProxySample&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.XueXferTimingProxySample)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_proxy_pure_xfer_sec = from._internal_proxy_pure_xfer_sec();
+  uint64_t raw_proxy_pure_xfer_sec;
+  memcpy(&raw_proxy_pure_xfer_sec, &tmp_proxy_pure_xfer_sec, sizeof(tmp_proxy_pure_xfer_sec));
+  if (raw_proxy_pure_xfer_sec != 0) {
+    _this->_internal_set_proxy_pure_xfer_sec(from._internal_proxy_pure_xfer_sec());
+  }
+  if (from._internal_wall_span_start_unix_ms() != 0) {
+    _this->_internal_set_wall_span_start_unix_ms(from._internal_wall_span_start_unix_ms());
+  }
+  if (from._internal_wall_span_end_unix_ms() != 0) {
+    _this->_internal_set_wall_span_end_unix_ms(from._internal_wall_span_end_unix_ms());
+  }
+  if (from._internal_cluster_id() != 0) {
+    _this->_internal_set_cluster_id(from._internal_cluster_id());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueXferTimingProxySample::CopyFrom(const XueXferTimingProxySample& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.XueXferTimingProxySample)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueXferTimingProxySample::IsInitialized() const {
+  return true;
+}
+
+void XueXferTimingProxySample::InternalSwap(XueXferTimingProxySample* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(XueXferTimingProxySample, _impl_.cluster_id_)
+      + sizeof(XueXferTimingProxySample::_impl_.cluster_id_)
+      - PROTOBUF_FIELD_OFFSET(XueXferTimingProxySample, _impl_.proxy_pure_xfer_sec_)>(
+          reinterpret_cast<char*>(&_impl_.proxy_pure_xfer_sec_),
+          reinterpret_cast<char*>(&other->_impl_.proxy_pure_xfer_sec_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueXferTimingProxySample::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[19]);
+}
+
+// ===================================================================
+
+class XueXferTimingSummary::_Internal {
+ public:
+};
+
+XueXferTimingSummary::XueXferTimingSummary(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coordinator_proto.XueXferTimingSummary)
+}
+XueXferTimingSummary::XueXferTimingSummary(const XueXferTimingSummary& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueXferTimingSummary* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.proxies_){from._impl_.proxies_}
+    , decltype(_impl_.max_proxy_pure_xfer_sec_){}
+    , decltype(_impl_.cluster_pure_xfer_span_wall_sec_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.max_proxy_pure_xfer_sec_, &from._impl_.max_proxy_pure_xfer_sec_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.cluster_pure_xfer_span_wall_sec_) -
+    reinterpret_cast<char*>(&_impl_.max_proxy_pure_xfer_sec_)) + sizeof(_impl_.cluster_pure_xfer_span_wall_sec_));
+  // @@protoc_insertion_point(copy_constructor:coordinator_proto.XueXferTimingSummary)
+}
+
+inline void XueXferTimingSummary::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.proxies_){arena}
+    , decltype(_impl_.max_proxy_pure_xfer_sec_){0}
+    , decltype(_impl_.cluster_pure_xfer_span_wall_sec_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+XueXferTimingSummary::~XueXferTimingSummary() {
+  // @@protoc_insertion_point(destructor:coordinator_proto.XueXferTimingSummary)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueXferTimingSummary::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.proxies_.~RepeatedPtrField();
+}
+
+void XueXferTimingSummary::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueXferTimingSummary::Clear() {
+// @@protoc_insertion_point(message_clear_start:coordinator_proto.XueXferTimingSummary)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.proxies_.Clear();
+  ::memset(&_impl_.max_proxy_pure_xfer_sec_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.cluster_pure_xfer_span_wall_sec_) -
+      reinterpret_cast<char*>(&_impl_.max_proxy_pure_xfer_sec_)) + sizeof(_impl_.cluster_pure_xfer_span_wall_sec_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueXferTimingSummary::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // repeated .coordinator_proto.XueXferTimingProxySample proxies = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_proxies(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // double max_proxy_pure_xfer_sec = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 17)) {
+          _impl_.max_proxy_pure_xfer_sec_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
+        } else
+          goto handle_unusual;
+        continue;
+      // double cluster_pure_xfer_span_wall_sec = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 25)) {
+          _impl_.cluster_pure_xfer_span_wall_sec_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueXferTimingSummary::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coordinator_proto.XueXferTimingSummary)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated .coordinator_proto.XueXferTimingProxySample proxies = 1;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_proxies_size()); i < n; i++) {
+    const auto& repfield = this->_internal_proxies(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(1, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
+  // double max_proxy_pure_xfer_sec = 2;
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_max_proxy_pure_xfer_sec = this->_internal_max_proxy_pure_xfer_sec();
+  uint64_t raw_max_proxy_pure_xfer_sec;
+  memcpy(&raw_max_proxy_pure_xfer_sec, &tmp_max_proxy_pure_xfer_sec, sizeof(tmp_max_proxy_pure_xfer_sec));
+  if (raw_max_proxy_pure_xfer_sec != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteDoubleToArray(2, this->_internal_max_proxy_pure_xfer_sec(), target);
+  }
+
+  // double cluster_pure_xfer_span_wall_sec = 3;
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_cluster_pure_xfer_span_wall_sec = this->_internal_cluster_pure_xfer_span_wall_sec();
+  uint64_t raw_cluster_pure_xfer_span_wall_sec;
+  memcpy(&raw_cluster_pure_xfer_span_wall_sec, &tmp_cluster_pure_xfer_span_wall_sec, sizeof(tmp_cluster_pure_xfer_span_wall_sec));
+  if (raw_cluster_pure_xfer_span_wall_sec != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteDoubleToArray(3, this->_internal_cluster_pure_xfer_span_wall_sec(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coordinator_proto.XueXferTimingSummary)
+  return target;
+}
+
+size_t XueXferTimingSummary::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coordinator_proto.XueXferTimingSummary)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated .coordinator_proto.XueXferTimingProxySample proxies = 1;
+  total_size += 1UL * this->_internal_proxies_size();
+  for (const auto& msg : this->_impl_.proxies_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // double max_proxy_pure_xfer_sec = 2;
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_max_proxy_pure_xfer_sec = this->_internal_max_proxy_pure_xfer_sec();
+  uint64_t raw_max_proxy_pure_xfer_sec;
+  memcpy(&raw_max_proxy_pure_xfer_sec, &tmp_max_proxy_pure_xfer_sec, sizeof(tmp_max_proxy_pure_xfer_sec));
+  if (raw_max_proxy_pure_xfer_sec != 0) {
+    total_size += 1 + 8;
+  }
+
+  // double cluster_pure_xfer_span_wall_sec = 3;
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_cluster_pure_xfer_span_wall_sec = this->_internal_cluster_pure_xfer_span_wall_sec();
+  uint64_t raw_cluster_pure_xfer_span_wall_sec;
+  memcpy(&raw_cluster_pure_xfer_span_wall_sec, &tmp_cluster_pure_xfer_span_wall_sec, sizeof(tmp_cluster_pure_xfer_span_wall_sec));
+  if (raw_cluster_pure_xfer_span_wall_sec != 0) {
+    total_size += 1 + 8;
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueXferTimingSummary::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueXferTimingSummary::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueXferTimingSummary::GetClassData() const { return &_class_data_; }
+
+
+void XueXferTimingSummary::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueXferTimingSummary*>(&to_msg);
+  auto& from = static_cast<const XueXferTimingSummary&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coordinator_proto.XueXferTimingSummary)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.proxies_.MergeFrom(from._impl_.proxies_);
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_max_proxy_pure_xfer_sec = from._internal_max_proxy_pure_xfer_sec();
+  uint64_t raw_max_proxy_pure_xfer_sec;
+  memcpy(&raw_max_proxy_pure_xfer_sec, &tmp_max_proxy_pure_xfer_sec, sizeof(tmp_max_proxy_pure_xfer_sec));
+  if (raw_max_proxy_pure_xfer_sec != 0) {
+    _this->_internal_set_max_proxy_pure_xfer_sec(from._internal_max_proxy_pure_xfer_sec());
+  }
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_cluster_pure_xfer_span_wall_sec = from._internal_cluster_pure_xfer_span_wall_sec();
+  uint64_t raw_cluster_pure_xfer_span_wall_sec;
+  memcpy(&raw_cluster_pure_xfer_span_wall_sec, &tmp_cluster_pure_xfer_span_wall_sec, sizeof(tmp_cluster_pure_xfer_span_wall_sec));
+  if (raw_cluster_pure_xfer_span_wall_sec != 0) {
+    _this->_internal_set_cluster_pure_xfer_span_wall_sec(from._internal_cluster_pure_xfer_span_wall_sec());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueXferTimingSummary::CopyFrom(const XueXferTimingSummary& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coordinator_proto.XueXferTimingSummary)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueXferTimingSummary::IsInitialized() const {
+  return true;
+}
+
+void XueXferTimingSummary::InternalSwap(XueXferTimingSummary* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.proxies_.InternalSwap(&other->_impl_.proxies_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(XueXferTimingSummary, _impl_.cluster_pure_xfer_span_wall_sec_)
+      + sizeof(XueXferTimingSummary::_impl_.cluster_pure_xfer_span_wall_sec_)
+      - PROTOBUF_FIELD_OFFSET(XueXferTimingSummary, _impl_.max_proxy_pure_xfer_sec_)>(
+          reinterpret_cast<char*>(&_impl_.max_proxy_pure_xfer_sec_),
+          reinterpret_cast<char*>(&other->_impl_.max_proxy_pure_xfer_sec_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueXferTimingSummary::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
+      file_level_metadata_coordinator_2eproto[20]);
 }
 
 // ===================================================================
@@ -6573,7 +7441,7 @@ void AskIfSuccess::InternalSwap(AskIfSuccess* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata AskIfSuccess::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[18]);
+      file_level_metadata_coordinator_2eproto[21]);
 }
 
 // ===================================================================
@@ -6751,7 +7619,7 @@ void RepIfSuccess::InternalSwap(RepIfSuccess* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RepIfSuccess::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[19]);
+      file_level_metadata_coordinator_2eproto[22]);
 }
 
 // ===================================================================
@@ -7031,7 +7899,7 @@ void KeyAndClientIP::InternalSwap(KeyAndClientIP* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata KeyAndClientIP::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[20]);
+      file_level_metadata_coordinator_2eproto[23]);
 }
 
 // ===================================================================
@@ -7242,7 +8110,7 @@ void RepIfGetSuccess::InternalSwap(RepIfGetSuccess* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RepIfGetSuccess::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[21]);
+      file_level_metadata_coordinator_2eproto[24]);
 }
 
 // ===================================================================
@@ -7553,7 +8421,7 @@ void BlockIDsAndClientIP::InternalSwap(BlockIDsAndClientIP* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata BlockIDsAndClientIP::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[22]);
+      file_level_metadata_coordinator_2eproto[25]);
 }
 
 // ===================================================================
@@ -7764,7 +8632,7 @@ void LogicalRange::InternalSwap(LogicalRange* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata LogicalRange::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[23]);
+      file_level_metadata_coordinator_2eproto[26]);
 }
 
 // ===================================================================
@@ -8028,7 +8896,7 @@ void XueUpdateRequest::InternalSwap(XueUpdateRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata XueUpdateRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[24]);
+      file_level_metadata_coordinator_2eproto[27]);
 }
 
 // ===================================================================
@@ -8231,7 +9099,7 @@ void KeyFromClient::InternalSwap(KeyFromClient* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata KeyFromClient::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[25]);
+      file_level_metadata_coordinator_2eproto[28]);
 }
 
 // ===================================================================
@@ -8409,7 +9277,7 @@ void StripeIdFromClient::InternalSwap(StripeIdFromClient* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata StripeIdFromClient::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[26]);
+      file_level_metadata_coordinator_2eproto[29]);
 }
 
 // ===================================================================
@@ -8629,7 +9497,7 @@ void StripeIdAndBlockIDsFromClient::InternalSwap(StripeIdAndBlockIDsFromClient* 
 ::PROTOBUF_NAMESPACE_ID::Metadata StripeIdAndBlockIDsFromClient::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[27]);
+      file_level_metadata_coordinator_2eproto[30]);
 }
 
 // ===================================================================
@@ -8807,7 +9675,7 @@ void NodeIdFromClient::InternalSwap(NodeIdFromClient* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata NodeIdFromClient::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[28]);
+      file_level_metadata_coordinator_2eproto[31]);
 }
 
 // ===================================================================
@@ -8985,7 +9853,7 @@ void RepIfDeling::InternalSwap(RepIfDeling* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RepIfDeling::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[29]);
+      file_level_metadata_coordinator_2eproto[32]);
 }
 
 // ===================================================================
@@ -9178,7 +10046,7 @@ void RepStripeIds::InternalSwap(RepStripeIds* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RepStripeIds::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[30]);
+      file_level_metadata_coordinator_2eproto[33]);
 }
 
 // ===================================================================
@@ -9356,7 +10224,7 @@ void RepBlockNum::InternalSwap(RepBlockNum* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RepBlockNum::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[31]);
+      file_level_metadata_coordinator_2eproto[34]);
 }
 
 // ===================================================================
@@ -9663,7 +10531,7 @@ void DegradedReadReply::InternalSwap(DegradedReadReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata DegradedReadReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[32]);
+      file_level_metadata_coordinator_2eproto[35]);
 }
 
 // ===================================================================
@@ -10006,7 +10874,7 @@ void RecoveryReply::InternalSwap(RecoveryReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RecoveryReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coordinator_2eproto_getter, &descriptor_table_coordinator_2eproto_once,
-      file_level_metadata_coordinator_2eproto[33]);
+      file_level_metadata_coordinator_2eproto[36]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -10083,6 +10951,18 @@ Arena::CreateMaybeMessage< ::coordinator_proto::XueScheduleHopWait >(Arena* aren
 template<> PROTOBUF_NOINLINE ::coordinator_proto::ReplyProxyIPsPorts*
 Arena::CreateMaybeMessage< ::coordinator_proto::ReplyProxyIPsPorts >(Arena* arena) {
   return Arena::CreateMessageInternal< ::coordinator_proto::ReplyProxyIPsPorts >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::XueXferTimingPull*
+Arena::CreateMaybeMessage< ::coordinator_proto::XueXferTimingPull >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::XueXferTimingPull >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::XueXferTimingProxySample*
+Arena::CreateMaybeMessage< ::coordinator_proto::XueXferTimingProxySample >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::XueXferTimingProxySample >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coordinator_proto::XueXferTimingSummary*
+Arena::CreateMaybeMessage< ::coordinator_proto::XueXferTimingSummary >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coordinator_proto::XueXferTimingSummary >(arena);
 }
 template<> PROTOBUF_NOINLINE ::coordinator_proto::AskIfSuccess*
 Arena::CreateMaybeMessage< ::coordinator_proto::AskIfSuccess >(Arena* arena) {

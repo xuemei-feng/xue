@@ -17,6 +17,24 @@
 #include <mutex>
 namespace ECProject
 {
+  struct XueAppendNetworkTiming
+  {
+    double tcp_resolve_connect_write_shutdown_s = 0;
+    double coordinator_checkCommitAbort_s = 0;
+  };
+
+  struct XueClientTimingSummary
+  {
+    double coordinator_uploadXueUpdate_s = 0;
+    double prepare_parse_pack_encode_s = 0;
+    double sum_tcp_to_proxy_s = 0;
+    double sum_coordinator_checkCommitAbort_s = 0;
+    double wait_all_ingress_ready_s = 0;
+    double sum_release_schedule_wave_s = 0;
+    double ingress_parallel_wave_tcp_wall_s = 0;
+    double total_client_xue_s = 0;
+  };
+
   class Client
   {
   public:
@@ -97,18 +115,24 @@ namespace ECProject
     void split_for_set_data_and_parity(const coordinator_proto::ReplyProxyIPsPorts *reply_proxy_ips_ports, const std::vector<char *> &cluster_slice_data, const std::vector<int> &data_block_num_per_group, const std::vector<int> &global_parity_block_num_per_group, const std::vector<int> &local_parity_block_num_per_group, std::vector<char *> &data_ptr_array, std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array);
     void async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size,
                                  std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr,
-                                 bool poll_commit_after_send = true);
+                                 bool poll_commit_after_send = true,
+                                 XueAppendNetworkTiming *out_timing = nullptr);
     void launch_append_to_proxies_serial_per_endpoint(
         const coordinator_proto::ReplyProxyIPsPorts &reply, const char *send_buf,
         bool *if_commit_arr);
     void launch_append_subset_serial_per_endpoint(
         const coordinator_proto::ReplyProxyIPsPorts &reply, const char *send_buf,
-        bool *if_commit_arr, const std::vector<int> &indices, bool poll_commit_after_send);
+        bool *if_commit_arr, const std::vector<int> &indices, bool poll_commit_after_send,
+        XueClientTimingSummary *timing = nullptr);
     bool poll_append_commit(const std::string &append_key);
     bool xue_update_strict_schedule(const coordinator_proto::ReplyProxyIPsPorts &reply,
-                                    const char *send_buf, bool *if_commit_arr);
+                                    const char *send_buf, bool *if_commit_arr,
+                                    XueClientTimingSummary *timing);
     bool xue_update_follow_schedule(const coordinator_proto::ReplyProxyIPsPorts &reply,
-                                    const char *send_buf, bool *if_commit_arr);
+                                    const char *send_buf, bool *if_commit_arr,
+                                    XueClientTimingSummary *timing);
+    void log_xue_client_timing_summary(int stripe_id, uint64_t xue_xfer_plan_id,
+                                       const XueClientTimingSummary &timing) const;
     void get_cached_parity_slices(std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array, const int parity_slice_size, const int parity_slice_offset);
     void cache_latest_parity_slices(std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array, const int parity_slice_size, const int parity_slice_offset);
     std::vector<int> get_parameters();

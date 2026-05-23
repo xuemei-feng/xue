@@ -102,6 +102,12 @@ extern StripeAndBlockIDsDefaultTypeInternal _StripeAndBlockIDs_default_instance_
 class XueStrictOutgoingHop;
 struct XueStrictOutgoingHopDefaultTypeInternal;
 extern XueStrictOutgoingHopDefaultTypeInternal _XueStrictOutgoingHop_default_instance_;
+class XueXferTimingProxyReply;
+struct XueXferTimingProxyReplyDefaultTypeInternal;
+extern XueXferTimingProxyReplyDefaultTypeInternal _XueXferTimingProxyReply_default_instance_;
+class XueXferTimingPull;
+struct XueXferTimingPullDefaultTypeInternal;
+extern XueXferTimingPullDefaultTypeInternal _XueXferTimingPull_default_instance_;
 class blockRelocPlan;
 struct blockRelocPlanDefaultTypeInternal;
 extern blockRelocPlanDefaultTypeInternal _blockRelocPlan_default_instance_;
@@ -138,6 +144,8 @@ template<> ::proxy_proto::RequestResult* Arena::CreateMaybeMessage<::proxy_proto
 template<> ::proxy_proto::SetReply* Arena::CreateMaybeMessage<::proxy_proto::SetReply>(Arena*);
 template<> ::proxy_proto::StripeAndBlockIDs* Arena::CreateMaybeMessage<::proxy_proto::StripeAndBlockIDs>(Arena*);
 template<> ::proxy_proto::XueStrictOutgoingHop* Arena::CreateMaybeMessage<::proxy_proto::XueStrictOutgoingHop>(Arena*);
+template<> ::proxy_proto::XueXferTimingProxyReply* Arena::CreateMaybeMessage<::proxy_proto::XueXferTimingProxyReply>(Arena*);
+template<> ::proxy_proto::XueXferTimingPull* Arena::CreateMaybeMessage<::proxy_proto::XueXferTimingPull>(Arena*);
 template<> ::proxy_proto::blockRelocPlan* Arena::CreateMaybeMessage<::proxy_proto::blockRelocPlan>(Arena*);
 template<> ::proxy_proto::blockRelocReply* Arena::CreateMaybeMessage<::proxy_proto::blockRelocReply>(Arena*);
 template<> ::proxy_proto::helpRecalPlan* Arena::CreateMaybeMessage<::proxy_proto::helpRecalPlan>(Arena*);
@@ -4907,6 +4915,7 @@ class AppendStripeDataPlacement final :
     kXueDataSlicesAreDeltaFieldNumber = 18,
     kXueSendAckFieldNumber = 19,
     kXueStrictScheduleFieldNumber = 22,
+    kXueXferPlanIdFieldNumber = 24,
     kXueTcpSliceCountFieldNumber = 20,
   };
   // repeated string datanodeip = 5;
@@ -5221,6 +5230,15 @@ class AppendStripeDataPlacement final :
   void _internal_set_xue_strict_schedule(bool value);
   public:
 
+  // uint64 xue_xfer_plan_id = 24;
+  void clear_xue_xfer_plan_id();
+  uint64_t xue_xfer_plan_id() const;
+  void set_xue_xfer_plan_id(uint64_t value);
+  private:
+  uint64_t _internal_xue_xfer_plan_id() const;
+  void _internal_set_xue_xfer_plan_id(uint64_t value);
+  public:
+
   // int32 xue_tcp_slice_count = 20;
   void clear_xue_tcp_slice_count();
   int32_t xue_tcp_slice_count() const;
@@ -5265,7 +5283,337 @@ class AppendStripeDataPlacement final :
     bool xue_data_slices_are_delta_;
     bool xue_send_ack_;
     bool xue_strict_schedule_;
+    uint64_t xue_xfer_plan_id_;
     int32_t xue_tcp_slice_count_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class XueXferTimingPull final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.XueXferTimingPull) */ {
+ public:
+  inline XueXferTimingPull() : XueXferTimingPull(nullptr) {}
+  ~XueXferTimingPull() override;
+  explicit PROTOBUF_CONSTEXPR XueXferTimingPull(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  XueXferTimingPull(const XueXferTimingPull& from);
+  XueXferTimingPull(XueXferTimingPull&& from) noexcept
+    : XueXferTimingPull() {
+    *this = ::std::move(from);
+  }
+
+  inline XueXferTimingPull& operator=(const XueXferTimingPull& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline XueXferTimingPull& operator=(XueXferTimingPull&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const XueXferTimingPull& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const XueXferTimingPull* internal_default_instance() {
+    return reinterpret_cast<const XueXferTimingPull*>(
+               &_XueXferTimingPull_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    20;
+
+  friend void swap(XueXferTimingPull& a, XueXferTimingPull& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(XueXferTimingPull* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(XueXferTimingPull* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  XueXferTimingPull* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<XueXferTimingPull>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const XueXferTimingPull& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const XueXferTimingPull& from) {
+    XueXferTimingPull::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(XueXferTimingPull* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.XueXferTimingPull";
+  }
+  protected:
+  explicit XueXferTimingPull(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kXueXferPlanIdFieldNumber = 2,
+    kStripeIdFieldNumber = 1,
+  };
+  // uint64 xue_xfer_plan_id = 2;
+  void clear_xue_xfer_plan_id();
+  uint64_t xue_xfer_plan_id() const;
+  void set_xue_xfer_plan_id(uint64_t value);
+  private:
+  uint64_t _internal_xue_xfer_plan_id() const;
+  void _internal_set_xue_xfer_plan_id(uint64_t value);
+  public:
+
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.XueXferTimingPull)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    uint64_t xue_xfer_plan_id_;
+    int32_t stripe_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class XueXferTimingProxyReply final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.XueXferTimingProxyReply) */ {
+ public:
+  inline XueXferTimingProxyReply() : XueXferTimingProxyReply(nullptr) {}
+  ~XueXferTimingProxyReply() override;
+  explicit PROTOBUF_CONSTEXPR XueXferTimingProxyReply(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  XueXferTimingProxyReply(const XueXferTimingProxyReply& from);
+  XueXferTimingProxyReply(XueXferTimingProxyReply&& from) noexcept
+    : XueXferTimingProxyReply() {
+    *this = ::std::move(from);
+  }
+
+  inline XueXferTimingProxyReply& operator=(const XueXferTimingProxyReply& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline XueXferTimingProxyReply& operator=(XueXferTimingProxyReply&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const XueXferTimingProxyReply& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const XueXferTimingProxyReply* internal_default_instance() {
+    return reinterpret_cast<const XueXferTimingProxyReply*>(
+               &_XueXferTimingProxyReply_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    21;
+
+  friend void swap(XueXferTimingProxyReply& a, XueXferTimingProxyReply& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(XueXferTimingProxyReply* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(XueXferTimingProxyReply* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  XueXferTimingProxyReply* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<XueXferTimingProxyReply>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const XueXferTimingProxyReply& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const XueXferTimingProxyReply& from) {
+    XueXferTimingProxyReply::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(XueXferTimingProxyReply* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.XueXferTimingProxyReply";
+  }
+  protected:
+  explicit XueXferTimingProxyReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kProxyPureXferSecFieldNumber = 1,
+    kWallSpanStartUnixMsFieldNumber = 2,
+    kWallSpanEndUnixMsFieldNumber = 3,
+  };
+  // double proxy_pure_xfer_sec = 1;
+  void clear_proxy_pure_xfer_sec();
+  double proxy_pure_xfer_sec() const;
+  void set_proxy_pure_xfer_sec(double value);
+  private:
+  double _internal_proxy_pure_xfer_sec() const;
+  void _internal_set_proxy_pure_xfer_sec(double value);
+  public:
+
+  // int64 wall_span_start_unix_ms = 2;
+  void clear_wall_span_start_unix_ms();
+  int64_t wall_span_start_unix_ms() const;
+  void set_wall_span_start_unix_ms(int64_t value);
+  private:
+  int64_t _internal_wall_span_start_unix_ms() const;
+  void _internal_set_wall_span_start_unix_ms(int64_t value);
+  public:
+
+  // int64 wall_span_end_unix_ms = 3;
+  void clear_wall_span_end_unix_ms();
+  int64_t wall_span_end_unix_ms() const;
+  void set_wall_span_end_unix_ms(int64_t value);
+  private:
+  int64_t _internal_wall_span_end_unix_ms() const;
+  void _internal_set_wall_span_end_unix_ms(int64_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.XueXferTimingProxyReply)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    double proxy_pure_xfer_sec_;
+    int64_t wall_span_start_unix_ms_;
+    int64_t wall_span_end_unix_ms_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -5321,7 +5669,7 @@ class XueStrictOutgoingHop final :
                &_XueStrictOutgoingHop_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    22;
 
   friend void swap(XueStrictOutgoingHop& a, XueStrictOutgoingHop& b) {
     a.Swap(&b);
@@ -5485,7 +5833,7 @@ class SetReply final :
                &_SetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    23;
 
   friend void swap(SetReply& a, SetReply& b) {
     a.Swap(&b);
@@ -5633,7 +5981,7 @@ class GetReply final :
                &_GetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    24;
 
   friend void swap(GetReply& a, GetReply& b) {
     a.Swap(&b);
@@ -5781,7 +6129,7 @@ class StripeAndBlockIDs final :
                &_StripeAndBlockIDs_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    25;
 
   friend void swap(StripeAndBlockIDs& a, StripeAndBlockIDs& b) {
     a.Swap(&b);
@@ -11459,6 +11807,134 @@ AppendStripeDataPlacement::xue_strict_outgoing() const {
   return _impl_.xue_strict_outgoing_;
 }
 
+// uint64 xue_xfer_plan_id = 24;
+inline void AppendStripeDataPlacement::clear_xue_xfer_plan_id() {
+  _impl_.xue_xfer_plan_id_ = uint64_t{0u};
+}
+inline uint64_t AppendStripeDataPlacement::_internal_xue_xfer_plan_id() const {
+  return _impl_.xue_xfer_plan_id_;
+}
+inline uint64_t AppendStripeDataPlacement::xue_xfer_plan_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.xue_xfer_plan_id)
+  return _internal_xue_xfer_plan_id();
+}
+inline void AppendStripeDataPlacement::_internal_set_xue_xfer_plan_id(uint64_t value) {
+  
+  _impl_.xue_xfer_plan_id_ = value;
+}
+inline void AppendStripeDataPlacement::set_xue_xfer_plan_id(uint64_t value) {
+  _internal_set_xue_xfer_plan_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.xue_xfer_plan_id)
+}
+
+// -------------------------------------------------------------------
+
+// XueXferTimingPull
+
+// int32 stripe_id = 1;
+inline void XueXferTimingPull::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t XueXferTimingPull::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t XueXferTimingPull::stripe_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueXferTimingPull.stripe_id)
+  return _internal_stripe_id();
+}
+inline void XueXferTimingPull::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void XueXferTimingPull::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueXferTimingPull.stripe_id)
+}
+
+// uint64 xue_xfer_plan_id = 2;
+inline void XueXferTimingPull::clear_xue_xfer_plan_id() {
+  _impl_.xue_xfer_plan_id_ = uint64_t{0u};
+}
+inline uint64_t XueXferTimingPull::_internal_xue_xfer_plan_id() const {
+  return _impl_.xue_xfer_plan_id_;
+}
+inline uint64_t XueXferTimingPull::xue_xfer_plan_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueXferTimingPull.xue_xfer_plan_id)
+  return _internal_xue_xfer_plan_id();
+}
+inline void XueXferTimingPull::_internal_set_xue_xfer_plan_id(uint64_t value) {
+  
+  _impl_.xue_xfer_plan_id_ = value;
+}
+inline void XueXferTimingPull::set_xue_xfer_plan_id(uint64_t value) {
+  _internal_set_xue_xfer_plan_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueXferTimingPull.xue_xfer_plan_id)
+}
+
+// -------------------------------------------------------------------
+
+// XueXferTimingProxyReply
+
+// double proxy_pure_xfer_sec = 1;
+inline void XueXferTimingProxyReply::clear_proxy_pure_xfer_sec() {
+  _impl_.proxy_pure_xfer_sec_ = 0;
+}
+inline double XueXferTimingProxyReply::_internal_proxy_pure_xfer_sec() const {
+  return _impl_.proxy_pure_xfer_sec_;
+}
+inline double XueXferTimingProxyReply::proxy_pure_xfer_sec() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueXferTimingProxyReply.proxy_pure_xfer_sec)
+  return _internal_proxy_pure_xfer_sec();
+}
+inline void XueXferTimingProxyReply::_internal_set_proxy_pure_xfer_sec(double value) {
+  
+  _impl_.proxy_pure_xfer_sec_ = value;
+}
+inline void XueXferTimingProxyReply::set_proxy_pure_xfer_sec(double value) {
+  _internal_set_proxy_pure_xfer_sec(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueXferTimingProxyReply.proxy_pure_xfer_sec)
+}
+
+// int64 wall_span_start_unix_ms = 2;
+inline void XueXferTimingProxyReply::clear_wall_span_start_unix_ms() {
+  _impl_.wall_span_start_unix_ms_ = int64_t{0};
+}
+inline int64_t XueXferTimingProxyReply::_internal_wall_span_start_unix_ms() const {
+  return _impl_.wall_span_start_unix_ms_;
+}
+inline int64_t XueXferTimingProxyReply::wall_span_start_unix_ms() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueXferTimingProxyReply.wall_span_start_unix_ms)
+  return _internal_wall_span_start_unix_ms();
+}
+inline void XueXferTimingProxyReply::_internal_set_wall_span_start_unix_ms(int64_t value) {
+  
+  _impl_.wall_span_start_unix_ms_ = value;
+}
+inline void XueXferTimingProxyReply::set_wall_span_start_unix_ms(int64_t value) {
+  _internal_set_wall_span_start_unix_ms(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueXferTimingProxyReply.wall_span_start_unix_ms)
+}
+
+// int64 wall_span_end_unix_ms = 3;
+inline void XueXferTimingProxyReply::clear_wall_span_end_unix_ms() {
+  _impl_.wall_span_end_unix_ms_ = int64_t{0};
+}
+inline int64_t XueXferTimingProxyReply::_internal_wall_span_end_unix_ms() const {
+  return _impl_.wall_span_end_unix_ms_;
+}
+inline int64_t XueXferTimingProxyReply::wall_span_end_unix_ms() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueXferTimingProxyReply.wall_span_end_unix_ms)
+  return _internal_wall_span_end_unix_ms();
+}
+inline void XueXferTimingProxyReply::_internal_set_wall_span_end_unix_ms(int64_t value) {
+  
+  _impl_.wall_span_end_unix_ms_ = value;
+}
+inline void XueXferTimingProxyReply::set_wall_span_end_unix_ms(int64_t value) {
+  _internal_set_wall_span_end_unix_ms(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueXferTimingProxyReply.wall_span_end_unix_ms)
+}
+
 // -------------------------------------------------------------------
 
 // XueStrictOutgoingHop
@@ -11942,6 +12418,10 @@ StripeAndBlockIDs::mutable_datanodeports() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

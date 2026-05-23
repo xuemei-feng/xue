@@ -43,6 +43,8 @@ service coordinatorService {
   // legacy wave/hop barriers (fallback when xue_transfer_steps empty)
   rpc releaseXueScheduleWave (XueScheduleWaveRelease) returns (ReplyFromCoordinator) {};
   rpc waitXueScheduleHop (XueScheduleHopWait) returns (ReplyFromCoordinator) {};
+  // xue update timing (cluster pure xfer aggregation)
+  rpc pullXueXferTiming (XueXferTimingPull) returns (XueXferTimingSummary) {};
   // get
   rpc getValue(KeyAndClientIP) returns (RepIfGetSuccess) {};
 
@@ -201,6 +203,26 @@ message ReplyProxyIPsPorts {
   int32 xue_schedule_stripe_id = 10;
   repeated XueTransferStepInfo xue_transfer_steps = 11;
   int32 xue_schedule_num_groups = 12;
+  // correlates client/proxy timing samples for one XUE update round
+  uint64 xue_xfer_plan_id = 13;
+}
+
+message XueXferTimingPull {
+  int32 stripe_id = 1;
+  uint64 xue_xfer_plan_id = 2;
+}
+
+message XueXferTimingProxySample {
+  int32 cluster_id = 1;
+  double proxy_pure_xfer_sec = 2;
+  int64 wall_span_start_unix_ms = 3;
+  int64 wall_span_end_unix_ms = 4;
+}
+
+message XueXferTimingSummary {
+  repeated XueXferTimingProxySample proxies = 1;
+  double max_proxy_pure_xfer_sec = 2;
+  double cluster_pure_xfer_span_wall_sec = 3;
 }
 
 // set, del, merge

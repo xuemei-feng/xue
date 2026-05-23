@@ -20,6 +20,7 @@
 #include <condition_variable>
 #include <atomic>
 #include <functional>
+#include <chrono>
 // #define IF_DEBUG true
 #define IF_DEBUG false
 namespace ECProject
@@ -61,6 +62,10 @@ namespace ECProject
         grpc::ServerContext *context,
         const proxy_proto::AppendStripeDataPlacement *append_stripe_data_placement,
         proxy_proto::SetReply *response) override;
+    grpc::Status xuePullXferTiming(
+        grpc::ServerContext *context,
+        const proxy_proto::XueXferTimingPull *request,
+        proxy_proto::XueXferTimingProxyReply *response) override;
     // decode and get
     grpc::Status decodeAndGetObject(
         grpc::ServerContext *context,
@@ -138,6 +143,10 @@ namespace ECProject
     void reportXueScheduleStepDoneAfterForward(int stripe_id, const std::string &append_key,
                                                int from_cluster, int to_cluster, bool success);
     void reportXueIngressReadyToCoordinator(int stripe_id, const std::string &append_key);
+    void record_xue_xfer_sample(int stripe_id, uint64_t xue_xfer_plan_id,
+                                const std::chrono::steady_clock::time_point &t0,
+                                const std::chrono::steady_clock::time_point &t1,
+                                int64_t wall_ms_start, int64_t wall_ms_end);
     void runXueStrictDeferredForwards(
         std::shared_ptr<proxy_proto::AppendStripeDataPlacement> placement,
         std::shared_ptr<std::vector<char>> append_buf, std::vector<char *> slices,
@@ -205,6 +214,16 @@ namespace ECProject
     XueParityWriteStats flushXueGlobalParityIngressBatch(int stripe_id);
     std::mutex m_xue_global_parity_ingress_mutex;
     std::map<int, XueGlobalParityIngressBatch> m_xue_global_parity_ingress_batches;
+
+    struct XueXferBatchAccumulator
+    {
+      double pure_xfer_sec_sum = 0;
+      int64_t wall_span_start_ms = 0;
+      int64_t wall_span_end_ms = 0;
+      bool has_wall = false;
+    };
+    std::mutex m_xue_xfer_timing_mutex;
+    std::map<std::pair<int, uint64_t>, XueXferBatchAccumulator> m_xue_xfer_batches;
 
     void ensure_client_append_worker();
     void client_append_worker_loop();

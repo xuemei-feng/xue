@@ -14,6 +14,7 @@
 #include <string>
 #include <thread>
 #include <condition_variable>
+#include <atomic>
 #include <config.h>
 #include <toolbox.h>
 #include "unilrc_encoder.h"
@@ -97,6 +98,10 @@ namespace ECProject
         grpc::ServerContext *context,
         const coordinator_proto::XueScheduleStepDone *request,
         coordinator_proto::ReplyFromCoordinator *reply) override;
+    grpc::Status pullXueXferTiming(
+        grpc::ServerContext *context,
+        const coordinator_proto::XueXferTimingPull *request,
+        coordinator_proto::XueXferTimingSummary *response) override;
     // get
     grpc::Status getValue(
         grpc::ServerContext *context,
@@ -255,6 +260,7 @@ namespace ECProject
     std::mutex m_xue_schedule_mutex;
     std::map<int, std::shared_ptr<XueStrictScheduleSession>> m_xue_strict_by_stripe;
     std::map<int, XueWaveScheduleState> m_xue_wave_by_stripe;
+    std::atomic<uint64_t> m_next_xue_xfer_plan_id{1};
 
   private:
     std::mutex m_mutex;

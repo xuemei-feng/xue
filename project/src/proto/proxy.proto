@@ -40,6 +40,7 @@ service proxyService {
   rpc deleteBlock(NodeAndBlock) returns (DelReply);
   // append
   rpc scheduleAppend2Datanode(AppendStripeDataPlacement) returns (SetReply);
+  rpc xuePullXferTiming(XueXferTimingPull) returns (XueXferTimingProxyReply);
   // get stripe
   rpc getBlocks(StripeAndBlockIDs) returns (GetReply);
 }
@@ -268,6 +269,18 @@ message AppendStripeDataPlacement{
   bool xue_strict_schedule = 22;
   // strict schedule: network hops this ingress proxy must run (from scheduled_tasks)
   repeated XueStrictOutgoingHop xue_strict_outgoing = 23;
+  uint64 xue_xfer_plan_id = 24;
+}
+
+message XueXferTimingPull {
+  int32 stripe_id = 1;
+  uint64 xue_xfer_plan_id = 2;
+}
+
+message XueXferTimingProxyReply {
+  double proxy_pure_xfer_sec = 1;
+  int64 wall_span_start_unix_ms = 2;
+  int64 wall_span_end_unix_ms = 3;
 }
 
 message XueStrictOutgoingHop {

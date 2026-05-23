@@ -61,6 +61,37 @@ namespace
     std::cout << "[Proxy][XFERT] " << ts << " " << line << std::endl;
   }
 
+  int64_t xue_wall_unix_ms_now()
+  {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::system_clock::now().time_since_epoch())
+        .count();
+  }
+
+  struct XueXferScopeTimer
+  {
+    ECProject::ProxyImpl *self = nullptr;
+    int stripe_id = -1;
+    uint64_t plan_id = 0;
+    bool active = false;
+    std::chrono::steady_clock::time_point t0{};
+    int64_t w0 = 0;
+
+    void flush()
+    {
+      if (!active || self == nullptr || plan_id == 0)
+      {
+        active = false;
+        return;
+      }
+      active = false;
+      self->record_xue_xfer_sample(stripe_id, plan_id, t0, std::chrono::steady_clock::now(), w0,
+                                   xue_wall_unix_ms_now());
+    }
+
+    ~XueXferScopeTimer() { flush(); }
+  };
+
   std::string fmt_proxy_tcp_route(int from_cluster, int to_cluster)
   {
     if (from_cluster < 0)
@@ -720,6 +751,67 @@ namespace ECProject
     }
   }
 
+  void ProxyImpl::record_xue_xfer_sample(int stripe_id, uint64_t xue_xfer_plan_id,
+                                         const std::chrono::steady_clock::time_point &t0,
+                                         const std::chrono::steady_clock::time_point &t1,
+                                         int64_t wall_ms_start, int64_t wall_ms_end)
+  {
+    if (xue_xfer_plan_id == 0)
+    {
+      return;
+    }
+    const double pure_sec =
+        std::chrono::duration_cast<std::chrono::duration<double>>(t1 - t0).count();
+    std::lock_guard<std::mutex> lk(m_xue_xfer_timing_mutex);
+    XueXferBatchAccumulator &acc = m_xue_xfer_batches[{stripe_id, xue_xfer_plan_id}];
+    acc.pure_xfer_sec_sum += pure_sec;
+    if (!acc.has_wall)
+    {
+      acc.wall_span_start_ms = wall_ms_start;
+      acc.wall_span_end_ms = wall_ms_end;
+      acc.has_wall = true;
+    }
+    else
+    {
+      acc.wall_span_start_ms = std::min(acc.wall_span_start_ms, wall_ms_start);
+      acc.wall_span_end_ms = std::max(acc.wall_span_end_ms, wall_ms_end);
+    }
+  }
+
+  grpc::Status ProxyImpl::xuePullXferTiming(grpc::ServerContext *context,
+                                          const proxy_proto::XueXferTimingPull *request,
+                                          proxy_proto::XueXferTimingProxyReply *response)
+  {
+    (void)context;
+    if (request == nullptr || response == nullptr)
+    {
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "null request/response");
+    }
+    const int stripe_id = request->stripe_id();
+    const uint64_t xfer_plan_id = request->xue_xfer_plan_id();
+    response->set_proxy_pure_xfer_sec(0);
+    response->set_wall_span_start_unix_ms(0);
+    response->set_wall_span_end_unix_ms(0);
+    if (xfer_plan_id == 0)
+    {
+      return grpc::Status::OK;
+    }
+    std::lock_guard<std::mutex> lk(m_xue_xfer_timing_mutex);
+    const auto it = m_xue_xfer_batches.find({stripe_id, xfer_plan_id});
+    if (it == m_xue_xfer_batches.end())
+    {
+      return grpc::Status::OK;
+    }
+    const XueXferBatchAccumulator &acc = it->second;
+    response->set_proxy_pure_xfer_sec(acc.pure_xfer_sec_sum);
+    if (acc.has_wall)
+    {
+      response->set_wall_span_start_unix_ms(acc.wall_span_start_ms);
+      response->set_wall_span_end_unix_ms(acc.wall_span_end_ms);
+    }
+    return grpc::Status::OK;
+  }
+
   bool ProxyImpl::forwardXueDataDeltaSync(int dest_cluster_id, const std::string &append_mode,
                                           const proxy_proto::AppendStripeDataPlacement &placement,
                                           const char *delta_buf, size_t delta_size, bool log_send,
@@ -969,6 +1061,9 @@ namespace ECProject
       return;
     }
     const int stripe_id = placement->stripe_id();
+    const uint64_t xfer_plan_id = placement->xue_xfer_plan_id();
+    const auto xfer_t0 = std::chrono::steady_clock::now();
+    const int64_t xfer_w0 = xue_wall_unix_ms_now();
     if (m_coordinator_ptr != nullptr && stripe_id >= 0)
     {
       grpc::ClientContext wait_ctx;
@@ -1062,6 +1157,8 @@ namespace ECProject
         m_coordinator_ptr->reportCommitAbort(&context, commit_abort_key, &result);
     log_append_commit_report(proxy_xfer_timestamp(), m_self_cluster_id, placement->key(),
                              placement->stripe_id(), status.ok());
+    record_xue_xfer_sample(stripe_id, xfer_plan_id, xfer_t0, std::chrono::steady_clock::now(),
+                          xfer_w0, xue_wall_unix_ms_now());
   }
 
   void ProxyImpl::mergeXueGlobalParityDeltaIntoBlock(
@@ -2539,6 +2636,16 @@ namespace ECProject
           close_socket();
           return;
         }
+        XueXferScopeTimer xue_xfer_timer;
+        xue_xfer_timer.self = this;
+        xue_xfer_timer.stripe_id = stripe_id;
+        xue_xfer_timer.plan_id = placement_copy->xue_xfer_plan_id();
+        if (xue_xfer_timer.plan_id > 0)
+        {
+          xue_xfer_timer.active = true;
+          xue_xfer_timer.t0 = std::chrono::steady_clock::now();
+          xue_xfer_timer.w0 = xue_wall_unix_ms_now();
+        }
         std::vector<char *> slices =
             m_toolbox->splitCharPointer(append_buf.data(), cluster_append_size, tcp_slice_sizes);
 
@@ -2640,6 +2747,10 @@ namespace ECProject
                 std::make_shared<std::vector<char>>(append_buf.begin(), append_buf.end());
             std::thread([this, placement_copy, append_shared, tcp_slice_count, src_cluster,
                          global_cluster, ts]() {
+              const int stripe_id_local = placement_copy->stripe_id();
+              const uint64_t xfer_plan_id = placement_copy->xue_xfer_plan_id();
+              const auto xfer_t0 = std::chrono::steady_clock::now();
+              const int64_t xfer_w0 = xue_wall_unix_ms_now();
               proxy_proto::AppendStripeDataPlacement fwd_placement = *placement_copy;
               fwd_placement.set_xue_data_slices_are_delta(true);
               const bool ok = forwardXueDataDeltaSync(
@@ -2651,6 +2762,9 @@ namespace ECProject
                                                 placement_copy->key(), append_shared->size(),
                                                 tcp_slice_count);
               }
+              record_xue_xfer_sample(stripe_id_local, xfer_plan_id, xfer_t0,
+                                     std::chrono::steady_clock::now(), xfer_w0,
+                                     xue_wall_unix_ms_now());
             }).detach();
             return;
           }

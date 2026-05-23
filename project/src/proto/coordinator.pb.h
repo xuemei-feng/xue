@@ -147,6 +147,15 @@ extern XueTransferStepInfoDefaultTypeInternal _XueTransferStepInfo_default_insta
 class XueUpdateRequest;
 struct XueUpdateRequestDefaultTypeInternal;
 extern XueUpdateRequestDefaultTypeInternal _XueUpdateRequest_default_instance_;
+class XueXferTimingProxySample;
+struct XueXferTimingProxySampleDefaultTypeInternal;
+extern XueXferTimingProxySampleDefaultTypeInternal _XueXferTimingProxySample_default_instance_;
+class XueXferTimingPull;
+struct XueXferTimingPullDefaultTypeInternal;
+extern XueXferTimingPullDefaultTypeInternal _XueXferTimingPull_default_instance_;
+class XueXferTimingSummary;
+struct XueXferTimingSummaryDefaultTypeInternal;
+extern XueXferTimingSummaryDefaultTypeInternal _XueXferTimingSummary_default_instance_;
 }  // namespace coordinator_proto
 PROTOBUF_NAMESPACE_OPEN
 template<> ::coordinator_proto::AppendPlanLayout* Arena::CreateMaybeMessage<::coordinator_proto::AppendPlanLayout>(Arena*);
@@ -183,6 +192,9 @@ template<> ::coordinator_proto::XueScheduleWaveRelease* Arena::CreateMaybeMessag
 template<> ::coordinator_proto::XueStripeScheduleId* Arena::CreateMaybeMessage<::coordinator_proto::XueStripeScheduleId>(Arena*);
 template<> ::coordinator_proto::XueTransferStepInfo* Arena::CreateMaybeMessage<::coordinator_proto::XueTransferStepInfo>(Arena*);
 template<> ::coordinator_proto::XueUpdateRequest* Arena::CreateMaybeMessage<::coordinator_proto::XueUpdateRequest>(Arena*);
+template<> ::coordinator_proto::XueXferTimingProxySample* Arena::CreateMaybeMessage<::coordinator_proto::XueXferTimingProxySample>(Arena*);
+template<> ::coordinator_proto::XueXferTimingPull* Arena::CreateMaybeMessage<::coordinator_proto::XueXferTimingPull>(Arena*);
+template<> ::coordinator_proto::XueXferTimingSummary* Arena::CreateMaybeMessage<::coordinator_proto::XueXferTimingSummary>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace coordinator_proto {
 
@@ -3439,6 +3451,7 @@ class ReplyProxyIPsPorts final :
     kSumAppendSizeFieldNumber = 1,
     kXueScheduleStripeIdFieldNumber = 10,
     kXueScheduleNumGroupsFieldNumber = 12,
+    kXueXferPlanIdFieldNumber = 13,
   };
   // repeated string append_keys = 2;
   int append_keys_size() const;
@@ -3653,6 +3666,15 @@ class ReplyProxyIPsPorts final :
   void _internal_set_xue_schedule_num_groups(int32_t value);
   public:
 
+  // uint64 xue_xfer_plan_id = 13;
+  void clear_xue_xfer_plan_id();
+  uint64_t xue_xfer_plan_id() const;
+  void set_xue_xfer_plan_id(uint64_t value);
+  private:
+  uint64_t _internal_xue_xfer_plan_id() const;
+  void _internal_set_xue_xfer_plan_id(uint64_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:coordinator_proto.ReplyProxyIPsPorts)
  private:
   class _Internal;
@@ -3676,6 +3698,526 @@ class ReplyProxyIPsPorts final :
     uint64_t sum_append_size_;
     int32_t xue_schedule_stripe_id_;
     int32_t xue_schedule_num_groups_;
+    uint64_t xue_xfer_plan_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coordinator_2eproto;
+};
+// -------------------------------------------------------------------
+
+class XueXferTimingPull final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coordinator_proto.XueXferTimingPull) */ {
+ public:
+  inline XueXferTimingPull() : XueXferTimingPull(nullptr) {}
+  ~XueXferTimingPull() override;
+  explicit PROTOBUF_CONSTEXPR XueXferTimingPull(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  XueXferTimingPull(const XueXferTimingPull& from);
+  XueXferTimingPull(XueXferTimingPull&& from) noexcept
+    : XueXferTimingPull() {
+    *this = ::std::move(from);
+  }
+
+  inline XueXferTimingPull& operator=(const XueXferTimingPull& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline XueXferTimingPull& operator=(XueXferTimingPull&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const XueXferTimingPull& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const XueXferTimingPull* internal_default_instance() {
+    return reinterpret_cast<const XueXferTimingPull*>(
+               &_XueXferTimingPull_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    18;
+
+  friend void swap(XueXferTimingPull& a, XueXferTimingPull& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(XueXferTimingPull* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(XueXferTimingPull* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  XueXferTimingPull* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<XueXferTimingPull>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const XueXferTimingPull& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const XueXferTimingPull& from) {
+    XueXferTimingPull::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(XueXferTimingPull* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coordinator_proto.XueXferTimingPull";
+  }
+  protected:
+  explicit XueXferTimingPull(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kXueXferPlanIdFieldNumber = 2,
+    kStripeIdFieldNumber = 1,
+  };
+  // uint64 xue_xfer_plan_id = 2;
+  void clear_xue_xfer_plan_id();
+  uint64_t xue_xfer_plan_id() const;
+  void set_xue_xfer_plan_id(uint64_t value);
+  private:
+  uint64_t _internal_xue_xfer_plan_id() const;
+  void _internal_set_xue_xfer_plan_id(uint64_t value);
+  public:
+
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:coordinator_proto.XueXferTimingPull)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    uint64_t xue_xfer_plan_id_;
+    int32_t stripe_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coordinator_2eproto;
+};
+// -------------------------------------------------------------------
+
+class XueXferTimingProxySample final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coordinator_proto.XueXferTimingProxySample) */ {
+ public:
+  inline XueXferTimingProxySample() : XueXferTimingProxySample(nullptr) {}
+  ~XueXferTimingProxySample() override;
+  explicit PROTOBUF_CONSTEXPR XueXferTimingProxySample(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  XueXferTimingProxySample(const XueXferTimingProxySample& from);
+  XueXferTimingProxySample(XueXferTimingProxySample&& from) noexcept
+    : XueXferTimingProxySample() {
+    *this = ::std::move(from);
+  }
+
+  inline XueXferTimingProxySample& operator=(const XueXferTimingProxySample& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline XueXferTimingProxySample& operator=(XueXferTimingProxySample&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const XueXferTimingProxySample& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const XueXferTimingProxySample* internal_default_instance() {
+    return reinterpret_cast<const XueXferTimingProxySample*>(
+               &_XueXferTimingProxySample_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    19;
+
+  friend void swap(XueXferTimingProxySample& a, XueXferTimingProxySample& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(XueXferTimingProxySample* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(XueXferTimingProxySample* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  XueXferTimingProxySample* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<XueXferTimingProxySample>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const XueXferTimingProxySample& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const XueXferTimingProxySample& from) {
+    XueXferTimingProxySample::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(XueXferTimingProxySample* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coordinator_proto.XueXferTimingProxySample";
+  }
+  protected:
+  explicit XueXferTimingProxySample(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kProxyPureXferSecFieldNumber = 2,
+    kWallSpanStartUnixMsFieldNumber = 3,
+    kWallSpanEndUnixMsFieldNumber = 4,
+    kClusterIdFieldNumber = 1,
+  };
+  // double proxy_pure_xfer_sec = 2;
+  void clear_proxy_pure_xfer_sec();
+  double proxy_pure_xfer_sec() const;
+  void set_proxy_pure_xfer_sec(double value);
+  private:
+  double _internal_proxy_pure_xfer_sec() const;
+  void _internal_set_proxy_pure_xfer_sec(double value);
+  public:
+
+  // int64 wall_span_start_unix_ms = 3;
+  void clear_wall_span_start_unix_ms();
+  int64_t wall_span_start_unix_ms() const;
+  void set_wall_span_start_unix_ms(int64_t value);
+  private:
+  int64_t _internal_wall_span_start_unix_ms() const;
+  void _internal_set_wall_span_start_unix_ms(int64_t value);
+  public:
+
+  // int64 wall_span_end_unix_ms = 4;
+  void clear_wall_span_end_unix_ms();
+  int64_t wall_span_end_unix_ms() const;
+  void set_wall_span_end_unix_ms(int64_t value);
+  private:
+  int64_t _internal_wall_span_end_unix_ms() const;
+  void _internal_set_wall_span_end_unix_ms(int64_t value);
+  public:
+
+  // int32 cluster_id = 1;
+  void clear_cluster_id();
+  int32_t cluster_id() const;
+  void set_cluster_id(int32_t value);
+  private:
+  int32_t _internal_cluster_id() const;
+  void _internal_set_cluster_id(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:coordinator_proto.XueXferTimingProxySample)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    double proxy_pure_xfer_sec_;
+    int64_t wall_span_start_unix_ms_;
+    int64_t wall_span_end_unix_ms_;
+    int32_t cluster_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coordinator_2eproto;
+};
+// -------------------------------------------------------------------
+
+class XueXferTimingSummary final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coordinator_proto.XueXferTimingSummary) */ {
+ public:
+  inline XueXferTimingSummary() : XueXferTimingSummary(nullptr) {}
+  ~XueXferTimingSummary() override;
+  explicit PROTOBUF_CONSTEXPR XueXferTimingSummary(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  XueXferTimingSummary(const XueXferTimingSummary& from);
+  XueXferTimingSummary(XueXferTimingSummary&& from) noexcept
+    : XueXferTimingSummary() {
+    *this = ::std::move(from);
+  }
+
+  inline XueXferTimingSummary& operator=(const XueXferTimingSummary& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline XueXferTimingSummary& operator=(XueXferTimingSummary&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const XueXferTimingSummary& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const XueXferTimingSummary* internal_default_instance() {
+    return reinterpret_cast<const XueXferTimingSummary*>(
+               &_XueXferTimingSummary_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    20;
+
+  friend void swap(XueXferTimingSummary& a, XueXferTimingSummary& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(XueXferTimingSummary* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(XueXferTimingSummary* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  XueXferTimingSummary* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<XueXferTimingSummary>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const XueXferTimingSummary& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const XueXferTimingSummary& from) {
+    XueXferTimingSummary::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(XueXferTimingSummary* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coordinator_proto.XueXferTimingSummary";
+  }
+  protected:
+  explicit XueXferTimingSummary(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kProxiesFieldNumber = 1,
+    kMaxProxyPureXferSecFieldNumber = 2,
+    kClusterPureXferSpanWallSecFieldNumber = 3,
+  };
+  // repeated .coordinator_proto.XueXferTimingProxySample proxies = 1;
+  int proxies_size() const;
+  private:
+  int _internal_proxies_size() const;
+  public:
+  void clear_proxies();
+  ::coordinator_proto::XueXferTimingProxySample* mutable_proxies(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::XueXferTimingProxySample >*
+      mutable_proxies();
+  private:
+  const ::coordinator_proto::XueXferTimingProxySample& _internal_proxies(int index) const;
+  ::coordinator_proto::XueXferTimingProxySample* _internal_add_proxies();
+  public:
+  const ::coordinator_proto::XueXferTimingProxySample& proxies(int index) const;
+  ::coordinator_proto::XueXferTimingProxySample* add_proxies();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::XueXferTimingProxySample >&
+      proxies() const;
+
+  // double max_proxy_pure_xfer_sec = 2;
+  void clear_max_proxy_pure_xfer_sec();
+  double max_proxy_pure_xfer_sec() const;
+  void set_max_proxy_pure_xfer_sec(double value);
+  private:
+  double _internal_max_proxy_pure_xfer_sec() const;
+  void _internal_set_max_proxy_pure_xfer_sec(double value);
+  public:
+
+  // double cluster_pure_xfer_span_wall_sec = 3;
+  void clear_cluster_pure_xfer_span_wall_sec();
+  double cluster_pure_xfer_span_wall_sec() const;
+  void set_cluster_pure_xfer_span_wall_sec(double value);
+  private:
+  double _internal_cluster_pure_xfer_span_wall_sec() const;
+  void _internal_set_cluster_pure_xfer_span_wall_sec(double value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:coordinator_proto.XueXferTimingSummary)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::XueXferTimingProxySample > proxies_;
+    double max_proxy_pure_xfer_sec_;
+    double cluster_pure_xfer_span_wall_sec_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -3731,7 +4273,7 @@ class AskIfSuccess final :
                &_AskIfSuccess_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    21;
 
   friend void swap(AskIfSuccess& a, AskIfSuccess& b) {
     a.Swap(&b);
@@ -3906,7 +4448,7 @@ class RepIfSuccess final :
                &_RepIfSuccess_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    22;
 
   friend void swap(RepIfSuccess& a, RepIfSuccess& b) {
     a.Swap(&b);
@@ -4054,7 +4596,7 @@ class KeyAndClientIP final :
                &_KeyAndClientIP_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    23;
 
   friend void swap(KeyAndClientIP& a, KeyAndClientIP& b) {
     a.Swap(&b);
@@ -4234,7 +4776,7 @@ class RepIfGetSuccess final :
                &_RepIfGetSuccess_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    24;
 
   friend void swap(RepIfGetSuccess& a, RepIfGetSuccess& b) {
     a.Swap(&b);
@@ -4393,7 +4935,7 @@ class BlockIDsAndClientIP final :
                &_BlockIDsAndClientIP_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    25;
 
   friend void swap(BlockIDsAndClientIP& a, BlockIDsAndClientIP& b) {
     a.Swap(&b);
@@ -4590,7 +5132,7 @@ class LogicalRange final :
                &_LogicalRange_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    26;
 
   friend void swap(LogicalRange& a, LogicalRange& b) {
     a.Swap(&b);
@@ -4749,7 +5291,7 @@ class XueUpdateRequest final :
                &_XueUpdateRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    24;
+    27;
 
   friend void swap(XueUpdateRequest& a, XueUpdateRequest& b) {
     a.Swap(&b);
@@ -4933,7 +5475,7 @@ class KeyFromClient final :
                &_KeyFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    25;
+    28;
 
   friend void swap(KeyFromClient& a, KeyFromClient& b) {
     a.Swap(&b);
@@ -5086,7 +5628,7 @@ class StripeIdFromClient final :
                &_StripeIdFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    26;
+    29;
 
   friend void swap(StripeIdFromClient& a, StripeIdFromClient& b) {
     a.Swap(&b);
@@ -5234,7 +5776,7 @@ class StripeIdAndBlockIDsFromClient final :
                &_StripeIdAndBlockIDsFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    27;
+    30;
 
   friend void swap(StripeIdAndBlockIDsFromClient& a, StripeIdAndBlockIDsFromClient& b) {
     a.Swap(&b);
@@ -5407,7 +5949,7 @@ class NodeIdFromClient final :
                &_NodeIdFromClient_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    28;
+    31;
 
   friend void swap(NodeIdFromClient& a, NodeIdFromClient& b) {
     a.Swap(&b);
@@ -5555,7 +6097,7 @@ class RepIfDeling final :
                &_RepIfDeling_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    29;
+    32;
 
   friend void swap(RepIfDeling& a, RepIfDeling& b) {
     a.Swap(&b);
@@ -5703,7 +6245,7 @@ class RepStripeIds final :
                &_RepStripeIds_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    30;
+    33;
 
   friend void swap(RepStripeIds& a, RepStripeIds& b) {
     a.Swap(&b);
@@ -5865,7 +6407,7 @@ class RepBlockNum final :
                &_RepBlockNum_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    31;
+    34;
 
   friend void swap(RepBlockNum& a, RepBlockNum& b) {
     a.Swap(&b);
@@ -6013,7 +6555,7 @@ class DegradedReadReply final :
                &_DegradedReadReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    32;
+    35;
 
   friend void swap(DegradedReadReply& a, DegradedReadReply& b) {
     a.Swap(&b);
@@ -6194,7 +6736,7 @@ class RecoveryReply final :
                &_RecoveryReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    33;
+    36;
 
   friend void swap(RecoveryReply& a, RecoveryReply& b) {
     a.Swap(&b);
@@ -8705,6 +9247,238 @@ inline void ReplyProxyIPsPorts::set_xue_schedule_num_groups(int32_t value) {
   // @@protoc_insertion_point(field_set:coordinator_proto.ReplyProxyIPsPorts.xue_schedule_num_groups)
 }
 
+// uint64 xue_xfer_plan_id = 13;
+inline void ReplyProxyIPsPorts::clear_xue_xfer_plan_id() {
+  _impl_.xue_xfer_plan_id_ = uint64_t{0u};
+}
+inline uint64_t ReplyProxyIPsPorts::_internal_xue_xfer_plan_id() const {
+  return _impl_.xue_xfer_plan_id_;
+}
+inline uint64_t ReplyProxyIPsPorts::xue_xfer_plan_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.ReplyProxyIPsPorts.xue_xfer_plan_id)
+  return _internal_xue_xfer_plan_id();
+}
+inline void ReplyProxyIPsPorts::_internal_set_xue_xfer_plan_id(uint64_t value) {
+  
+  _impl_.xue_xfer_plan_id_ = value;
+}
+inline void ReplyProxyIPsPorts::set_xue_xfer_plan_id(uint64_t value) {
+  _internal_set_xue_xfer_plan_id(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.ReplyProxyIPsPorts.xue_xfer_plan_id)
+}
+
+// -------------------------------------------------------------------
+
+// XueXferTimingPull
+
+// int32 stripe_id = 1;
+inline void XueXferTimingPull::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t XueXferTimingPull::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t XueXferTimingPull::stripe_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.XueXferTimingPull.stripe_id)
+  return _internal_stripe_id();
+}
+inline void XueXferTimingPull::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void XueXferTimingPull::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.XueXferTimingPull.stripe_id)
+}
+
+// uint64 xue_xfer_plan_id = 2;
+inline void XueXferTimingPull::clear_xue_xfer_plan_id() {
+  _impl_.xue_xfer_plan_id_ = uint64_t{0u};
+}
+inline uint64_t XueXferTimingPull::_internal_xue_xfer_plan_id() const {
+  return _impl_.xue_xfer_plan_id_;
+}
+inline uint64_t XueXferTimingPull::xue_xfer_plan_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.XueXferTimingPull.xue_xfer_plan_id)
+  return _internal_xue_xfer_plan_id();
+}
+inline void XueXferTimingPull::_internal_set_xue_xfer_plan_id(uint64_t value) {
+  
+  _impl_.xue_xfer_plan_id_ = value;
+}
+inline void XueXferTimingPull::set_xue_xfer_plan_id(uint64_t value) {
+  _internal_set_xue_xfer_plan_id(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.XueXferTimingPull.xue_xfer_plan_id)
+}
+
+// -------------------------------------------------------------------
+
+// XueXferTimingProxySample
+
+// int32 cluster_id = 1;
+inline void XueXferTimingProxySample::clear_cluster_id() {
+  _impl_.cluster_id_ = 0;
+}
+inline int32_t XueXferTimingProxySample::_internal_cluster_id() const {
+  return _impl_.cluster_id_;
+}
+inline int32_t XueXferTimingProxySample::cluster_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.XueXferTimingProxySample.cluster_id)
+  return _internal_cluster_id();
+}
+inline void XueXferTimingProxySample::_internal_set_cluster_id(int32_t value) {
+  
+  _impl_.cluster_id_ = value;
+}
+inline void XueXferTimingProxySample::set_cluster_id(int32_t value) {
+  _internal_set_cluster_id(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.XueXferTimingProxySample.cluster_id)
+}
+
+// double proxy_pure_xfer_sec = 2;
+inline void XueXferTimingProxySample::clear_proxy_pure_xfer_sec() {
+  _impl_.proxy_pure_xfer_sec_ = 0;
+}
+inline double XueXferTimingProxySample::_internal_proxy_pure_xfer_sec() const {
+  return _impl_.proxy_pure_xfer_sec_;
+}
+inline double XueXferTimingProxySample::proxy_pure_xfer_sec() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.XueXferTimingProxySample.proxy_pure_xfer_sec)
+  return _internal_proxy_pure_xfer_sec();
+}
+inline void XueXferTimingProxySample::_internal_set_proxy_pure_xfer_sec(double value) {
+  
+  _impl_.proxy_pure_xfer_sec_ = value;
+}
+inline void XueXferTimingProxySample::set_proxy_pure_xfer_sec(double value) {
+  _internal_set_proxy_pure_xfer_sec(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.XueXferTimingProxySample.proxy_pure_xfer_sec)
+}
+
+// int64 wall_span_start_unix_ms = 3;
+inline void XueXferTimingProxySample::clear_wall_span_start_unix_ms() {
+  _impl_.wall_span_start_unix_ms_ = int64_t{0};
+}
+inline int64_t XueXferTimingProxySample::_internal_wall_span_start_unix_ms() const {
+  return _impl_.wall_span_start_unix_ms_;
+}
+inline int64_t XueXferTimingProxySample::wall_span_start_unix_ms() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.XueXferTimingProxySample.wall_span_start_unix_ms)
+  return _internal_wall_span_start_unix_ms();
+}
+inline void XueXferTimingProxySample::_internal_set_wall_span_start_unix_ms(int64_t value) {
+  
+  _impl_.wall_span_start_unix_ms_ = value;
+}
+inline void XueXferTimingProxySample::set_wall_span_start_unix_ms(int64_t value) {
+  _internal_set_wall_span_start_unix_ms(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.XueXferTimingProxySample.wall_span_start_unix_ms)
+}
+
+// int64 wall_span_end_unix_ms = 4;
+inline void XueXferTimingProxySample::clear_wall_span_end_unix_ms() {
+  _impl_.wall_span_end_unix_ms_ = int64_t{0};
+}
+inline int64_t XueXferTimingProxySample::_internal_wall_span_end_unix_ms() const {
+  return _impl_.wall_span_end_unix_ms_;
+}
+inline int64_t XueXferTimingProxySample::wall_span_end_unix_ms() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.XueXferTimingProxySample.wall_span_end_unix_ms)
+  return _internal_wall_span_end_unix_ms();
+}
+inline void XueXferTimingProxySample::_internal_set_wall_span_end_unix_ms(int64_t value) {
+  
+  _impl_.wall_span_end_unix_ms_ = value;
+}
+inline void XueXferTimingProxySample::set_wall_span_end_unix_ms(int64_t value) {
+  _internal_set_wall_span_end_unix_ms(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.XueXferTimingProxySample.wall_span_end_unix_ms)
+}
+
+// -------------------------------------------------------------------
+
+// XueXferTimingSummary
+
+// repeated .coordinator_proto.XueXferTimingProxySample proxies = 1;
+inline int XueXferTimingSummary::_internal_proxies_size() const {
+  return _impl_.proxies_.size();
+}
+inline int XueXferTimingSummary::proxies_size() const {
+  return _internal_proxies_size();
+}
+inline void XueXferTimingSummary::clear_proxies() {
+  _impl_.proxies_.Clear();
+}
+inline ::coordinator_proto::XueXferTimingProxySample* XueXferTimingSummary::mutable_proxies(int index) {
+  // @@protoc_insertion_point(field_mutable:coordinator_proto.XueXferTimingSummary.proxies)
+  return _impl_.proxies_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::XueXferTimingProxySample >*
+XueXferTimingSummary::mutable_proxies() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.XueXferTimingSummary.proxies)
+  return &_impl_.proxies_;
+}
+inline const ::coordinator_proto::XueXferTimingProxySample& XueXferTimingSummary::_internal_proxies(int index) const {
+  return _impl_.proxies_.Get(index);
+}
+inline const ::coordinator_proto::XueXferTimingProxySample& XueXferTimingSummary::proxies(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.XueXferTimingSummary.proxies)
+  return _internal_proxies(index);
+}
+inline ::coordinator_proto::XueXferTimingProxySample* XueXferTimingSummary::_internal_add_proxies() {
+  return _impl_.proxies_.Add();
+}
+inline ::coordinator_proto::XueXferTimingProxySample* XueXferTimingSummary::add_proxies() {
+  ::coordinator_proto::XueXferTimingProxySample* _add = _internal_add_proxies();
+  // @@protoc_insertion_point(field_add:coordinator_proto.XueXferTimingSummary.proxies)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::XueXferTimingProxySample >&
+XueXferTimingSummary::proxies() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.XueXferTimingSummary.proxies)
+  return _impl_.proxies_;
+}
+
+// double max_proxy_pure_xfer_sec = 2;
+inline void XueXferTimingSummary::clear_max_proxy_pure_xfer_sec() {
+  _impl_.max_proxy_pure_xfer_sec_ = 0;
+}
+inline double XueXferTimingSummary::_internal_max_proxy_pure_xfer_sec() const {
+  return _impl_.max_proxy_pure_xfer_sec_;
+}
+inline double XueXferTimingSummary::max_proxy_pure_xfer_sec() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.XueXferTimingSummary.max_proxy_pure_xfer_sec)
+  return _internal_max_proxy_pure_xfer_sec();
+}
+inline void XueXferTimingSummary::_internal_set_max_proxy_pure_xfer_sec(double value) {
+  
+  _impl_.max_proxy_pure_xfer_sec_ = value;
+}
+inline void XueXferTimingSummary::set_max_proxy_pure_xfer_sec(double value) {
+  _internal_set_max_proxy_pure_xfer_sec(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.XueXferTimingSummary.max_proxy_pure_xfer_sec)
+}
+
+// double cluster_pure_xfer_span_wall_sec = 3;
+inline void XueXferTimingSummary::clear_cluster_pure_xfer_span_wall_sec() {
+  _impl_.cluster_pure_xfer_span_wall_sec_ = 0;
+}
+inline double XueXferTimingSummary::_internal_cluster_pure_xfer_span_wall_sec() const {
+  return _impl_.cluster_pure_xfer_span_wall_sec_;
+}
+inline double XueXferTimingSummary::cluster_pure_xfer_span_wall_sec() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.XueXferTimingSummary.cluster_pure_xfer_span_wall_sec)
+  return _internal_cluster_pure_xfer_span_wall_sec();
+}
+inline void XueXferTimingSummary::_internal_set_cluster_pure_xfer_span_wall_sec(double value) {
+  
+  _impl_.cluster_pure_xfer_span_wall_sec_ = value;
+}
+inline void XueXferTimingSummary::set_cluster_pure_xfer_span_wall_sec(double value) {
+  _internal_set_cluster_pure_xfer_span_wall_sec(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.XueXferTimingSummary.cluster_pure_xfer_span_wall_sec)
+}
+
 // -------------------------------------------------------------------
 
 // AskIfSuccess
@@ -9746,6 +10520,12 @@ inline void RecoveryReply::set_grpc_start_time(double value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

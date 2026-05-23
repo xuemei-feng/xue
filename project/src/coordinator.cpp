@@ -3826,6 +3826,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         plan.set_xue_strict_schedule(true);
       }
     }
+    const uint64_t xue_xfer_plan_id = m_next_xue_xfer_plan_id.fetch_add(1);
+    for (auto &plan : append_plans)
+    {
+      plan.set_xue_xfer_plan_id(xue_xfer_plan_id);
+    }
     if (use_strict_schedule)
     {
       attach_strict_outgoing_to_plans(append_plans, strict_schedule, stripe->k, stripe->r);
@@ -3836,6 +3841,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       notify_proxies_ready(plan);
     }
     fill_reply_from_append_plans(this, append_plans, proxyIPPort);
+    proxyIPPort->set_xue_xfer_plan_id(xue_xfer_plan_id);
     if (use_strict_schedule)
     {
       fill_xue_strict_schedule_in_reply(proxyIPPort, strict_schedule, stripe_id);
@@ -4042,6 +4048,92 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
               << " step_no=" << session->steps[static_cast<size_t>(step_idx)].step_no()
               << " ok=" << request->success() << std::endl;
     return grpc::Status::OK;
+  }
+
+  grpc::Status CoordinatorImpl::pullXueXferTiming(
+      grpc::ServerContext *context,
+      const coordinator_proto::XueXferTimingPull *request,
+      coordinator_proto::XueXferTimingSummary *response)
+  {
+    (void)context;
+    if (request == nullptr || response == nullptr)
+    {
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "null request/response");
+    }
+  const int stripe_id = request->stripe_id();
+  const uint64_t xfer_plan_id = request->xue_xfer_plan_id();
+  response->clear_proxies();
+  response->set_max_proxy_pure_xfer_sec(0);
+  response->set_cluster_pure_xfer_span_wall_sec(0);
+  if (xfer_plan_id == 0)
+  {
+    return grpc::Status::OK;
+  }
+
+  proxy_proto::XueXferTimingPull proxy_req;
+  proxy_req.set_stripe_id(stripe_id);
+  proxy_req.set_xue_xfer_plan_id(xfer_plan_id);
+
+  double max_proxy_pure = 0;
+  int64_t span_w0 = std::numeric_limits<int64_t>::max();
+  int64_t span_w1 = std::numeric_limits<int64_t>::min();
+  bool any_wall = false;
+
+  for (const auto &cluster_kv : m_cluster_table)
+  {
+    const int cluster_id = cluster_kv.first;
+    const Cluster &cluster = cluster_kv.second;
+    const std::string proxy_key =
+        cluster.proxy_ip + ":" + std::to_string(cluster.proxy_port);
+    const auto stub_it = m_proxy_ptrs.find(proxy_key);
+    if (stub_it == m_proxy_ptrs.end() || stub_it->second == nullptr)
+    {
+      continue;
+    }
+    grpc::ClientContext ctx;
+    proxy_proto::XueXferTimingProxyReply proxy_rep;
+    const grpc::Status st = stub_it->second->xuePullXferTiming(&ctx, proxy_req, &proxy_rep);
+    if (!st.ok())
+    {
+      std::cerr << "[XUE][Coordinator] xuePullXferTiming failed cluster=" << cluster_id << " "
+                << st.error_message() << std::endl;
+      continue;
+    }
+    if (proxy_rep.proxy_pure_xfer_sec() <= 0 && proxy_rep.wall_span_end_unix_ms() <=
+                                                    proxy_rep.wall_span_start_unix_ms())
+    {
+      continue;
+    }
+    auto *sample = response->add_proxies();
+    sample->set_cluster_id(cluster_id);
+    sample->set_proxy_pure_xfer_sec(proxy_rep.proxy_pure_xfer_sec());
+    sample->set_wall_span_start_unix_ms(proxy_rep.wall_span_start_unix_ms());
+    sample->set_wall_span_end_unix_ms(proxy_rep.wall_span_end_unix_ms());
+    max_proxy_pure = std::max(max_proxy_pure, proxy_rep.proxy_pure_xfer_sec());
+    if (proxy_rep.wall_span_end_unix_ms() > proxy_rep.wall_span_start_unix_ms())
+    {
+      any_wall = true;
+      span_w0 = std::min(span_w0, proxy_rep.wall_span_start_unix_ms());
+      span_w1 = std::max(span_w1, proxy_rep.wall_span_end_unix_ms());
+    }
+    std::cout << "[XUE][Coordinator] proxy_pure_xfer cluster=" << cluster_id
+              << " stripe=" << stripe_id << " xue_xfer_plan_id=" << xfer_plan_id
+              << " proxy_pure_xfer_sec=" << proxy_rep.proxy_pure_xfer_sec()
+              << " wall_span_ms=" << proxy_rep.wall_span_start_unix_ms() << ".."
+              << proxy_rep.wall_span_end_unix_ms() << std::endl;
+  }
+
+  response->set_max_proxy_pure_xfer_sec(max_proxy_pure);
+  if (any_wall && span_w1 >= span_w0)
+  {
+    response->set_cluster_pure_xfer_span_wall_sec(
+        static_cast<double>(span_w1 - span_w0) / 1000.0);
+  }
+  std::cout << "[XUE][Coordinator] cluster_pure_xfer_span_wall_sec="
+            << response->cluster_pure_xfer_span_wall_sec()
+            << " max_proxy_pure_xfer_sec=" << response->max_proxy_pure_xfer_sec()
+            << " stripe=" << stripe_id << " xue_xfer_plan_id=" << xfer_plan_id << std::endl;
+  return grpc::Status::OK;
   }
 
   grpc::Status CoordinatorImpl::waitXueScheduleHop(

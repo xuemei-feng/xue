@@ -36,6 +36,7 @@ static const char* proxyService_method_names[] = {
   "/proxy_proto.proxyService/multipleRecovery",
   "/proxy_proto.proxyService/deleteBlock",
   "/proxy_proto.proxyService/scheduleAppend2Datanode",
+  "/proxy_proto.proxyService/xuePullXferTiming",
   "/proxy_proto.proxyService/getBlocks",
 };
 
@@ -60,7 +61,8 @@ proxyService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& chann
   , rpcmethod_multipleRecovery_(proxyService_method_names[11], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_deleteBlock_(proxyService_method_names[12], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_scheduleAppend2Datanode_(proxyService_method_names[13], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_getBlocks_(proxyService_method_names[14], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_xuePullXferTiming_(proxyService_method_names[14], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_getBlocks_(proxyService_method_names[15], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status proxyService::Stub::checkalive(::grpc::ClientContext* context, const ::proxy_proto::CheckaliveCMD& request, ::proxy_proto::RequestResult* response) {
@@ -385,6 +387,29 @@ void proxyService::Stub::async::scheduleAppend2Datanode(::grpc::ClientContext* c
   return result;
 }
 
+::grpc::Status proxyService::Stub::xuePullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::XueXferTimingPull& request, ::proxy_proto::XueXferTimingProxyReply* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::XueXferTimingPull, ::proxy_proto::XueXferTimingProxyReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_xuePullXferTiming_, context, request, response);
+}
+
+void proxyService::Stub::async::xuePullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::XueXferTimingPull* request, ::proxy_proto::XueXferTimingProxyReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::XueXferTimingPull, ::proxy_proto::XueXferTimingProxyReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_xuePullXferTiming_, context, request, response, std::move(f));
+}
+
+void proxyService::Stub::async::xuePullXferTiming(::grpc::ClientContext* context, const ::proxy_proto::XueXferTimingPull* request, ::proxy_proto::XueXferTimingProxyReply* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_xuePullXferTiming_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::XueXferTimingProxyReply>* proxyService::Stub::PrepareAsyncxuePullXferTimingRaw(::grpc::ClientContext* context, const ::proxy_proto::XueXferTimingPull& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::XueXferTimingProxyReply, ::proxy_proto::XueXferTimingPull, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_xuePullXferTiming_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::XueXferTimingProxyReply>* proxyService::Stub::AsyncxuePullXferTimingRaw(::grpc::ClientContext* context, const ::proxy_proto::XueXferTimingPull& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncxuePullXferTimingRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 ::grpc::Status proxyService::Stub::getBlocks(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs& request, ::proxy_proto::GetReply* response) {
   return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_getBlocks_, context, request, response);
 }
@@ -552,6 +577,16 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[14],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::XueXferTimingPull, ::proxy_proto::XueXferTimingProxyReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](proxyService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::proxy_proto::XueXferTimingPull* req,
+             ::proxy_proto::XueXferTimingProxyReply* resp) {
+               return service->xuePullXferTiming(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      proxyService_method_names[15],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](proxyService::Service* service,
              ::grpc::ServerContext* ctx,
@@ -656,6 +691,13 @@ proxyService::Service::~Service() {
 }
 
 ::grpc::Status proxyService::Service::scheduleAppend2Datanode(::grpc::ServerContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status proxyService::Service::xuePullXferTiming(::grpc::ServerContext* context, const ::proxy_proto::XueXferTimingPull* request, ::proxy_proto::XueXferTimingProxyReply* response) {
   (void) context;
   (void) request;
   (void) response;

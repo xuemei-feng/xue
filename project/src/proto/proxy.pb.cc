@@ -420,6 +420,7 @@ PROTOBUF_CONSTEXPR AppendStripeDataPlacement::AppendStripeDataPlacement(
   , /*decltype(_impl_.xue_data_slices_are_delta_)*/false
   , /*decltype(_impl_.xue_send_ack_)*/false
   , /*decltype(_impl_.xue_strict_schedule_)*/false
+  , /*decltype(_impl_.xue_xfer_plan_id_)*/uint64_t{0u}
   , /*decltype(_impl_.xue_tcp_slice_count_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct AppendStripeDataPlacementDefaultTypeInternal {
@@ -431,6 +432,35 @@ struct AppendStripeDataPlacementDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AppendStripeDataPlacementDefaultTypeInternal _AppendStripeDataPlacement_default_instance_;
+PROTOBUF_CONSTEXPR XueXferTimingPull::XueXferTimingPull(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.xue_xfer_plan_id_)*/uint64_t{0u}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueXferTimingPullDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueXferTimingPullDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueXferTimingPullDefaultTypeInternal() {}
+  union {
+    XueXferTimingPull _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueXferTimingPullDefaultTypeInternal _XueXferTimingPull_default_instance_;
+PROTOBUF_CONSTEXPR XueXferTimingProxyReply::XueXferTimingProxyReply(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.proxy_pure_xfer_sec_)*/0
+  , /*decltype(_impl_.wall_span_start_unix_ms_)*/int64_t{0}
+  , /*decltype(_impl_.wall_span_end_unix_ms_)*/int64_t{0}
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueXferTimingProxyReplyDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueXferTimingProxyReplyDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueXferTimingProxyReplyDefaultTypeInternal() {}
+  union {
+    XueXferTimingProxyReply _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueXferTimingProxyReplyDefaultTypeInternal _XueXferTimingProxyReply_default_instance_;
 PROTOBUF_CONSTEXPR XueStrictOutgoingHop::XueStrictOutgoingHop(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.forward_append_mode_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
@@ -494,7 +524,7 @@ struct StripeAndBlockIDsDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StripeAndBlockIDsDefaultTypeInternal _StripeAndBlockIDs_default_instance_;
 }  // namespace proxy_proto
-static ::_pb::Metadata file_level_metadata_proxy_2eproto[24];
+static ::_pb::Metadata file_level_metadata_proxy_2eproto[26];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_proxy_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_proxy_2eproto = nullptr;
 
@@ -765,6 +795,24 @@ const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.block_cluster_ids_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.xue_strict_schedule_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.xue_strict_outgoing_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.xue_xfer_plan_id_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::XueXferTimingPull, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::XueXferTimingPull, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::XueXferTimingPull, _impl_.xue_xfer_plan_id_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::XueXferTimingProxyReply, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::XueXferTimingProxyReply, _impl_.proxy_pure_xfer_sec_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::XueXferTimingProxyReply, _impl_.wall_span_start_unix_ms_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::XueXferTimingProxyReply, _impl_.wall_span_end_unix_ms_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::XueStrictOutgoingHop, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -823,10 +871,12 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 207, -1, -1, sizeof(::proxy_proto::MultipleRecoveryRequest)},
   { 218, -1, -1, sizeof(::proxy_proto::RecoveryReply)},
   { 237, -1, -1, sizeof(::proxy_proto::AppendStripeDataPlacement)},
-  { 266, -1, -1, sizeof(::proxy_proto::XueStrictOutgoingHop)},
-  { 274, -1, -1, sizeof(::proxy_proto::SetReply)},
-  { 281, -1, -1, sizeof(::proxy_proto::GetReply)},
-  { 288, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
+  { 267, -1, -1, sizeof(::proxy_proto::XueXferTimingPull)},
+  { 275, -1, -1, sizeof(::proxy_proto::XueXferTimingProxyReply)},
+  { 284, -1, -1, sizeof(::proxy_proto::XueStrictOutgoingHop)},
+  { 292, -1, -1, sizeof(::proxy_proto::SetReply)},
+  { 299, -1, -1, sizeof(::proxy_proto::GetReply)},
+  { 306, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -850,6 +900,8 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::proxy_proto::_MultipleRecoveryRequest_default_instance_._instance,
   &::proxy_proto::_RecoveryReply_default_instance_._instance,
   &::proxy_proto::_AppendStripeDataPlacement_default_instance_._instance,
+  &::proxy_proto::_XueXferTimingPull_default_instance_._instance,
+  &::proxy_proto::_XueXferTimingProxyReply_default_instance_._instance,
   &::proxy_proto::_XueStrictOutgoingHop_default_instance_._instance,
   &::proxy_proto::_SetReply_default_instance_._instance,
   &::proxy_proto::_GetReply_default_instance_._instance,
@@ -935,7 +987,7 @@ const char descriptor_table_protodef_proxy_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "ta_node_grpc_notify_time\030\n \001(\001\022!\n\031data_n"
   "ode_grpc_start_time\030\013 \001(\001\022#\n\033dest_data_n"
   "ode_network_time\030\014 \001(\001\022#\n\033dest_data_node"
-  "_disk_io_time\030\r \001(\001\"\354\004\n\031AppendStripeData"
+  "_disk_io_time\030\r \001(\001\"\206\005\n\031AppendStripeData"
   "Placement\022\013\n\003key\030\001 \001(\t\022\022\n\ncluster_id\030\002 \001"
   "(\005\022\021\n\tstripe_id\030\003 \001(\005\022\023\n\013append_size\030\004 \001"
   "(\004\022\022\n\ndatanodeip\030\005 \003(\t\022\024\n\014datanodeport\030\006"
@@ -951,51 +1003,59 @@ const char descriptor_table_protodef_proxy_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "(\005\022\031\n\021block_cluster_ids\030\025 \003(\005\022\033\n\023xue_str"
   "ict_schedule\030\026 \001(\010\022>\n\023xue_strict_outgoin"
   "g\030\027 \003(\0132!.proxy_proto.XueStrictOutgoingH"
-  "op\"G\n\024XueStrictOutgoingHop\022\022\n\nto_cluster"
-  "\030\001 \001(\005\022\033\n\023forward_append_mode\030\002 \001(\t\"\034\n\010S"
-  "etReply\022\020\n\010ifcommit\030\001 \001(\010\"\036\n\010GetReply\022\022\n"
-  "\ngetsuccess\030\001 \001(\010\"\261\001\n\021StripeAndBlockIDs\022"
-  "\021\n\tstripe_id\030\001 \001(\005\022\020\n\010group_id\030\002 \001(\005\022\020\n\010"
-  "clientip\030\003 \001(\t\022\022\n\nclientport\030\004 \001(\005\022\021\n\tbl"
-  "ock_ids\030\005 \003(\005\022\022\n\nblock_keys\030\006 \003(\t\022\023\n\013dat"
-  "anodeips\030\007 \003(\t\022\025\n\rdatanodeports\030\010 \003(\0052\307\t"
-  "\n\014proxyService\022D\n\ncheckalive\022\032.proxy_pro"
-  "to.CheckaliveCMD\032\032.proxy_proto.RequestRe"
-  "sult\022L\n\022encodeAndSetObject\022\037.proxy_proto"
-  ".ObjectAndPlacement\032\025.proxy_proto.SetRep"
-  "ly\022L\n\022decodeAndGetObject\022\037.proxy_proto.O"
-  "bjectAndPlacement\032\025.proxy_proto.GetReply"
-  "\022P\n\014degradedRead\022 .proxy_proto.DegradedR"
-  "eadRequest\032\036.proxy_proto.DegradedReadRep"
-  "ly\022S\n\023degradedRead2Client\022\034.proxy_proto."
-  "RecoveryRequest\032\036.proxy_proto.DegradedRe"
-  "adReply\022Y\n\025degradedReadBreakdown\022 .proxy"
-  "_proto.DegradedReadRequest\032\036.proxy_proto"
-  ".DegradedReadReply\022\\\n\034degradedRead2Clien"
-  "tBreakdown\022\034.proxy_proto.RecoveryRequest"
-  "\032\036.proxy_proto.DegradedReadReply\022X\n\035degr"
-  "adedReadWithBlockStripeID\022 .proxy_proto."
-  "DegradedReadRequest\032\025.proxy_proto.GetRep"
-  "ly\022V\n\017partialDecoding\022#.proxy_proto.Part"
-  "ialDecodingRequest\032\036.proxy_proto.Degrade"
-  "dReadReply\022D\n\010recovery\022\034.proxy_proto.Rec"
-  "overyRequest\032\032.proxy_proto.RecoveryReply"
-  "\022M\n\021recoveryBreakdown\022\034.proxy_proto.Reco"
-  "veryRequest\032\032.proxy_proto.RecoveryReply\022"
-  "O\n\020multipleRecovery\022$.proxy_proto.Multip"
-  "leRecoveryRequest\032\025.proxy_proto.GetReply"
-  "\022\?\n\013deleteBlock\022\031.proxy_proto.NodeAndBlo"
-  "ck\032\025.proxy_proto.DelReply\022X\n\027scheduleApp"
-  "end2Datanode\022&.proxy_proto.AppendStripeD"
-  "ataPlacement\032\025.proxy_proto.SetReply\022B\n\tg"
-  "etBlocks\022\036.proxy_proto.StripeAndBlockIDs"
-  "\032\025.proxy_proto.GetReplyb\006proto3"
+  "op\022\030\n\020xue_xfer_plan_id\030\030 \001(\004\"@\n\021XueXferT"
+  "imingPull\022\021\n\tstripe_id\030\001 \001(\005\022\030\n\020xue_xfer"
+  "_plan_id\030\002 \001(\004\"v\n\027XueXferTimingProxyRepl"
+  "y\022\033\n\023proxy_pure_xfer_sec\030\001 \001(\001\022\037\n\027wall_s"
+  "pan_start_unix_ms\030\002 \001(\003\022\035\n\025wall_span_end"
+  "_unix_ms\030\003 \001(\003\"G\n\024XueStrictOutgoingHop\022\022"
+  "\n\nto_cluster\030\001 \001(\005\022\033\n\023forward_append_mod"
+  "e\030\002 \001(\t\"\034\n\010SetReply\022\020\n\010ifcommit\030\001 \001(\010\"\036\n"
+  "\010GetReply\022\022\n\ngetsuccess\030\001 \001(\010\"\261\001\n\021Stripe"
+  "AndBlockIDs\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010group_"
+  "id\030\002 \001(\005\022\020\n\010clientip\030\003 \001(\t\022\022\n\nclientport"
+  "\030\004 \001(\005\022\021\n\tblock_ids\030\005 \003(\005\022\022\n\nblock_keys\030"
+  "\006 \003(\t\022\023\n\013datanodeips\030\007 \003(\t\022\025\n\rdatanodepo"
+  "rts\030\010 \003(\0052\242\n\n\014proxyService\022D\n\ncheckalive"
+  "\022\032.proxy_proto.CheckaliveCMD\032\032.proxy_pro"
+  "to.RequestResult\022L\n\022encodeAndSetObject\022\037"
+  ".proxy_proto.ObjectAndPlacement\032\025.proxy_"
+  "proto.SetReply\022L\n\022decodeAndGetObject\022\037.p"
+  "roxy_proto.ObjectAndPlacement\032\025.proxy_pr"
+  "oto.GetReply\022P\n\014degradedRead\022 .proxy_pro"
+  "to.DegradedReadRequest\032\036.proxy_proto.Deg"
+  "radedReadReply\022S\n\023degradedRead2Client\022\034."
+  "proxy_proto.RecoveryRequest\032\036.proxy_prot"
+  "o.DegradedReadReply\022Y\n\025degradedReadBreak"
+  "down\022 .proxy_proto.DegradedReadRequest\032\036"
+  ".proxy_proto.DegradedReadReply\022\\\n\034degrad"
+  "edRead2ClientBreakdown\022\034.proxy_proto.Rec"
+  "overyRequest\032\036.proxy_proto.DegradedReadR"
+  "eply\022X\n\035degradedReadWithBlockStripeID\022 ."
+  "proxy_proto.DegradedReadRequest\032\025.proxy_"
+  "proto.GetReply\022V\n\017partialDecoding\022#.prox"
+  "y_proto.PartialDecodingRequest\032\036.proxy_p"
+  "roto.DegradedReadReply\022D\n\010recovery\022\034.pro"
+  "xy_proto.RecoveryRequest\032\032.proxy_proto.R"
+  "ecoveryReply\022M\n\021recoveryBreakdown\022\034.prox"
+  "y_proto.RecoveryRequest\032\032.proxy_proto.Re"
+  "coveryReply\022O\n\020multipleRecovery\022$.proxy_"
+  "proto.MultipleRecoveryRequest\032\025.proxy_pr"
+  "oto.GetReply\022\?\n\013deleteBlock\022\031.proxy_prot"
+  "o.NodeAndBlock\032\025.proxy_proto.DelReply\022X\n"
+  "\027scheduleAppend2Datanode\022&.proxy_proto.A"
+  "ppendStripeDataPlacement\032\025.proxy_proto.S"
+  "etReply\022Y\n\021xuePullXferTiming\022\036.proxy_pro"
+  "to.XueXferTimingPull\032$.proxy_proto.XueXf"
+  "erTimingProxyReply\022B\n\tgetBlocks\022\036.proxy_"
+  "proto.StripeAndBlockIDs\032\025.proxy_proto.Ge"
+  "tReplyb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_proxy_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_proxy_2eproto = {
-    false, false, 5311, descriptor_table_protodef_proxy_2eproto,
+    false, false, 5614, descriptor_table_protodef_proxy_2eproto,
     "proxy.proto",
-    &descriptor_table_proxy_2eproto_once, nullptr, 0, 24,
+    &descriptor_table_proxy_2eproto_once, nullptr, 0, 26,
     schemas, file_default_instances, TableStruct_proxy_2eproto::offsets,
     file_level_metadata_proxy_2eproto, file_level_enum_descriptors_proxy_2eproto,
     file_level_service_descriptors_proxy_2eproto,
@@ -8351,6 +8411,7 @@ AppendStripeDataPlacement::AppendStripeDataPlacement(const AppendStripeDataPlace
     , decltype(_impl_.xue_data_slices_are_delta_){}
     , decltype(_impl_.xue_send_ack_){}
     , decltype(_impl_.xue_strict_schedule_){}
+    , decltype(_impl_.xue_xfer_plan_id_){}
     , decltype(_impl_.xue_tcp_slice_count_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
@@ -8409,6 +8470,7 @@ inline void AppendStripeDataPlacement::SharedCtor(
     , decltype(_impl_.xue_data_slices_are_delta_){false}
     , decltype(_impl_.xue_send_ack_){false}
     , decltype(_impl_.xue_strict_schedule_){false}
+    , decltype(_impl_.xue_xfer_plan_id_){uint64_t{0u}}
     , decltype(_impl_.xue_tcp_slice_count_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
@@ -8699,6 +8761,14 @@ const char* AppendStripeDataPlacement::_InternalParse(const char* ptr, ::_pbi::P
         } else
           goto handle_unusual;
         continue;
+      // uint64 xue_xfer_plan_id = 24;
+      case 24:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 192)) {
+          _impl_.xue_xfer_plan_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
       default:
         goto handle_unusual;
     }  // switch
@@ -8899,6 +8969,12 @@ uint8_t* AppendStripeDataPlacement::_InternalSerialize(
         InternalWriteMessage(23, repfield, repfield.GetCachedSize(), target, stream);
   }
 
+  // uint64 xue_xfer_plan_id = 24;
+  if (this->_internal_xue_xfer_plan_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(24, this->_internal_xue_xfer_plan_id(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -9086,6 +9162,13 @@ size_t AppendStripeDataPlacement::ByteSizeLong() const {
     total_size += 2 + 1;
   }
 
+  // uint64 xue_xfer_plan_id = 24;
+  if (this->_internal_xue_xfer_plan_id() != 0) {
+    total_size += 2 +
+      ::_pbi::WireFormatLite::UInt64Size(
+        this->_internal_xue_xfer_plan_id());
+  }
+
   // int32 xue_tcp_slice_count = 20;
   if (this->_internal_xue_tcp_slice_count() != 0) {
     total_size += 2 +
@@ -9161,6 +9244,9 @@ void AppendStripeDataPlacement::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_m
   if (from._internal_xue_strict_schedule() != 0) {
     _this->_internal_set_xue_strict_schedule(from._internal_xue_strict_schedule());
   }
+  if (from._internal_xue_xfer_plan_id() != 0) {
+    _this->_internal_set_xue_xfer_plan_id(from._internal_xue_xfer_plan_id());
+  }
   if (from._internal_xue_tcp_slice_count() != 0) {
     _this->_internal_set_xue_tcp_slice_count(from._internal_xue_tcp_slice_count());
   }
@@ -9211,6 +9297,464 @@ void AppendStripeDataPlacement::InternalSwap(AppendStripeDataPlacement* other) {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
       file_level_metadata_proxy_2eproto[19]);
+}
+
+// ===================================================================
+
+class XueXferTimingPull::_Internal {
+ public:
+};
+
+XueXferTimingPull::XueXferTimingPull(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.XueXferTimingPull)
+}
+XueXferTimingPull::XueXferTimingPull(const XueXferTimingPull& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueXferTimingPull* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.xue_xfer_plan_id_){}
+    , decltype(_impl_.stripe_id_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.xue_xfer_plan_id_, &from._impl_.xue_xfer_plan_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.stripe_id_) -
+    reinterpret_cast<char*>(&_impl_.xue_xfer_plan_id_)) + sizeof(_impl_.stripe_id_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.XueXferTimingPull)
+}
+
+inline void XueXferTimingPull::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.xue_xfer_plan_id_){uint64_t{0u}}
+    , decltype(_impl_.stripe_id_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+XueXferTimingPull::~XueXferTimingPull() {
+  // @@protoc_insertion_point(destructor:proxy_proto.XueXferTimingPull)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueXferTimingPull::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void XueXferTimingPull::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueXferTimingPull::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.XueXferTimingPull)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&_impl_.xue_xfer_plan_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.stripe_id_) -
+      reinterpret_cast<char*>(&_impl_.xue_xfer_plan_id_)) + sizeof(_impl_.stripe_id_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueXferTimingPull::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 xue_xfer_plan_id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.xue_xfer_plan_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueXferTimingPull::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.XueXferTimingPull)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // uint64 xue_xfer_plan_id = 2;
+  if (this->_internal_xue_xfer_plan_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(2, this->_internal_xue_xfer_plan_id(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.XueXferTimingPull)
+  return target;
+}
+
+size_t XueXferTimingPull::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.XueXferTimingPull)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // uint64 xue_xfer_plan_id = 2;
+  if (this->_internal_xue_xfer_plan_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_xue_xfer_plan_id());
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueXferTimingPull::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueXferTimingPull::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueXferTimingPull::GetClassData() const { return &_class_data_; }
+
+
+void XueXferTimingPull::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueXferTimingPull*>(&to_msg);
+  auto& from = static_cast<const XueXferTimingPull&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.XueXferTimingPull)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_xue_xfer_plan_id() != 0) {
+    _this->_internal_set_xue_xfer_plan_id(from._internal_xue_xfer_plan_id());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueXferTimingPull::CopyFrom(const XueXferTimingPull& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.XueXferTimingPull)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueXferTimingPull::IsInitialized() const {
+  return true;
+}
+
+void XueXferTimingPull::InternalSwap(XueXferTimingPull* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(XueXferTimingPull, _impl_.stripe_id_)
+      + sizeof(XueXferTimingPull::_impl_.stripe_id_)
+      - PROTOBUF_FIELD_OFFSET(XueXferTimingPull, _impl_.xue_xfer_plan_id_)>(
+          reinterpret_cast<char*>(&_impl_.xue_xfer_plan_id_),
+          reinterpret_cast<char*>(&other->_impl_.xue_xfer_plan_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueXferTimingPull::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[20]);
+}
+
+// ===================================================================
+
+class XueXferTimingProxyReply::_Internal {
+ public:
+};
+
+XueXferTimingProxyReply::XueXferTimingProxyReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.XueXferTimingProxyReply)
+}
+XueXferTimingProxyReply::XueXferTimingProxyReply(const XueXferTimingProxyReply& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueXferTimingProxyReply* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.proxy_pure_xfer_sec_){}
+    , decltype(_impl_.wall_span_start_unix_ms_){}
+    , decltype(_impl_.wall_span_end_unix_ms_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.proxy_pure_xfer_sec_, &from._impl_.proxy_pure_xfer_sec_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.wall_span_end_unix_ms_) -
+    reinterpret_cast<char*>(&_impl_.proxy_pure_xfer_sec_)) + sizeof(_impl_.wall_span_end_unix_ms_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.XueXferTimingProxyReply)
+}
+
+inline void XueXferTimingProxyReply::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.proxy_pure_xfer_sec_){0}
+    , decltype(_impl_.wall_span_start_unix_ms_){int64_t{0}}
+    , decltype(_impl_.wall_span_end_unix_ms_){int64_t{0}}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+XueXferTimingProxyReply::~XueXferTimingProxyReply() {
+  // @@protoc_insertion_point(destructor:proxy_proto.XueXferTimingProxyReply)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueXferTimingProxyReply::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void XueXferTimingProxyReply::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueXferTimingProxyReply::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.XueXferTimingProxyReply)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&_impl_.proxy_pure_xfer_sec_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.wall_span_end_unix_ms_) -
+      reinterpret_cast<char*>(&_impl_.proxy_pure_xfer_sec_)) + sizeof(_impl_.wall_span_end_unix_ms_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueXferTimingProxyReply::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // double proxy_pure_xfer_sec = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 9)) {
+          _impl_.proxy_pure_xfer_sec_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
+        } else
+          goto handle_unusual;
+        continue;
+      // int64 wall_span_start_unix_ms = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.wall_span_start_unix_ms_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int64 wall_span_end_unix_ms = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.wall_span_end_unix_ms_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueXferTimingProxyReply::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.XueXferTimingProxyReply)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // double proxy_pure_xfer_sec = 1;
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_proxy_pure_xfer_sec = this->_internal_proxy_pure_xfer_sec();
+  uint64_t raw_proxy_pure_xfer_sec;
+  memcpy(&raw_proxy_pure_xfer_sec, &tmp_proxy_pure_xfer_sec, sizeof(tmp_proxy_pure_xfer_sec));
+  if (raw_proxy_pure_xfer_sec != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteDoubleToArray(1, this->_internal_proxy_pure_xfer_sec(), target);
+  }
+
+  // int64 wall_span_start_unix_ms = 2;
+  if (this->_internal_wall_span_start_unix_ms() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt64ToArray(2, this->_internal_wall_span_start_unix_ms(), target);
+  }
+
+  // int64 wall_span_end_unix_ms = 3;
+  if (this->_internal_wall_span_end_unix_ms() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt64ToArray(3, this->_internal_wall_span_end_unix_ms(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.XueXferTimingProxyReply)
+  return target;
+}
+
+size_t XueXferTimingProxyReply::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.XueXferTimingProxyReply)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // double proxy_pure_xfer_sec = 1;
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_proxy_pure_xfer_sec = this->_internal_proxy_pure_xfer_sec();
+  uint64_t raw_proxy_pure_xfer_sec;
+  memcpy(&raw_proxy_pure_xfer_sec, &tmp_proxy_pure_xfer_sec, sizeof(tmp_proxy_pure_xfer_sec));
+  if (raw_proxy_pure_xfer_sec != 0) {
+    total_size += 1 + 8;
+  }
+
+  // int64 wall_span_start_unix_ms = 2;
+  if (this->_internal_wall_span_start_unix_ms() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(this->_internal_wall_span_start_unix_ms());
+  }
+
+  // int64 wall_span_end_unix_ms = 3;
+  if (this->_internal_wall_span_end_unix_ms() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(this->_internal_wall_span_end_unix_ms());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueXferTimingProxyReply::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueXferTimingProxyReply::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueXferTimingProxyReply::GetClassData() const { return &_class_data_; }
+
+
+void XueXferTimingProxyReply::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueXferTimingProxyReply*>(&to_msg);
+  auto& from = static_cast<const XueXferTimingProxyReply&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.XueXferTimingProxyReply)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
+  double tmp_proxy_pure_xfer_sec = from._internal_proxy_pure_xfer_sec();
+  uint64_t raw_proxy_pure_xfer_sec;
+  memcpy(&raw_proxy_pure_xfer_sec, &tmp_proxy_pure_xfer_sec, sizeof(tmp_proxy_pure_xfer_sec));
+  if (raw_proxy_pure_xfer_sec != 0) {
+    _this->_internal_set_proxy_pure_xfer_sec(from._internal_proxy_pure_xfer_sec());
+  }
+  if (from._internal_wall_span_start_unix_ms() != 0) {
+    _this->_internal_set_wall_span_start_unix_ms(from._internal_wall_span_start_unix_ms());
+  }
+  if (from._internal_wall_span_end_unix_ms() != 0) {
+    _this->_internal_set_wall_span_end_unix_ms(from._internal_wall_span_end_unix_ms());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueXferTimingProxyReply::CopyFrom(const XueXferTimingProxyReply& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.XueXferTimingProxyReply)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueXferTimingProxyReply::IsInitialized() const {
+  return true;
+}
+
+void XueXferTimingProxyReply::InternalSwap(XueXferTimingProxyReply* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(XueXferTimingProxyReply, _impl_.wall_span_end_unix_ms_)
+      + sizeof(XueXferTimingProxyReply::_impl_.wall_span_end_unix_ms_)
+      - PROTOBUF_FIELD_OFFSET(XueXferTimingProxyReply, _impl_.proxy_pure_xfer_sec_)>(
+          reinterpret_cast<char*>(&_impl_.proxy_pure_xfer_sec_),
+          reinterpret_cast<char*>(&other->_impl_.proxy_pure_xfer_sec_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueXferTimingProxyReply::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[21]);
 }
 
 // ===================================================================
@@ -9440,7 +9984,7 @@ void XueStrictOutgoingHop::InternalSwap(XueStrictOutgoingHop* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata XueStrictOutgoingHop::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[20]);
+      file_level_metadata_proxy_2eproto[22]);
 }
 
 // ===================================================================
@@ -9618,7 +10162,7 @@ void SetReply::InternalSwap(SetReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SetReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[21]);
+      file_level_metadata_proxy_2eproto[23]);
 }
 
 // ===================================================================
@@ -9796,7 +10340,7 @@ void GetReply::InternalSwap(GetReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata GetReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[22]);
+      file_level_metadata_proxy_2eproto[24]);
 }
 
 // ===================================================================
@@ -10245,7 +10789,7 @@ void StripeAndBlockIDs::InternalSwap(StripeAndBlockIDs* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata StripeAndBlockIDs::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[23]);
+      file_level_metadata_proxy_2eproto[25]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -10330,6 +10874,14 @@ Arena::CreateMaybeMessage< ::proxy_proto::RecoveryReply >(Arena* arena) {
 template<> PROTOBUF_NOINLINE ::proxy_proto::AppendStripeDataPlacement*
 Arena::CreateMaybeMessage< ::proxy_proto::AppendStripeDataPlacement >(Arena* arena) {
   return Arena::CreateMessageInternal< ::proxy_proto::AppendStripeDataPlacement >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::XueXferTimingPull*
+Arena::CreateMaybeMessage< ::proxy_proto::XueXferTimingPull >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::XueXferTimingPull >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::XueXferTimingProxyReply*
+Arena::CreateMaybeMessage< ::proxy_proto::XueXferTimingProxyReply >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::XueXferTimingProxyReply >(arena);
 }
 template<> PROTOBUF_NOINLINE ::proxy_proto::XueStrictOutgoingHop*
 Arena::CreateMaybeMessage< ::proxy_proto::XueStrictOutgoingHop >(Arena* arena) {
