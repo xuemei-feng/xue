@@ -3166,17 +3166,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         write_gen = it->second;
       }
     }
-    int master_bid;
-    if (m_sys_config != nullptr && m_sys_config->ParixPlacementSeed != 0u)
-    {
-      std::lock_guard<std::mutex> lk(m_parix_master_rng_mu);
-      std::uniform_int_distribution<int> dis(0, stripe.k - 1);
-      master_bid = dis(m_parix_master_rng);
-    }
-    else
-    {
-      master_bid = rand_num(stripe.k);
-    }
+    const int master_bid = pick_parix_master_data_block_id(stripe.k);
     Block *mb = find_block_by_block_id(stripe, master_bid);
     if (mb == nullptr)
     {
@@ -3488,10 +3478,31 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     if (m_sys_config->ParixPlacementSeed == 0u)
     {
+      std::cout << "[Parix][Placement] ParixPlacementSeed=0: master block pick is non-deterministic (rand_num per planParixFullStripe)"
+                << std::endl;
       return;
     }
     std::lock_guard<std::mutex> lk(m_parix_master_rng_mu);
     m_parix_master_rng.seed(m_sys_config->ParixPlacementSeed);
+    std::cout << "[Parix][Placement] seeded mt19937 with ParixPlacementSeed=" << m_sys_config->ParixPlacementSeed << std::endl;
+  }
+
+  int CoordinatorImpl::pick_parix_master_data_block_id(int k)
+  {
+    if (k <= 0)
+    {
+      return 0;
+    }
+    if (m_sys_config != nullptr && m_sys_config->ParixPlacementSeed != 0u)
+    {
+      std::lock_guard<std::mutex> lk(m_parix_master_rng_mu);
+      std::uniform_int_distribution<int> dis(0, k - 1);
+      const int bid = dis(m_parix_master_rng);
+      std::cout << "[Parix][Placement] master_bid=" << bid << " (k=" << k << ", seed=" << m_sys_config->ParixPlacementSeed << ")"
+                << std::endl;
+      return bid;
+    }
+    return rand_num(k);
   }
 
   bool CoordinatorImpl::init_clusterinfo(std::string m_clusterinfo_path)

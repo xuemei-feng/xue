@@ -151,6 +151,8 @@ namespace ECProject
     bool init_proxyinfo();
     /** Seed internal PRNG when m_sys_config->ParixPlacementSeed != 0 (Coordinator 3-arg ctor). */
     void init_parix_placement_rng();
+    /** Parix placement only: master data block id in [0,k). Does not affect transmission/commit paths. */
+    int pick_parix_master_data_block_id(int k);
     void update_stripe_info_in_node(bool add_or_sub, int t_node_id, int stripe_id);
     int randomly_select_a_cluster(int stripe_id);
     int randomly_select_a_node(int cluster_id, int stripe_id);

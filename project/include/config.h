@@ -39,10 +39,11 @@ namespace ECProject
     /** main_client / bench: number of stripes to create via Client::set() (see parameterConfiguration.xml). */
     int ClientStripeNum = 3;
     /**
-     * Parix full-stripe plan: master data block index in [0, k) uses a fixed PRNG when non-zero.
-     * 0 keeps legacy behavior (fresh random_device per planParixFullStripe call via rand_num).
+     * Parix placement only (planParixFullStripe master data block in [0,k)).
+     * Non-zero: mt19937(seed) — same seed and call order => reproducible master picks across runs.
+     * 0: legacy rand_num() per call (non-deterministic). See parameterConfiguration.xml.
      */
-    std::uint32_t ParixPlacementSeed = 0;
+    std::uint32_t ParixPlacementSeed = 12345;
   };
 }
 
