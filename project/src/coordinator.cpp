@@ -3528,6 +3528,30 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     cv.notify_all();
   }
 
+  void CoordinatorImpl::XueStrictScheduleSession::try_advance_commits()
+  {
+    if (commits_complete || commits_failed)
+    {
+      cv.notify_all();
+      return;
+    }
+    if (required_commit_keys.empty())
+    {
+      commits_complete = true;
+      cv.notify_all();
+      return;
+    }
+    for (const auto &k : required_commit_keys)
+    {
+      if (committed_keys.find(k) == committed_keys.end())
+      {
+        return;
+      }
+    }
+    commits_complete = true;
+    cv.notify_all();
+  }
+
   int CoordinatorImpl::XueStrictScheduleSession::find_step_index_by_no(int step_no) const
   {
     if (step_no <= 0)
@@ -3951,6 +3975,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         for (const auto &plan : append_plans)
         {
           session->required_ingress_keys.insert(plan.key());
+          session->required_commit_keys.insert(plan.key());
         }
         m_xue_strict_by_stripe[stripe_id] = session;
       }
@@ -4102,6 +4127,75 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     std::unique_lock<std::mutex> session_lk(session->mutex);
     session->cv.wait(session_lk, [&session]() { return session->ingress_complete; });
+    return grpc::Status::OK;
+  }
+
+  void CoordinatorImpl::note_xue_strict_append_commit(int stripe_id, const std::string &append_key,
+                                                      bool committed)
+  {
+    if (stripe_id < 0)
+    {
+      return;
+    }
+    std::shared_ptr<XueStrictScheduleSession> session;
+    {
+      std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
+      const auto it = m_xue_strict_by_stripe.find(stripe_id);
+      if (it == m_xue_strict_by_stripe.end())
+      {
+        return;
+      }
+      session = it->second;
+    }
+    std::lock_guard<std::mutex> session_lk(session->mutex);
+    if (session->required_commit_keys.find(append_key) == session->required_commit_keys.end())
+    {
+      return;
+    }
+    if (committed)
+    {
+      session->committed_keys.insert(append_key);
+      std::cout << "[XUE_SCHEDULE] commit_ready stripe=" << stripe_id << " key=" << append_key
+                << " ready=" << session->committed_keys.size() << "/"
+                << session->required_commit_keys.size() << std::endl;
+    }
+    else
+    {
+      session->commits_failed = true;
+      std::cout << "[XUE_SCHEDULE] commit_failed stripe=" << stripe_id << " key=" << append_key
+                << std::endl;
+    }
+    session->try_advance_commits();
+  }
+
+  grpc::Status CoordinatorImpl::waitXueAllCommitsReady(
+      grpc::ServerContext *context,
+      const coordinator_proto::XueStripeScheduleId *request,
+      coordinator_proto::ReplyFromCoordinator *reply)
+  {
+    (void)context;
+    (void)reply;
+    const int stripe_id = request->stripe_id();
+    std::shared_ptr<XueStrictScheduleSession> session;
+    {
+      std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
+      const auto it = m_xue_strict_by_stripe.find(stripe_id);
+      if (it == m_xue_strict_by_stripe.end())
+      {
+        return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
+                            "no strict xue schedule session for stripe");
+      }
+      session = it->second;
+    }
+    std::unique_lock<std::mutex> session_lk(session->mutex);
+    session->cv.wait(session_lk, [&session]() {
+      return session->commits_complete || session->commits_failed;
+    });
+    if (session->commits_failed)
+    {
+      return grpc::Status(grpc::StatusCode::ABORTED, "xue strict schedule commit aborted");
+    }
+    std::cout << "[XUE_SCHEDULE] all_commits_ready stripe=" << stripe_id << std::endl;
     return grpc::Status::OK;
   }
 
@@ -6546,6 +6640,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       std::cout << "reportCommitAbort exception" << std::endl;
       std::cout << e.what() << std::endl;
+    }
+    if (opp == APPEND && stripe_id >= 0)
+    {
+      note_xue_strict_append_commit(stripe_id, key, commit_abortkey->ifcommitmetadata());
     }
     return grpc::Status::OK;
   }

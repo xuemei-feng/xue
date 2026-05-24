@@ -51,8 +51,8 @@ int main(int argc, char **argv)
     double block_size = static_cast<double> (parameters[3]) / 1024 / 1024; //MB
     int n = k + r + z;
 
-    // 条带数量固定为 3；后续若需更多条带，改此常量即可。
-    const int stripe_num = 3;
+    // 条带数量固定为 4；后续若需更多条带，改此常量即可。
+    const int stripe_num = 4;
     std::cout << "Stripe count: " << stripe_num << " (fixed in main_client.cpp)" << std::endl;
 
     size_t total_write_size = 3000; // MB (used for throughput headline below)

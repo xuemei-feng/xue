@@ -15,6 +15,8 @@
 #include <utility>
 #include <vector>
 #include <mutex>
+#include <map>
+#include <string>
 namespace ECProject
 {
   struct XueAppendNetworkTiming
@@ -125,6 +127,10 @@ namespace ECProject
         bool *if_commit_arr, const std::vector<int> &indices, bool poll_commit_after_send,
         XueClientTimingSummary *timing = nullptr);
     bool poll_append_commit(const std::string &append_key);
+    bool wait_xue_all_commits_ready(int stripe_id, XueClientTimingSummary *timing);
+    void wait_append_keys_commit_parallel(const std::vector<std::string> &keys,
+                                          const std::map<std::string, int> &key_to_index,
+                                          bool *if_commit_arr, XueClientTimingSummary *timing);
     bool xue_update_strict_schedule(const coordinator_proto::ReplyProxyIPsPorts &reply,
                                     const char *send_buf, bool *if_commit_arr,
                                     XueClientTimingSummary *timing);

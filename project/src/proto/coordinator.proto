@@ -38,6 +38,7 @@ service coordinatorService {
   // xue strict schedule: ingress barrier + per-step DAG (replaces wave release when steps present)
   rpc reportXueIngressReady (XueIngressReadyReport) returns (ReplyFromCoordinator) {};
   rpc waitXueAllIngressReady (XueStripeScheduleId) returns (ReplyFromCoordinator) {};
+  rpc waitXueAllCommitsReady (XueStripeScheduleId) returns (ReplyFromCoordinator) {};
   rpc waitXueScheduleStep (XueScheduleStepWait) returns (ReplyFromCoordinator) {};
   rpc reportXueScheduleStepDone (XueScheduleStepDone) returns (ReplyFromCoordinator) {};
   // legacy wave/hop barriers (fallback when xue_transfer_steps empty)

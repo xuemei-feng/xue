@@ -884,6 +884,72 @@ namespace ECProject
     return status.ok() && reply.ifcommit();
   }
 
+  bool Client::wait_xue_all_commits_ready(int stripe_id, XueClientTimingSummary *timing)
+  {
+    const auto commit_t0 = std::chrono::high_resolution_clock::now();
+    grpc::ClientContext wait_ctx;
+    coordinator_proto::XueStripeScheduleId wait_req;
+    coordinator_proto::ReplyFromCoordinator wait_rep;
+    wait_req.set_stripe_id(stripe_id);
+    const grpc::Status wait_st =
+        m_coordinator_ptr->waitXueAllCommitsReady(&wait_ctx, wait_req, &wait_rep);
+    if (timing != nullptr)
+    {
+      timing->sum_coordinator_checkCommitAbort_s +=
+          chron_elapsed_s(commit_t0, std::chrono::high_resolution_clock::now());
+    }
+    if (!wait_st.ok())
+    {
+      std::cout << "[XUE_UPDATE] waitXueAllCommitsReady failed: " << wait_st.error_message()
+                << std::endl;
+      return false;
+    }
+    return true;
+  }
+
+  void Client::wait_append_keys_commit_parallel(const std::vector<std::string> &keys,
+                                                const std::map<std::string, int> &key_to_index,
+                                                bool *if_commit_arr, XueClientTimingSummary *timing)
+  {
+    if (keys.empty())
+    {
+      return;
+    }
+    const auto commit_t0 = std::chrono::high_resolution_clock::now();
+    while (true)
+    {
+      bool pending = false;
+      for (const auto &key : keys)
+      {
+        const auto kit = key_to_index.find(key);
+        if (kit == key_to_index.end())
+        {
+          continue;
+        }
+        const int idx = kit->second;
+        if (if_commit_arr[idx])
+        {
+          continue;
+        }
+        pending = true;
+        if (poll_append_commit(key))
+        {
+          if_commit_arr[idx] = true;
+        }
+      }
+      if (!pending)
+      {
+        break;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
+    if (timing != nullptr)
+    {
+      timing->sum_coordinator_checkCommitAbort_s +=
+          chron_elapsed_s(commit_t0, std::chrono::high_resolution_clock::now());
+    }
+  }
+
   bool Client::xue_update_strict_schedule(const coordinator_proto::ReplyProxyIPsPorts &reply,
                                           const char *send_buf, bool *if_commit_arr,
                                           XueClientTimingSummary *timing)
@@ -929,30 +995,16 @@ namespace ECProject
     }
     std::cout << "[XUE_UPDATE] all_ingress_ready stripe=" << stripe_id << std::endl;
 
+    if (!wait_xue_all_commits_ready(stripe_id, timing))
+    {
+      return false;
+    }
+    std::cout << "[XUE_UPDATE] all_commits_ready stripe=" << stripe_id << std::endl;
     for (int i = 0; i < reply.append_keys_size(); ++i)
     {
-      if (if_commit_arr[i])
-      {
-        continue;
-      }
-      const auto commit_t0 = std::chrono::high_resolution_clock::now();
-      while (!if_commit_arr[i])
-      {
-        if (poll_append_commit(reply.append_keys(i)))
-        {
-          if_commit_arr[i] = true;
-          break;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
-      }
-      if (timing != nullptr)
-      {
-        timing->sum_coordinator_checkCommitAbort_s +=
-            chron_elapsed_s(commit_t0, std::chrono::high_resolution_clock::now());
-      }
+      if_commit_arr[i] = true;
     }
-    return std::all_of(if_commit_arr, if_commit_arr + reply.append_keys_size(),
-                       [](bool v) { return v; });
+    return true;
   }
 
   bool Client::xue_update_follow_schedule(const coordinator_proto::ReplyProxyIPsPorts &reply,
@@ -1026,36 +1078,9 @@ namespace ECProject
                 << std::endl;
 
       const auto commit_it = commit_keys_by_wave.find(w);
-      if (commit_it != commit_keys_by_wave.end())
+      if (commit_it != commit_keys_by_wave.end() && !commit_it->second.empty())
       {
-        for (const auto &key : commit_it->second)
-        {
-          const auto kit = key_to_index.find(key);
-          if (kit == key_to_index.end())
-          {
-            continue;
-          }
-          const int idx = kit->second;
-          if (if_commit_arr[idx])
-          {
-            continue;
-          }
-          const auto commit_t0 = std::chrono::high_resolution_clock::now();
-          while (!if_commit_arr[idx])
-          {
-            if (poll_append_commit(key))
-            {
-              if_commit_arr[idx] = true;
-              break;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
-          }
-          if (timing != nullptr)
-          {
-            timing->sum_coordinator_checkCommitAbort_s +=
-                chron_elapsed_s(commit_t0, std::chrono::high_resolution_clock::now());
-          }
-        }
+        wait_append_keys_commit_parallel(commit_it->second, key_to_index, if_commit_arr, timing);
       }
     }
     return std::all_of(if_commit_arr, if_commit_arr + reply.append_keys_size(),

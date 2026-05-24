@@ -90,6 +90,10 @@ namespace ECProject
         grpc::ServerContext *context,
         const coordinator_proto::XueStripeScheduleId *request,
         coordinator_proto::ReplyFromCoordinator *reply) override;
+    grpc::Status waitXueAllCommitsReady(
+        grpc::ServerContext *context,
+        const coordinator_proto::XueStripeScheduleId *request,
+        coordinator_proto::ReplyFromCoordinator *reply) override;
     grpc::Status waitXueScheduleStep(
         grpc::ServerContext *context,
         const coordinator_proto::XueScheduleStepWait *request,
@@ -193,6 +197,7 @@ namespace ECProject
     void update_stripe_info_in_node(int t_node_id, int stripe_id, int index);
     int getClusterAppendSize(Stripe *stripe, const std::map<int, std::pair<int, int>> &block_to_slice_sizes, int curr_group_id, int parity_slice_size);
     void notify_proxies_ready(const proxy_proto::AppendStripeDataPlacement &plan);
+    void note_xue_strict_append_commit(int stripe_id, const std::string &append_key, bool committed);
     std::vector<int> get_recovery_group_ids(std::string code_type, int k, int r, int z, int failed_block_id);
     void init_recovery_group_lookup_table();
     void print_stripe_data_placement(Stripe &stripe);
@@ -236,14 +241,19 @@ namespace ECProject
     {
       int stripe_id = -1;
       bool ingress_complete = false;
+      bool commits_complete = false;
+      bool commits_failed = false;
       std::set<std::string> required_ingress_keys;
       std::set<std::string> ingress_ready_keys;
+      std::set<std::string> required_commit_keys;
+      std::set<std::string> committed_keys;
       std::vector<coordinator_proto::XueTransferStepInfo> steps;
       std::vector<XueStepRuntimeState> step_states;
       int num_parallel_groups = 0;
       std::mutex mutex;
       std::condition_variable cv;
       void try_advance_ready_steps();
+      void try_advance_commits();
       int find_step_index_by_no(int step_no) const;
       int find_step_index_by_hop(const std::string &append_key, int from_cluster,
                                  int to_cluster) const;
