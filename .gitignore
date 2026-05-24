@@ -10,7 +10,7 @@ storage/*
 !storage/.gitkeep
 data/*
 project/config/*
-!project/config/bw_limit_matrix.txt
+!project/config/BW_limit
 !project/config/parameterConfiguration.xml
 small_tools/*
 logs/*
