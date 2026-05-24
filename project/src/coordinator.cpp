@@ -8,6 +8,7 @@
 #include <limits>
 #include <queue>
 #include <set>
+#include <tuple>
 #include <cmath>
 #include <stdexcept>
 #include <iomanip>
@@ -627,6 +628,127 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       int num_parallel_groups = 0;
     };
 
+    using XueStrictHopKey = std::tuple<std::string, int, int, std::string>;
+
+    XueStrictHopKey make_xue_strict_hop_key(const std::string &append_key, int from_cluster,
+                                            int to_cluster,
+                                            const std::string &forward_append_mode)
+    {
+      return {append_key, from_cluster, to_cluster, forward_append_mode};
+    }
+
+    XueStrictHopKey make_xue_strict_hop_key(const coordinator_proto::XueTransferStepInfo &step)
+    {
+      return make_xue_strict_hop_key(step.append_key(), step.from_cluster(), step.to_cluster(),
+                                     step.forward_append_mode());
+    }
+
+  // 调度器按 block 拆 step；合并 ingress 下一次 TCP 应对应一次 proxy 转发。
+  // 去掉 strict 表里 (append_key, from, to, mode) 重复的 step，并重映射 pred。
+    void dedupe_strict_transfer_steps(XueStrictTransferPlan &plan)
+    {
+      if (plan.steps.size() <= 1)
+      {
+        return;
+      }
+
+      std::map<int, int> old_step_no_to_canonical;
+      std::vector<coordinator_proto::XueTransferStepInfo> kept_steps;
+      kept_steps.reserve(plan.steps.size());
+      std::map<XueStrictHopKey, int> hop_to_canonical_step_no;
+
+      for (const auto &s : plan.steps)
+      {
+        const XueStrictHopKey hop_key = make_xue_strict_hop_key(s);
+        const auto dup_it = hop_to_canonical_step_no.find(hop_key);
+        if (dup_it != hop_to_canonical_step_no.end())
+        {
+          old_step_no_to_canonical[s.step_no()] = dup_it->second;
+          std::cout << "[XUE_SCHEDULE] strict_step_dedup skip step_no=" << s.step_no()
+                    << " key=" << s.append_key() << " " << s.from_cluster() << "->"
+                    << s.to_cluster() << " mode=" << s.forward_append_mode()
+                    << " canonical_step_no=" << dup_it->second << std::endl;
+          continue;
+        }
+        hop_to_canonical_step_no[hop_key] = s.step_no();
+        old_step_no_to_canonical[s.step_no()] = s.step_no();
+        kept_steps.push_back(s);
+      }
+
+      if (kept_steps.size() == plan.steps.size())
+      {
+        return;
+      }
+
+      std::map<int, int> kept_old_to_new;
+      for (size_t i = 0; i < kept_steps.size(); ++i)
+      {
+        const int old_no = kept_steps[i].step_no();
+        kept_old_to_new[old_no] = static_cast<int>(i) + 1;
+        kept_steps[i].set_step_no(static_cast<int>(i) + 1);
+      }
+
+      const auto resolve_new_step_no = [&](int old_pred_no) -> int {
+        if (old_pred_no <= 0)
+        {
+          return -1;
+        }
+        const auto canon_it = old_step_no_to_canonical.find(old_pred_no);
+        if (canon_it == old_step_no_to_canonical.end())
+        {
+          return -1;
+        }
+        const auto new_it = kept_old_to_new.find(canon_it->second);
+        if (new_it == kept_old_to_new.end())
+        {
+          return -1;
+        }
+        return new_it->second;
+      };
+
+      for (auto &s : kept_steps)
+      {
+        std::set<int> remapped_preds;
+        for (int old_pred : s.pred_step_nos())
+        {
+          const int new_pred = resolve_new_step_no(old_pred);
+          if (new_pred > 0)
+          {
+            remapped_preds.insert(new_pred);
+          }
+        }
+        s.clear_pred_step_nos();
+        for (int new_pred : remapped_preds)
+        {
+          s.add_pred_step_nos(new_pred);
+        }
+      }
+
+      plan.steps = std::move(kept_steps);
+      std::set<int> parallel_groups;
+      for (const auto &s : plan.steps)
+      {
+        parallel_groups.insert(s.parallel_group());
+      }
+      plan.num_parallel_groups = static_cast<int>(parallel_groups.size());
+    }
+
+    bool relay_plan_has_outgoing_hop(const proxy_proto::AppendStripeDataPlacement &plan,
+                                     const XueStrictHopKey &hop_key)
+    {
+      const int to_cluster = std::get<2>(hop_key);
+      const std::string &mode = std::get<3>(hop_key);
+      for (int hi = 0; hi < plan.xue_strict_outgoing_size(); ++hi)
+      {
+        const auto &hop = plan.xue_strict_outgoing(hi);
+        if (hop.to_cluster() == to_cluster && hop.forward_append_mode() == mode)
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
     int local_parity_cluster_from_ingress_plan(
         const proxy_proto::AppendStripeDataPlacement *plan, int k, int r)
     {
@@ -744,18 +866,32 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         {
           continue;
         }
-        bool already = false;
-        for (const auto &existing : relay_notify_plans)
+        const XueStrictHopKey hop_key = make_xue_strict_hop_key(s);
+        proxy_proto::AppendStripeDataPlacement *relay_plan_ptr = nullptr;
+        for (auto &existing : relay_notify_plans)
         {
-          if (existing.cluster_id() == s.from_cluster() &&
-              existing.key() == template_plan->key())
+          if (existing.cluster_id() == s.from_cluster() && existing.key() == template_plan->key())
           {
-            already = true;
+            relay_plan_ptr = &existing;
             break;
           }
         }
-        if (already)
+        if (relay_plan_ptr != nullptr)
         {
+          if (relay_plan_has_outgoing_hop(*relay_plan_ptr, hop_key))
+          {
+            std::cout << "[XUE_SCHEDULE] relay_outgoing_dedup skip key=" << s.append_key()
+                      << " " << s.from_cluster() << "->" << s.to_cluster()
+                      << " mode=" << s.forward_append_mode() << " step_no=" << s.step_no()
+                      << std::endl;
+            continue;
+          }
+          proxy_proto::XueStrictOutgoingHop *hop = relay_plan_ptr->add_xue_strict_outgoing();
+          hop->set_to_cluster(s.to_cluster());
+          hop->set_forward_append_mode(s.forward_append_mode());
+          std::cout << "[XUE_SCHEDULE] relay_notify_add_hop key=" << relay_plan_ptr->key()
+                    << " cluster=" << relay_plan_ptr->cluster_id() << " hop->"
+                    << s.to_cluster() << " mode=" << s.forward_append_mode() << std::endl;
           continue;
         }
         proxy_proto::AppendStripeDataPlacement relay_plan = *template_plan;
@@ -788,6 +924,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         plan.clear_xue_strict_outgoing();
         bool has_relay_hop = false;
         const int plan_lp_cluster = local_parity_cluster_from_ingress_plan(&plan, k, r);
+        // 调度器按 block 拆 step，client ingress 可能合并为一次 TCP；同一
+        // (append_key, from, to, mode) 只保留一个 outgoing hop，避免整包重复转发。
+        std::set<std::tuple<std::string, int, int, std::string>> seen_outgoing_hops;
         for (const auto &s : strict.steps)
         {
           if (s.from_cluster() != plan.cluster_id())
@@ -805,6 +944,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
               s.to_cluster() == plan_lp_cluster && plan.cluster_id() != plan_lp_cluster &&
               !plan.xue_compute_global_parity())
           {
+            continue;
+          }
+          const auto hop_key = make_xue_strict_hop_key(s);
+          if (!seen_outgoing_hops.insert(hop_key).second)
+          {
+            std::cout << "[XUE_SCHEDULE] plan_outgoing_dedup skip key=" << s.append_key()
+                      << " " << s.from_cluster() << "->" << s.to_cluster()
+                      << " mode=" << s.forward_append_mode() << " step_no=" << s.step_no()
+                      << std::endl;
             continue;
           }
           proxy_proto::XueStrictOutgoingHop *hop = plan.add_xue_strict_outgoing();
@@ -3779,9 +3927,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
     }
 
-    const XueStrictTransferPlan strict_schedule =
+    const XueStrictTransferPlan strict_schedule_raw =
         build_xue_strict_transfer_steps(stripe, update_result.route_decisions,
                                         update_result.scheduled_tasks, append_plans);
+    XueStrictTransferPlan strict_schedule = strict_schedule_raw;
+    dedupe_strict_transfer_steps(strict_schedule);
     const bool use_strict_schedule = !strict_schedule.steps.empty();
 
     const XueExecSchedulePlan exec_schedule =
@@ -4035,18 +4185,22 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return grpc::Status(grpc::StatusCode::NOT_FOUND, "no matching schedule step");
     }
     std::lock_guard<std::mutex> session_lk(session->mutex);
-    if (request->success())
+    const coordinator_proto::XueTransferStepInfo &matched_step =
+        session->steps[static_cast<size_t>(step_idx)];
+    const XueStrictHopKey matched_hop = make_xue_strict_hop_key(matched_step);
+    const auto new_state = request->success() ? XueStepRuntimeState::DONE
+                                              : XueStepRuntimeState::PENDING;
+    for (size_t i = 0; i < session->steps.size(); ++i)
     {
-      session->step_states[static_cast<size_t>(step_idx)] = XueStepRuntimeState::DONE;
-    }
-    else
-    {
-      session->step_states[static_cast<size_t>(step_idx)] = XueStepRuntimeState::PENDING;
+      if (make_xue_strict_hop_key(session->steps[i]) == matched_hop)
+      {
+        session->step_states[i] = new_state;
+      }
     }
     session->try_advance_ready_steps();
     std::cout << "[XUE_SCHEDULE] step_done stripe=" << stripe_id
-              << " step_no=" << session->steps[static_cast<size_t>(step_idx)].step_no()
-              << " ok=" << request->success() << std::endl;
+              << " step_no=" << matched_step.step_no() << " ok=" << request->success()
+              << std::endl;
     return grpc::Status::OK;
   }
 
