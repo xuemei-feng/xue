@@ -1090,7 +1090,12 @@ namespace ECProject
           placement->xue_compute_global_parity() &&
           placement->xue_global_parity_cluster_id() == m_self_cluster_id &&
           m_self_cluster_id == placement->cluster_id();
-      if (!class2_ingress_only)
+      // class3：data cluster ingress 已在 strict ingress 侧完成 merged local parity forward，
+      // coordinator 不会把 4->local 放进 strict_outgoing，deferred 无 hop 属预期。
+      const bool class3_ingress_only =
+          m_self_cluster_id == placement->cluster_id() &&
+          needsClass3MergedLocalParityForward(*placement, tcp_slice_count);
+      if (!class2_ingress_only && !class3_ingress_only)
       {
         std::cerr << "[Proxy] strict schedule: no outgoing hops for append_key=" << placement->key()
                   << " proxy_cluster=" << m_self_cluster_id << std::endl;
