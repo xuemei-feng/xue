@@ -19,7 +19,7 @@
     <r>2</r>  //是全局校验块数量
     <z>2</z>  //是本地校验块数量
     <!-- main_client: how many stripes to write (Client::set loop); change here or override in config.h default -->
-    <ClientStripeNum>4</ClientStripeNum>
+    <ClientStripeNum>10</ClientStripeNum>
     <!-- Parix planParixFullStripe: master data block in [0,k). Non-zero = mt19937(seed) for reproducible sequence across calls/runs; 0 = legacy rand_num per call -->
     <ParixPlacementSeed>17</ParixPlacementSeed>
     <!-- <CodeType>UniformLRC</CodeType>

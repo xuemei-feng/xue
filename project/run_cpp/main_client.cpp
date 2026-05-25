@@ -7,11 +7,105 @@
 #include "config.h"
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <chrono>
 #include <algorithm>
+#include <numeric>
 #include <random>
 #include <vector>
 #include "unilrc_encoder.h"
+
+namespace
+{
+    bool parse_update_request_line(const std::string &line, int &stripe_id, std::vector<std::pair<int, int>> &ranges)
+    {
+        std::istringstream iss(line);
+        int range_cnt = 0;
+        if (!(iss >> stripe_id >> range_cnt) || range_cnt <= 0)
+        {
+            return false;
+        }
+        ranges.clear();
+        ranges.reserve(static_cast<size_t>(range_cnt));
+        for (int i = 0; i < range_cnt; ++i)
+        {
+            int lo = 0;
+            int hi = 0;
+            if (!(iss >> lo >> hi) || hi <= lo)
+            {
+                ranges.clear();
+                return false;
+            }
+            ranges.emplace_back(lo, hi);
+        }
+        return true;
+    }
+
+    int max_stripe_id_in_batch_file(const std::string &batch_path)
+    {
+        std::ifstream in(batch_path);
+        if (!in.is_open())
+        {
+            return -1;
+        }
+        int max_id = -1;
+        std::string line;
+        while (std::getline(in, line))
+        {
+            if (line.empty() || line[0] == '#')
+            {
+                continue;
+            }
+            int stripe_id = 0;
+            std::vector<std::pair<int, int>> ranges;
+            if (parse_update_request_line(line, stripe_id, ranges))
+            {
+                max_id = std::max(max_id, stripe_id);
+            }
+        }
+        return max_id;
+    }
+
+    void randomize_buffer(std::vector<char> &buf)
+    {
+        std::mt19937 rng(std::random_device{}());
+        std::uniform_int_distribution<int> byte_dist(0, 255);
+        for (size_t i = 0; i < buf.size(); ++i)
+        {
+            buf[i] = static_cast<char>(byte_dist(rng));
+        }
+    }
+
+    bool run_parix_update_for_ranges(ECProject::Client &client, int stripe_id,
+                                     const std::vector<std::pair<int, int>> &ranges)
+    {
+        int total_span = 0;
+        for (const auto &rg : ranges)
+        {
+            total_span += rg.second - rg.first;
+        }
+        if (total_span <= 0)
+        {
+            return false;
+        }
+        if (client.parix_ranges_cover_full_stripe_data(ranges))
+        {
+            std::vector<int> params = client.get_parameters();
+            if (params.size() < 4)
+            {
+                return false;
+            }
+            const int pk = params[0];
+            const int pbs = params[3];
+            std::vector<char> new_stripe(static_cast<size_t>(pk) * static_cast<size_t>(pbs));
+            randomize_buffer(new_stripe);
+            return client.parix_full_stripe_rewrite(stripe_id, new_stripe.data());
+        }
+        std::vector<char> packed(static_cast<size_t>(total_span));
+        randomize_buffer(packed);
+        return client.parix_partial_update_ranges(stripe_id, ranges, packed.data());
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -52,7 +146,14 @@ int main(int argc, char **argv)
     double block_size = static_cast<double> (parameters[3]) / 1024 / 1024; //MB
     int n = k + r + z;
 
-    const int stripe_num = config->ClientStripeNum;
+    const std::string batch_file_path = (argc >= 2) ? std::string(argv[1]) : std::string("try");
+    int stripe_num = config->ClientStripeNum;
+    const int max_stripe_from_file = max_stripe_id_in_batch_file(batch_file_path);
+    if (max_stripe_from_file >= 0)
+    {
+        stripe_num = std::max(stripe_num, max_stripe_from_file + 1);
+    }
+    std::cout << "batch_file=" << batch_file_path << " stripe_num=" << stripe_num << std::endl;
     const double total_write_size_mb =
         static_cast<double>(stripe_num) * block_size * static_cast<double>(n);
     std::cout << "Starting set stripe operation (" << stripe_num << " stripes)" << std::endl;
@@ -70,90 +171,94 @@ int main(int argc, char **argv)
     std::cin >> input;
     if (input == 'y') 
     {
-            int stripe_id = 0;
-            int num_ranges = 1;
-            std::cout << "Parix update: stripe_id num_ranges, then num_ranges pairs logical_start logical_end_exclusive (whitespace only).\n"
-                         "Offsets are stripe-global in [0, k*BlockSize). Partial path requires pairwise disjoint ranges.\n"
-                         "Full-stripe rewrite if every data block [b*BlockSize,(b+1)*BlockSize) intersects some range (need not cover whole stripe).\n"
-                         "Example partial: 0 2\n0 512\n8192 8704\n"
-                         "Example full (one span covering all k blocks): 0 1\n0 <k*BlockSize>" << std::endl;
-            std::cin >> stripe_id >> num_ranges;
-            if (num_ranges < 1)
-            {
-                std::cout << "Invalid num_ranges" << std::endl;
-            }
-            else
-            {
-                std::vector<std::pair<int, int>> ranges;
-                ranges.reserve(static_cast<size_t>(num_ranges));
-                int total_span = 0;
-                for (int ri = 0; ri < num_ranges; ++ri)
-                {
-                    int lo = 0;
-                    int hi = 0;
-                    std::cin >> lo >> hi;
-                    if (hi <= lo)
-                    {
-                        std::cout << "Invalid range on line " << (ri + 1) << std::endl;
-                        total_span = -1;
-                        break;
-                    }
-                    ranges.push_back({lo, hi});
-                    total_span += hi - lo;
-                }
-                if (total_span > 0)
-                {
-                    const std::chrono::high_resolution_clock::time_point req_start = std::chrono::high_resolution_clock::now();
-                    bool parix_ok = false;
-                    auto randomize_buffer = [](std::vector<char> &buf) {
-                        std::mt19937 rng(std::random_device{}());
-                        std::uniform_int_distribution<int> byte_dist(0, 255);
-                        for (size_t i = 0; i < buf.size(); ++i)
-                        {
-                            buf[i] = static_cast<char>(byte_dist(rng));
-                        }
-                    };
-                    if (client.parix_ranges_cover_full_stripe_data(ranges))
-                    {
-                        std::vector<int> params = client.get_parameters();
-                        if (params.size() < 4)
-                        {
-                            std::cout << "[Parix auto] get_parameters failed (code type?)" << std::endl;
-                            parix_ok = false;
-                        }
-                        else
-                        {
-                            const int pk = params[0];
-                            const int pbs = params[3];
-                            std::vector<char> new_stripe(static_cast<size_t>(pk) * static_cast<size_t>(pbs));
-                            randomize_buffer(new_stripe);
-                            std::cout << "[Parix auto] full stripe new data in memory -> parix_full_stripe_rewrite (no read of old data blocks)"
-                                      << std::endl;
-                            parix_ok = client.parix_full_stripe_rewrite(stripe_id, new_stripe.data());
-                        }
-                    }
-                    else
-                    {
-                        std::vector<char> packed(static_cast<size_t>(total_span));
-                        randomize_buffer(packed);
-                        std::cout << "[Parix auto] partial path -> parix_partial_update_ranges(stripe_id, ranges, packed.data())" << std::endl;
-                        parix_ok = client.parix_partial_update_ranges(stripe_id, ranges, packed.data());
-                    }
-                    const std::chrono::high_resolution_clock::time_point req_end = std::chrono::high_resolution_clock::now();
-                    const std::chrono::duration<double> parix_wall =
-                        std::chrono::duration_cast<std::chrono::duration<double>>(req_end - req_start);
-                    std::cout << "[Parix auto] wall time: " << parix_wall.count() << " s" << std::endl;
+        std::ifstream batch_file(batch_file_path);
+        if (!batch_file.is_open())
+        {
+            std::cout << "Cannot open batch file: " << batch_file_path << std::endl;
+            return 1;
+        }
 
-                    if (parix_ok)
-                    {
-                        std::cout << "Parix update OK" << std::endl;
-                    }
-                    else
-                    {
-                        std::cout << "Parix update failed" << std::endl;
-                    }
-                }
+        std::cout << "Parix batch update from file: " << batch_file_path << std::endl;
+        std::cout << "Line format: stripe_id range_count start0 end0 [start1 end1 ...]  (# and empty lines skipped)" << std::endl;
+        std::cout << "Each range is logical half-open [start, end) in [0, k*BlockSize)." << std::endl;
+
+        const auto batch_start = std::chrono::high_resolution_clock::now();
+        int line_no = 0;
+        int req_index = 0;
+        int fail_count = 0;
+        int success_count = 0;
+        struct BatchSuccessRecord
+        {
+            int req_index = 0;
+            int line_no = 0;
+            int stripe_id = 0;
+            double latency_s = 0.0;
+        };
+        std::vector<BatchSuccessRecord> success_records;
+
+        std::string line;
+        while (std::getline(batch_file, line))
+        {
+            line_no++;
+            if (line.empty() || line[0] == '#')
+            {
+                continue;
             }
+
+            int stripe_id = 0;
+            std::vector<std::pair<int, int>> ranges;
+            if (!parse_update_request_line(line, stripe_id, ranges))
+            {
+                std::cout << "[batch line " << line_no << "] parse failed, skip: " << line << std::endl;
+                fail_count++;
+                continue;
+            }
+
+            req_index++;
+            std::cout << "--- request #" << req_index << " (file line " << line_no << ") stripe_id=" << stripe_id
+                      << " ranges=" << ranges.size() << " ---" << std::endl;
+
+            const auto req_start = std::chrono::high_resolution_clock::now();
+            const bool ok = run_parix_update_for_ranges(client, stripe_id, ranges);
+            const auto req_end = std::chrono::high_resolution_clock::now();
+            const double req_s = std::chrono::duration_cast<std::chrono::duration<double>>(req_end - req_start).count();
+
+            if (!ok)
+            {
+                std::cout << "[batch line " << line_no << "] parix update failed, skip. latency=" << req_s << " s" << std::endl;
+                fail_count++;
+                continue;
+            }
+
+            success_count++;
+            success_records.push_back(BatchSuccessRecord{req_index, line_no, stripe_id, req_s});
+            std::cout << "[batch line " << line_no << "] parix update success stripe_id=" << stripe_id
+                      << " latency=" << req_s << " s" << std::endl;
+        }
+
+        const auto batch_end = std::chrono::high_resolution_clock::now();
+        const double total_wall_s =
+            std::chrono::duration_cast<std::chrono::duration<double>>(batch_end - batch_start).count();
+
+        std::cout << "=== Parix batch summary ===" << std::endl;
+        std::cout << "total_requests=" << req_index << " success=" << success_count << " failed=" << fail_count << std::endl;
+        std::cout << "total_wall_time=" << total_wall_s << " s" << std::endl;
+        for (size_t i = 0; i < success_records.size(); ++i)
+        {
+            const BatchSuccessRecord &rec = success_records[i];
+            std::cout << "success_req[" << rec.req_index << "] line=" << rec.line_no << " stripe_id=" << rec.stripe_id
+                      << " latency_s=" << rec.latency_s << std::endl;
+        }
+        if (!success_records.empty())
+        {
+            double sum_success = 0.0;
+            for (const BatchSuccessRecord &rec : success_records)
+            {
+                sum_success += rec.latency_s;
+            }
+            std::cout << "success_latency_sum=" << sum_success << " s success_latency_avg="
+                      << (sum_success / success_records.size()) << " s" << std::endl;
+        }
     } 
     else 
     {
