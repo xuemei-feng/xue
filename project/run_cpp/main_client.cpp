@@ -7,6 +7,7 @@
 #include "config.h"
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <chrono>
 #include <algorithm>
 #include <random>
@@ -52,7 +53,7 @@ int main(int argc, char **argv)
     int n = k + r + z;
 
     // 条带数量固定为 4；后续若需更多条带，改此常量即可。
-    const int stripe_num = 4;
+    const int stripe_num =10;
     std::cout << "Stripe count: " << stripe_num << " (fixed in main_client.cpp)" << std::endl;
 
     size_t total_write_size = 3000; // MB (used for throughput headline below)
@@ -71,39 +72,117 @@ int main(int argc, char **argv)
     std::cin >> input;
     if (input == 'y') 
     {
-        std::string method;
-        std::cout << "Select update method: " << std::endl;
-        std::cin >> method;
-
-        if (method == "xue") 
+        // 每行格式: stripe_id range_cnt start0 end0 [start1 end1 ...]
+        // 区间为 [start, end)，与原先手动输入一致；空行与 # 开头行跳过。
+        std::string request_file_path;
+        if (argc > 1)
         {
+            request_file_path = argv[1];
+        }
+        else
+        {
+            request_file_path = std::string(buff) + cwf.substr(1, cwf.rfind('/') - 1) +
+                                "/../../config/xue_update_requests.txt";
+        }
+        std::cout << "Reading xue update requests from: " << request_file_path << std::endl;
+
+        std::ifstream req_file(request_file_path);
+        if (!req_file.is_open())
+        {
+            std::cout << "Failed to open update request file: " << request_file_path << std::endl;
+            return 1;
+        }
+
+        int request_idx = 0;
+        int failure_count = 0;
+        int success_count = 0;
+        std::chrono::high_resolution_clock::time_point batch_start =
+            std::chrono::high_resolution_clock::now();
+        std::string line;
+
+        while (std::getline(req_file, line))
+        {
+            if (line.empty())
+            {
+                continue;
+            }
+            if (line[0] == '#')
+            {
+                continue;
+            }
+
+            request_idx++;
+            std::istringstream iss(line);
             int stripe_id = 0;
             int range_cnt = 0;
-            std::cout << "Input stripe_id range_count: " << std::endl;
-            std::cin >> stripe_id >> range_cnt;
+            if (!(iss >> stripe_id >> range_cnt))
+            {
+                std::cout << "[XUE_BATCH] Request #" << request_idx
+                          << " parse error (stripe_id/range_cnt): " << line << std::endl;
+                failure_count++;
+                continue;
+            }
             if (range_cnt <= 0)
             {
-                std::cout << "Invalid range_count: " << range_cnt << std::endl;
-                return 1;
+                std::cout << "[XUE_BATCH] Request #" << request_idx
+                          << " invalid range_cnt=" << range_cnt << ", skipped" << std::endl;
+                failure_count++;
+                continue;
             }
+
             std::vector<std::pair<int, int>> logical_ranges;
             logical_ranges.reserve(static_cast<size_t>(range_cnt));
-            std::cout << "Input each logical range as [start, end): logical_offset_start logical_offset_end_exclusive" << std::endl;
+            bool parse_ok = true;
             for (int i = 0; i < range_cnt; i++)
             {
                 int logical_offset_start = 0;
                 int logical_offset_end = 0;
-                std::cin >> logical_offset_start >> logical_offset_end;
+                if (!(iss >> logical_offset_start >> logical_offset_end))
+                {
+                    std::cout << "[XUE_BATCH] Request #" << request_idx
+                              << " missing range #" << i << ", skipped" << std::endl;
+                    parse_ok = false;
+                    break;
+                }
                 logical_ranges.emplace_back(logical_offset_start, logical_offset_end);
             }
-            std::cout << "Calling xue's update function..." << std::endl;
+            if (!parse_ok)
+            {
+                failure_count++;
+                continue;
+            }
+
+            std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
+                      << " range_cnt=" << range_cnt << " ..." << std::endl;
+            const auto req_t0 = std::chrono::high_resolution_clock::now();
             const bool ok = client.xue_update(stripe_id, logical_ranges);
-            std::cout << "xue_update result: " << (ok ? "success" : "failed") << std::endl;
-        } 
-        else 
-        {
-            std::cout << "Unknown method: " << method << std::endl;
+            const auto req_t1 = std::chrono::high_resolution_clock::now();
+            const double req_elapsed =
+                std::chrono::duration_cast<std::chrono::duration<double>>(req_t1 - req_t0).count();
+
+            if (ok)
+            {
+                success_count++;
+                std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
+                          << " success, elapsed=" << req_elapsed << " s" << std::endl;
+            }
+            else
+            {
+                failure_count++;
+                std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
+                          << " failed/timeout, skipped, elapsed=" << req_elapsed << " s"
+                          << std::endl;
+            }
         }
+
+        const auto batch_end = std::chrono::high_resolution_clock::now();
+        const double total_elapsed =
+            std::chrono::duration_cast<std::chrono::duration<double>>(batch_end - batch_start)
+                .count();
+        std::cout << "[XUE_BATCH] === summary ===" << std::endl;
+        std::cout << "[XUE_BATCH] total_requests=" << request_idx << " success=" << success_count
+                  << " failures=" << failure_count << " total_elapsed=" << total_elapsed << " s"
+                  << std::endl;
     } 
     else 
     {
