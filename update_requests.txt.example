@@ -1,0 +1,7 @@
+# stripe_id range_count  [start end) per range — same as former stdin rackcu input
+# 条带5：1 个区间 [0, 4096)
+5 1 0 4096
+# 条带2：2 个区间
+2 2 0 1024 2048 3072
+# 条带0：1 个区间
+0 1 512 1536

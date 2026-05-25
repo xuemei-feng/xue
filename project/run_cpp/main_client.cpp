@@ -7,8 +7,10 @@
 #include "config.h"
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <chrono>
 #include <algorithm>
+#include <numeric>
 #include <random>
 #include <ifaddrs.h>
 #include <arpa/inet.h>
@@ -70,6 +72,60 @@ namespace
         }
         return "127.0.0.1";
     }
+
+    bool parse_rackcu_request_line(const std::string &line, int &stripe_id, std::vector<std::pair<int, int>> &logical_ranges)
+    {
+        std::istringstream iss(line);
+        int range_cnt = 0;
+        if (!(iss >> stripe_id >> range_cnt))
+        {
+            return false;
+        }
+        if (range_cnt <= 0)
+        {
+            return false;
+        }
+        logical_ranges.clear();
+        logical_ranges.reserve(static_cast<size_t>(range_cnt));
+        for (int i = 0; i < range_cnt; i++)
+        {
+            int logical_offset_start = 0;
+            int logical_offset_end = 0;
+            if (!(iss >> logical_offset_start >> logical_offset_end))
+            {
+                logical_ranges.clear();
+                return false;
+            }
+            logical_ranges.emplace_back(logical_offset_start, logical_offset_end);
+        }
+        return true;
+    }
+
+    int max_stripe_id_in_batch_file(const std::string &batch_path)
+    {
+        std::ifstream in(batch_path);
+        if (!in.is_open())
+        {
+            return -1;
+        }
+        int max_id = -1;
+        std::string line;
+        while (std::getline(in, line))
+        {
+            if (line.empty() || line[0] == '#')
+            {
+                continue;
+            }
+            int stripe_id = 0;
+            std::vector<std::pair<int, int>> ranges;
+            if (parse_rackcu_request_line(line, stripe_id, ranges))
+            {
+                max_id = std::max(max_id, stripe_id);
+            }
+        }
+        return max_id;
+    }
+
 }
 
 int main(int argc, char **argv)
@@ -112,8 +168,15 @@ int main(int argc, char **argv)
     double block_size = static_cast<double> (parameters[3]) / 1024 / 1024; // MB per fragment
     int n = k + r + z;
 
-    // 条带数量固定；总写入量（MB，按 n 个分片各一块计）由条带数与块大小推导
-    const int stripe_num = 3;
+    // 条带数量：默认 3；若提供批量更新文件则按文件中最大 stripe_id 扩展
+    const std::string batch_file_path = (argc >= 2) ? std::string(argv[1]) : std::string("update_requests.txt");
+    int stripe_num = 10;
+    const int max_stripe_from_file = max_stripe_id_in_batch_file(batch_file_path);
+    if (max_stripe_from_file >= 0)
+    {
+        stripe_num = std::max(stripe_num, max_stripe_from_file + 1);
+    }
+    std::cout << "batch_file=" << batch_file_path << " stripe_num=" << stripe_num << std::endl;
     const double total_write_size_mb =
         static_cast<double>(stripe_num) * block_size * static_cast<double>(n);
 
@@ -133,77 +196,83 @@ int main(int argc, char **argv)
     std::cin >> input;
     if (input == 'y') 
     {
-        std::string method;
-        std::cout << "Select update method: " << std::endl;
-        std::cin >> method;
-
-        if (method == "xue") 
+        std::ifstream batch_file(batch_file_path);
+        if (!batch_file.is_open())
         {
-            int stripe_id = 0;
-            int range_cnt = 0;
-            std::cout << "Input stripe_id range_count: " << std::endl;
-            std::cin >> stripe_id >> range_cnt;
-            if (range_cnt <= 0)
-            {
-                std::cout << "Invalid range_count: " << range_cnt << std::endl;
-                return 1;
-            }
-            std::vector<std::pair<int, int>> logical_ranges;
-            logical_ranges.reserve(static_cast<size_t>(range_cnt));
-            std::cout << "Input each logical range as [start, end): logical_offset_start logical_offset_end_exclusive" << std::endl;
-            for (int i = 0; i < range_cnt; i++)
-            {
-                int logical_offset_start = 0;
-                int logical_offset_end = 0;
-                std::cin >> logical_offset_start >> logical_offset_end;
-                logical_ranges.emplace_back(logical_offset_start, logical_offset_end);
-            }
-            std::cout << "Calling xue's update function..." << std::endl;
-            const auto req_start = std::chrono::high_resolution_clock::now();
-            const bool ok = client.xue_update(stripe_id, logical_ranges);
-            const auto req_end = std::chrono::high_resolution_clock::now();
-            const double req_s = std::chrono::duration_cast<std::chrono::duration<double>>(req_end - req_start).count();
-            std::cout << "xue_update result: " << (ok ? "success" : "failed") << std::endl;
-            std::cout << "xue_update latency: " << req_s << " s" << std::endl;
+            std::cout << "Cannot open batch file: " << batch_file_path << std::endl;
+            return 1;
         }
-        else if (method == "rackcu")
+
+        std::cout << "RackCU batch update from file: " << batch_file_path << std::endl;
+        std::cout << "Line format: stripe_id range_count start0 end0 [start1 end1 ...]  (# comments, empty lines skipped)" << std::endl;
+
+        const auto batch_start = std::chrono::high_resolution_clock::now();
+        int line_no = 0;
+        int req_index = 0;
+        int fail_count = 0;
+        int success_count = 0;
+        std::vector<double> success_latencies_s;
+
+        std::string line;
+        while (std::getline(batch_file, line))
         {
+            line_no++;
+            if (line.empty() || line[0] == '#')
+            {
+                continue;
+            }
+
             int stripe_id = 0;
-            int range_cnt = 0;
-            std::cout << "Input stripe_id range_count: " << std::endl;
-            std::cin >> stripe_id >> range_cnt;
-            if (range_cnt <= 0)
-            {
-                std::cout << "Invalid range_count: " << range_cnt << std::endl;
-                return 1;
-            }
             std::vector<std::pair<int, int>> logical_ranges;
-            logical_ranges.reserve(static_cast<size_t>(range_cnt));
-            std::cout << "Input each logical range as [start, end): logical_offset_start logical_offset_end_exclusive" << std::endl;
-            for (int i = 0; i < range_cnt; i++)
+            if (!parse_rackcu_request_line(line, stripe_id, logical_ranges))
             {
-                int logical_offset_start = 0;
-                int logical_offset_end = 0;
-                std::cin >> logical_offset_start >> logical_offset_end;
-                logical_ranges.emplace_back(logical_offset_start, logical_offset_end);
+                std::cout << "[batch line " << line_no << "] parse failed, skip: " << line << std::endl;
+                fail_count++;
+                continue;
             }
+
+            req_index++;
+            std::cout << "--- request #" << req_index << " (file line " << line_no << ") stripe_id=" << stripe_id
+                      << " ranges=" << logical_ranges.size() << " ---" << std::endl;
+
             if (!client.randomize_preallocated_ranges(logical_ranges))
             {
-                std::cout << "randomize_preallocated_ranges failed (check CodeType and ranges)." << std::endl;
-                return 1;
+                std::cout << "[batch line " << line_no << "] randomize_preallocated_ranges failed, skip." << std::endl;
+                fail_count++;
+                continue;
             }
-            std::cout << "Client buffer: logical ranges filled with random bytes before RackCU (Δ vs last set() on disk should be non-zero)." << std::endl;
-            std::cout << "Calling rackcu_update..." << std::endl;
+
             const auto req_start = std::chrono::high_resolution_clock::now();
             const bool ok = client.rackcu_update(stripe_id, logical_ranges);
             const auto req_end = std::chrono::high_resolution_clock::now();
             const double req_s = std::chrono::duration_cast<std::chrono::duration<double>>(req_end - req_start).count();
-            std::cout << "rackcu_update result: " << (ok ? "success" : "failed") << std::endl;
-            std::cout << "rackcu_update latency: " << req_s << " s" << std::endl;
+
+            if (!ok)
+            {
+                std::cout << "[batch line " << line_no << "] rackcu_update failed, skip. latency=" << req_s << " s" << std::endl;
+                fail_count++;
+                continue;
+            }
+
+            success_count++;
+            success_latencies_s.push_back(req_s);
+            std::cout << "[batch line " << line_no << "] rackcu_update success, latency=" << req_s << " s" << std::endl;
         }
-        else 
+
+        const auto batch_end = std::chrono::high_resolution_clock::now();
+        const double total_s = std::chrono::duration_cast<std::chrono::duration<double>>(batch_end - batch_start).count();
+
+        std::cout << "=== RackCU batch summary ===" << std::endl;
+        std::cout << "total_requests=" << req_index << " success=" << success_count << " failed=" << fail_count << std::endl;
+        std::cout << "total_wall_time=" << total_s << " s" << std::endl;
+        for (size_t i = 0; i < success_latencies_s.size(); i++)
         {
-            std::cout << "Unknown method: " << method << std::endl;
+            std::cout << "success_latency_s[" << (i + 1) << "]=" << success_latencies_s[i] << std::endl;
+        }
+        if (!success_latencies_s.empty())
+        {
+            const double sum_success = std::accumulate(success_latencies_s.begin(), success_latencies_s.end(), 0.0);
+            std::cout << "success_latency_sum=" << sum_success << " s success_latency_avg=" << (sum_success / success_latencies_s.size()) << " s" << std::endl;
         }
     } 
     else 
