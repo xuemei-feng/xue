@@ -29,6 +29,49 @@ namespace ECProject
     }
 
     // 必须与 coordinator.cpp 匿名命名空间中的 RackCuClientStep 取值一致（与历史 group_ids 兼容）
+
+    constexpr double kRackCuCommitWaitTimeoutSec = 0.5;
+
+    bool check_append_committed_with_timeout(coordinator_proto::coordinatorService::Stub *stub,
+                                             const std::string &append_key,
+                                             int stripe_id,
+                                             double timeout_sec)
+    {
+      coordinator_proto::AskIfSuccess request;
+      request.set_key(append_key);
+      request.set_opp(APPEND);
+      if (stripe_id >= 0)
+      {
+        request.set_stripe_id(stripe_id);
+      }
+      grpc::ClientContext ctx;
+      const auto deadline = std::chrono::system_clock::now() +
+                            std::chrono::duration_cast<std::chrono::system_clock::duration>(
+                                std::chrono::duration<double>(timeout_sec));
+      ctx.set_deadline(deadline);
+      coordinator_proto::RepIfSuccess reply;
+      const grpc::Status status = stub->checkCommitAbort(&ctx, request, &reply);
+      if (!status.ok())
+      {
+        if (status.error_code() == grpc::StatusCode::DEADLINE_EXCEEDED)
+        {
+          std::cout << "[RACKCU] commit wait timeout (" << timeout_sec << " s) append_key=" << append_key << std::endl;
+        }
+        else
+        {
+          std::cout << "[RACKCU] checkCommitAbort error: " << status.error_message() << " append_key=" << append_key
+                    << std::endl;
+        }
+        return false;
+      }
+      if (!reply.ifcommit())
+      {
+        std::cout << "[RACKCU] append_key=" << append_key << " not committed" << std::endl;
+        return false;
+      }
+      return true;
+    }
+
     enum RackCuClientStep : int32_t
     {
       RACKCU_STEP_DATA_HOME = 1,
@@ -351,7 +394,8 @@ namespace ECProject
       for (int i = 0; i < reply.append_keys_size(); i++)
       {
         threads.push_back(std::thread(&Client::async_append_to_proxies,
-                                      this, cluster_slice_data[i], reply.append_keys(i), static_cast<int>(reply.cluster_slice_sizes(i)), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get()));
+                                      this, cluster_slice_data[i], reply.append_keys(i), static_cast<int>(reply.cluster_slice_sizes(i)), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get(), -1,
+                                      static_cast<std::vector<std::vector<unsigned char>> *>(nullptr), static_cast<RackCuAppendNetworkTiming *>(nullptr), -1.0));
       }
       for (auto &thread : threads)
       {
@@ -378,7 +422,7 @@ namespace ECProject
   }*/
 
   void Client::async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr, int stripe_id, std::vector<std::vector<unsigned char>> *rackcu_delta_by_block,
-                                       RackCuAppendNetworkTiming *network_timing_out)
+                                       RackCuAppendNetworkTiming *network_timing_out, double commit_wait_timeout_sec)
   {
     // std::cout << "[Append174] Appending size " << cluster_slice_size << " to proxy_address:" << proxy_ip << ":" << proxy_port << std::endl;
     const auto t_tcp0 = std::chrono::high_resolution_clock::now();
@@ -396,39 +440,46 @@ namespace ECProject
     sock_data.close(ignore_ec);
     const auto t_tcp1 = std::chrono::high_resolution_clock::now();
 
-    // check if metadata is saved successfully
-    grpc::ClientContext check_commit;
-    coordinator_proto::AskIfSuccess request;
-    request.set_key(append_key);
-    OpperateType opp = APPEND;
-    request.set_opp(opp);
-    if (stripe_id >= 0)
+    const auto t_commit0 = std::chrono::high_resolution_clock::now();
+    bool committed = false;
+    if (commit_wait_timeout_sec >= 0.0)
     {
-      request.set_stripe_id(stripe_id);
+      committed = check_append_committed_with_timeout(m_coordinator_ptr.get(), append_key, stripe_id, commit_wait_timeout_sec);
     }
-    coordinator_proto::RepIfSuccess reply;
-    grpc::Status status;
-    status = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply);
+    else
+    {
+      grpc::ClientContext check_commit;
+      coordinator_proto::AskIfSuccess request;
+      request.set_key(append_key);
+      OpperateType opp = APPEND;
+      request.set_opp(opp);
+      if (stripe_id >= 0)
+      {
+        request.set_stripe_id(stripe_id);
+      }
+      coordinator_proto::RepIfSuccess reply;
+      grpc::Status status = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply);
+      committed = status.ok() && reply.ifcommit();
+      if (status.ok() && !reply.ifcommit())
+      {
+        std::cout << "[APPEND205] " << append_key << " not commit!!!!!" << " cluster_slice_size: " << cluster_slice_size
+                  << " proxy_ip: " << proxy_ip << " proxy_port: " << proxy_port << std::endl;
+      }
+      else if (!status.ok())
+      {
+        std::cout << "[APPEND210] " << append_key << " Fail to check!!!!!" << " cluster_slice_size: " << cluster_slice_size
+                  << " proxy_ip: " << proxy_ip << " proxy_port: " << proxy_port << std::endl;
+      }
+    }
     const auto t_commit1 = std::chrono::high_resolution_clock::now();
     if (network_timing_out != nullptr)
     {
       network_timing_out->tcp_resolve_connect_write_shutdown_s = chron_elapsed_s(t_tcp0, t_tcp1);
-      network_timing_out->coordinator_check_commit_abort_s = chron_elapsed_s(t_tcp1, t_commit1);
+      network_timing_out->coordinator_check_commit_abort_s = chron_elapsed_s(t_commit0, t_commit1);
     }
-    if (status.ok())
+    if (committed)
     {
-      if (reply.ifcommit())
-      {
-        if_commit_arr[index] = true;
-      }
-      else
-      {
-        std::cout << "[APPEND205] " << append_key << " not commit!!!!!" << " cluster_slice_size: " << cluster_slice_size << " proxy_ip: " << proxy_ip << " proxy_port: " << proxy_port << std::endl;
-      }
-    }
-    else
-    {
-      std::cout << "[APPEND210] " << append_key << " Fail to check!!!!!" << " cluster_slice_size: " << cluster_slice_size << " proxy_ip: " << proxy_ip << " proxy_port: " << proxy_port << std::endl;
+      if_commit_arr[index] = true;
     }
   }
 
@@ -458,18 +509,7 @@ namespace ECProject
 
   bool Client::rackcu_wait_append_committed(const std::string &append_key, int stripe_id)
   {
-    grpc::ClientContext check_commit;
-    coordinator_proto::AskIfSuccess request;
-    request.set_key(append_key);
-    OpperateType opp = APPEND;
-    request.set_opp(opp);
-    if (stripe_id >= 0)
-    {
-      request.set_stripe_id(stripe_id);
-    }
-    coordinator_proto::RepIfSuccess reply;
-    grpc::Status status = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply);
-    return status.ok() && reply.ifcommit();
+    return check_append_committed_with_timeout(m_coordinator_ptr.get(), append_key, stripe_id, kRackCuCommitWaitTimeoutSec);
   }
 
   void Client::get_cached_parity_slices(std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array, const int parity_slice_size, const int parity_slice_offset)
@@ -771,7 +811,7 @@ namespace ECProject
       {
         threads.push_back(std::thread(&Client::async_append_to_proxies,
                                       this, cluster_slice_data[i], reply.append_keys(i), static_cast<int>(reply.cluster_slice_sizes(i)), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get(), -1,
-                                      static_cast<std::vector<std::vector<unsigned char>> *>(nullptr), static_cast<RackCuAppendNetworkTiming *>(nullptr)));
+                                      static_cast<std::vector<std::vector<unsigned char>> *>(nullptr), static_cast<RackCuAppendNetworkTiming *>(nullptr), -1.0));
       }
       for (auto &thread : threads)
       {
@@ -862,7 +902,7 @@ namespace ECProject
       {
         threads.push_back(std::thread(&Client::async_append_to_proxies,
                                       this, cluster_slice_data[i], reply.append_keys(i), static_cast<int>(reply.cluster_slice_sizes(i)), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get(), -1,
-                                      static_cast<std::vector<std::vector<unsigned char>> *>(nullptr), static_cast<RackCuAppendNetworkTiming *>(nullptr)));
+                                      static_cast<std::vector<std::vector<unsigned char>> *>(nullptr), static_cast<RackCuAppendNetworkTiming *>(nullptr), -1.0));
       }
       for (auto &thread : threads)
       {
@@ -928,7 +968,7 @@ namespace ECProject
     {
       threads.push_back(std::thread(&Client::async_append_to_proxies,
                                     this, cluster_slice_data[i], reply.append_keys(i), static_cast<int>(reply.cluster_slice_sizes(i)), reply.proxyips(i), reply.proxyports(i), i, if_commit_arr.get(), -1,
-                                    static_cast<std::vector<std::vector<unsigned char>> *>(nullptr), static_cast<RackCuAppendNetworkTiming *>(nullptr)));
+                                    static_cast<std::vector<std::vector<unsigned char>> *>(nullptr), static_cast<RackCuAppendNetworkTiming *>(nullptr), -1.0));
     }
     for (auto &thread : threads)
     {
@@ -1384,7 +1424,7 @@ namespace ECProject
                 << " proxy=" << reply.proxyips(i) << ":" << reply.proxyports(i)
                 << " append_key=" << reply.append_keys(i) << std::endl;
       async_append_to_proxies(p, reply.append_keys(i), static_cast<int>(slice_size), reply.proxyips(i), reply.proxyports(i), 0, &ok, stripe_id,
-                              nullptr, &net_t);
+                              nullptr, &net_t, kRackCuCommitWaitTimeoutSec);
       const auto t_step_end = std::chrono::high_resolution_clock::now();
       rackcu_sum_tcp_s += net_t.tcp_resolve_connect_write_shutdown_s;
       rackcu_sum_commit_check_s += net_t.coordinator_check_commit_abort_s;

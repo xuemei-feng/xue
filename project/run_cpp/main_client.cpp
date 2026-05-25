@@ -206,7 +206,6 @@ int main(int argc, char **argv)
         std::cout << "RackCU batch update from file: " << batch_file_path << std::endl;
         std::cout << "Line format: stripe_id range_count start0 end0 [start1 end1 ...]  (# comments, empty lines skipped)" << std::endl;
 
-        const auto batch_start = std::chrono::high_resolution_clock::now();
         int line_no = 0;
         int req_index = 0;
         int fail_count = 0;
@@ -259,20 +258,18 @@ int main(int argc, char **argv)
             std::cout << "[batch line " << line_no << "] rackcu_update success, latency=" << req_s << " s" << std::endl;
         }
 
-        const auto batch_end = std::chrono::high_resolution_clock::now();
-        const double total_s = std::chrono::duration_cast<std::chrono::duration<double>>(batch_end - batch_start).count();
+        const double total_success_s = std::accumulate(success_latencies_s.begin(), success_latencies_s.end(), 0.0);
 
         std::cout << "=== RackCU batch summary ===" << std::endl;
         std::cout << "total_requests=" << req_index << " success=" << success_count << " failed=" << fail_count << std::endl;
-        std::cout << "total_wall_time=" << total_s << " s" << std::endl;
+        std::cout << "total_wall_time=" << total_success_s << " s (success requests only, failures excluded)" << std::endl;
         for (size_t i = 0; i < success_latencies_s.size(); i++)
         {
             std::cout << "success_latency_s[" << (i + 1) << "]=" << success_latencies_s[i] << std::endl;
         }
         if (!success_latencies_s.empty())
         {
-            const double sum_success = std::accumulate(success_latencies_s.begin(), success_latencies_s.end(), 0.0);
-            std::cout << "success_latency_sum=" << sum_success << " s success_latency_avg=" << (sum_success / success_latencies_s.size()) << " s" << std::endl;
+            std::cout << "success_latency_avg=" << (total_success_s / success_latencies_s.size()) << " s" << std::endl;
         }
     } 
     else 
