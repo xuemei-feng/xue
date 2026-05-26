@@ -38,6 +38,8 @@ namespace ECProject
     std::string CodeType = "UniLRC";
     /** 0: RandomLRC uses random_device (non-reproducible). Non-zero: deterministic placement for the same seed, stripe_id, and cluster layout. */
     std::uint64_t PlacementRandomSeed = 0;
+    /** Client wait for coordinator checkCommitAbort per RackCU append step (seconds). */
+    double RackCuCommitWaitTimeoutSec = 30.0;
   };
 }
 

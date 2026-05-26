@@ -248,7 +248,8 @@ int main(int argc, char **argv)
 
             if (!ok)
             {
-                std::cout << "[batch line " << line_no << "] rackcu_update failed, skip. latency=" << req_s << " s" << std::endl;
+                std::cout << "[batch line " << line_no << "] rackcu_update failed, skip. latency=" << req_s
+                          << " s (excluded from total_wall_time)" << std::endl;
                 fail_count++;
                 continue;
             }

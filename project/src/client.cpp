@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cstring>
 #include <map>
+#include <unordered_set>
 #include <random>
 #include <iomanip>
 #include "unilrc_encoder.h"
@@ -29,8 +30,6 @@ namespace ECProject
     }
 
     // 必须与 coordinator.cpp 匿名命名空间中的 RackCuClientStep 取值一致（与历史 group_ids 兼容）
-
-    constexpr double kRackCuCommitWaitTimeoutSec = 0.5;
 
     bool check_append_committed_with_timeout(coordinator_proto::coordinatorService::Stub *stub,
                                              const std::string &append_key,
@@ -70,6 +69,61 @@ namespace ECProject
         return false;
       }
       return true;
+    }
+
+
+    void rackcu_best_effort_staging_cleanup(const coordinator_proto::ReplyProxyIPsPorts &reply)
+    {
+      for (int ci = 0; ci < reply.rack_cu_staging_cleanup_size(); ci++)
+      {
+        const coordinator_proto::RackCuStagingCleanupRef &r = reply.rack_cu_staging_cleanup(ci);
+        const std::string channel = r.holder_proxy_ip() + ":" + std::to_string(r.holder_proxy_port());
+        auto ch = grpc::CreateChannel(channel, grpc::InsecureChannelCredentials());
+        auto stub = proxy_proto::proxyService::NewStub(ch);
+        proxy_proto::RackCuHomeDeltaDeleteRequest dreq;
+        dreq.set_staging_key(r.staging_key());
+        dreq.set_staging_datanode_ip(r.staging_datanode_ip());
+        dreq.set_staging_datanode_port(r.staging_datanode_port());
+        grpc::ClientContext dctx;
+        proxy_proto::RackCuHomeDeltaDeleteReply drep;
+        grpc::Status dst = stub->deleteRackCuHomeDeltaStaging(&dctx, dreq, &drep);
+        std::cout << "[RACKCU] failure cleanup staging key=" << r.staging_key() << " holder=" << channel
+                  << " ok=" << (dst.ok() && drep.ok()) << std::endl;
+      }
+    }
+
+    void rackcu_best_effort_abort_pending_keys(coordinator_proto::coordinatorService::Stub *stub,
+                                               const coordinator_proto::ReplyProxyIPsPorts &reply,
+                                               int stripe_id,
+                                               const std::unordered_set<std::string> &committed_keys)
+    {
+      for (int i = 0; i < reply.append_keys_size(); i++)
+      {
+        const std::string &key = reply.append_keys(i);
+        if (committed_keys.find(key) != committed_keys.end())
+        {
+          continue;
+        }
+        coordinator_proto::CommitAbortKey cab;
+        cab.set_key(key);
+        cab.set_ifcommitmetadata(false);
+        cab.set_opp(APPEND);
+        cab.set_stripe_id(stripe_id);
+        coordinator_proto::ReplyFromCoordinator rep;
+        grpc::ClientContext ctx;
+        const grpc::Status st = stub->reportCommitAbort(&ctx, cab, &rep);
+        std::cout << "[RACKCU] abort pending append_key=" << key << " coordinator_ok=" << st.ok() << std::endl;
+      }
+    }
+
+    void rackcu_teardown_failed_request(coordinator_proto::coordinatorService::Stub *stub,
+                                        const coordinator_proto::ReplyProxyIPsPorts &reply,
+                                        int stripe_id,
+                                        const std::unordered_set<std::string> &committed_keys)
+    {
+      std::cout << "[RACKCU] request failed: abort pending steps and clean up staging" << std::endl;
+      rackcu_best_effort_abort_pending_keys(stub, reply, stripe_id, committed_keys);
+      rackcu_best_effort_staging_cleanup(reply);
     }
 
     enum RackCuClientStep : int32_t
@@ -440,6 +494,17 @@ namespace ECProject
     sock_data.close(ignore_ec);
     const auto t_tcp1 = std::chrono::high_resolution_clock::now();
 
+    if (error)
+    {
+      if (network_timing_out != nullptr)
+      {
+        network_timing_out->tcp_resolve_connect_write_shutdown_s = chron_elapsed_s(t_tcp0, t_tcp1);
+        network_timing_out->coordinator_check_commit_abort_s = 0.0;
+      }
+      if_commit_arr[index] = false;
+      return;
+    }
+
     const auto t_commit0 = std::chrono::high_resolution_clock::now();
     bool committed = false;
     if (commit_wait_timeout_sec >= 0.0)
@@ -477,10 +542,7 @@ namespace ECProject
       network_timing_out->tcp_resolve_connect_write_shutdown_s = chron_elapsed_s(t_tcp0, t_tcp1);
       network_timing_out->coordinator_check_commit_abort_s = chron_elapsed_s(t_commit0, t_commit1);
     }
-    if (committed)
-    {
-      if_commit_arr[index] = true;
-    }
+    if_commit_arr[index] = committed;
   }
 
   bool Client::rackcu_tcp_send_payload(const char *data, int size, const std::string &proxy_ip, int proxy_port)
@@ -509,7 +571,8 @@ namespace ECProject
 
   bool Client::rackcu_wait_append_committed(const std::string &append_key, int stripe_id)
   {
-    return check_append_committed_with_timeout(m_coordinator_ptr.get(), append_key, stripe_id, kRackCuCommitWaitTimeoutSec);
+    return check_append_committed_with_timeout(m_coordinator_ptr.get(), append_key, stripe_id,
+                                               m_sys_config->RackCuCommitWaitTimeoutSec);
   }
 
   void Client::get_cached_parity_slices(std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array, const int parity_slice_size, const int parity_slice_offset)
@@ -1075,6 +1138,24 @@ namespace ECProject
       return false;
     }
 
+    std::unordered_set<std::string> rackcu_committed_keys;
+    bool rackcu_request_succeeded = false;
+    struct RackCuFailGuard
+    {
+      coordinator_proto::coordinatorService::Stub *stub = nullptr;
+      const coordinator_proto::ReplyProxyIPsPorts *reply = nullptr;
+      int stripe_id = -1;
+      std::unordered_set<std::string> *committed_keys = nullptr;
+      bool *succeeded = nullptr;
+      ~RackCuFailGuard()
+      {
+        if (succeeded != nullptr && !*succeeded)
+        {
+          rackcu_teardown_failed_request(stub, *reply, stripe_id, *committed_keys);
+        }
+      }
+    } rackcu_fail_guard{m_coordinator_ptr.get(), &reply, stripe_id, &rackcu_committed_keys, &rackcu_request_succeeded};
+
     auto ptr_for_block = [&](int block_id) -> unsigned char * {
       return reinterpret_cast<unsigned char *>(m_pre_allocated_buffer + static_cast<size_t>(block_id) * static_cast<size_t>(block_size));
     };
@@ -1273,6 +1354,7 @@ namespace ECProject
         {
           return false;
         }
+        rackcu_committed_keys.insert(it.append_key);
       }
       std::cout << "[RACKCU][Timing] data_home_parallel_wave n=" << home_prefix << " tcp_wall_s=" << std::fixed << std::setprecision(6) << wave_tcp_wall_s
                 << std::endl;
@@ -1418,13 +1500,13 @@ namespace ECProject
       const double step_prepare_s = chron_elapsed_s(t_step_begin, t_before_async);
       rackcu_sum_prepare_s += step_prepare_s;
 
-      bool ok = true;
+      bool ok = false;
       RackCuAppendNetworkTiming net_t;
       std::cout << "[RACKCU][Dispatch] wait_commit begin step=" << step << " c" << plan.cluster_id()
                 << " proxy=" << reply.proxyips(i) << ":" << reply.proxyports(i)
                 << " append_key=" << reply.append_keys(i) << std::endl;
       async_append_to_proxies(p, reply.append_keys(i), static_cast<int>(slice_size), reply.proxyips(i), reply.proxyports(i), 0, &ok, stripe_id,
-                              nullptr, &net_t, kRackCuCommitWaitTimeoutSec);
+                              nullptr, &net_t, m_sys_config->RackCuCommitWaitTimeoutSec);
       const auto t_step_end = std::chrono::high_resolution_clock::now();
       rackcu_sum_tcp_s += net_t.tcp_resolve_connect_write_shutdown_s;
       rackcu_sum_commit_check_s += net_t.coordinator_check_commit_abort_s;
@@ -1440,6 +1522,7 @@ namespace ECProject
       {
         return false;
       }
+      rackcu_committed_keys.insert(reply.append_keys(i));
     }
 
     const double s_coord_rack = chron_elapsed_s(t_coord0, t_coord1);
@@ -1491,6 +1574,7 @@ namespace ECProject
               << " dispatch_steps_sum_s=" << dispatch_sum_s << " staging_cleanup_s=" << s_cleanup
               << " total_client_rackcu_s=" << total_rackcu_s << " (nsteps=" << nsteps << ")" << std::endl;
 
+    rackcu_request_succeeded = true;
     return true;
   }
 
