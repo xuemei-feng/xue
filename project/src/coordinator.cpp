@@ -664,10 +664,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         if (dup_it != hop_to_canonical_step_no.end())
         {
           old_step_no_to_canonical[s.step_no()] = dup_it->second;
-          std::cout << "[XUE_SCHEDULE] strict_step_dedup skip step_no=" << s.step_no()
-                    << " key=" << s.append_key() << " " << s.from_cluster() << "->"
-                    << s.to_cluster() << " mode=" << s.forward_append_mode()
-                    << " canonical_step_no=" << dup_it->second << std::endl;
+          // std::cout << "[XUE_SCHEDULE] strict_step_dedup skip step_no=" << s.step_no()
+                    // << " key=" << s.append_key() << " " << s.from_cluster() << "->"
+                    // << s.to_cluster() << " mode=" << s.forward_append_mode()
+                    // << " canonical_step_no=" << dup_it->second << std::endl;
           continue;
         }
         hop_to_canonical_step_no[hop_key] = s.step_no();
@@ -880,18 +880,18 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         {
           if (relay_plan_has_outgoing_hop(*relay_plan_ptr, hop_key))
           {
-            std::cout << "[XUE_SCHEDULE] relay_outgoing_dedup skip key=" << s.append_key()
-                      << " " << s.from_cluster() << "->" << s.to_cluster()
-                      << " mode=" << s.forward_append_mode() << " step_no=" << s.step_no()
-                      << std::endl;
+            // std::cout << "[XUE_SCHEDULE] relay_outgoing_dedup skip key=" << s.append_key()
+                      // << " " << s.from_cluster() << "->" << s.to_cluster()
+                      // << " mode=" << s.forward_append_mode() << " step_no=" << s.step_no()
+                      // << std::endl;
             continue;
           }
           proxy_proto::XueStrictOutgoingHop *hop = relay_plan_ptr->add_xue_strict_outgoing();
           hop->set_to_cluster(s.to_cluster());
           hop->set_forward_append_mode(s.forward_append_mode());
-          std::cout << "[XUE_SCHEDULE] relay_notify_add_hop key=" << relay_plan_ptr->key()
-                    << " cluster=" << relay_plan_ptr->cluster_id() << " hop->"
-                    << s.to_cluster() << " mode=" << s.forward_append_mode() << std::endl;
+          // std::cout << "[XUE_SCHEDULE] relay_notify_add_hop key=" << relay_plan_ptr->key()
+                    // << " cluster=" << relay_plan_ptr->cluster_id() << " hop->"
+                    // << s.to_cluster() << " mode=" << s.forward_append_mode() << std::endl;
           continue;
         }
         proxy_proto::AppendStripeDataPlacement relay_plan = *template_plan;
@@ -905,9 +905,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         proxy_proto::XueStrictOutgoingHop *hop = relay_plan.add_xue_strict_outgoing();
         hop->set_to_cluster(s.to_cluster());
         hop->set_forward_append_mode(s.forward_append_mode());
-        std::cout << "[XUE_SCHEDULE] relay_notify_only key=" << relay_plan.key()
-                  << " cluster=" << relay_plan.cluster_id() << " hop->" << s.to_cluster()
-                  << " mode=" << s.forward_append_mode() << std::endl;
+        // std::cout << "[XUE_SCHEDULE] relay_notify_only key=" << relay_plan.key()
+                  // << " cluster=" << relay_plan.cluster_id() << " hop->" << s.to_cluster()
+                  // << " mode=" << s.forward_append_mode() << std::endl;
         relay_notify_plans.push_back(relay_plan);
       }
       return relay_notify_plans;
@@ -949,10 +949,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           const auto hop_key = make_xue_strict_hop_key(s);
           if (!seen_outgoing_hops.insert(hop_key).second)
           {
-            std::cout << "[XUE_SCHEDULE] plan_outgoing_dedup skip key=" << s.append_key()
-                      << " " << s.from_cluster() << "->" << s.to_cluster()
-                      << " mode=" << s.forward_append_mode() << " step_no=" << s.step_no()
-                      << std::endl;
+            // std::cout << "[XUE_SCHEDULE] plan_outgoing_dedup skip key=" << s.append_key()
+                      // << " " << s.from_cluster() << "->" << s.to_cluster()
+                      // << " mode=" << s.forward_append_mode() << " step_no=" << s.step_no()
+                      // << std::endl;
             continue;
           }
           proxy_proto::XueStrictOutgoingHop *hop = plan.add_xue_strict_outgoing();
@@ -968,9 +968,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           plan.set_xue_class1_relay_path(false);
           plan.set_xue_relay_cluster_id(-1);
         }
-        std::cout << "[XUE_SCHEDULE] plan_outgoing key=" << plan.key()
-                  << " cluster=" << plan.cluster_id()
-                  << " hops=" << plan.xue_strict_outgoing_size() << std::endl;
+        // std::cout << "[XUE_SCHEDULE] plan_outgoing key=" << plan.key()
+                  // << " cluster=" << plan.cluster_id()
+                  // << " hops=" << plan.xue_strict_outgoing_size() << std::endl;
       }
     }
 
@@ -1249,25 +1249,25 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     void log_append_schedule_visual(const std::vector<ScheduledTask> &schedule)
     {
       // debug
-      std::cout << "[log_append_schedule_visual] schedule:";
+      // std::cout << "[log_append_schedule_visual] schedule:";
       for (const auto &t : schedule)
       {
-        std::cout << " " << t.task_id << " " << t.from_cluster << " " << t.to_cluster << " " << t.payload << " " << t.path_desc << " " << t.start_time << " " << t.end_time << " " << t.duration << std::endl;
-        std::cout << "  从 t=" << fmt_sim_time(t.start_time) << " 到 t=" << fmt_sim_time(t.end_time)
-                  << "，传输 " << payload_content_cn(t.payload)
-                  << "，从 " << fmt_cluster_id(t.from_cluster)
-                  << " 到 " << fmt_cluster_id(t.to_cluster)
-                  << "，内容: " << t.path_desc << std::endl;
+        // std::cout << " " << t.task_id << " " << t.from_cluster << " " << t.to_cluster << " " << t.payload << " " << t.path_desc << " " << t.start_time << " " << t.end_time << " " << t.duration << std::endl;
+        // std::cout << "  从 t=" << fmt_sim_time(t.start_time) << " 到 t=" << fmt_sim_time(t.end_time)
+                  // << "，传输 " << payload_content_cn(t.payload)
+                  // << "，从 " << fmt_cluster_id(t.from_cluster)
+                  // << " 到 " << fmt_cluster_id(t.to_cluster)
+                  // << "，内容: " << t.path_desc << std::endl;
       }
       // debug end
       if (schedule.empty())
       {
-        std::cout << "[XUE_UPDATE_TRANSMISSION] (无传输任务)\n";
+        // std::cout << "[XUE_UPDATE_TRANSMISSION] (无传输任务)\n";
         return;
       }
       const int n = static_cast<int>(schedule.size());
-      std::cout << "[XUE_UPDATE_TRANSMISSION] 共 " << n
-                << " 条传输（时间为调度仿真相对时刻 t，与 duration 同单位）\n";
+      // std::cout << "[XUE_UPDATE_TRANSMISSION] 共 " << n
+                // << " 条传输（时间为调度仿真相对时刻 t，与 duration 同单位）\n";
 
       std::vector<int> order(n);
       std::iota(order.begin(), order.end(), 0);
@@ -1286,11 +1286,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       for (int ii : order)
       {
         const auto &t = schedule[ii];
-        std::cout << "  从 t=" << fmt_sim_time(t.start_time) << " 到 t=" << fmt_sim_time(t.end_time)
-                  << "，传输 " << payload_content_cn(t.payload)
-                  << "，从 " << fmt_cluster_id(t.from_cluster)
-                  << " 到 " << fmt_cluster_id(t.to_cluster)
-                  << "，内容: " << t.path_desc << std::endl;
+        // std::cout << "  从 t=" << fmt_sim_time(t.start_time) << " 到 t=" << fmt_sim_time(t.end_time)
+                  // << "，传输 " << payload_content_cn(t.payload)
+                  // << "，从 " << fmt_cluster_id(t.from_cluster)
+                  // << " 到 " << fmt_cluster_id(t.to_cluster)
+                  // << "，内容: " << t.path_desc << std::endl;
       }
       return;
     }
@@ -1492,7 +1492,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             canceled[tid] = true;
             finished[tid] = true;
             finished_cnt++;
-            std::cout << "[debug] purge stale alt_task from ready_set: " << tid << std::endl;
+            // std::cout << "[debug] purge stale alt_task from ready_set: " << tid << std::endl;
           }
         }
         if (finished_cnt >= n)
@@ -1501,10 +1501,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
 
         // ==== DEBUG: 输出当前ready_set和资源状态 ====
-        std::cout << "[debug] current_t=" << current_t << ", finished_cnt=" << finished_cnt
-                  << ", running-tasks=" << running.size() << ", ready_set={";
-        for (int tid : ready_set) std::cout << " " << tid;
-        std::cout << " }" << std::endl;
+        // std::cout << "[debug] current_t=" << current_t << ", finished_cnt=" << finished_cnt
+                  // << ", running-tasks=" << running.size() << ", ready_set={";
+        // for (int tid : ready_set) std::cout << " " << tid;
+        // std::cout << " }" << std::endl;
 
         // ==== STEP 1: 搜集本轮可以立刻启动的 candidates ====
         std::vector<int> candidates;
@@ -1524,10 +1524,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
 
         // ==== DEBUG: 打印可调度(candidates)任务 ====
-        std::cout << "[debug] candidates:";
-        for (int tid : candidates)
-          std::cout << " " << tid;
-        std::cout << std::endl;
+        // std::cout << "[debug] candidates:";
+        // for (int tid : candidates)
+        //   std::cout << " " << tid;
+        // std::cout << std::endl;
 
         // ==== STEP 2: 如果有可调度的任务，选出优先启动的 ====
         if (!candidates.empty())
@@ -1546,11 +1546,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             sorted.push_back(kv.second);
           std::sort(sorted.begin(), sorted.end(), [&](int a, int b) { return score[a] > score[b]; });
 
-          // ==== DEBUG: 输出调度排序 ====
-          std::cout << "[debug] sorted-tasks:";
-          for (int tid : sorted)
-            std::cout << " " << tid << "(" << score[tid] << ")";
-          std::cout << std::endl;
+          // std::cout << "[debug] sorted-tasks:";
+          // for (int tid : sorted)
+          //   std::cout << " " << tid << "(" << score[tid] << ")";
+          // std::cout << std::endl;
 
           std::set<int> used_src, used_dst;
           std::vector<int> selected;
@@ -1574,9 +1573,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           }
 
           // ==== DEBUG: 输出被选中启动的任务 ====
-          std::cout << "[debug] selected-tasks:";
-          for (int tid : selected) std::cout << " " << tid;
-          std::cout << std::endl;
+          // std::cout << "[debug] selected-tasks:";
+          // for (int tid : selected) std::cout << " " << tid;
+          // std::cout << std::endl;
 
           for (int tid : selected)
           {
@@ -1602,7 +1601,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                   {
                     finished[oid] = true;
                     finished_cnt++;
-                    std::cout << "[debug] cancel alt_task: " << oid << std::endl;
+                    // std::cout << "[debug] cancel alt_task: " << oid << std::endl;
                   }
                 }
               }
@@ -1624,8 +1623,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             }
             scheduled.push_back({tid, t.decision_id, t.from_cluster, t.to_cluster, t.payload, t.duration,
                                  st, ed, t.path_desc, pred_ids});
-            std::cout << "[debug] start-task: " << tid << " at t=" << st << " ends t=" << ed
-                      << " : " << t.path_desc << std::endl;
+            // std::cout << "[debug] start-task: " << tid << " at t=" << st << " ends t=" << ed
+                      // << " : " << t.path_desc << std::endl;
           }
           // 下一步推进到最早结束事件
         }
@@ -1651,16 +1650,16 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           }
           // ==== DEBUG: 卡住可能，打印下一跳时刻 ====
           if (next_t == std::numeric_limits<double>::infinity()) {
-            std::cout << "[debug] 卡住！ready_set剩余任务也等不到资源可用，可能死锁！" << std::endl;
+            // std::cout << "[debug] 卡住！ready_set剩余任务也等不到资源可用，可能死锁！" << std::endl;
             break;
           }
           if (next_t <= current_t + 1e-12)
           {
-            std::cout << "[debug] 卡住！next_t 未前进 (next_t=" << next_t
-                      << ", current_t=" << current_t << ")，终止调度循环避免活锁。" << std::endl;
+            // std::cout << "[debug] 卡住！next_t 未前进 (next_t=" << next_t
+                      // << ", current_t=" << current_t << ")，终止调度循环避免活锁。" << std::endl;
             break;
           }
-          std::cout << "[debug] 无可运行任务, 推进到 next_t=" << next_t << std::endl;
+          // std::cout << "[debug] 无可运行任务, 推进到 next_t=" << next_t << std::endl;
           current_t = next_t;
           continue;
         }
@@ -1678,7 +1677,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             finished[tid] = true;
             finished_cnt++;
             finished_now.push_back(tid);
-            std::cout << "[debug] finish-task: " << tid << " at t=" << current_t << std::endl;
+            // std::cout << "[debug] finish-task: " << tid << " at t=" << current_t << std::endl;
           }
         }
 
@@ -1690,14 +1689,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             if (remaining_pred[v] == 0)
             {
               ready_set.insert(v);
-              std::cout << "[debug] ready now: " << v << std::endl;
+              // std::cout << "[debug] ready now: " << v << std::endl;
             }
           }
         }
       }
 
       // == 调度循环结束 ==
-      std::cout << "[debug] 调度循环结束，共完成: " << finished_cnt << " / " << n << " 个任务" << std::endl;
+      // std::cout << "[debug] 调度循环结束，共完成: " << finished_cnt << " / " << n << " 个任务" << std::endl;
 
       return scheduled;
     }
@@ -2639,9 +2638,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
       log_append_route_decisions(decisions);
       // debug
-      std::cout << "[debug] START schedule_transfer_steps" << std::endl;
+      // std::cout << "[debug] START schedule_transfer_steps" << std::endl;
       std::vector<ScheduledTask> schedule = schedule_transfer_steps(decisions);
-      std::cout << "[debug] END schedule_transfer_steps" << std::endl;
+      // std::cout << "[debug] END schedule_transfer_steps" << std::endl;
       log_append_schedule_visual(schedule);
       result.route_decisions = std::move(decisions);
       result.scheduled_tasks = std::move(schedule);
@@ -3735,9 +3734,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     const bool is_merge_parity = false;
 
-    std::cout << "[XUE_UPDATE_SCOPE] stripe=" << stripe_id
-              << " | ranges=" << request->ranges_size() << std::endl;
-    std::cout << "  涉及数据块及区间:";
+    // std::cout << "[XUE_UPDATE_SCOPE] stripe=" << stripe_id
+              // << " | ranges=" << request->ranges_size() << std::endl;
+    // std::cout << "  涉及数据块及区间:";
     for (const auto &kv : block_to_slices)
     {
       if (kv.first >= 0 && kv.first < stripe->k)
@@ -3748,24 +3747,24 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           const int block_end = block_off + slice.first - 1;
           const int u0 = block_off / unit_size;
           const int u1 = block_end / unit_size;
-          std::cout << " block" << kv.first
-                    << "[+" << block_off << ".." << block_end
-                    << " len " << slice.first
-                    << " | unit " << u0 << ".." << u1 << "]";
+          // std::cout << " block" << kv.first
+                    // << "[+" << block_off << ".." << block_end
+                    // << " len " << slice.first
+                    // << " | unit " << u0 << ".." << u1 << "]";
         }
       }
     }
-    std::cout << std::endl;
+    // std::cout << std::endl;
     //debug
-    std::cout << "start xue_update_sparse" << std::endl;
+    // std::cout << "start xue_update_sparse" << std::endl;
     XueUpdateResult update_result = xue_update_sparse(stripe, block_to_slices, m_sys_config->CodeType);
     const std::map<int, int> &group_to_ingress_cluster = update_result.group_to_ingress_cluster;
     const std::map<int, Class1RelayRoute> &group_to_class1_relay = update_result.group_to_class1_relay;
     const std::vector<ScheduledTask> &scheduled_tasks = update_result.scheduled_tasks;
-    std::cout << "end xue_update_sparse" << std::endl;
+    // std::cout << "end xue_update_sparse" << std::endl;
     // 在 uploadXueUpdate 入口处显式输出传输时间窗，避免依赖下层函数打印行为。
     log_append_schedule_visual(scheduled_tasks);
-    std::cout << "end log_append_schedule_visual" << std::endl;
+    // std::cout << "end log_append_schedule_visual" << std::endl;
     std::vector<proxy_proto::AppendStripeDataPlacement> append_plans;
     const int global_parity_cluster_id = get_xue_global_parity_cluster_id(stripe);
     bool global_data_forward_assigned = false;
@@ -4030,24 +4029,24 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       for (const auto &s : strict_schedule.steps)
       {
-        std::cout << "[XUE_SCHEDULE] step_no=" << s.step_no() << " pg=" << s.parallel_group()
-                  << " key=" << s.append_key() << " " << s.from_cluster() << "->" << s.to_cluster()
-                  << " mode=" << s.forward_append_mode() << " preds=";
+        // std::cout << "[XUE_SCHEDULE] step_no=" << s.step_no() << " pg=" << s.parallel_group()
+                  // << " key=" << s.append_key() << " " << s.from_cluster() << "->" << s.to_cluster()
+                  // << " mode=" << s.forward_append_mode() << " preds=";
         for (int p : s.pred_step_nos())
         {
-          std::cout << p << ",";
+          // std::cout << p << ",";
         }
-        std::cout << " t=" << s.start_time() << std::endl;
+        // std::cout << " t=" << s.start_time() << std::endl;
       }
     }
 
-    std::cout << "[XUE_UPDATE] client=" << client_id << " stripe=" << stripe_id
-              << " merged_ranges=" << request->ranges_size()
-              << " strict_steps=" << strict_schedule.steps.size()
-              << " parallel_groups=" << strict_schedule.num_parallel_groups
-              << " schedule_waves=" << (exec_schedule.max_wave + 1)
-              << " hop_entries=" << exec_schedule.hop_wave.size()
-              << " client_waves=" << exec_schedule.client_waves.size() << std::endl;
+    // std::cout << "[XUE_UPDATE] client=" << client_id << " stripe=" << stripe_id
+              // << " merged_ranges=" << request->ranges_size()
+              // << " strict_steps=" << strict_schedule.steps.size()
+              // << " parallel_groups=" << strict_schedule.num_parallel_groups
+              // << " schedule_waves=" << (exec_schedule.max_wave + 1)
+              // << " hop_entries=" << exec_schedule.hop_wave.size()
+              // << " client_waves=" << exec_schedule.client_waves.size() << std::endl;
     return grpc::Status::OK;
   }
 
@@ -4100,9 +4099,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::lock_guard<std::mutex> session_lk(session->mutex);
     session->ingress_ready_keys.insert(append_key);
     session->try_advance_ready_steps();
-    std::cout << "[XUE_SCHEDULE] ingress_ready stripe=" << stripe_id << " key=" << append_key
-              << " ready=" << session->ingress_ready_keys.size() << "/"
-              << session->required_ingress_keys.size() << std::endl;
+    // std::cout << "[XUE_SCHEDULE] ingress_ready stripe=" << stripe_id << " key=" << append_key
+              // << " ready=" << session->ingress_ready_keys.size() << "/"
+              // << session->required_ingress_keys.size() << std::endl;
     return grpc::Status::OK;
   }
 
@@ -4155,15 +4154,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     if (committed)
     {
       session->committed_keys.insert(append_key);
-      std::cout << "[XUE_SCHEDULE] commit_ready stripe=" << stripe_id << " key=" << append_key
-                << " ready=" << session->committed_keys.size() << "/"
-                << session->required_commit_keys.size() << std::endl;
+      // std::cout << "[XUE_SCHEDULE] commit_ready stripe=" << stripe_id << " key=" << append_key
+                // << " ready=" << session->committed_keys.size() << "/"
+                // << session->required_commit_keys.size() << std::endl;
     }
     else
     {
       session->commits_failed = true;
-      std::cout << "[XUE_SCHEDULE] commit_failed stripe=" << stripe_id << " key=" << append_key
-                << std::endl;
+      // std::cout << "[XUE_SCHEDULE] commit_failed stripe=" << stripe_id << " key=" << append_key
+                // << std::endl;
     }
     session->try_advance_commits();
   }
@@ -4195,7 +4194,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       return grpc::Status(grpc::StatusCode::ABORTED, "xue strict schedule commit aborted");
     }
-    std::cout << "[XUE_SCHEDULE] all_commits_ready stripe=" << stripe_id << std::endl;
+    // std::cout << "[XUE_SCHEDULE] all_commits_ready stripe=" << stripe_id << std::endl;
     return grpc::Status::OK;
   }
 
@@ -4292,9 +4291,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
     }
     session->try_advance_ready_steps();
-    std::cout << "[XUE_SCHEDULE] step_done stripe=" << stripe_id
-              << " step_no=" << matched_step.step_no() << " ok=" << request->success()
-              << std::endl;
+    // std::cout << "[XUE_SCHEDULE] step_done stripe=" << stripe_id
+              // << " step_no=" << matched_step.step_no() << " ok=" << request->success()
+              // << std::endl;
     return grpc::Status::OK;
   }
 
@@ -4364,11 +4363,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       span_w0 = std::min(span_w0, proxy_rep.wall_span_start_unix_ms());
       span_w1 = std::max(span_w1, proxy_rep.wall_span_end_unix_ms());
     }
-    std::cout << "[XUE][Coordinator] proxy_pure_xfer cluster=" << cluster_id
-              << " stripe=" << stripe_id << " xue_xfer_plan_id=" << xfer_plan_id
-              << " proxy_pure_xfer_sec=" << proxy_rep.proxy_pure_xfer_sec()
-              << " wall_span_ms=" << proxy_rep.wall_span_start_unix_ms() << ".."
-              << proxy_rep.wall_span_end_unix_ms() << std::endl;
+    // std::cout << "[XUE][Coordinator] proxy_pure_xfer cluster=" << cluster_id
+              // << " stripe=" << stripe_id << " xue_xfer_plan_id=" << xfer_plan_id
+              // << " proxy_pure_xfer_sec=" << proxy_rep.proxy_pure_xfer_sec()
+              // << " wall_span_ms=" << proxy_rep.wall_span_start_unix_ms() << ".."
+              // << proxy_rep.wall_span_end_unix_ms() << std::endl;
   }
 
   response->set_max_proxy_pure_xfer_sec(max_proxy_pure);
@@ -4377,10 +4376,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     response->set_cluster_pure_xfer_span_wall_sec(
         static_cast<double>(span_w1 - span_w0) / 1000.0);
   }
-  std::cout << "[XUE][Coordinator] cluster_pure_xfer_span_wall_sec="
-            << response->cluster_pure_xfer_span_wall_sec()
-            << " max_proxy_pure_xfer_sec=" << response->max_proxy_pure_xfer_sec()
-            << " stripe=" << stripe_id << " xue_xfer_plan_id=" << xfer_plan_id << std::endl;
+  // std::cout << "[XUE][Coordinator] cluster_pure_xfer_span_wall_sec="
+            // << response->cluster_pure_xfer_span_wall_sec()
+            // << " max_proxy_pure_xfer_sec=" << response->max_proxy_pure_xfer_sec()
+            // << " stripe=" << stripe_id << " xue_xfer_plan_id=" << xfer_plan_id << std::endl;
   return grpc::Status::OK;
   }
 

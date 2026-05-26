@@ -58,7 +58,7 @@ namespace
 
   void log_xfert_line(const std::string &ts, const std::string &line)
   {
-    std::cout << "[Proxy][XFERT] " << ts << " " << line << std::endl;
+    // std::cout << "[Proxy][XFERT] " << ts << " " << line << std::endl;
   }
 
   int64_t xue_wall_unix_ms_now()
@@ -1938,7 +1938,7 @@ namespace ECProject
                                      proxy_proto::RequestResult *response)
   {
 
-    std::cout << "[Proxy] checkalive" << request->name() << std::endl;
+    // std::cout << "[Proxy] checkalive" << request->name() << std::endl;
     response->set_message(false);
     init_coordinator();
     return grpc::Status::OK;
@@ -2498,35 +2498,35 @@ namespace ECProject
   void ProxyImpl::printAppendStripeDataPlacement(const proxy_proto::AppendStripeDataPlacement *append_stripe_data_placement)
   {
     // Print basic info
-    std::cout << "=== AppendStripeDataPlacement Info ===" << std::endl;
-    std::cout << "Key: " << append_stripe_data_placement->key() << std::endl;
-    std::cout << "Stripe ID: " << append_stripe_data_placement->stripe_id() << std::endl;
-    std::cout << "Cluster ID: " << append_stripe_data_placement->cluster_id() << std::endl;
-    std::cout << "Total Append Size: " << append_stripe_data_placement->append_size() << std::endl;
-    std::cout << "Is Merge Parity: " << (append_stripe_data_placement->is_merge_parity() ? "true" : "false") << std::endl;
-    std::cout << "Append Mode: " << append_stripe_data_placement->append_mode() << std::endl;
-    std::cout << "Is Serialized: " << (append_stripe_data_placement->is_serialized() ? "true" : "false") << std::endl;
+    // std::cout << "=== AppendStripeDataPlacement Info ===" << std::endl;
+    // std::cout << "Key: " << append_stripe_data_placement->key() << std::endl;
+    // std::cout << "Stripe ID: " << append_stripe_data_placement->stripe_id() << std::endl;
+    // std::cout << "Cluster ID: " << append_stripe_data_placement->cluster_id() << std::endl;
+    // std::cout << "Total Append Size: " << append_stripe_data_placement->append_size() << std::endl;
+    // std::cout << "Is Merge Parity: " << (append_stripe_data_placement->is_merge_parity() ? "true" : "false") << std::endl;
+    // std::cout << "Append Mode: " << append_stripe_data_placement->append_mode() << std::endl;
+    // std::cout << "Is Serialized: " << (append_stripe_data_placement->is_serialized() ? "true" : "false") << std::endl;
 
     // Print datanode info
-    std::cout << "\n=== Datanode Info ===" << std::endl;
+    // std::cout << "\n=== Datanode Info ===" << std::endl;
     for (int i = 0; i < append_stripe_data_placement->datanodeip_size(); i++)
     {
-      std::cout << "Datanode " << i << ":" << std::endl;
-      std::cout << "  IP: " << append_stripe_data_placement->datanodeip(i) << std::endl;
-      std::cout << "  Port: " << append_stripe_data_placement->datanodeport(i) << std::endl;
+      // std::cout << "Datanode " << i << ":" << std::endl;
+      // std::cout << "  IP: " << append_stripe_data_placement->datanodeip(i) << std::endl;
+      // std::cout << "  Port: " << append_stripe_data_placement->datanodeport(i) << std::endl;
     }
 
     // Print block info
-    std::cout << "\n=== Block Info ===" << std::endl;
+    // std::cout << "\n=== Block Info ===" << std::endl;
     for (int i = 0; i < append_stripe_data_placement->blockkeys_size(); i++)
     {
-      std::cout << "Block " << i << ":" << std::endl;
-      std::cout << "  Key: " << append_stripe_data_placement->blockkeys(i) << std::endl;
-      std::cout << "  ID: " << append_stripe_data_placement->blockids(i) << std::endl;
-      std::cout << "  Offset: " << append_stripe_data_placement->offsets(i) << std::endl;
-      std::cout << "  Size: " << append_stripe_data_placement->sizes(i) << std::endl;
+      // std::cout << "Block " << i << ":" << std::endl;
+      // std::cout << "  Key: " << append_stripe_data_placement->blockkeys(i) << std::endl;
+      // std::cout << "  ID: " << append_stripe_data_placement->blockids(i) << std::endl;
+      // std::cout << "  Offset: " << append_stripe_data_placement->offsets(i) << std::endl;
+      // std::cout << "  Size: " << append_stripe_data_placement->sizes(i) << std::endl;
     }
-    std::cout << "===================================" << std::endl;
+    // std::cout << "===================================" << std::endl;
   }
 
   grpc::Status ProxyImpl::scheduleAppend2Datanode(
