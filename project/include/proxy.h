@@ -158,6 +158,7 @@ namespace ECProject
       double *disk_io_start_time, double *disk_io_end_time, double *network_start_time, double *network_end_time, double *grpc_notify_time, double *grpc_start_time);
 
   private:
+    bool parix_try_flush_journal_on_threshold(int stripe_id);
     std::mutex m_mutex;
     std::condition_variable cv;
     bool init_coordinator();

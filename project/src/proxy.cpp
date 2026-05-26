@@ -2949,6 +2949,18 @@ namespace ECProject
     return grpc::Status::OK;
   }
 
+  bool ProxyImpl::parix_try_flush_journal_on_threshold(int stripe_id)
+  {
+    return m_parix_journal.maybe_flush_stripe_if_threshold(
+        stripe_id, m_sys_config,
+        [this](const std::string &key, int block_id, char *buf, size_t bs, const char *ip, int port) {
+          return this->GetFromDatanode(key, buf, bs, ip, port);
+        },
+        [this](const std::string &key, int block_id, const char *buf, size_t bs, const char *ip, int port) {
+          return this->SetToDatanode(key.c_str(), key.size(), buf, bs, ip, port, 0);
+        });
+  }
+
   grpc::Status ProxyImpl::parixJournalAppendBatch(
       grpc::ServerContext *context,
       const proxy_proto::ParixJournalAppendBatchRequest *request,
@@ -2975,6 +2987,10 @@ namespace ECProject
                 << request->range_offset() << "," << (request->range_offset() + static_cast<int>(request->range_length())) << ") -> " << rname
                 << std::endl;
     }
+    if (!parix_try_flush_journal_on_threshold(request->stripe_id()))
+    {
+      return grpc::Status(grpc::StatusCode::INTERNAL, "parity journal flush failed");
+    }
     const auto t1 = std::chrono::steady_clock::now();
     const int64_t w1 = parix_wall_unix_ms_now();
     parix_batch_xfer_add(request->stripe_id(), request->batch_id(), std::chrono::duration<double>(t1 - t0).count(), w0, w1);
@@ -3000,6 +3016,10 @@ namespace ECProject
               << " parity_block_id=" << request->parity_block_id() << " data_block_id=" << request->data_block_id() << " range["
               << request->range_offset() << "," << (request->range_offset() + static_cast<int>(request->range_length())) << ") -> "
               << (ar == ParixJournal::AppendResult::SUCCESS ? "SUCCESS" : "NEED_D0") << std::endl;
+    if (!parix_try_flush_journal_on_threshold(request->stripe_id()))
+    {
+      return grpc::Status(grpc::StatusCode::INTERNAL, "parity journal flush failed");
+    }
     const auto t1 = std::chrono::steady_clock::now();
     const int64_t w1 = parix_wall_unix_ms_now();
     parix_batch_xfer_add(request->stripe_id(), request->batch_id(), std::chrono::duration<double>(t1 - t0).count(), w0, w1);
@@ -3015,9 +3035,13 @@ namespace ECProject
     const auto t0 = std::chrono::steady_clock::now();
     const int64_t w0 = parix_wall_unix_ms_now();
     const std::string old_payload(request->old_payload().data(), request->old_payload().size());
-    const bool ok = m_parix_journal.supply_d0(request->stripe_id(), request->batch_id(), request->write_generation(),
-                                              request->parity_block_id(), request->data_block_id(), request->range_offset(),
-                                              static_cast<int>(request->range_length()), old_payload);
+    bool ok = m_parix_journal.supply_d0(request->stripe_id(), request->batch_id(), request->write_generation(),
+                                        request->parity_block_id(), request->data_block_id(), request->range_offset(),
+                                        static_cast<int>(request->range_length()), old_payload);
+    if (ok)
+    {
+      ok = parix_try_flush_journal_on_threshold(request->stripe_id());
+    }
     const auto t1 = std::chrono::steady_clock::now();
     const int64_t w1 = parix_wall_unix_ms_now();
     parix_batch_xfer_add(request->stripe_id(), request->batch_id(), std::chrono::duration<double>(t1 - t0).count(), w0, w1);
@@ -3035,17 +3059,10 @@ namespace ECProject
       proxy_proto::SetReply *response)
   {
     (void)context;
-    const bool ok = m_parix_journal.replay_batch(
-        request->stripe_id(), request->batch_id(), m_sys_config,
-        [this](const std::string &key, int block_id, char *buf, size_t bs, const char *ip, int port) {
-          return this->GetFromDatanode(key, buf, bs, ip, port);
-        },
-        [this](const std::string &key, int block_id, const char *buf, size_t bs, const char *ip, int port) {
-          return this->SetToDatanode(key.c_str(), key.size(), buf, bs, ip, port, 0);
-        });
-    response->set_ifcommit(ok);
-    std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixReplayBatch: stripe=" << request->stripe_id() << " batch=" << request->batch_id()
-              << " (read parity from DN, apply journal deltas, write parity) ifcommit=" << (ok ? "true" : "false") << std::endl;
+    (void)request;
+    // Partial updates flush parity only when journal reaches kParixJournalFlushThresholdBytes on append/supply.
+    response->set_ifcommit(true);
+    std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixReplayBatch: no-op (parity flush is journal-threshold driven)\n";
     return grpc::Status::OK;
   }
 

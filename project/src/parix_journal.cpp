@@ -62,6 +62,46 @@ namespace ECProject
     return stripes_[stripe_id];
   }
 
+  size_t ParixJournal::entry_journal_bytes(const Entry &e)
+  {
+    size_t n = e.new_payload.size();
+    if (e.has_old)
+    {
+      n += e.old_payload.size();
+    }
+    return n;
+  }
+
+  size_t ParixJournal::unreplayed_journal_bytes_locked(const StripeState &st)
+  {
+    size_t total = 0;
+    for (const Entry &e : st.entries)
+    {
+      if (!e.replayed)
+      {
+        total += entry_journal_bytes(e);
+      }
+    }
+    return total;
+  }
+
+  size_t ParixJournal::unreplayed_journal_bytes(int stripe_id)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    const auto it = stripes_.find(stripe_id);
+    if (it == stripes_.end())
+    {
+      return 0;
+    }
+    return unreplayed_journal_bytes_locked(it->second);
+  }
+
+  bool ParixJournal::entry_identity_equal(const Entry &a, const Entry &b)
+  {
+    return a.batch_id == b.batch_id && a.write_generation == b.write_generation && a.parity_block_id == b.parity_block_id &&
+           a.data_block_id == b.data_block_id && a.range_offset == b.range_offset && a.len == b.len;
+  }
+
   ParixJournal::AppendResult ParixJournal::append(int stripe_id, uint64_t batch_id, uint64_t write_generation,
                                                   int parity_block_id, const std::string &parity_block_key,
                                                   const std::string &parity_datanode_ip, int parity_datanode_port,
@@ -90,12 +130,15 @@ namespace ECProject
     e.range_offset = range_offset;
     e.len = len;
     e.new_payload = new_payload;
-    auto it = st.last_committed_dr.find(key);
-    if (it != st.last_committed_dr.end() && static_cast<int>(it->second.size()) == len)
+    // Same stripe + same data-block slice updated before; only skip NEED_D0 if new_payload differs (next client write).
+    // Same-batch fan-out to other parities shares the same new_payload -> still NEED_D0.
+    auto jit = st.journal_slice_dr.find(key);
+    if (jit != st.journal_slice_dr.end() && static_cast<int>(jit->second.size()) == len && jit->second != new_payload)
     {
-      e.old_payload = it->second;
+      e.old_payload = jit->second;
       e.has_old = true;
       st.entries.push_back(std::move(e));
+      st.journal_slice_dr[key] = new_payload;
       return AppendResult::SUCCESS;
     }
     st.entries.push_back(std::move(e));
@@ -124,6 +167,8 @@ namespace ECProject
       {
         e.old_payload = old_payload;
         e.has_old = true;
+        const auto key = std::make_tuple(data_block_id, range_offset, len);
+        st.journal_slice_dr[key] = e.new_payload;
         return true;
       }
     }
@@ -171,6 +216,122 @@ namespace ECProject
       parity_block[ro + i] = static_cast<unsigned char>(parity_block[ro + i] ^ gf_mul(coef, delta));
     }
     return true;
+  }
+
+  bool ParixJournal::replay_stripe_ready_entries(int stripe_id, Config *cfg,
+                                                 const std::function<bool(const std::string &key, int block_id, char *buf, size_t bs,
+                                                                          const char *ip, int port)> &read_parity,
+                                                 const std::function<bool(const std::string &key, int block_id, const char *buf, size_t bs,
+                                                                          const char *ip, int port)> &write_parity)
+  {
+    const size_t bs = cfg->BlockSize;
+    std::vector<Entry> pending;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      StripeState &st = stripes_[stripe_id];
+      pending.reserve(st.entries.size());
+      for (const Entry &e : st.entries)
+      {
+        if (!e.replayed && e.has_old && e.write_generation == st.write_generation)
+        {
+          pending.push_back(e);
+        }
+      }
+    }
+    if (pending.empty())
+    {
+      return true;
+    }
+
+    std::map<int, std::vector<unsigned char>> parity_bufs;
+    std::map<int, std::string> parity_keys;
+    std::map<int, std::pair<std::string, int>> parity_nodes;
+
+    for (const Entry &e : pending)
+    {
+      const int pid = e.parity_block_id;
+      if (parity_bufs.find(pid) == parity_bufs.end())
+      {
+        parity_bufs[pid].resize(bs);
+        if (!read_parity(e.parity_block_key, pid, reinterpret_cast<char *>(parity_bufs[pid].data()), bs, e.parity_datanode_ip.c_str(),
+                         e.parity_datanode_port))
+        {
+          std::cerr << "[ParixJournal] read parity block " << pid << " failed\n";
+          return false;
+        }
+        parity_keys[pid] = e.parity_block_key;
+        parity_nodes[pid] = {e.parity_datanode_ip, e.parity_datanode_port};
+      }
+      unsigned char *pbuf = parity_bufs[pid].data();
+      if (!apply_parity_delta_slice(cfg, pid, e.data_block_id, reinterpret_cast<const unsigned char *>(e.old_payload.data()),
+                                    reinterpret_cast<const unsigned char *>(e.new_payload.data()), pbuf, e.range_offset, e.len))
+      {
+        return false;
+      }
+    }
+
+    for (auto &kv : parity_bufs)
+    {
+      const int pid = kv.first;
+      const std::string &pk = parity_keys[pid];
+      const std::string &ip = parity_nodes[pid].first;
+      const int port = parity_nodes[pid].second;
+      if (!write_parity(pk, pid, reinterpret_cast<const char *>(kv.second.data()), bs, ip.c_str(), port))
+      {
+        std::cerr << "[ParixJournal] write parity block " << pid << " failed\n";
+        return false;
+      }
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    StripeState &st = stripes_[stripe_id];
+    for (const Entry &applied : pending)
+    {
+      for (Entry &live : st.entries)
+      {
+        if (!live.replayed && entry_identity_equal(live, applied))
+        {
+          const auto key = std::make_tuple(live.data_block_id, live.range_offset, live.len);
+          st.last_committed_dr[key] = live.new_payload;
+          live.replayed = true;
+          break;
+        }
+      }
+    }
+    std::vector<Entry> kept;
+    kept.reserve(st.entries.size());
+    for (Entry &e : st.entries)
+    {
+      if (!e.replayed)
+      {
+        kept.push_back(std::move(e));
+      }
+    }
+    st.entries = std::move(kept);
+    st.journal_slice_dr.clear();
+    std::cout << "[ParixJournal] flushed stripe=" << stripe_id << " replayed_entries=" << pending.size()
+              << " remaining_unreplayed_bytes=" << unreplayed_journal_bytes_locked(st) << std::endl;
+    return true;
+  }
+
+  bool ParixJournal::maybe_flush_stripe_if_threshold(int stripe_id, Config *cfg,
+                                                     const std::function<bool(const std::string &key, int block_id, char *buf, size_t bs,
+                                                                              const char *ip, int port)> &read_parity,
+                                                     const std::function<bool(const std::string &key, int block_id, const char *buf, size_t bs,
+                                                                              const char *ip, int port)> &write_parity)
+  {
+    size_t journal_bytes = 0;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      journal_bytes = unreplayed_journal_bytes_locked(stripes_[stripe_id]);
+    }
+    if (journal_bytes < kParixJournalFlushThresholdBytes)
+    {
+      return true;
+    }
+    std::cout << "[ParixJournal] stripe=" << stripe_id << " unreplayed_journal_bytes=" << journal_bytes
+              << " >= threshold=" << kParixJournalFlushThresholdBytes << ", flushing parity to datanode\n";
+    return replay_stripe_ready_entries(stripe_id, cfg, read_parity, write_parity);
   }
 
   bool ParixJournal::replay_batch(int stripe_id, uint64_t batch_id, Config *cfg,

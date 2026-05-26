@@ -1986,7 +1986,7 @@ namespace ECProject
     creq.set_stripe_id(stripe_id);
     creq.set_batch_id(plan.batch_id());
     coordinator_proto::ReplyFromCoordinator crpl;
-    std::cout << "[Client][Parix] commitParixBatch -> coordinator (will RPC parixReplayBatch to each parity proxy)" << std::endl;
+    std::cout << "[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)" << std::endl;
     grpc::Status cst = m_coordinator_ptr->commitParixBatch(&cctx, creq, &crpl);
     if (!cst.ok())
     {
