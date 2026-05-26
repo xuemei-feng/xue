@@ -1,6 +1,6 @@
 #!/bin/sh
 # 批量 Parix 更新请求文件（改这一行；相对 test.sh 目录或绝对路径）
-UPDATE_BATCH_FILE="try"
+UPDATE_BATCH_FILE="/users/xue/xue/data/T00-result10000.txt"
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 cd "$SCRIPT_DIR" || exit 1
