@@ -127,8 +127,9 @@ namespace ECProject
     char *m_pre_allocated_buffer = nullptr;
     char **m_cached_buffer = nullptr;
 
-    /** RackCU DATA_HOME only: TCP payload to proxy (no coordinator wait). */
-    bool rackcu_tcp_send_payload(const char *data, int size, const std::string &proxy_ip, int proxy_port);
+    /** RackCU: keyed TCP frame (append_key + payload) to proxy (no coordinator wait). */
+    bool rackcu_tcp_send_payload(const std::string &append_key, const char *data, int size, const std::string &proxy_ip,
+                                 int proxy_port);
     /** Wait until Coordinator records commit for this append_key (APPEND). */
     bool rackcu_wait_append_committed(const std::string &append_key, int stripe_id);
   };

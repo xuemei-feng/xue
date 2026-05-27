@@ -173,6 +173,11 @@ namespace ECProject
     std::mutex m_rackcu_home_staging_cache_mu;
     std::unordered_map<std::string, std::pair<std::string, std::chrono::steady_clock::time_point>>
         m_rackcu_home_staging_blob_cache;
+    /** RackCU: append_key -> plan registered by scheduleAppend; TCP carries key to disambiguate accept. */
+    std::mutex m_rackcu_pending_appends_mu;
+    std::unordered_map<std::string, std::shared_ptr<proxy_proto::AppendStripeDataPlacement>> m_rackcu_pending_appends;
+    /** Serialize accept()+keyed header+payload on this proxy (avoids concurrent accept races). */
+    std::mutex m_rackcu_accept_io_mu;
   };
 
   class Proxy

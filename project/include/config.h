@@ -7,7 +7,9 @@
 namespace ECProject
 {
   const int DATANODE_PORT_SHIFT = 500;
-  const int PROXY_PORT_SHIFT = 100; 
+  const int PROXY_PORT_SHIFT = 100;
+  /** Max append_key bytes in RackCU keyed TCP frame (uint16 length prefix). */
+  const int RACKCU_APPEND_KEY_MAX = 128;
 
   class Config
   {

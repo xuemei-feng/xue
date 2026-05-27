@@ -284,6 +284,51 @@ namespace ECProject
         off += m;
       }
     }
+
+    std::string rackcu_tcp_read_append_key(asio::ip::tcp::socket &sock, asio::error_code &ec)
+    {
+      uint16_t key_len = 0;
+      tcp_read_all_bytes(sock, &key_len, sizeof(key_len), ec);
+      if (ec)
+      {
+        return {};
+      }
+      if (key_len == 0 || key_len > static_cast<uint16_t>(ECProject::RACKCU_APPEND_KEY_MAX))
+      {
+        std::cout << "[RACKCU] invalid append key length on wire: " << key_len << std::endl;
+        ec = asio::error::make_error_code(asio::error::invalid_argument);
+        return {};
+      }
+      std::string key(static_cast<size_t>(key_len), '\0');
+      tcp_read_all_bytes(sock, &key[0], static_cast<size_t>(key_len), ec);
+      return key;
+    }
+
+    void rackcu_tcp_write_keyed_frame(asio::ip::tcp::socket &sock, const std::string &append_key, const char *data,
+                                      size_t nbytes, asio::error_code &ec)
+    {
+      ec.clear();
+      if (append_key.empty() || append_key.size() > static_cast<size_t>(ECProject::RACKCU_APPEND_KEY_MAX))
+      {
+        ec = asio::error::make_error_code(asio::error::invalid_argument);
+        return;
+      }
+      const uint16_t klen = static_cast<uint16_t>(append_key.size());
+      asio::write(sock, asio::buffer(&klen, sizeof(klen)), ec);
+      if (ec)
+      {
+        return;
+      }
+      asio::write(sock, asio::buffer(append_key.data(), append_key.size()), ec);
+      if (ec)
+      {
+        return;
+      }
+      if (nbytes > 0 && data != nullptr)
+      {
+        asio::write(sock, asio::buffer(data, nbytes), ec);
+      }
+    }
   }
 
   bool ProxyImpl::init_ip_to_cluster_map(std::string cluster_xml_path)
@@ -1075,52 +1120,85 @@ namespace ECProject
     auto rackcu_home_delta_out = std::make_shared<std::string>();
     auto rackcu_home_staging = std::make_shared<RackCuHomeStagingCommit>();
 
-    auto append_and_save = [this, stripe_id, cluster_append_size, slice_num, placement_copy, is_serialized, rackcu_home_delta_out, rackcu_home_staging]() mutable
+    const bool rack_cu_keyed = append_stripe_data_placement->rack_cu_xfer_plan_id() != 0u;
+    if (rack_cu_keyed)
+    {
+      std::lock_guard<std::mutex> lk(m_rackcu_pending_appends_mu);
+      m_rackcu_pending_appends[placement_copy->key()] = placement_copy;
+    }
+
+    auto append_and_save = [this, rack_cu_keyed, stripe_id, cluster_append_size, slice_num, placement_copy, is_serialized, rackcu_home_delta_out, rackcu_home_staging]() mutable
     {
       try
       {
         asio::ip::tcp::socket socket_data(io_context);
-        acceptor.accept(socket_data);
         asio::error_code error;
         std::string append_peer_ip;
-        try
-        {
-          append_peer_ip = socket_data.remote_endpoint().address().to_string();
-        }
-        catch (...)
-        {
-        }
+        std::vector<char> append_buf;
 
-        // assert(m_pre_allocated_buffer_queue.size() > 0 && "Pre-allocated buffer queue is empty");
-        // std::shared_ptr<char[]> append_buf = m_pre_allocated_buffer_queue.front();
-        // m_pre_allocated_buffer_queue.pop();
-        // char *append_buf = new char[cluster_append_size];
-        // memset(append_buf, 0, cluster_append_size);
-        // std::shared_ptr<char> append_buf_ptr(append_buf, [](char* p) { delete[] p; }); // 使用智能指针管理内存
-        std::vector<char> append_buf(cluster_append_size, 0);
-        if (cluster_append_size > 0)
         {
-          apply_kernel_bandwidth_to_peer_socket(socket_data, append_peer_ip.c_str());
-          tcp_read_all_bytes(socket_data, append_buf.data(), cluster_append_size, error);
-          if (error == asio::error::eof)
+          std::lock_guard<std::mutex> accept_io_lk(m_rackcu_accept_io_mu);
+          acceptor.accept(socket_data);
+          try
           {
-            std::cout << "error == asio::error::eof" << std::endl;
+            append_peer_ip = socket_data.remote_endpoint().address().to_string();
           }
-          else if (error)
+          catch (...)
           {
-            throw asio::system_error(error);
           }
-        }
 
-        if (IF_DEBUG)
-        {
-          std::cout << "[Proxy" << m_self_cluster_id << "][Append339]"
-                    << "Append to Stripe " << stripe_id << " with length of " << cluster_append_size << std::endl;
-        }
+          if (rack_cu_keyed)
+          {
+            const std::string wire_key = rackcu_tcp_read_append_key(socket_data, error);
+            if (error)
+            {
+              throw asio::system_error(error);
+            }
+            if (wire_key.empty())
+            {
+              throw std::runtime_error("RACKCU: empty append key on wire");
+            }
+            {
+              std::lock_guard<std::mutex> lk(m_rackcu_pending_appends_mu);
+              const auto pit = m_rackcu_pending_appends.find(wire_key);
+              if (pit == m_rackcu_pending_appends.end())
+              {
+                throw std::runtime_error("RACKCU: append_key not scheduled on proxy: " + wire_key);
+              }
+              placement_copy = pit->second;
+              m_rackcu_pending_appends.erase(pit);
+            }
+            cluster_append_size = static_cast<size_t>(placement_copy->append_size());
+            slice_num = placement_copy->blockkeys_size();
+            is_serialized = placement_copy->is_serialized();
+            stripe_id = placement_copy->stripe_id();
+          }
 
-        asio::error_code ignore_ec;
-        socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
-        socket_data.close(ignore_ec);
+          append_buf.assign(cluster_append_size, 0);
+          if (cluster_append_size > 0)
+          {
+            apply_kernel_bandwidth_to_peer_socket(socket_data, append_peer_ip.c_str());
+            tcp_read_all_bytes(socket_data, append_buf.data(), cluster_append_size, error);
+            if (error == asio::error::eof)
+            {
+              std::cout << "error == asio::error::eof" << std::endl;
+            }
+            else if (error)
+            {
+              throw asio::system_error(error);
+            }
+          }
+
+          if (IF_DEBUG)
+          {
+            std::cout << "[Proxy" << m_self_cluster_id << "][Append339]"
+                      << "Append to Stripe " << stripe_id << " with length of " << cluster_append_size << std::endl;
+          }
+
+          asio::error_code ignore_ec;
+          socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
+          socket_data.close(ignore_ec);
+        }
 
         const uint64_t rack_cu_xfer_plan_id_cap = placement_copy->rack_cu_xfer_plan_id();
         const auto rack_cu_xfer_t0_steady = std::chrono::steady_clock::now();
@@ -1539,6 +1617,7 @@ namespace ECProject
                 forward_plan.set_is_merge_parity(true);
                 forward_plan.set_append_mode("RACKCU_PARITY_APPLY_ONLY");
                 forward_plan.set_is_serialized(true);
+                forward_plan.set_rack_cu_xfer_plan_id(placement_copy->rack_cu_xfer_plan_id());
 
                 const std::string rpc_target = pt.target_proxy_ip() + ":" + std::to_string(pt.target_proxy_port());
                 auto target_stub = proxy_proto::proxyService::NewStub(
@@ -1560,7 +1639,9 @@ namespace ECProject
                     if (!ec)
                     {
                       apply_kernel_bandwidth_to_peer_socket(sock, pt.target_proxy_ip().c_str());
-                      asio::write(sock, asio::buffer(reinterpret_cast<const char *>(delta_at_poff_b), static_cast<size_t>(plen_b)), ec);
+                      rackcu_tcp_write_keyed_frame(sock, forward_plan.key(),
+                                                   reinterpret_cast<const char *>(delta_at_poff_b),
+                                                   static_cast<size_t>(plen_b), ec);
                       if (!ec)
                       {
                         asio::error_code ignore_ec;
@@ -1653,6 +1734,7 @@ namespace ECProject
             forward_plan.set_is_merge_parity(true);
             forward_plan.set_append_mode("RACKCU_PARITY_APPLY_ONLY");
             forward_plan.set_is_serialized(true);
+            forward_plan.set_rack_cu_xfer_plan_id(placement_copy->rack_cu_xfer_plan_id());
 
             const std::string rpc_target = placement_copy->target_proxy_ip() + ":" + std::to_string(placement_copy->target_proxy_port());
             auto target_stub = proxy_proto::proxyService::NewStub(
@@ -1689,7 +1771,8 @@ namespace ECProject
               return false;
             }
             apply_kernel_bandwidth_to_peer_socket(sock, placement_copy->target_proxy_ip().c_str());
-            asio::write(sock, asio::buffer(reinterpret_cast<const char *>(delta_at_poff), static_cast<size_t>(plen)), ec);
+            rackcu_tcp_write_keyed_frame(sock, forward_plan.key(), reinterpret_cast<const char *>(delta_at_poff),
+                                       static_cast<size_t>(plen), ec);
             if (ec)
             {
               std::cout << "[Proxy" << m_self_cluster_id << "][RACKCU][Forward] send failed ip="

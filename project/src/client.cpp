@@ -121,9 +121,39 @@ namespace ECProject
                                         int stripe_id,
                                         const std::unordered_set<std::string> &committed_keys)
     {
-      std::cout << "[RACKCU] request failed: abort pending steps and clean up staging" << std::endl;
+      std::cout << "[RACKCU] request failed: abort pending steps (staging retained for in-flight proxy handlers)"
+                << std::endl;
       rackcu_best_effort_abort_pending_keys(stub, reply, stripe_id, committed_keys);
-      rackcu_best_effort_staging_cleanup(reply);
+    }
+
+    /** RackCU keyed TCP: uint16 key_len, key bytes, then payload (disambiguates parallel accept handlers). */
+    bool rackcu_tcp_write_keyed_payload(const std::string &append_key, const char *data, int size,
+                                        asio::ip::tcp::socket &sock, asio::error_code &error)
+    {
+      if (append_key.empty() || append_key.size() > static_cast<size_t>(ECProject::RACKCU_APPEND_KEY_MAX))
+      {
+        return false;
+      }
+      const uint16_t klen = static_cast<uint16_t>(append_key.size());
+      asio::write(sock, asio::buffer(&klen, sizeof(klen)), error);
+      if (error)
+      {
+        return false;
+      }
+      asio::write(sock, asio::buffer(append_key.data(), append_key.size()), error);
+      if (error)
+      {
+        return false;
+      }
+      if (size > 0)
+      {
+        asio::write(sock, asio::buffer(data, static_cast<size_t>(size)), error);
+        if (error)
+        {
+          return false;
+        }
+      }
+      return true;
     }
 
     enum RackCuClientStep : int32_t
@@ -488,7 +518,17 @@ namespace ECProject
     asio::ip::tcp::socket sock_data(io_context);
     asio::connect(sock_data, endpoints);
 
-    asio::write(sock_data, asio::buffer(cluster_slice_data, cluster_slice_size), error);
+    if (commit_wait_timeout_sec >= 0.0)
+    {
+      if (!rackcu_tcp_write_keyed_payload(append_key, cluster_slice_data, cluster_slice_size, sock_data, error))
+      {
+        error = asio::error::invalid_argument;
+      }
+    }
+    else
+    {
+      asio::write(sock_data, asio::buffer(cluster_slice_data, cluster_slice_size), error);
+    }
     asio::error_code ignore_ec;
     sock_data.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
     sock_data.close(ignore_ec);
@@ -545,7 +585,8 @@ namespace ECProject
     if_commit_arr[index] = committed;
   }
 
-  bool Client::rackcu_tcp_send_payload(const char *data, int size, const std::string &proxy_ip, int proxy_port)
+  bool Client::rackcu_tcp_send_payload(const std::string &append_key, const char *data, int size, const std::string &proxy_ip,
+                                       int proxy_port)
   {
     if (data == nullptr || size < 0)
     {
@@ -557,7 +598,12 @@ namespace ECProject
     asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(proxy_ip, std::to_string(proxy_port));
     asio::ip::tcp::socket sock_data(io_context);
     asio::connect(sock_data, endpoints);
-    asio::write(sock_data, asio::buffer(data, static_cast<size_t>(size)), error);
+    if (!rackcu_tcp_write_keyed_payload(append_key, data, size, sock_data, error))
+    {
+      std::cout << "[RACKCU] rackcu_tcp_send_payload: keyed write failed append_key=" << append_key
+                << " proxy=" << proxy_ip << ":" << proxy_port << std::endl;
+      return false;
+    }
     asio::error_code ignore_ec;
     sock_data.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
     sock_data.close(ignore_ec);
@@ -1287,8 +1333,8 @@ namespace ECProject
         home_items.push_back(std::move(it));
       }
 
-      // 同一 (proxy_ip, proxy_port) 上，Proxy 对每个 scheduleAppend 起一个线程各自 accept()；若对该端点并发连
-      // 多个 TCP，accept 与 handler 会错配。按端点分组：组内按 dispatch 顺序串行 TCP，不同端点之间仍并行。
+      // 同一 (proxy_ip, proxy_port) 上多个 accept 可并行；TCP 帧带 append_key，Proxy 按 key 匹配 plan。
+      // 按端点分组：组内按 dispatch 顺序串行 TCP，不同端点之间仍并行。
       std::map<std::string, std::vector<size_t>> endpoint_to_wave_indices;
       for (size_t wi = 0; wi < home_items.size(); ++wi)
       {
@@ -1307,7 +1353,7 @@ namespace ECProject
           {
             const auto t0 = std::chrono::high_resolution_clock::now();
             RackCuHomeWaveItem &it = home_items[idx];
-            it.tcp_ok = rackcu_tcp_send_payload(it.buf.data(), it.slice_size, it.proxy_ip, it.proxy_port);
+            it.tcp_ok = rackcu_tcp_send_payload(it.append_key, it.buf.data(), it.slice_size, it.proxy_ip, it.proxy_port);
             it.tcp_s = chron_elapsed_s(t0, std::chrono::high_resolution_clock::now());
             if (!it.tcp_ok)
             {
