@@ -11,7 +11,62 @@
 #include <chrono>
 #include <algorithm>
 #include <random>
+#include <atomic>
+#include <thread>
 #include "unilrc_encoder.h"
+
+namespace
+{
+    constexpr double kXueBatchRequestTimeoutSec = 0.5;
+
+    struct XueUpdateRunResult
+    {
+        bool ok = false;
+        bool timed_out = false;
+        double elapsed_sec = 0.0;
+    };
+
+    XueUpdateRunResult run_xue_update_with_timeout(
+        ECProject::Client &client, int stripe_id,
+        const std::vector<std::pair<int, int>> &logical_ranges)
+    {
+        XueUpdateRunResult result;
+        const auto req_t0 = std::chrono::high_resolution_clock::now();
+        std::atomic<bool> req_done{false};
+        bool ok = false;
+        std::thread req_thread([&]() {
+            ok = client.xue_update(stripe_id, logical_ranges);
+            req_done.store(true, std::memory_order_release);
+        });
+
+        const auto deadline =
+            req_t0 + std::chrono::duration_cast<std::chrono::high_resolution_clock::duration>(
+                         std::chrono::duration<double>(kXueBatchRequestTimeoutSec));
+
+        while (!req_done.load(std::memory_order_acquire))
+        {
+            if (std::chrono::high_resolution_clock::now() >= deadline)
+            {
+                // 不可对 gRPC 线程 pthread_cancel，否则会触发 epoll poller 断言并 Aborted。
+                result.timed_out = true;
+                req_thread.detach();
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+
+        if (!result.timed_out)
+        {
+            req_thread.join();
+            result.ok = ok;
+        }
+
+        const auto req_t1 = std::chrono::high_resolution_clock::now();
+        result.elapsed_sec =
+            std::chrono::duration_cast<std::chrono::duration<double>>(req_t1 - req_t0).count();
+        return result;
+    }
+} // namespace
 
 int main(int argc, char **argv)
 {
@@ -53,7 +108,7 @@ int main(int argc, char **argv)
     int n = k + r + z;
 
     // 条带数量固定为 4；后续若需更多条带，改此常量即可。
-    const int stripe_num =10;
+    const int stripe_num =1000;
     std::cout << "Stripe count: " << stripe_num << " (fixed in main_client.cpp)" << std::endl;
 
     size_t total_write_size = 3000; // MB (used for throughput headline below)
@@ -96,8 +151,7 @@ int main(int argc, char **argv)
         int request_idx = 0;
         int failure_count = 0;
         int success_count = 0;
-        std::chrono::high_resolution_clock::time_point batch_start =
-            std::chrono::high_resolution_clock::now();
+        double success_elapsed_sum = 0.0;
         std::string line;
 
         while (std::getline(req_file, line))
@@ -154,35 +208,41 @@ int main(int argc, char **argv)
 
             std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
                       << " range_cnt=" << range_cnt << " ..." << std::endl;
-            const auto req_t0 = std::chrono::high_resolution_clock::now();
-            const bool ok = client.xue_update(stripe_id, logical_ranges);
-            const auto req_t1 = std::chrono::high_resolution_clock::now();
-            const double req_elapsed =
-                std::chrono::duration_cast<std::chrono::duration<double>>(req_t1 - req_t0).count();
+            const XueUpdateRunResult run_result =
+                run_xue_update_with_timeout(client, stripe_id, logical_ranges);
+            const double req_elapsed = run_result.elapsed_sec;
 
-            if (ok)
+            if (run_result.ok)
             {
                 success_count++;
+                success_elapsed_sum += req_elapsed;
                 std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
                           << " success, elapsed=" << req_elapsed << " s" << std::endl;
             }
             else
             {
                 failure_count++;
-                std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
-                          << " failed/timeout, skipped, elapsed=" << req_elapsed << " s"
-                          << std::endl;
+                if (run_result.timed_out)
+                {
+                    std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
+                              << " timeout (>" << kXueBatchRequestTimeoutSec
+                              << " s), abandoned (detached), skipped" << std::endl;
+                }
+                else
+                {
+                    std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
+                              << " failed, skipped, elapsed=" << req_elapsed << " s" << std::endl;
+                }
             }
         }
 
-        const auto batch_end = std::chrono::high_resolution_clock::now();
-        const double total_elapsed =
-            std::chrono::duration_cast<std::chrono::duration<double>>(batch_end - batch_start)
-                .count();
+        const double avg_success_elapsed =
+            success_count > 0 ? (success_elapsed_sum / static_cast<double>(success_count)) : 0.0;
         std::cout << "[XUE_BATCH] === summary ===" << std::endl;
         std::cout << "[XUE_BATCH] total_requests=" << request_idx << " success=" << success_count
-                  << " failures=" << failure_count << " total_elapsed=" << total_elapsed << " s"
-                  << std::endl;
+                  << " failures=" << failure_count
+                  << " total_success_elapsed=" << success_elapsed_sum << " s"
+                  << " avg_success_elapsed=" << avg_success_elapsed << " s" << std::endl;
     } 
     else 
     {
