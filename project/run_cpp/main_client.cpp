@@ -259,19 +259,18 @@ int main(int argc, char **argv)
             std::cout << "[batch line " << line_no << "] rackcu_update success, latency=" << req_s << " s" << std::endl;
         }
 
-        const double total_success_s = std::accumulate(success_latencies_s.begin(), success_latencies_s.end(), 0.0);
+        const double total_success_elapsed_s =
+            std::accumulate(success_latencies_s.begin(), success_latencies_s.end(), 0.0);
+        const int total_outcomes = success_count + fail_count;
+        const double avg_success_elapsed_s =
+            success_count > 0 ? total_success_elapsed_s / static_cast<double>(success_count) : 0.0;
 
         std::cout << "=== RackCU batch summary ===" << std::endl;
-        std::cout << "total_requests=" << req_index << " success=" << success_count << " failed=" << fail_count << std::endl;
-        std::cout << "total_wall_time=" << total_success_s << " s (success requests only, failures excluded)" << std::endl;
-        for (size_t i = 0; i < success_latencies_s.size(); i++)
-        {
-            std::cout << "success_latency_s[" << (i + 1) << "]=" << success_latencies_s[i] << std::endl;
-        }
-        if (!success_latencies_s.empty())
-        {
-            std::cout << "success_latency_avg=" << (total_success_s / success_latencies_s.size()) << " s" << std::endl;
-        }
+        std::cout << "total_requests=" << total_outcomes << " success=" << success_count
+                  << " failures=" << fail_count << std::endl;
+        std::cout << "total_success_elapsed=" << total_success_elapsed_s
+                  << " s (failures excluded from total and average)" << std::endl;
+        std::cout << "avg_success_elapsed=" << avg_success_elapsed_s << " s" << std::endl;
     } 
     else 
     {
