@@ -182,7 +182,6 @@ int main(int argc, char **argv)
         std::cout << "Line format: stripe_id range_count start0 end0 [start1 end1 ...]  (# and empty lines skipped)" << std::endl;
         std::cout << "Each range is logical half-open [start, end) in [0, k*BlockSize)." << std::endl;
 
-        const auto batch_start = std::chrono::high_resolution_clock::now();
         int line_no = 0;
         int req_index = 0;
         int fail_count = 0;
@@ -225,7 +224,8 @@ int main(int argc, char **argv)
 
             if (!ok)
             {
-                std::cout << "[batch line " << line_no << "] parix update failed, skip. latency=" << req_s << " s" << std::endl;
+                std::cout << "[batch line " << line_no << "] parix update failed, skip. latency=" << req_s
+                          << " s (excluded from total and average time)" << std::endl;
                 fail_count++;
                 continue;
             }
@@ -236,29 +236,25 @@ int main(int argc, char **argv)
                       << " latency=" << req_s << " s" << std::endl;
         }
 
-        const auto batch_end = std::chrono::high_resolution_clock::now();
-        const double total_wall_s =
-            std::chrono::duration_cast<std::chrono::duration<double>>(batch_end - batch_start).count();
+        double sum_success_latency_s = 0.0;
+        for (const BatchSuccessRecord &rec : success_records)
+        {
+            sum_success_latency_s += rec.latency_s;
+        }
+        const double avg_success_latency_s =
+            success_count > 0 ? sum_success_latency_s / static_cast<double>(success_count) : 0.0;
 
         std::cout << "=== Parix batch summary ===" << std::endl;
         std::cout << "total_requests=" << req_index << " success=" << success_count << " failed=" << fail_count << std::endl;
-        std::cout << "total_wall_time=" << total_wall_s << " s" << std::endl;
         for (size_t i = 0; i < success_records.size(); ++i)
         {
             const BatchSuccessRecord &rec = success_records[i];
             std::cout << "success_req[" << rec.req_index << "] line=" << rec.line_no << " stripe_id=" << rec.stripe_id
                       << " latency_s=" << rec.latency_s << std::endl;
         }
-        if (!success_records.empty())
-        {
-            double sum_success = 0.0;
-            for (const BatchSuccessRecord &rec : success_records)
-            {
-                sum_success += rec.latency_s;
-            }
-            std::cout << "success_latency_sum=" << sum_success << " s success_latency_avg="
-                      << (sum_success / success_records.size()) << " s" << std::endl;
-        }
+        std::cout << "total_time=" << sum_success_latency_s << " s (failures excluded)" << std::endl;
+        std::cout << "avg_time=" << avg_success_latency_s << " s (failures excluded)" << std::endl;
+        std::cout << "成功请求数: " << success_count << ", 失败请求数: " << fail_count << std::endl;
     } 
     else 
     {
