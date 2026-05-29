@@ -53,9 +53,10 @@ namespace
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
-        // 无论是否超时都 join，gRPC 1s deadline 保证不会永久阻塞。
+        // 无论是否超时都 join，gRPC 0.5s deadline 保证不会永久阻塞。
         req_thread.join();
-        result.ok = ok;
+        // 超时的请求直接标记为失败
+        result.ok = ok && !result.timed_out;
 
         const auto req_t1 = std::chrono::high_resolution_clock::now();
         result.elapsed_sec =
@@ -108,16 +109,16 @@ int main(int argc, char **argv)
     std::cout << "Stripe count: " << stripe_num << " (fixed in main_client.cpp)" << std::endl;
 
     size_t total_write_size = 3000; // MB (used for throughput headline below)
-    std::cout << "Starting set stripe operation" << std::endl;
+    // std::cout << "Starting set stripe operation" << std::endl;
     std::chrono::high_resolution_clock::time_point set_start = std::chrono::high_resolution_clock::now();
     for(int i = 0; i < stripe_num; i++){
         client.set();
     }
     std::chrono::high_resolution_clock::time_point set_end = std::chrono::high_resolution_clock::now();
-    std::cout << "Set stripe operation finished" << std::endl;
-    std::cout << "Conducting experiments, please wait..." << std::endl;
+    // std::cout << "Set stripe operation finished" << std::endl;
+    // std::cout << "Conducting experiments, please wait..." << std::endl;
     std::chrono::duration<double> set_time = std::chrono::duration_cast<std::chrono::duration<double>>(set_end - set_start);
-    std::cout << "write throughput: " << (static_cast<double> (total_write_size) / set_time.count() / 1024) << "MB/s" << std::endl;
+    // std::cout << "write throughput: " << (static_cast<double> (total_write_size) / set_time.count() / 1024) << "MB/s" << std::endl;
     char input;
     std::cout << "Start update? (type 'y' to proceed): " << std::endl;
     std::cin >> input;
@@ -202,8 +203,8 @@ int main(int argc, char **argv)
                 continue;
             }
 
-            std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
-                      << " range_cnt=" << range_cnt << " ..." << std::endl;
+            // std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
+            //           << " range_cnt=" << range_cnt << " ..." << std::endl;
             const XueUpdateRunResult run_result =
                 run_xue_update_with_timeout(client, stripe_id, logical_ranges);
             const double req_elapsed = run_result.elapsed_sec;
@@ -212,33 +213,26 @@ int main(int argc, char **argv)
             {
                 success_count++;
                 success_elapsed_sum += req_elapsed;
-                std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
-                          << " success, elapsed=" << req_elapsed << " s" << std::endl;
+                std::cout << "---request" << request_idx << "--- stripe_id=" << stripe_id
+                          << ", xue update success stripe_id=" << stripe_id
+                          << " latency=" << req_elapsed << "s" << std::endl;
             }
             else
             {
                 failure_count++;
-                if (run_result.timed_out)
-                {
-                    std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
-                              << " timeout (>" << kXueBatchRequestTimeoutSec
-                              << " s), abandoned (detached), skipped" << std::endl;
-                }
-                else
-                {
-                    std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
-                              << " failed, skipped, elapsed=" << req_elapsed << " s" << std::endl;
-                }
+                std::cout << "---request" << request_idx << "--- stripe_id=" << stripe_id
+                          << ", xue update failed stripe_id=" << stripe_id
+                          << " latency=" << req_elapsed << "s" << std::endl;
             }
         }
 
         const double avg_success_elapsed =
             success_count > 0 ? (success_elapsed_sum / static_cast<double>(success_count)) : 0.0;
-        std::cout << "[XUE_BATCH] === summary ===" << std::endl;
-        std::cout << "[XUE_BATCH] total_requests=" << request_idx << " success=" << success_count
+        std::cout << "=== summary ===" << std::endl;
+        std::cout << "total_requests=" << request_idx << " success=" << success_count
                   << " failures=" << failure_count
-                  << " total_success_elapsed=" << success_elapsed_sum << " s"
-                  << " avg_success_elapsed=" << avg_success_elapsed << " s" << std::endl;
+                  << " total_time=" << success_elapsed_sum << "s"
+                  << " avg_time=" << avg_success_elapsed << "s" << std::endl;
     } 
     else 
     {

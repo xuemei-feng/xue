@@ -314,7 +314,7 @@ namespace ECProject
           oss << meta_block_ids[i];
         }
       }
-      std::cout << oss.str() << std::endl;
+      // std::cout << oss.str() << std::endl;
     }
 
     void count_blocks_by_role(const std::vector<int> &block_ids, int k, int r, int z,
@@ -853,11 +853,11 @@ namespace ECProject
             timing->sum_tcp_to_proxy_s += step_timing.tcp_resolve_connect_write_shutdown_s;
             timing->sum_coordinator_checkCommitAbort_s +=
                 step_timing.coordinator_checkCommitAbort_s;
-            std::cout << "[XUE][Timing] step append_key=" << reply.append_keys(i)
-                      << " prepare_parse_pack_encode_s=0"
-                      << " tcp_to_proxy_s=" << step_timing.tcp_resolve_connect_write_shutdown_s
-                      << " coordinator_checkCommitAbort_s="
-                      << step_timing.coordinator_checkCommitAbort_s << std::endl;
+            // std::cout << "[XUE][Timing] step append_key=" << reply.append_keys(i)
+            //           << " prepare_parse_pack_encode_s=0"
+            //           << " tcp_to_proxy_s=" << step_timing.tcp_resolve_connect_write_shutdown_s
+            //           << " coordinator_checkCommitAbort_s="
+            //           << step_timing.coordinator_checkCommitAbort_s << std::endl;
           }
         }
       });
@@ -880,7 +880,7 @@ namespace ECProject
     request.set_key(append_key);
     request.set_opp(APPEND);
     coordinator_proto::RepIfSuccess reply;
-    check_commit.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(1));
+    check_commit.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
     const grpc::Status status = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply);
     return status.ok() && reply.ifcommit();
   }
@@ -892,7 +892,7 @@ namespace ECProject
     coordinator_proto::XueStripeScheduleId wait_req;
     coordinator_proto::ReplyFromCoordinator wait_rep;
     wait_req.set_stripe_id(stripe_id);
-    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(1));
+    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
     const grpc::Status wait_st =
         m_coordinator_ptr->waitXueAllCommitsReady(&wait_ctx, wait_req, &wait_rep);
     if (timing != nullptr)
@@ -902,8 +902,8 @@ namespace ECProject
     }
     if (!wait_st.ok())
     {
-      std::cout << "[XUE_UPDATE] waitXueAllCommitsReady failed: " << wait_st.error_message()
-                << std::endl;
+      // std::cout << "[XUE_UPDATE] waitXueAllCommitsReady failed: " << wait_st.error_message()
+      //           << std::endl;
       return false;
     }
     return true;
@@ -969,10 +969,10 @@ namespace ECProject
       return false;
     }
 
-    std::cout << "[XUE_UPDATE] strict_schedule stripe=" << stripe_id
-              << " ingress_keys=" << all_indices.size()
-              << " transfer_steps=" << reply.xue_transfer_steps_size()
-              << " parallel_groups=" << reply.xue_schedule_num_groups() << std::endl;
+    // std::cout << "[XUE_UPDATE] strict_schedule stripe=" << stripe_id
+    //           << " ingress_keys=" << all_indices.size()
+    //           << " transfer_steps=" << reply.xue_transfer_steps_size()
+    //           << " parallel_groups=" << reply.xue_schedule_num_groups() << std::endl;
 
     launch_append_subset_serial_per_endpoint(reply, send_buf, if_commit_arr, all_indices, false,
                                              timing);
@@ -982,13 +982,13 @@ namespace ECProject
     coordinator_proto::XueStripeScheduleId wait_req;
     coordinator_proto::ReplyFromCoordinator wait_rep;
     wait_req.set_stripe_id(stripe_id);
-    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(1));
+    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
     const grpc::Status wait_st =
         m_coordinator_ptr->waitXueAllIngressReady(&wait_ctx, wait_req, &wait_rep);
     if (!wait_st.ok())
     {
-      std::cout << "[XUE_UPDATE] waitXueAllIngressReady failed: " << wait_st.error_message()
-                << std::endl;
+      // std::cout << "[XUE_UPDATE] waitXueAllIngressReady failed: " << wait_st.error_message()
+      //           << std::endl;
       return false;
     }
     if (timing != nullptr)
@@ -996,13 +996,13 @@ namespace ECProject
       timing->wait_all_ingress_ready_s +=
           chron_elapsed_s(wait_t0, std::chrono::high_resolution_clock::now());
     }
-    std::cout << "[XUE_UPDATE] all_ingress_ready stripe=" << stripe_id << std::endl;
+    // std::cout << "[XUE_UPDATE] all_ingress_ready stripe=" << stripe_id << std::endl;
 
     if (!wait_xue_all_commits_ready(stripe_id, timing))
     {
       return false;
     }
-    std::cout << "[XUE_UPDATE] all_commits_ready stripe=" << stripe_id << std::endl;
+    // std::cout << "[XUE_UPDATE] all_commits_ready stripe=" << stripe_id << std::endl;
     for (int i = 0; i < reply.append_keys_size(); ++i)
     {
       if_commit_arr[i] = true;
@@ -1045,9 +1045,9 @@ namespace ECProject
       return false;
     }
 
-    std::cout << "[XUE_UPDATE] follow_schedule stripe=" << stripe_id << " waves=" << (max_wave + 1)
-              << " client_ingress_waves=" << reply.xue_client_waves_size()
-              << " commit_waves=" << reply.xue_commit_waves_size() << std::endl;
+    // std::cout << "[XUE_UPDATE] follow_schedule stripe=" << stripe_id << " waves=" << (max_wave + 1)
+    //           << " client_ingress_waves=" << reply.xue_client_waves_size()
+    //           << " commit_waves=" << reply.xue_commit_waves_size() << std::endl;
 
     for (int w = 0; w <= max_wave; ++w)
     {
@@ -1064,13 +1064,13 @@ namespace ECProject
       coordinator_proto::ReplyFromCoordinator release_rep;
       release_req.set_stripe_id(stripe_id);
       release_req.set_released_wave(w);
-      release_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(1));
+      release_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
       const grpc::Status release_st =
           m_coordinator_ptr->releaseXueScheduleWave(&release_ctx, release_req, &release_rep);
       if (!release_st.ok())
       {
-        std::cout << "[XUE_UPDATE] releaseXueScheduleWave failed wave=" << w << " "
-                  << release_st.error_message() << std::endl;
+        // std::cout << "[XUE_UPDATE] releaseXueScheduleWave failed wave=" << w << " "
+        //           << release_st.error_message() << std::endl;
         return false;
       }
       if (timing != nullptr)
@@ -1078,8 +1078,8 @@ namespace ECProject
         timing->sum_release_schedule_wave_s +=
             chron_elapsed_s(release_t0, std::chrono::high_resolution_clock::now());
       }
-      std::cout << "[XUE_UPDATE] released_schedule_wave=" << w << " stripe=" << stripe_id
-                << std::endl;
+      // std::cout << "[XUE_UPDATE] released_schedule_wave=" << w << " stripe=" << stripe_id
+      //           << std::endl;
 
       const auto commit_it = commit_keys_by_wave.find(w);
       if (commit_it != commit_keys_by_wave.end() && !commit_it->second.empty())
@@ -1473,12 +1473,12 @@ namespace ECProject
 
       if (all_true)
       {
-        std::cout << "[SET437] Client " << m_clientID << " set successfully!" << std::endl;
+        std::cout << "Client " << m_clientID << " set successfully!" << std::endl;
         return true;
       }
       else
       {
-        std::cout << "[SET441] Client " << m_clientID << " set failed!" << std::endl;
+        std::cout << "Client " << m_clientID << " set failed!" << std::endl;
         return false;
       }
     }
@@ -1587,7 +1587,7 @@ namespace ECProject
       }
       else
       {
-        std::cout << "[SET441] Client " << m_clientID << " set failed!" << std::endl;
+        std::cout << "Client " << m_clientID << " set failed!" << std::endl;
         return false;
       }
     }
@@ -1598,16 +1598,16 @@ namespace ECProject
   void Client::log_xue_client_timing_summary(int stripe_id, uint64_t xue_xfer_plan_id,
                                              const XueClientTimingSummary &timing) const
   {
-    std::cout << "[XUE][Timing] summary stripe=" << stripe_id
-              << " xue_xfer_plan_id=" << xue_xfer_plan_id
-              << " coordinator_uploadXueUpdate_s=" << timing.coordinator_uploadXueUpdate_s
-              << " prepare_parse_pack_encode_s=" << timing.prepare_parse_pack_encode_s
-              << " sum_tcp_to_proxy_s=" << timing.sum_tcp_to_proxy_s
-              << " sum_coordinator_checkCommitAbort_s=" << timing.sum_coordinator_checkCommitAbort_s
-              << " wait_all_ingress_ready_s=" << timing.wait_all_ingress_ready_s
-              << " sum_release_schedule_wave_s=" << timing.sum_release_schedule_wave_s
-              << " ingress_parallel_wave_tcp_wall_s=" << timing.ingress_parallel_wave_tcp_wall_s
-              << " total_client_xue_s=" << timing.total_client_xue_s << std::endl;
+    // std::cout << "[XUE][Timing] summary stripe=" << stripe_id
+    //           << " xue_xfer_plan_id=" << xue_xfer_plan_id
+    //           << " coordinator_uploadXueUpdate_s=" << timing.coordinator_uploadXueUpdate_s
+    //           << " prepare_parse_pack_encode_s=" << timing.prepare_parse_pack_encode_s
+    //           << " sum_tcp_to_proxy_s=" << timing.sum_tcp_to_proxy_s
+    //           << " sum_coordinator_checkCommitAbort_s=" << timing.sum_coordinator_checkCommitAbort_s
+    //           << " wait_all_ingress_ready_s=" << timing.wait_all_ingress_ready_s
+    //           << " sum_release_schedule_wave_s=" << timing.sum_release_schedule_wave_s
+    //           << " ingress_parallel_wave_tcp_wall_s=" << timing.ingress_parallel_wave_tcp_wall_s
+    //           << " total_client_xue_s=" << timing.total_client_xue_s << std::endl;
   }
 
   bool Client::xue_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges)
@@ -1641,8 +1641,8 @@ namespace ECProject
         pad_xue_logical_ranges_to_unit_size(logical_ranges, block_size, unit_size);
     if (padded_ranges != logical_ranges)
     {
-      std::cout << "[XUE_UPDATE] padded logical ranges to unit_size=" << unit_size
-                << " for coordinator/plan alignment" << std::endl;
+      // std::cout << "[XUE_UPDATE] padded logical ranges to unit_size=" << unit_size
+      //           << " for coordinator/plan alignment" << std::endl;
     }
     zero_fill_xue_unit_padding_gaps(local_buffer.data(), logical_ranges, block_size, unit_size);
 
@@ -1661,7 +1661,7 @@ namespace ECProject
       range->set_logical_offset_end(r.second);
     }
 
-    get_proxy_ip_port.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(1));
+    get_proxy_ip_port.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
     const auto coord_t0 = std::chrono::high_resolution_clock::now();
     grpc::Status status = m_coordinator_ptr->uploadXueUpdate(&get_proxy_ip_port, request, &reply);
     timing.coordinator_uploadXueUpdate_s =
@@ -1744,19 +1744,19 @@ namespace ECProject
       coordinator_proto::XueXferTimingSummary pull_rep;
       pull_req.set_stripe_id(stripe_id);
       pull_req.set_xue_xfer_plan_id(reply.xue_xfer_plan_id());
-      pull_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(1));
+      pull_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
       const grpc::Status pull_st =
           m_coordinator_ptr->pullXueXferTiming(&pull_ctx, pull_req, &pull_rep);
       if (!pull_st.ok())
       {
-        std::cout << "[XUE][Timing] pullXueXferTiming failed: " << pull_st.error_message()
-                  << std::endl;
+        // std::cout << "[XUE][Timing] pullXueXferTiming failed: " << pull_st.error_message()
+        //           << std::endl;
       }
     }
 
     if (!all_true)
     {
-      std::cout << "[XUE_UPDATE] commit check failed for at least one cluster slice." << std::endl;
+      // std::cout << "[XUE_UPDATE] commit check failed for at least one cluster slice." << std::endl;
     }
     return all_true;
   }
