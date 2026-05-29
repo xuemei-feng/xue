@@ -2604,7 +2604,24 @@ namespace ECProject
       try
       {
         asio::ip::tcp::socket socket_data(io_context);
-        acceptor.accept(socket_data);
+        {
+          struct timeval tv;
+          tv.tv_sec = 0;
+          tv.tv_usec = 100000;
+          setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+        }
+        asio::error_code accept_ec;
+        acceptor.accept(socket_data, accept_ec);
+        {
+          struct timeval tv_zero;
+          tv_zero.tv_sec = 0;
+          tv_zero.tv_usec = 0;
+          setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv_zero, sizeof(tv_zero));
+        }
+        if (accept_ec)
+        {
+          return;
+        }
         asio::error_code error;
 
         // assert(m_pre_allocated_buffer_queue.size() > 0 && "Pre-allocated buffer queue is empty");
@@ -3348,7 +3365,24 @@ namespace ECProject
         // read the key and value in the socket sent by client
         // initialize the socket of reading key and value
         asio::ip::tcp::socket socket_data(io_context);
-        acceptor.accept(socket_data);
+        {
+          struct timeval tv;
+          tv.tv_sec = 0;
+          tv.tv_usec = 100000;
+          setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+        }
+        asio::error_code accept_ec;
+        acceptor.accept(socket_data, accept_ec);
+        {
+          struct timeval tv_zero;
+          tv_zero.tv_sec = 0;
+          tv_zero.tv_usec = 0;
+          setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv_zero, sizeof(tv_zero));
+        }
+        if (accept_ec)
+        {
+          return;
+        }
         asio::error_code error;
 
         int extend_value_size_byte = block_size * k;

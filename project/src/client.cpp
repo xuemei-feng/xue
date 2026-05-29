@@ -974,8 +974,10 @@ namespace ECProject
     //           << " transfer_steps=" << reply.xue_transfer_steps_size()
     //           << " parallel_groups=" << reply.xue_schedule_num_groups() << std::endl;
 
+    const auto tcp_t0 = std::chrono::high_resolution_clock::now();
     launch_append_subset_serial_per_endpoint(reply, send_buf, if_commit_arr, all_indices, false,
                                              timing);
+    const double tcp_elapsed = chron_elapsed_s(tcp_t0, std::chrono::high_resolution_clock::now());
 
     const auto wait_t0 = std::chrono::high_resolution_clock::now();
     grpc::ClientContext wait_ctx;
@@ -989,6 +991,7 @@ namespace ECProject
     {
       // std::cout << "[XUE_UPDATE] waitXueAllIngressReady failed: " << wait_st.error_message()
       //           << std::endl;
+    std::cerr << "[DIAG_SCHED] stripe=" << stripe_id << " tcp=" << tcp_elapsed << "s wait_ingress=TIMEOUT result=FAIL" << std::endl;
       return false;
     }
     if (timing != nullptr)
@@ -998,8 +1001,10 @@ namespace ECProject
     }
     // std::cout << "[XUE_UPDATE] all_ingress_ready stripe=" << stripe_id << std::endl;
 
+    const auto commit_t0 = std::chrono::high_resolution_clock::now();
     if (!wait_xue_all_commits_ready(stripe_id, timing))
     {
+    std::cerr << "[DIAG_SCHED] stripe=" << stripe_id << " tcp=" << tcp_elapsed << "s wait_ingress=" << timing->wait_all_ingress_ready_s << "s wait_commit=TIMEOUT result=FAIL" << std::endl;
       return false;
     }
     // std::cout << "[XUE_UPDATE] all_commits_ready stripe=" << stripe_id << std::endl;
@@ -1007,6 +1012,8 @@ namespace ECProject
     {
       if_commit_arr[i] = true;
     }
+    const double commit_elapsed = chron_elapsed_s(commit_t0, std::chrono::high_resolution_clock::now());
+    std::cerr << "[DIAG_SCHED] stripe=" << stripe_id << " tcp=" << tcp_elapsed << "s wait_ingress=" << timing->wait_all_ingress_ready_s << "s wait_commit=" << commit_elapsed << "s result=OK" << std::endl;
     return true;
   }
 

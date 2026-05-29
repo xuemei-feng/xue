@@ -3634,7 +3634,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       const coordinator_proto::XueUpdateRequest *request,
       coordinator_proto::ReplyProxyIPsPorts *proxyIPPort)
   {
-    (void)context;
     const std::string &client_id = request->client_id();
     const int stripe_id = request->stripe_id();
 
@@ -4021,9 +4020,24 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       attach_strict_outgoing_to_plans(append_plans, strict_schedule, stripe->k, stripe->r);
     }
 
-    for (const auto &plan : append_plans)
+    // client 已超时取消，跳过 proxy 通知，避免遗留无主 task 阻塞 proxy 队列
+    if (context->IsCancelled())
     {
-      notify_proxies_ready(plan);
+      return grpc::Status(grpc::StatusCode::CANCELLED, "client deadline exceeded before notify");
+    }
+
+    // 并行通知 proxy，避免串行阻塞 — 与 generateAppendPlan 保持一致
+    {
+      std::vector<std::thread> notify_threads;
+      for (const auto &plan : append_plans)
+      {
+        notify_threads.push_back(
+            std::thread(&CoordinatorImpl::notify_proxies_ready, this, plan));
+      }
+      for (auto &t : notify_threads)
+      {
+        t.join();
+      }
     }
     fill_reply_from_append_plans(this, append_plans, proxyIPPort);
     proxyIPPort->set_xue_xfer_plan_id(xue_xfer_plan_id);
