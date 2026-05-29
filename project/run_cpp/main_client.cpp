@@ -47,19 +47,15 @@ namespace
         {
             if (std::chrono::high_resolution_clock::now() >= deadline)
             {
-                // 不可对 gRPC 线程 pthread_cancel，否则会触发 epoll poller 断言并 Aborted。
                 result.timed_out = true;
-                req_thread.detach();
                 break;
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
-        if (!result.timed_out)
-        {
-            req_thread.join();
-            result.ok = ok;
-        }
+        // 无论是否超时都 join，gRPC 1s deadline 保证不会永久阻塞。
+        req_thread.join();
+        result.ok = ok;
 
         const auto req_t1 = std::chrono::high_resolution_clock::now();
         result.elapsed_sec =

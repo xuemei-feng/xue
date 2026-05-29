@@ -1137,6 +1137,27 @@ namespace ECProject
         }
         continue;
       }
+      if (hop.forward_append_mode() == "XUE_LOCAL_PARITY_DELTA")
+      {
+        if (!waitXueScheduleStepBeforeForward(placement->stripe_id(), placement->key(),
+                                              m_self_cluster_id, hop.to_cluster()))
+        {
+          ok = false;
+          continue;
+        }
+        const bool merged_ok =
+            forwardMergedLocalParityDelta(hop.to_cluster(), *placement, slices, tcp_slice_count);
+        reportXueScheduleStepDoneAfterForward(placement->stripe_id(), placement->key(),
+                                              m_self_cluster_id, hop.to_cluster(), merged_ok);
+        if (!merged_ok)
+        {
+          std::cerr << "[Proxy] strict local parity delta forward failed append_key="
+                    << placement->key() << " " << m_self_cluster_id << "->" << hop.to_cluster()
+                    << std::endl;
+          ok = false;
+        }
+        continue;
+      }
       proxy_proto::AppendStripeDataPlacement fwd_placement = *placement;
       fwd_placement.set_xue_data_slices_are_delta(true);
       const bool hop_ok =
