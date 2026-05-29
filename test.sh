@@ -1,6 +1,6 @@
 #!/bin/sh
 # 批量 RackCU 更新请求文件（改这一行即s可；相对 test.sh 所在目录或绝对路径）
-UPDATE_BATCH_FILE="/users/xue/xue/T00-result10000.txt"
+UPDATE_BATCH_FILE="/users/xue/xue/stripe Ten/T-64KB-10/T02-result10000.txt"
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 cd "$SCRIPT_DIR" || exit 1
