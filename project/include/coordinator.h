@@ -14,6 +14,7 @@
 #include <string>
 #include <thread>
 #include <condition_variable>
+#include <chrono>
 #include <atomic>
 #include <config.h>
 #include <toolbox.h>
@@ -239,10 +240,14 @@ namespace ECProject
 
     struct XueStrictScheduleSession
     {
+      static constexpr double kSessionTtlSec = 0.7;
+
       int stripe_id = -1;
       bool ingress_complete = false;
       bool commits_complete = false;
       bool commits_failed = false;
+      bool abandoned = false;
+      std::chrono::steady_clock::time_point created_at;
       std::set<std::string> required_ingress_keys;
       std::set<std::string> ingress_ready_keys;
       std::set<std::string> required_commit_keys;
@@ -257,6 +262,12 @@ namespace ECProject
       int find_step_index_by_no(int step_no) const;
       int find_step_index_by_hop(const std::string &append_key, int from_cluster,
                                  int to_cluster) const;
+
+      bool expired() const
+      {
+        return std::chrono::steady_clock::now() - created_at >=
+               std::chrono::duration<double>(kSessionTtlSec);
+      }
     };
 
     struct XueWaveScheduleState

@@ -3962,12 +3962,23 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                                 update_result.scheduled_tasks, append_plans);
     {
       std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
+      // 标记旧 session 为 abandoned 并唤醒等待线程，避免线程泄漏
+      {
+        auto old_it = m_xue_strict_by_stripe.find(stripe_id);
+        if (old_it != m_xue_strict_by_stripe.end() && old_it->second)
+        {
+          std::lock_guard<std::mutex> old_lk(old_it->second->mutex);
+          old_it->second->abandoned = true;
+          old_it->second->cv.notify_all();
+        }
+      }
       m_xue_strict_by_stripe.erase(stripe_id);
       m_xue_wave_by_stripe.erase(stripe_id);
       if (use_strict_schedule)
       {
         auto session = std::make_shared<XueStrictScheduleSession>();
         session->stripe_id = stripe_id;
+        session->created_at = std::chrono::steady_clock::now();
         session->steps = strict_schedule.steps;
         session->step_states.assign(strict_schedule.steps.size(), XueStepRuntimeState::PENDING);
         session->num_parallel_groups = strict_schedule.num_parallel_groups;
@@ -4110,9 +4121,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       const coordinator_proto::XueStripeScheduleId *request,
       coordinator_proto::ReplyFromCoordinator *reply)
   {
-    (void)context;
     (void)reply;
     const int stripe_id = request->stripe_id();
+    constexpr auto kPollInterval = std::chrono::milliseconds(50);
     std::shared_ptr<XueStrictScheduleSession> session;
     {
       std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
@@ -4125,7 +4136,27 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       session = it->second;
     }
     std::unique_lock<std::mutex> session_lk(session->mutex);
-    session->cv.wait(session_lk, [&session]() { return session->ingress_complete; });
+    while (!session->ingress_complete)
+    {
+      if (session->cv.wait_for(session_lk, kPollInterval) == std::cv_status::timeout)
+      {
+        if (session->abandoned)
+        {
+          return grpc::Status(grpc::StatusCode::ABORTED,
+                              "xue schedule session superseded by a new request");
+        }
+        if (session->expired())
+        {
+          return grpc::Status(grpc::StatusCode::DEADLINE_EXCEEDED,
+                              "xue schedule session TTL expired");
+        }
+        if (context->IsCancelled())
+        {
+          return grpc::Status(grpc::StatusCode::CANCELLED,
+                              "client cancelled waitXueAllIngressReady");
+        }
+      }
+    }
     return grpc::Status::OK;
   }
 
@@ -4172,9 +4203,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       const coordinator_proto::XueStripeScheduleId *request,
       coordinator_proto::ReplyFromCoordinator *reply)
   {
-    (void)context;
     (void)reply;
     const int stripe_id = request->stripe_id();
+    constexpr auto kPollInterval = std::chrono::milliseconds(50);
     std::shared_ptr<XueStrictScheduleSession> session;
     {
       std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
@@ -4187,9 +4218,35 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       session = it->second;
     }
     std::unique_lock<std::mutex> session_lk(session->mutex);
-    session->cv.wait(session_lk, [&session]() {
-      return session->commits_complete || session->commits_failed;
-    });
+    while (!session->commits_complete && !session->commits_failed)
+    {
+      if (session->cv.wait_for(session_lk, kPollInterval) == std::cv_status::timeout)
+      {
+        if (session->abandoned)
+        {
+          return grpc::Status(grpc::StatusCode::ABORTED,
+                              "xue schedule session superseded by a new request");
+        }
+        if (session->expired())
+        {
+          {
+            std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
+            auto it = m_xue_strict_by_stripe.find(stripe_id);
+            if (it != m_xue_strict_by_stripe.end() && it->second == session)
+            {
+              m_xue_strict_by_stripe.erase(it);
+            }
+          }
+          return grpc::Status(grpc::StatusCode::DEADLINE_EXCEEDED,
+                              "xue schedule session TTL expired");
+        }
+        if (context->IsCancelled())
+        {
+          return grpc::Status(grpc::StatusCode::CANCELLED,
+                              "client cancelled waitXueAllCommitsReady");
+        }
+      }
+    }
     if (session->commits_failed)
     {
       return grpc::Status(grpc::StatusCode::ABORTED, "xue strict schedule commit aborted");
@@ -4203,9 +4260,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       const coordinator_proto::XueScheduleStepWait *request,
       coordinator_proto::ReplyFromCoordinator *reply)
   {
-    (void)context;
     (void)reply;
     const int stripe_id = request->stripe_id();
+    constexpr auto kPollInterval = std::chrono::milliseconds(50);
     std::shared_ptr<XueStrictScheduleSession> session;
     {
       std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
@@ -4232,11 +4289,33 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return grpc::Status(grpc::StatusCode::NOT_FOUND, "no matching schedule step");
     }
     std::unique_lock<std::mutex> session_lk(session->mutex);
-    session->cv.wait(session_lk, [&session, step_idx]() {
+    while (true)
+    {
       const auto st = session->step_states[static_cast<size_t>(step_idx)];
-      return st == XueStepRuntimeState::READY || st == XueStepRuntimeState::RUNNING ||
-             st == XueStepRuntimeState::DONE;
-    });
+      if (st == XueStepRuntimeState::READY || st == XueStepRuntimeState::RUNNING ||
+          st == XueStepRuntimeState::DONE)
+      {
+        break;
+      }
+      if (session->cv.wait_for(session_lk, kPollInterval) == std::cv_status::timeout)
+      {
+        if (session->abandoned)
+        {
+          return grpc::Status(grpc::StatusCode::ABORTED,
+                              "xue schedule session superseded by a new request");
+        }
+        if (session->expired())
+        {
+          return grpc::Status(grpc::StatusCode::DEADLINE_EXCEEDED,
+                              "xue schedule session TTL expired");
+        }
+        if (context->IsCancelled())
+        {
+          return grpc::Status(grpc::StatusCode::CANCELLED,
+                              "client cancelled waitXueScheduleStep");
+        }
+      }
+    }
     if (session->step_states[static_cast<size_t>(step_idx)] == XueStepRuntimeState::READY)
     {
       session->step_states[static_cast<size_t>(step_idx)] = XueStepRuntimeState::RUNNING;
@@ -4388,11 +4467,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       const coordinator_proto::XueScheduleHopWait *request,
       coordinator_proto::ReplyFromCoordinator *reply)
   {
-    (void)context;
     (void)reply;
     const int stripe_id = request->stripe_id();
     const std::string hop_key = request->append_key() + "\t" + std::to_string(request->from_cluster()) +
                                 "\t" + std::to_string(request->to_cluster());
+    constexpr auto kPollInterval = std::chrono::milliseconds(50);
+    constexpr double kWaveSessionTtlSec = 0.7;
+    const auto t0 = std::chrono::steady_clock::now();
     XueWaveScheduleState *session_ptr = nullptr;
     int required_wave = -1;
     {
@@ -4414,9 +4495,24 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       required_wave = hit->second;
     }
     std::unique_lock<std::mutex> session_lk(session_ptr->mutex);
-    session_ptr->cv.wait(session_lk, [session_ptr, required_wave]() {
-      return session_ptr->released_wave >= required_wave;
-    });
+    while (session_ptr->released_wave < required_wave)
+    {
+      if (session_ptr->cv.wait_for(session_lk, kPollInterval) == std::cv_status::timeout)
+      {
+        const auto elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(
+            std::chrono::steady_clock::now() - t0);
+        if (elapsed.count() >= kWaveSessionTtlSec)
+        {
+          return grpc::Status(grpc::StatusCode::DEADLINE_EXCEEDED,
+                              "xue wave schedule session TTL expired");
+        }
+        if (context->IsCancelled())
+        {
+          return grpc::Status(grpc::StatusCode::CANCELLED,
+                              "client cancelled waitXueScheduleHop");
+        }
+      }
+    }
     return grpc::Status::OK;
   }
 
