@@ -1628,6 +1628,11 @@ namespace ECProject
       }
     }
 
+    // 每个请求使用独立的本地 buffer，确保 detach 残留线程与新请求之间完全隔离。
+    const size_t full_stripe_bytes = static_cast<size_t>(block_size) * static_cast<size_t>(n);
+    std::vector<char> local_buffer(full_stripe_bytes);
+    std::memset(local_buffer.data(), 0xaa, full_stripe_bytes);
+
     const std::vector<std::pair<int, int>> padded_ranges =
         pad_xue_logical_ranges_to_unit_size(logical_ranges, block_size, unit_size);
     if (padded_ranges != logical_ranges)
@@ -1635,7 +1640,7 @@ namespace ECProject
       std::cout << "[XUE_UPDATE] padded logical ranges to unit_size=" << unit_size
                 << " for coordinator/plan alignment" << std::endl;
     }
-    zero_fill_xue_unit_padding_gaps(m_pre_allocated_buffer, logical_ranges, block_size, unit_size);
+    zero_fill_xue_unit_padding_gaps(local_buffer.data(), logical_ranges, block_size, unit_size);
 
     XueClientTimingSummary timing;
     const auto total_t0 = std::chrono::high_resolution_clock::now();
@@ -1668,7 +1673,7 @@ namespace ECProject
     extend_xue_parity_slices_in_block_map(&block_to_slices, k, n, block_size, unit_size);
 
     std::vector<char> tcp_pack_buffer;
-    const char *send_buf = m_pre_allocated_buffer;
+    const char *send_buf = local_buffer.data();
     if (reply_uses_cluster_ingress(&reply))
     {
       tcp_pack_buffer.resize(static_cast<size_t>(reply.sum_append_size()), 0);
@@ -1676,7 +1681,7 @@ namespace ECProject
       for (int i = 0; i < reply.append_keys_size(); ++i)
       {
         std::vector<char> cluster_payload;
-        if (!pack_xue_tcp_payload_for_append_key(m_pre_allocated_buffer, block_to_slices,
+        if (!pack_xue_tcp_payload_for_append_key(local_buffer.data(), block_to_slices,
                                                  reply.append_keys(i), block_size, &cluster_payload))
         {
           std::cout << "[XUE_UPDATE] failed to pack TCP payload for key=" << reply.append_keys(i)
