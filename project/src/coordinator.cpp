@@ -4137,7 +4137,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   {
     (void)reply;
     const int stripe_id = request->stripe_id();
-    constexpr auto kPollInterval = std::chrono::milliseconds(50);
+    constexpr auto kPollInterval = std::chrono::milliseconds(5);
     std::shared_ptr<XueStrictScheduleSession> session;
     {
       std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
@@ -4219,7 +4219,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   {
     (void)reply;
     const int stripe_id = request->stripe_id();
-    constexpr auto kPollInterval = std::chrono::milliseconds(50);
+    constexpr auto kPollInterval = std::chrono::milliseconds(5);
     std::shared_ptr<XueStrictScheduleSession> session;
     {
       std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
@@ -4276,7 +4276,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   {
     (void)reply;
     const int stripe_id = request->stripe_id();
-    constexpr auto kPollInterval = std::chrono::milliseconds(50);
+    constexpr auto kPollInterval = std::chrono::milliseconds(5);
     std::shared_ptr<XueStrictScheduleSession> session;
     {
       std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
@@ -4485,7 +4485,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     const int stripe_id = request->stripe_id();
     const std::string hop_key = request->append_key() + "\t" + std::to_string(request->from_cluster()) +
                                 "\t" + std::to_string(request->to_cluster());
-    constexpr auto kPollInterval = std::chrono::milliseconds(50);
+    constexpr auto kPollInterval = std::chrono::milliseconds(5);
     constexpr double kWaveSessionTtlSec = 0.7;
     const auto t0 = std::chrono::steady_clock::now();
     XueWaveScheduleState *session_ptr = nullptr;

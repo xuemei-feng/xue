@@ -2604,19 +2604,22 @@ namespace ECProject
       try
       {
         asio::ip::tcp::socket socket_data(io_context);
-        {
-          struct timeval tv;
-          tv.tv_sec = 0;
-          tv.tv_usec = 100000;
-          setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-        }
         asio::error_code accept_ec;
-        acceptor.accept(socket_data, accept_ec);
         {
-          struct timeval tv_zero;
-          tv_zero.tv_sec = 0;
-          tv_zero.tv_usec = 0;
-          setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv_zero, sizeof(tv_zero));
+          std::lock_guard<std::mutex> accept_lk(m_client_accept_mutex);
+          {
+            struct timeval tv;
+            tv.tv_sec = 0;
+            tv.tv_usec = 100000;
+            setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+          }
+          acceptor.accept(socket_data, accept_ec);
+          {
+            struct timeval tv_zero;
+            tv_zero.tv_sec = 0;
+            tv_zero.tv_usec = 0;
+            setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv_zero, sizeof(tv_zero));
+          }
         }
         if (accept_ec)
         {
@@ -3302,7 +3305,7 @@ namespace ECProject
         m_client_append_tasks.push_back(std::move(append_and_save));
       }
       m_client_append_queue_cv.notify_one();
-      ensure_client_append_worker();
+      ensure_client_append_workers();
     }
     catch (std::exception &e)
     {
@@ -3313,12 +3316,17 @@ namespace ECProject
     return grpc::Status::OK;
   }
 
-  void ProxyImpl::ensure_client_append_worker()
+  void ProxyImpl::ensure_client_append_workers()
   {
-    bool expected = false;
-    if (m_client_append_worker_started.compare_exchange_strong(expected, true))
+    int expected = m_client_append_worker_count.load(std::memory_order_acquire);
+    while (expected < kClientAppendWorkerCount)
     {
-      std::thread([this]() { client_append_worker_loop(); }).detach();
+      if (m_client_append_worker_count.compare_exchange_strong(expected, expected + 1,
+                                                               std::memory_order_acq_rel))
+      {
+        std::thread([this]() { client_append_worker_loop(); }).detach();
+        expected = m_client_append_worker_count.load(std::memory_order_acquire);
+      }
     }
   }
 
@@ -3365,19 +3373,22 @@ namespace ECProject
         // read the key and value in the socket sent by client
         // initialize the socket of reading key and value
         asio::ip::tcp::socket socket_data(io_context);
-        {
-          struct timeval tv;
-          tv.tv_sec = 0;
-          tv.tv_usec = 100000;
-          setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-        }
         asio::error_code accept_ec;
-        acceptor.accept(socket_data, accept_ec);
         {
-          struct timeval tv_zero;
-          tv_zero.tv_sec = 0;
-          tv_zero.tv_usec = 0;
-          setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv_zero, sizeof(tv_zero));
+          std::lock_guard<std::mutex> accept_lk(m_client_accept_mutex);
+          {
+            struct timeval tv;
+            tv.tv_sec = 0;
+            tv.tv_usec = 100000;
+            setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+          }
+          acceptor.accept(socket_data, accept_ec);
+          {
+            struct timeval tv_zero;
+            tv_zero.tv_sec = 0;
+            tv_zero.tv_usec = 0;
+            setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv_zero, sizeof(tv_zero));
+          }
         }
         if (accept_ec)
         {

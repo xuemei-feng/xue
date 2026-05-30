@@ -225,13 +225,15 @@ namespace ECProject
     std::mutex m_xue_xfer_timing_mutex;
     std::map<std::pair<int, uint64_t>, XueXferBatchAccumulator> m_xue_xfer_batches;
 
-    void ensure_client_append_worker();
+    void ensure_client_append_workers();
     void client_append_worker_loop();
 
+    static constexpr int kClientAppendWorkerCount = 4;
+    std::mutex m_client_accept_mutex;  // serializes acceptor.accept() across workers
     std::mutex m_client_append_queue_mutex;
     std::condition_variable m_client_append_queue_cv;
     std::deque<std::function<void()>> m_client_append_tasks;
-    std::atomic<bool> m_client_append_worker_started{false};
+    std::atomic<int> m_client_append_worker_count{0};
 
     std::mutex m_mutex;
     std::condition_variable cv;
