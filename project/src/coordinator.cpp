@@ -4486,7 +4486,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     const std::string hop_key = request->append_key() + "\t" + std::to_string(request->from_cluster()) +
                                 "\t" + std::to_string(request->to_cluster());
     constexpr auto kPollInterval = std::chrono::milliseconds(5);
-    constexpr double kWaveSessionTtlSec = 0.7;
+    constexpr double kWaveSessionTtlSec = 1.5;
     const auto t0 = std::chrono::steady_clock::now();
     XueWaveScheduleState *session_ptr = nullptr;
     int required_wave = -1;

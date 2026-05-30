@@ -2610,7 +2610,7 @@ namespace ECProject
           {
             struct timeval tv;
             tv.tv_sec = 0;
-            tv.tv_usec = 100000;
+            tv.tv_usec = 500000;
             setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
           }
           acceptor.accept(socket_data, accept_ec);
@@ -3379,7 +3379,7 @@ namespace ECProject
           {
             struct timeval tv;
             tv.tv_sec = 0;
-            tv.tv_usec = 100000;
+            tv.tv_usec = 500000;
             setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
           }
           acceptor.accept(socket_data, accept_ec);

@@ -240,7 +240,7 @@ namespace ECProject
 
     struct XueStrictScheduleSession
     {
-      static constexpr double kSessionTtlSec = 0.7;
+      static constexpr double kSessionTtlSec = 1.5;
 
       int stripe_id = -1;
       bool ingress_complete = false;

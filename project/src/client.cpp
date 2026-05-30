@@ -880,7 +880,7 @@ namespace ECProject
     request.set_key(append_key);
     request.set_opp(APPEND);
     coordinator_proto::RepIfSuccess reply;
-    check_commit.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
+    check_commit.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
     const grpc::Status status = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply);
     return status.ok() && reply.ifcommit();
   }
@@ -892,7 +892,7 @@ namespace ECProject
     coordinator_proto::XueStripeScheduleId wait_req;
     coordinator_proto::ReplyFromCoordinator wait_rep;
     wait_req.set_stripe_id(stripe_id);
-    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
+    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
     const grpc::Status wait_st =
         m_coordinator_ptr->waitXueAllCommitsReady(&wait_ctx, wait_req, &wait_rep);
     if (timing != nullptr)
@@ -984,7 +984,7 @@ namespace ECProject
     coordinator_proto::XueStripeScheduleId wait_req;
     coordinator_proto::ReplyFromCoordinator wait_rep;
     wait_req.set_stripe_id(stripe_id);
-    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
+    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
     const grpc::Status wait_st =
         m_coordinator_ptr->waitXueAllIngressReady(&wait_ctx, wait_req, &wait_rep);
     if (!wait_st.ok())
@@ -1071,7 +1071,7 @@ namespace ECProject
       coordinator_proto::ReplyFromCoordinator release_rep;
       release_req.set_stripe_id(stripe_id);
       release_req.set_released_wave(w);
-      release_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
+      release_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
       const grpc::Status release_st =
           m_coordinator_ptr->releaseXueScheduleWave(&release_ctx, release_req, &release_rep);
       if (!release_st.ok())
@@ -1668,7 +1668,7 @@ namespace ECProject
       range->set_logical_offset_end(r.second);
     }
 
-    get_proxy_ip_port.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
+    get_proxy_ip_port.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
     const auto coord_t0 = std::chrono::high_resolution_clock::now();
     grpc::Status status = m_coordinator_ptr->uploadXueUpdate(&get_proxy_ip_port, request, &reply);
     timing.coordinator_uploadXueUpdate_s =
@@ -1751,7 +1751,7 @@ namespace ECProject
       coordinator_proto::XueXferTimingSummary pull_rep;
       pull_req.set_stripe_id(stripe_id);
       pull_req.set_xue_xfer_plan_id(reply.xue_xfer_plan_id());
-      pull_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
+      pull_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
       const grpc::Status pull_st =
           m_coordinator_ptr->pullXueXferTiming(&pull_ctx, pull_req, &pull_rep);
       if (!pull_st.ok())
