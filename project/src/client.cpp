@@ -30,13 +30,23 @@ namespace ECProject
       return code_type == "AzureLRC" || code_type == "RandomLRC";
     }
 
-    std::shared_ptr<grpc::Channel> parix_proxy_channel(const std::string &target)
+    static grpc::ChannelArguments parix_channel_args()
     {
       grpc::ChannelArguments args;
       constexpr int k_max = 128 * 1024 * 1024;
       args.SetMaxReceiveMessageSize(k_max);
       args.SetMaxSendMessageSize(k_max);
-      return grpc::CreateCustomChannel(target, grpc::InsecureChannelCredentials(), args);
+      // gRPC keepalive: prevent connection drops under bandwidth throttling (e.g., tc/HTB 3 MB/s).
+      args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 30000);          // ping every 30 s
+      args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 30000);       // wait 30 s for ping ACK (default 20 s)
+      args.SetInt(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, 1); // allow keepalive without active RPCs
+      args.SetInt(GRPC_ARG_HTTP2_MAX_PINGS_WITHOUT_DATA, 0);   // unlimited pings
+      return args;
+    }
+
+    std::shared_ptr<grpc::Channel> parix_proxy_channel(const std::string &target)
+    {
+      return grpc::CreateCustomChannel(target, grpc::InsecureChannelCredentials(), parix_channel_args());
     }
 
     // Hot-path: default off. Export PARIX_TRACE=1 for hex dumps and verbose Parix client logs.
@@ -1767,7 +1777,7 @@ namespace ECProject
       }
 
       const std::string dn_ep = seg_read.datanode_ip() + ":" + std::to_string(seg_read.datanode_port());
-      auto dn_channel = grpc::CreateChannel(dn_ep, grpc::InsecureChannelCredentials());
+      auto dn_channel = grpc::CreateCustomChannel(dn_ep, grpc::InsecureChannelCredentials(), parix_channel_args());
       auto dn_stub = datanode_proto::datanodeService::NewStub(dn_channel);
 
       std::unordered_map<int, std::vector<char>> old_seg_by_idx;
