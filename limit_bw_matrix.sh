@@ -5,12 +5,12 @@ fi
 set -euo pipefail
 
 # Real bandwidth shaping by tc/htb (egress).
-# Matrix: /users/xue/xue/project/config/BW_limit — symmetric Asia rack MB/s table (TABLE II),
+# Matrix: /users/xue/xue/project/config/BW_limit same — symmetric Asia rack MB/s table (TABLE II),
 #   converted to Mbit/s for tc (×8, override with BW_MATRIX_MB_TO_MBIT).
 # get_bw_mbps(src_cluster,dst_cluster) → egress rate to dst (Mbps).
 # 输出：默认一行摘要；BW_MATRIX_VERBOSE=1 打印每条 dst；=2 再 dump tc。
 
-BW_FILE="/users/xue/xue/project/config/BW_limit"
+BW_FILE="/users/xue/xue/project/config/BW_limit same"
 if [[ ! -f "$BW_FILE" ]]; then
   echo "Error: bandwidth file not found: $BW_FILE" >&2
   exit 1
