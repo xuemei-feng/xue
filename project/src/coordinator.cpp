@@ -638,11 +638,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   void CoordinatorImpl::initialize_random_lrc_stripe_placement(Stripe *stripe)
   {
     // Random placement:
-    // 1) 每条带使用 5 个紧邻 cluster（轮询起点，环形取连续 5 个）。
+    // 1) 每条带使用 6 个紧邻 cluster（轮询起点，环形取连续 6 个）。
     // 2) 所有本地校验块放到 1 个专用 cluster，所有全局校验块放到另 1 个专用 cluster。
-    // 3) 这两个专用 cluster 不放该条带数据块；数据块仅在剩余 3 个 cluster 随机放置。
-    // 4) 数据放置约束：每个数据 cluster 的数据块数 <= r + a，
-    //    其中 a 是该 cluster 中数据块涉及到的本地组数量（含当前正在放置的块）。
+    // 3) 这两个专用 cluster 不放该条带数据块；数据块仅在剩余 4 个 cluster 随机放置。
+    // 4) 数据放置约束：每个数据 cluster 的数据块数 <= r + 1。
     Block *blocks_info = new Block[stripe->n];
     assert(stripe->object_keys.size() == 1);
 
@@ -652,14 +651,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       throw std::runtime_error("ClusterNum must be positive for RandomLRC placement");
     }
 
-    const int target_cluster_num = 5;
+    const int target_cluster_num = 6;
     if (cluster_num < target_cluster_num)
     {
-      throw std::runtime_error("RandomLRC placement requires at least 5 clusters");
+      throw std::runtime_error("RandomLRC placement requires at least 6 clusters");
     }
     std::vector<int> selected_clusters;
     selected_clusters.reserve(target_cluster_num);
-    // 轮询选择紧邻 cluster：以 stripe_id 为起点，按环形连续取 5 个。
+    // 轮询选择紧邻 cluster：以 stripe_id 为起点，按环形连续取 6 个。
     const int start_cluster = stripe->stripe_id % cluster_num;
     for (int i = 0; i < target_cluster_num; ++i)
     {
@@ -667,7 +666,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     const int local_parity_cluster = selected_clusters[0];
     const int global_parity_cluster = selected_clusters[1];
-    std::vector<int> data_clusters = {selected_clusters[2], selected_clusters[3], selected_clusters[4]};
+    std::vector<int> data_clusters = {selected_clusters[2], selected_clusters[3], selected_clusters[4], selected_clusters[5]};
 
     std::mt19937 gen;
     const std::uint64_t placement_seed = m_sys_config->PlacementRandomSeed;
@@ -751,28 +750,19 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         assigned_cluster[i] = local_parity_cluster;
       }
 
-      std::map<int, std::set<int>> cluster_local_groups;
-
-      // 数据块仅在 3 个数据 cluster 内随机放置。
-      // 约束：每个 cluster 数据块数 <= r + a，a = 该 cluster 涉及到的本地组数量（含当前块）。
+      // 数据块仅在 4 个数据 cluster 内随机放置。
       for (int block_idx : data_block_order)
       {
-        const int block_group = blocks_info[block_idx].map2group;
         std::vector<int> candidate_clusters = data_clusters;
         std::shuffle(candidate_clusters.begin(), candidate_clusters.end(), gen);
         bool assigned = false;
         for (int cid : candidate_clusters)
         {
           int next_data_cnt = cluster_data_block_count[cid] + 1;
-          std::set<int> groups_with_current = cluster_local_groups[cid];
-          groups_with_current.insert(block_group);
-          int a = static_cast<int>(groups_with_current.size());
-          int limit = stripe->r + a;
-          if (next_data_cnt <= limit)
+          if (next_data_cnt <= stripe->r + 1)
           {
             assigned_cluster[block_idx] = cid;
             cluster_data_block_count[cid] = next_data_cnt;
-            cluster_local_groups[cid].insert(block_group);
             assigned = true;
             break;
           }
