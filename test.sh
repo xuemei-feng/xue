@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # xue 批量更新请求文件路径（实验时只需改这一行）
-XUE_UPDATE_REQUEST_FILE="/users/xue/xue/stripe-Ten/T-64KB-10/T00-100.txt"
+XUE_UPDATE_REQUEST_FILE="/users/xue/xue/stripe-Ten/T-64KB-8/T00-64-8-1"
 
 pkill -9 main_client
 

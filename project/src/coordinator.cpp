@@ -3708,6 +3708,25 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "no effective ranges");
     }
 
+    // Flip offsets for even-numbered data blocks: mirror the update range within the block.
+    // e.g., a slice at the last 8 KB → first 8 KB.
+    for (auto &kv : block_to_slices)
+    {
+      const int bid = kv.first;
+      if (bid % 2 == 0)
+      {
+        for (auto &seg : kv.second)
+        {
+          const int off = seg.second;
+          const int len = seg.first;
+          seg.second = block_size - off - len;
+        }
+        // restore ascending offset order after flipping
+        std::sort(kv.second.begin(), kv.second.end(),
+                  [](const auto &a, const auto &b) { return a.second < b.second; });
+      }
+    }
+
     // parity 按受影响 unit 生成离散切片，避免扩成整块。
     for (const auto &kv : block_to_slices)
     {
