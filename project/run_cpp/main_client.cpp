@@ -17,7 +17,7 @@
 
 namespace
 {
-    constexpr double kXueBatchRequestTimeoutSec = 2.0;
+    constexpr double kXueBatchRequestTimeoutSec = 5.0;
 
     struct XueUpdateRunResult
     {
