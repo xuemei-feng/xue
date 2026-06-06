@@ -1846,10 +1846,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     bool xue_plan_group_has_data_update(
         const Stripe *stripe,
         int group_index,
+        int num_groups,
         const std::map<int, std::vector<std::pair<int, int>>> &block_to_slices)
     {
-      const int data_begin = group_index * stripe->k / stripe->z;
-      const int data_end = (group_index + 1) * stripe->k / stripe->z;
+      const int data_begin = group_index * stripe->k / num_groups;
+      const int data_end = (group_index + 1) * stripe->k / num_groups;
       for (int j = data_begin; j < data_end; ++j)
       {
         if (block_to_slices.find(j) != block_to_slices.end())
@@ -3287,7 +3288,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     XueUpdateResult update_result = xue_update(stripe, block_to_slice_sizes, m_sys_config->CodeType);
     const std::map<int, int> &group_to_ingress_cluster = update_result.group_to_ingress_cluster;
 
-    for (int i = 0; i < stripe->z; i++)
+    // XueLRC: number of local groups is stripe->r (z is the number of global parity blocks).
+    // Other code types: number of local groups is stripe->z.
+    const int xue_num_groups_gen =
+        (m_sys_config->CodeType == "XueLRC") ? stripe->r : stripe->z;
+    for (int i = 0; i < xue_num_groups_gen; i++)
     {
       proxy_proto::AppendStripeDataPlacement plan;
       plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, i));
@@ -3315,8 +3320,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
 
       // Add data slices to plan
-      for (int j = i * stripe->k / stripe->z;
-           j < (i + 1) * stripe->k / stripe->z; j++)
+      for (int j = i * stripe->k / xue_num_groups_gen;
+           j < (i + 1) * stripe->k / xue_num_groups_gen; j++)
       {
         if (block_to_slice_sizes.find(j) != block_to_slice_sizes.end())
         {
@@ -3326,22 +3331,39 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
       }
 
-      // Add global parity slices to plan
-      for (int j = stripe->k + i * stripe->r / stripe->z;
-           j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
+      if (m_sys_config->CodeType == "XueLRC")
       {
-        addBlockToAppendPlan(plan, stripe->blocks[j],
-                             m_node_table[stripe->blocks[j]->map2node],
-                             block_to_slice_sizes.at(j));
+        // XueLRC: local parity block for group i is k + i.
+        addBlockToAppendPlan(plan, stripe->blocks[stripe->k + i],
+                             m_node_table[stripe->blocks[stripe->k + i]->map2node],
+                             block_to_slice_sizes.at(stripe->k + i));
+        // XueLRC: all global parity blocks (k+r through k+r+z-1) for every group.
+        for (int j = stripe->k + stripe->r; j < stripe->k + stripe->r + stripe->z; j++)
+        {
+          addBlockToAppendPlan(plan, stripe->blocks[j],
+                               m_node_table[stripe->blocks[j]->map2node],
+                               block_to_slice_sizes.at(j));
+        }
       }
-
-      // Add local parity slices to plan
-      for (int j = stripe->k + stripe->r + i * stripe->z / stripe->z;
-           j < stripe->k + stripe->r + (i + 1) * stripe->z / stripe->z; j++)
+      else
       {
-        addBlockToAppendPlan(plan, stripe->blocks[j],
-                             m_node_table[stripe->blocks[j]->map2node],
-                             block_to_slice_sizes.at(j));
+        // Add global parity slices to plan
+        for (int j = stripe->k + i * stripe->r / stripe->z;
+             j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
+        {
+          addBlockToAppendPlan(plan, stripe->blocks[j],
+                               m_node_table[stripe->blocks[j]->map2node],
+                               block_to_slice_sizes.at(j));
+        }
+
+        // Add local parity slices to plan
+        for (int j = stripe->k + stripe->r + i * stripe->z / stripe->z;
+             j < stripe->k + stripe->r + (i + 1) * stripe->z / stripe->z; j++)
+        {
+          addBlockToAppendPlan(plan, stripe->blocks[j],
+                               m_node_table[stripe->blocks[j]->map2node],
+                               block_to_slice_sizes.at(j));
+        }
       }
 
       const auto cluster_plans = split_placement_by_map2cluster(plan, i);
@@ -3774,16 +3796,20 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         add_block_slices_fn(j, false);
       }
     };
-    for (int i = 0; i < stripe->z; i++)
+    // XueLRC: number of local groups is stripe->r (z is the number of global parity blocks).
+    // Other code types: number of local groups is stripe->z.
+    const int xue_num_groups =
+        (m_sys_config->CodeType == "XueLRC") ? stripe->r : stripe->z;
+    for (int i = 0; i < xue_num_groups; i++)
     {
-      if (!xue_plan_group_has_data_update(stripe, i, block_to_slices))
+      if (!xue_plan_group_has_data_update(stripe, i, xue_num_groups, block_to_slices))
       {
         continue;
       }
       const int lp_id = get_local_parity_block_id(stripe, i);
       const Block *lp_blk = find_block_by_id(stripe, lp_id);
-      const int group_data_begin = i * stripe->k / stripe->z;
-      const int group_data_end = (i + 1) * stripe->k / stripe->z;
+      const int group_data_begin = i * stripe->k / xue_num_groups;
+      const int group_data_end = (i + 1) * stripe->k / xue_num_groups;
       auto ingress_it = group_to_ingress_cluster.find(i);
       const auto relay_it = group_to_class1_relay.find(i);
       const bool class1_relay = relay_it != group_to_class1_relay.end() && relay_it->second.enabled;
@@ -3889,11 +3915,20 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         {
           add_block_slices(bid, true);
         }
+        // XueLRC: local parity block for group i is simply k + i.
+        // Other code types: distributed across groups based on r/z ratio.
         auto add_local_parity_meta = [&]() {
-          for (int j = stripe->k + i * stripe->r / stripe->z;
-               j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
+          if (m_sys_config->CodeType == "XueLRC")
           {
-            add_block_slices(j, false);
+            add_block_slices(stripe->k + i, false);
+          }
+          else
+          {
+            for (int j = stripe->k + i * stripe->r / stripe->z;
+                 j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
+            {
+              add_block_slices(j, false);
+            }
           }
         };
         if (class_sub == 1 || class_sub == 2 || class_sub == 3)
