@@ -9,7 +9,7 @@ set -euo pipefail
 # 输出：默认一行摘要；BW_MATRIX_VERBOSE=1 打印 matrix=…MB/s 与 tc=…mbit；=2 再 dump tc。
 
 _SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BW_FILE="${_SCRIPT_DIR}/project/config/BW_limit same"
+BW_FILE="${_SCRIPT_DIR}/project/config/BW_limit_same"
 if [[ ! -f "$BW_FILE" ]]; then
   echo "Error: bandwidth file not found: $BW_FILE" >&2
   exit 1
