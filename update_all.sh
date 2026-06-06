@@ -28,7 +28,7 @@ while read -r ip; do
 
   echo "Copying to host: $ip..."
 
-  if sudo rsync -avz \
+  if sudo rsync -avz --delete \
     --exclude='project/cmake/build/CMakeFiles' \
     --exclude='project/cmake/build/run_client' \
     --exclude='project/cmake/build/main_test' \
