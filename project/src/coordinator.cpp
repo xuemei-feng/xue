@@ -1476,7 +1476,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           if (g >= 0 && g < static_cast<int>(alt_group_resolved.size()) && alt_group_resolved[g])
           {
             // alt_group 已决议后，只清理互斥入口任务；
-            // 不能清理已选链路上的后续任务（alt_kind=2），否则会吞掉“中继第二跳”。
+            // 不能清理已选链路上的后续任务（alt_kind=2），否则会吞掉"中继第二跳"。
             const int kind = tasks[tid].alt_kind;
             if (kind == 1 || kind == 3)
             {
@@ -1846,10 +1846,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     bool xue_plan_group_has_data_update(
         const Stripe *stripe,
         int group_index,
+        int num_groups,
         const std::map<int, std::vector<std::pair<int, int>>> &block_to_slices)
     {
-      const int data_begin = group_index * stripe->k / stripe->z;
-      const int data_end = (group_index + 1) * stripe->k / stripe->z;
+      const int data_begin = group_index * stripe->k / num_groups;
+      const int data_end = (group_index + 1) * stripe->k / num_groups;
       for (int j = data_begin; j < data_end; ++j)
       {
         if (block_to_slices.find(j) != block_to_slices.end())
@@ -1936,7 +1937,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       std::map<std::pair<int, int>, std::vector<DataSliceUpdate>> class3_by_cluster_and_group;
       std::vector<TransferPlanDecision> decisions;
 
-      // 1) 找到此次请求涉及的“数据块更新”
+      // 1) 找到此次请求涉及的"数据块更新"
       for (const auto &entry : block_to_slice_sizes)
       {
         int block_id = entry.first;
@@ -2091,7 +2092,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         c2_i = c2_j;
       }
 
-      // 3) 第3类：仅在“同一 data cluster 且同一本地组”内按 offset 相交分组
+      // 3) 第3类：仅在"同一 data cluster 且同一本地组"内按 offset 相交分组
       for (auto &kv : class3_by_cluster_and_group)
       {
         std::vector<DataSliceUpdate> updates = kv.second;
@@ -2119,7 +2120,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           {
             // 第3类相交集合：
             //   (a) 发送各数据块增量到全局校验块cluster
-            //   (b) 再在“到本地校验cluster”和“到全局校验cluster”中择高带宽目标发送校验增量
+            //   (b) 再在"到本地校验cluster"和"到全局校验cluster"中择高带宽目标发送校验增量
             TransferPlanDecision d;
             d.hot_cluster = g.front().global_parity_cluster;
             d.reason = "class3-overlap: send data delta to global parity cluster, then choose parity path by max(data->local, global->local)";
@@ -2226,7 +2227,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
       log_append_route_decisions(decisions);
 
-      // 根据依赖 + 机架端口约束做时间调度，输出“谁先谁后、谁可并发”
+      // 根据依赖 + 机架端口约束做时间调度，输出"谁先谁后、谁可并发"
       std::vector<ScheduledTask> schedule = schedule_transfer_steps(decisions);
       log_append_schedule_visual(schedule);
       result.route_decisions = std::move(decisions);
@@ -2467,7 +2468,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                                  fmt_cluster_id(u0.data_cluster) + " 上 " + fmt_block_multi_slice_ranges(bid, sls) + " -> " +
                                      fmt_cluster_id(u0.global_parity_cluster) + " " + fmt_global_parity_block(gp_id), batch_sz});
             }
-            // 相交集合的 parity 传输采用“先并集后发送”：例如 [1,3] 与 [2,5] 合并为 [1,5]。
+            // 相交集合的 parity 传输采用"先并集后发送"：例如 [1,3] 与 [2,5] 合并为 [1,5]。
             bool same_group = true;
             const int base_group = g.front().group_id;
             const int base_local = g.front().local_parity_cluster;
@@ -3223,7 +3224,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return false;
     }
 
-    // 新语义：输入区间直接按“条带内顺序拼接的数据块地址空间”映射：
+    // 新语义：输入区间直接按"条带内顺序拼接的数据块地址空间"映射：
     // block_id = logical_offset / BlockSize, block_offset = logical_offset % BlockSize。
     const int logical_end = curr_logical_offset + append_size - 1;
     int pos = curr_logical_offset;
@@ -3283,11 +3284,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return append_plans;
     }
 
-    // xue_update: 统一封装“传输路径选择 + 时间调度”
+    // xue_update: 统一封装"传输路径选择 + 时间调度"
     XueUpdateResult update_result = xue_update(stripe, block_to_slice_sizes, m_sys_config->CodeType);
     const std::map<int, int> &group_to_ingress_cluster = update_result.group_to_ingress_cluster;
 
-    for (int i = 0; i < stripe->z; i++)
+    // XueLRC: number of local groups is stripe->r (z is the number of global parity blocks).
+    // Other code types: number of local groups is stripe->z.
+    const int xue_num_groups =
+        (m_sys_config->CodeType == "XueLRC") ? stripe->r : stripe->z;
+    for (int i = 0; i < xue_num_groups; i++)
     {
       proxy_proto::AppendStripeDataPlacement plan;
       plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, i));
@@ -3315,8 +3320,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
 
       // Add data slices to plan
-      for (int j = i * stripe->k / stripe->z;
-           j < (i + 1) * stripe->k / stripe->z; j++)
+      for (int j = i * stripe->k / xue_num_groups;
+           j < (i + 1) * stripe->k / xue_num_groups; j++)
       {
         if (block_to_slice_sizes.find(j) != block_to_slice_sizes.end())
         {
@@ -3326,22 +3331,39 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
       }
 
-      // Add global parity slices to plan
-      for (int j = stripe->k + i * stripe->r / stripe->z;
-           j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
+      if (m_sys_config->CodeType == "XueLRC")
       {
-        addBlockToAppendPlan(plan, stripe->blocks[j],
-                             m_node_table[stripe->blocks[j]->map2node],
-                             block_to_slice_sizes.at(j));
+        // XueLRC: local parity block for group i is k + i.
+        addBlockToAppendPlan(plan, stripe->blocks[stripe->k + i],
+                             m_node_table[stripe->blocks[stripe->k + i]->map2node],
+                             block_to_slice_sizes.at(stripe->k + i));
+        // XueLRC: all global parity blocks (k+r through k+r+z-1) for every group.
+        for (int j = stripe->k + stripe->r; j < stripe->k + stripe->r + stripe->z; j++)
+        {
+          addBlockToAppendPlan(plan, stripe->blocks[j],
+                               m_node_table[stripe->blocks[j]->map2node],
+                               block_to_slice_sizes.at(j));
+        }
       }
-
-      // Add local parity slices to plan
-      for (int j = stripe->k + stripe->r + i * stripe->z / stripe->z;
-           j < stripe->k + stripe->r + (i + 1) * stripe->z / stripe->z; j++)
+      else
       {
-        addBlockToAppendPlan(plan, stripe->blocks[j],
-                             m_node_table[stripe->blocks[j]->map2node],
-                             block_to_slice_sizes.at(j));
+        // Add global parity slices to plan
+        for (int j = stripe->k + i * stripe->r / stripe->z;
+             j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
+        {
+          addBlockToAppendPlan(plan, stripe->blocks[j],
+                               m_node_table[stripe->blocks[j]->map2node],
+                               block_to_slice_sizes.at(j));
+        }
+
+        // Add local parity slices to plan
+        for (int j = stripe->k + stripe->r + i * stripe->z / stripe->z;
+             j < stripe->k + stripe->r + (i + 1) * stripe->z / stripe->z; j++)
+        {
+          addBlockToAppendPlan(plan, stripe->blocks[j],
+                               m_node_table[stripe->blocks[j]->map2node],
+                               block_to_slice_sizes.at(j));
+        }
       }
 
       const auto cluster_plans = split_placement_by_map2cluster(plan, i);
@@ -3647,7 +3669,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "empty ranges");
     }
-    // 将多个不连续区间视为“同一时刻的一次联合更新”，并保留块内离散切片（稀疏更新）。
+    // 将多个不连续区间视为"同一时刻的一次联合更新"，并保留块内离散切片（稀疏更新）。
     std::map<int, std::vector<std::pair<int, int>>> block_to_slices;
     const int unit_size = static_cast<int>(m_sys_config->UnitSize);
     const int block_size = static_cast<int>(m_sys_config->BlockSize);
@@ -3774,16 +3796,20 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         add_block_slices_fn(j, false);
       }
     };
-    for (int i = 0; i < stripe->z; i++)
+    // XueLRC: number of local groups is stripe->r (z is the number of global parity blocks).
+    // Other code types: number of local groups is stripe->z.
+    const int xue_num_groups =
+        (m_sys_config->CodeType == "XueLRC") ? stripe->r : stripe->z;
+    for (int i = 0; i < xue_num_groups; i++)
     {
-      if (!xue_plan_group_has_data_update(stripe, i, block_to_slices))
+      if (!xue_plan_group_has_data_update(stripe, i, xue_num_groups, block_to_slices))
       {
         continue;
       }
       const int lp_id = get_local_parity_block_id(stripe, i);
       const Block *lp_blk = find_block_by_id(stripe, lp_id);
-      const int group_data_begin = i * stripe->k / stripe->z;
-      const int group_data_end = (i + 1) * stripe->k / stripe->z;
+      const int group_data_begin = i * stripe->k / xue_num_groups;
+      const int group_data_end = (i + 1) * stripe->k / xue_num_groups;
       auto ingress_it = group_to_ingress_cluster.find(i);
       const auto relay_it = group_to_class1_relay.find(i);
       const bool class1_relay = relay_it != group_to_class1_relay.end() && relay_it->second.enabled;
@@ -3889,11 +3915,20 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         {
           add_block_slices(bid, true);
         }
+        // XueLRC: local parity block for group i is simply k + i.
+        // Other code types: distributed across groups based on r/z ratio.
         auto add_local_parity_meta = [&]() {
-          for (int j = stripe->k + i * stripe->r / stripe->z;
-               j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
+          if (m_sys_config->CodeType == "XueLRC")
           {
-            add_block_slices(j, false);
+            add_block_slices(stripe->k + i, false);
+          }
+          else
+          {
+            for (int j = stripe->k + i * stripe->r / stripe->z;
+                 j < stripe->k + (i + 1) * stripe->r / stripe->z; j++)
+            {
+              add_block_slices(j, false);
+            }
           }
         };
         if (class_sub == 1 || class_sub == 2 || class_sub == 3)
