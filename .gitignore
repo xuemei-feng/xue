@@ -9,7 +9,7 @@ third_party/jerasure
 storage/*
 !storage/.gitkeep
 data/*
-project/config/*
+#project/config/
 small_tools/*
 logs/*
 project/build/*
