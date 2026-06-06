@@ -17,7 +17,7 @@ fi
 while read -r ip; do
   [[ -z "${ip// }" || "$ip" =~ ^# ]] && continue
   echo "Copying to host: $ip..."
-  sudo rsync -avz \
+  sudo rsync -avz --delete \
     --exclude='project/cmake/build/CMakeFiles' \
     --exclude='project/cmake/build/run_client' \
     --exclude='project/cmake/build/main_test' \
