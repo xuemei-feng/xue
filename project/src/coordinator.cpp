@@ -3777,12 +3777,21 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     // std::cout << std::endl;
     //debug
-    // std::cout << "start xue_update_sparse" << std::endl;
+    auto t_xue_sparse_0 = std::chrono::high_resolution_clock::now();
     XueUpdateResult update_result = xue_update_sparse(stripe, block_to_slices, m_sys_config->CodeType);
+    auto t_xue_sparse_1 = std::chrono::high_resolution_clock::now();
     const std::map<int, int> &group_to_ingress_cluster = update_result.group_to_ingress_cluster;
     const std::map<int, Class1RelayRoute> &group_to_class1_relay = update_result.group_to_class1_relay;
     const std::vector<ScheduledTask> &scheduled_tasks = update_result.scheduled_tasks;
-    // std::cout << "end xue_update_sparse" << std::endl;
+    double xue_sparse_ms = std::chrono::duration<double, std::milli>(t_xue_sparse_1 - t_xue_sparse_0).count();
+    static int64_t xue_sparse_call_count = 0;
+    static double xue_sparse_total_ms = 0.0;
+    ++xue_sparse_call_count;
+    xue_sparse_total_ms += xue_sparse_ms;
+    std::cout << "[XUE_SPARSE_TIMING] stripe_id=" << stripe_id
+              << " time_ms=" << xue_sparse_ms
+              << " | total_calls=" << xue_sparse_call_count
+              << " total_ms=" << xue_sparse_total_ms << std::endl;
     // 在 uploadXueUpdate 入口处显式输出传输时间窗，避免依赖下层函数打印行为。
     log_append_schedule_visual(scheduled_tasks);
     // std::cout << "end log_append_schedule_visual" << std::endl;
