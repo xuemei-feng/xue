@@ -10,7 +10,7 @@ set -euo pipefail
 # get_bw_mbps(src_cluster,dst_cluster) → egress rate to dst (Mbps).
 # 输出：默认一行摘要；BW_MATRIX_VERBOSE=1 打印每条 dst；=2 再 dump tc。
 
-BW_FILE="/users/xue/xue/project/config/BW_limit"
+BW_FILE="/users/xue/xue/project/config/BW_limit_same"
 if [[ ! -f "$BW_FILE" ]]; then
   echo "Error: bandwidth file not found: $BW_FILE" >&2
   exit 1
