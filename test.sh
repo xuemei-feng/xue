@@ -1,28 +1,25 @@
-#!/bin/sh
-# 批量 RackCU 更新请求文件（改这一行即可；相对 test.sh 所在目录或绝对路径）
-UPDATE_BATCH_FILE="/users/xue/xue/stripe Ali/A-64KB-12/A00-result10000.txt"
+#!/usr/bin/env bash
+# CoRD 批量更新 trace：改下面路径即可，每行格式见 main_client.cpp 用法说明
+CORD_TRACE_FILE="/users/xue/xue/stripe Ali/A-64KB-12/A00-result10000.txt"
 
-SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-cd "$SCRIPT_DIR" || exit 1
-
-case $UPDATE_BATCH_FILE in
-  /*) ;;
-  *) UPDATE_BATCH_FILE="$SCRIPT_DIR/$UPDATE_BATCH_FILE" ;;
-esac
-
-if [ ! -f "$UPDATE_BATCH_FILE" ]; then
-  echo "ERROR: batch file not found: $UPDATE_BATCH_FILE" >&2
-  exit 1
-fi
-
-MAIN_CLIENT=./project/cmake/build/main_client
-if [ ! -x "$MAIN_CLIENT" ]; then
-  echo "ERROR: main_client not found or not executable: $SCRIPT_DIR/$MAIN_CLIENT" >&2
-  exit 1
-fi
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# 必须用相对路径启动 main_client，否则 config 路径拼接会出错（见 main_client.cpp）
+MAIN_CLIENT="./project/cmake/build/main_client"
 
 pkill -9 main_client 2>/dev/null || true
 
-echo "batch_file=$UPDATE_BATCH_FILE"
-# 必须用相对路径启动，main_client 根据 argv[0] 拼接 config 路径
-printf 'y\n' | "$MAIN_CLIENT" "$UPDATE_BATCH_FILE"
+cd "${SCRIPT_DIR}" || exit 1
+
+if [ ! -x "${MAIN_CLIENT}" ]; then
+  echo "main_client not found or not executable: ${SCRIPT_DIR}/${MAIN_CLIENT#./}" >&2
+  echo "Build first: cd ${SCRIPT_DIR}/project/cmake/build && make main_client -j4" >&2
+  exit 1
+fi
+
+if [ ! -f "${CORD_TRACE_FILE}" ]; then
+  echo "Trace file not found: ${CORD_TRACE_FILE}" >&2
+  exit 1
+fi
+
+echo "CoRD batch trace: ${CORD_TRACE_FILE}"
+echo y | "${MAIN_CLIENT}" "${CORD_TRACE_FILE}"
