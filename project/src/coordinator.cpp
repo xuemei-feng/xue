@@ -3777,19 +3777,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     // std::cout << std::endl;
     //debug
-    // std::cout << "start xue_update_sparse" << std::endl;
-    auto t_xue_sparse_0 = std::chrono::high_resolution_clock::now();
     XueUpdateResult update_result = xue_update_sparse(stripe, block_to_slices, m_sys_config->CodeType);
-    auto t_xue_sparse_1 = std::chrono::high_resolution_clock::now();
-    double xue_sparse_ms = std::chrono::duration<double, std::milli>(t_xue_sparse_1 - t_xue_sparse_0).count();
-    static int64_t xue_sparse_call_count = 0;
-    static double xue_sparse_total_ms = 0.0;
-    ++xue_sparse_call_count;
-    xue_sparse_total_ms += xue_sparse_ms;
-    std::cout << "[XUE_SPARSE_TIMING] stripe_id=" << stripe->stripe_id
-              << " time_ms=" << xue_sparse_ms
-              << " | total_calls=" << xue_sparse_call_count
-              << " total_ms=" << xue_sparse_total_ms << std::endl;
     const std::map<int, int> &group_to_ingress_cluster = update_result.group_to_ingress_cluster;
     const std::map<int, Class1RelayRoute> &group_to_class1_relay = update_result.group_to_class1_relay;
     const std::vector<ScheduledTask> &scheduled_tasks = update_result.scheduled_tasks;
@@ -5134,7 +5122,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       coordinator_proto::ReplyProxyIPsPorts *proxyIPPort)
   {
 
-    //std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     int stripe_id = std::stoi(keyClient->key());
     Stripe &t_stripe = m_stripe_table[stripe_id];
     int k = t_stripe.k;
@@ -5177,9 +5164,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       thread.detach();
     }
-    /*std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-    std::cout << "[GET] getting stripe " << stripe_id << " took " << duration.count() << " seconds" << std::endl;*/
 
     return grpc::Status::OK;
   }
@@ -5592,7 +5576,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     
     unsigned char *res = static_cast<unsigned char*>(std::aligned_alloc(32, m_sys_config->BlockSize));
-    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     if(is_azure_like_code(code_type)){
       decode_azure_lrc(k, r, z, block_num, &recovery_block_ids, recovery_data_ptrs.data(), res, block_size, failed_block_id);
     }
@@ -5609,10 +5592,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       std::cout << "[Coordinator] decodeTest: unknown code type!" << std::endl;
       return grpc::Status(grpc::INVALID_ARGUMENT, "unknown code type");
     }
-    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-    std::cout << "[Coordinator] decodeTest took " << duration.count() << " seconds" << std::endl;
-    degradedReadReply->set_decode_time(duration.count());
     delete[] res;
     delete[] recovery_data;
 
@@ -6332,7 +6311,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     double start_time = std::chrono::duration_cast<std::chrono::duration<double>>(start.time_since_epoch()).count();
     degradedReadReply->set_grpc_start_time(start_time);
-    std::cout << start_time << std::endl;
     int stripe_id = std::stoi(keyClient->key().substr(0, keyClient->key().find('_')));
     int failed_block_id = std::stoi(keyClient->key().substr(keyClient->key().find('_') + 1));
     std::string client_ip = keyClient->clientip();
