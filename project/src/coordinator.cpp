@@ -1111,28 +1111,22 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
   void CoordinatorImpl::initialize_random_lrc_stripe_placement(Stripe *stripe)
   {
-    // Random placement:
-    // 1) 从条带全部块中随机顺序投放
-    // 2) 仅在 4 个随机 cluster 中放置（若总 cluster < 4，则使用全部）
-    // 3) 约束：同一 cluster 块数 <= r + l，l 为该 cluster 中“去除全局校验组后的跨 group 数”
+    // Replaced random placement with Xue placement:
+    // k data blocks, r local parity blocks (= r local groups), z global parity blocks.
+    // Requires k % r == 0.
+    // 5-step deterministic per-stripe placement using rotating cluster assignment.
     Block *blocks_info = new Block[stripe->n];
     assert(stripe->object_keys.size() == 1);
+    assert(stripe->r > 0 && stripe->z > 0);
+    assert(stripe->k % stripe->r == 0 && "Xue placement requires k % r == 0");
 
+    const int k = stripe->k;
+    const int r = stripe->r;
+    const int z = stripe->z;
+    const int h = k / r;
     const int cluster_num = m_sys_config->ClusterNum;
-    if (cluster_num <= 0)
-    {
-      throw std::runtime_error("ClusterNum must be positive for RandomLRC placement");
-    }
-
-    const int target_cluster_num = std::min(4, cluster_num);
-    std::vector<int> selected_clusters;
-    selected_clusters.reserve(target_cluster_num);
-    // 轮询选择紧邻 cluster：以 stripe_id 为起点，按环形连续取 4 个。
-    const int start_cluster = stripe->stripe_id % cluster_num;
-    for (int i = 0; i < target_cluster_num; ++i)
-    {
-      selected_clusters.push_back((start_cluster + i) % cluster_num);
-    }
+    const int global_cluster_id = stripe->stripe_id % cluster_num;
+    int cluster_cursor = (global_cluster_id + 1) % cluster_num;
 
     std::mt19937 gen;
     const std::uint64_t placement_seed = m_sys_config->PlacementRandomSeed;
@@ -1146,14 +1140,38 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       gen.seed(rd());
     }
 
-    // 按 Azure 风格构建 group：数据组 0..z-1，全局校验组 z，本地校验组 0..z-1。
-    const int global_parity_group_id = stripe->z;
+    auto next_cluster = [&](bool avoid_global) -> int
+    {
+      int cid = cluster_cursor % cluster_num;
+      cluster_cursor++;
+      if (avoid_global && cluster_num > 1 && cid == global_cluster_id)
+      {
+        cid = cluster_cursor % cluster_num;
+        cluster_cursor++;
+      }
+      return cid;
+    };
+
+    auto place_block = [&](int block_idx, int cluster_id)
+    {
+      int t_node_id = randomly_select_a_node(cluster_id, stripe->stripe_id, gen);
+      blocks_info[block_idx].map2cluster = cluster_id;
+      blocks_info[block_idx].map2node = t_node_id;
+      update_stripe_info_in_node(t_node_id, stripe->stripe_id, block_idx);
+      m_cluster_table[cluster_id].blocks.push_back(&blocks_info[block_idx]);
+      m_cluster_table[cluster_id].stripes.insert(stripe->stripe_id);
+      stripe->blocks.push_back(&blocks_info[block_idx]);
+      stripe->place2clusters.insert(cluster_id);
+      add_to_map(stripe->group_to_blocks, blocks_info[block_idx].map2group, block_idx);
+    };
+
+    // Build block metadata: [0,k) data, [k,k+r) local parity, [k+r,k+r+z) global parity.
     for (int i = 0; i < stripe->n; i++)
     {
       blocks_info[i].block_size = m_sys_config->BlockSize;
       blocks_info[i].map2stripe = stripe->stripe_id;
       blocks_info[i].map2key = stripe->object_keys[0];
-      if (i < stripe->k)
+      if (i < k)
       {
         std::string tmp = "_D";
         if (i < 10)
@@ -1161,98 +1179,117 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'D';
-        blocks_info[i].map2group = int(i / (stripe->k / stripe->z));
+        blocks_info[i].map2group = i / h;
       }
-      else if (i < stripe->k + stripe->r)
+      else if (i < k + r)
       {
-        std::string tmp = "_G";
-        if (i - stripe->k < 10)
-          tmp = "_G0";
-        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i - stripe->k);
+        const int local_idx = i - k;
+        std::string tmp = "_L";
+        if (local_idx < 10)
+          tmp = "_L0";
+        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(local_idx);
         blocks_info[i].block_id = i;
-        blocks_info[i].block_type = 'G';
-        blocks_info[i].map2group = global_parity_group_id;
+        blocks_info[i].block_type = 'L';
+        blocks_info[i].map2group = local_idx;
       }
       else
       {
-        std::string tmp = "_L";
-        if (i - stripe->k - stripe->r < 10)
-          tmp = "_L0";
-        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i - stripe->k - stripe->r);
+        const int global_idx = i - k - r;
+        std::string tmp = "_G";
+        if (global_idx < 10)
+          tmp = "_G0";
+        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(global_idx);
         blocks_info[i].block_id = i;
-        blocks_info[i].block_type = 'L';
-        blocks_info[i].map2group = i - stripe->k - stripe->r;
+        blocks_info[i].block_type = 'G';
+        blocks_info[i].map2group = r;
       }
     }
 
-    std::vector<int> block_order(stripe->n);
-    std::iota(block_order.begin(), block_order.end(), 0);
-    const int max_attempts = 256;
-    bool placed = false;
-    std::vector<int> assigned_cluster(stripe->n, -1);
-
-    for (int attempt = 0; attempt < max_attempts && !placed; ++attempt)
+    // Step 1: place all global parity blocks in one rotating cluster.
+    for (int i = 0; i < z; i++)
     {
-      std::shuffle(block_order.begin(), block_order.end(), gen);
-      std::fill(assigned_cluster.begin(), assigned_cluster.end(), -1);
-      std::map<int, int> cluster_block_count;
-      std::map<int, std::set<int>> cluster_groups_excluding_global;
-      bool ok = true;
+      place_block(k + r + i, global_cluster_id);
+    }
 
-      for (int block_idx : block_order)
+    // Track remaining data range per local group after Steps 2-4.
+    std::vector<int> remain_start(r, 0);
+    std::vector<int> remain_count(r, 0);
+
+    // Step 2-4 per local group.
+    for (int g = 0; g < r; g++)
+    {
+      int group_data_begin = g * h;
+      int consumed = 0;
+
+      // Step 2: place z data + local parity in one cluster for this local group.
+      int primary_cluster_id = next_cluster(true);
+      int first_data_num = std::min(z, h);
+      for (int t = 0; t < first_data_num; t++)
       {
-        std::vector<int> candidate_clusters = selected_clusters;
-        std::shuffle(candidate_clusters.begin(), candidate_clusters.end(), gen);
-        bool assigned = false;
-        const int block_group = blocks_info[block_idx].map2group;
+        place_block(group_data_begin + t, primary_cluster_id);
+      }
+      place_block(k + g, primary_cluster_id);
+      consumed += first_data_num;
 
-        for (int cid : candidate_clusters)
+      if (consumed >= h)
+      {
+        continue;
+      }
+
+      // Step 3: place one data block with global parity cluster.
+      place_block(group_data_begin + consumed, global_cluster_id);
+      consumed++;
+
+      // Step 4: place each z+1 data blocks into one cluster.
+      while (consumed + (z + 1) <= h)
+      {
+        int chunk_cluster_id = next_cluster(true);
+        for (int t = 0; t < z + 1; t++)
         {
-          int next_block_count = cluster_block_count[cid] + 1;
-          int next_group_count = static_cast<int>(cluster_groups_excluding_global[cid].size());
-          if (block_group != global_parity_group_id &&
-              cluster_groups_excluding_global[cid].find(block_group) == cluster_groups_excluding_global[cid].end())
-          {
-            next_group_count++;
-          }
-          if (next_block_count <= stripe->r + next_group_count)
-          {
-            assigned_cluster[block_idx] = cid;
-            cluster_block_count[cid] = next_block_count;
-            if (block_group != global_parity_group_id)
-            {
-              cluster_groups_excluding_global[cid].insert(block_group);
-            }
-            assigned = true;
-            break;
-          }
+          place_block(group_data_begin + consumed + t, chunk_cluster_id);
         }
+        consumed += z + 1;
+      }
 
-        if (!assigned)
-        {
-          ok = false;
+      remain_start[g] = group_data_begin + consumed;
+      remain_count[g] = h - consumed;
+    }
+
+    // Step 5: m = (h - z - 1) mod (z + 1), aggregate leftovers from theta groups.
+    int m = 0;
+    for (int g = 0; g < r; g++)
+    {
+      if (remain_count[g] > 0)
+      {
+        m = remain_count[g];
         break;
       }
     }
-      placed = ok;
-    }
-
-    if (!placed)
+    if (m > 0)
     {
-      throw std::runtime_error("RandomLRC placement failed to satisfy cluster constraints");
-    }
-
-    for (int i = 0; i < stripe->n; i++)
-    {
-      blocks_info[i].map2cluster = assigned_cluster[i];
-      int t_node_id = randomly_select_a_node(blocks_info[i].map2cluster, stripe->stripe_id, gen);
-      blocks_info[i].map2node = t_node_id;
-      update_stripe_info_in_node(t_node_id, stripe->stripe_id, i);
-      m_cluster_table[blocks_info[i].map2cluster].blocks.push_back(&blocks_info[i]);
-      m_cluster_table[blocks_info[i].map2cluster].stripes.insert(stripe->stripe_id);
-      stripe->blocks.push_back(&blocks_info[i]);
-      stripe->place2clusters.insert(blocks_info[i].map2cluster);
-      add_to_map(stripe->group_to_blocks, blocks_info[i].map2group, i);
+      int theta = 1;
+      if (m > 1)
+      {
+        theta = std::max(1, z / (m - 1));
+      }
+      else
+      {
+        theta = r;
+      }
+      for (int g = 0; g < r;)
+      {
+        int batch_cluster_id = next_cluster(true);
+        int grouped = 0;
+        while (g < r && grouped < theta)
+        {
+          for (int t = 0; t < remain_count[g]; t++)
+          {
+            place_block(remain_start[g] + t, batch_cluster_id);
+          }
+          g++;
+          grouped++;
+        }
+      }
     }
 
     stripe->num_groups = stripe->group_to_blocks.size();
@@ -1323,7 +1360,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return false;
     }
 
-    // 新语义：输入区间直接按“条带内顺序拼接的数据块地址空间”映射：
+    // 新语义：输入区间直接按"条带内顺序拼接的数据块地址空间"映射：
     // block_id = logical_offset / BlockSize, block_offset = logical_offset % BlockSize。
     const int logical_end = curr_logical_offset + append_size - 1;
     int pos = curr_logical_offset;
