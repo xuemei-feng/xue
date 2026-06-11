@@ -21,7 +21,7 @@
     <z>4</z>  //是本地校验块数量
     <!-- PlacementRandomSeed: 0 = non-deterministic. Non-zero = reproducible RandomLRC for same seed, stripe_id, topology. -->
     <PlacementRandomSeed>17</PlacementRandomSeed>
-    <RackCuCommitWaitTimeoutSec>0.5</RackCuCommitWaitTimeoutSec>
+    <RackCuCommitWaitTimeoutSec>2</RackCuCommitWaitTimeoutSec>
     <!-- <CodeType>UniformLRC</CodeType>
     <k>30</k>
     <r>6</r>
