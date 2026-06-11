@@ -2740,7 +2740,18 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     m_stripe_table[t_stripe.stripe_id] = t_stripe;
     new_object.map2stripe = t_stripe.stripe_id;
 
+    auto t_placement_0 = std::chrono::high_resolution_clock::now();
     int s_cluster_id = generate_placement(t_stripe.stripe_id, block_size);
+    auto t_placement_1 = std::chrono::high_resolution_clock::now();
+    double placement_ms = std::chrono::duration<double, std::milli>(t_placement_1 - t_placement_0).count();
+    static int64_t placement_call_count = 0;
+    static double placement_total_ms = 0.0;
+    ++placement_call_count;
+    placement_total_ms += placement_ms;
+    std::cout << "[PLACEMENT_TIMING] stripe_id=" << t_stripe.stripe_id
+              << " time_ms=" << placement_ms
+              << " | total_calls=" << placement_call_count
+              << " total_ms=" << placement_total_ms << std::endl;
 
     Stripe &stripe = m_stripe_table[t_stripe.stripe_id];
     object_placement.set_stripe_id(stripe.stripe_id);
@@ -3461,7 +3472,18 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       stripe = &m_stripe_table[curStripeOffset.stripe_id];
     }
 
+    auto t_appendplan_0 = std::chrono::high_resolution_clock::now();
     std::vector<proxy_proto::AppendStripeDataPlacement> append_plans = generateAppendPlan(stripe, curStripeOffset.offset, appendSizeBytes);
+    auto t_appendplan_1 = std::chrono::high_resolution_clock::now();
+    double appendplan_ms = std::chrono::duration<double, std::milli>(t_appendplan_1 - t_appendplan_0).count();
+    static int64_t appendplan_call_count = 0;
+    static double appendplan_total_ms = 0.0;
+    ++appendplan_call_count;
+    appendplan_total_ms += appendplan_ms;
+    std::cout << "[APPENDPLAN_TIMING] stripe_id=" << stripe->stripe_id
+              << " time_ms=" << appendplan_ms
+              << " | total_calls=" << appendplan_call_count
+              << " total_ms=" << appendplan_total_ms << std::endl;
     if (append_plans.empty())
     {
       std::cout << "[ERROR] Invalid append mode: " << append_mode << std::endl;
@@ -3670,6 +3692,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "empty ranges");
     }
     // 将多个不连续区间视为"同一时刻的一次联合更新"，并保留块内离散切片（稀疏更新）。
+    auto t_xue_sparse_0 = std::chrono::high_resolution_clock::now();
     std::map<int, std::vector<std::pair<int, int>>> block_to_slices;
     const int unit_size = static_cast<int>(m_sys_config->UnitSize);
     const int block_size = static_cast<int>(m_sys_config->BlockSize);
@@ -3730,6 +3753,41 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "no effective ranges");
     }
 
+    // Flip offsets for even-numbered data blocks: mirror the update range within the block.
+    // e.g., a range at the last 4 KB of a 64 KB block → first 4 KB of the block.
+    auto t_flip_0 = std::chrono::high_resolution_clock::now();
+    for (auto &kv : block_to_slices)
+    {
+      const int bid = kv.first;
+      if (bid < 0 || bid >= stripe->k)
+      {
+        continue;
+      }
+      if (bid % 2 == 0)
+      {
+        for (auto &slice : kv.second)
+        {
+          const int sz  = slice.first;
+          const int off = slice.second;
+          slice.second = block_size - off - sz;
+        }
+        std::sort(kv.second.begin(), kv.second.end(),
+                  [](const std::pair<int, int> &a, const std::pair<int, int> &b) {
+                    return a.second < b.second;
+                  });
+      }
+    }
+    auto t_flip_1 = std::chrono::high_resolution_clock::now();
+    double flip_ms = std::chrono::duration<double, std::milli>(t_flip_1 - t_flip_0).count();
+    static int64_t flip_call_count = 0;
+    static double flip_total_ms = 0.0;
+    ++flip_call_count;
+    flip_total_ms += flip_ms;
+    std::cout << "[XUE_FLIP_TIMING] stripe_id=" << stripe_id
+              << " time_ms=" << flip_ms
+              << " | total_calls=" << flip_call_count
+              << " total_ms=" << flip_total_ms << std::endl;
+
     // parity 按受影响 unit 生成离散切片，避免扩成整块。
     for (const auto &kv : block_to_slices)
     {
@@ -3777,21 +3835,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     // std::cout << std::endl;
     //debug
-    auto t_xue_sparse_0 = std::chrono::high_resolution_clock::now();
     XueUpdateResult update_result = xue_update_sparse(stripe, block_to_slices, m_sys_config->CodeType);
-    auto t_xue_sparse_1 = std::chrono::high_resolution_clock::now();
     const std::map<int, int> &group_to_ingress_cluster = update_result.group_to_ingress_cluster;
     const std::map<int, Class1RelayRoute> &group_to_class1_relay = update_result.group_to_class1_relay;
     const std::vector<ScheduledTask> &scheduled_tasks = update_result.scheduled_tasks;
-    double xue_sparse_ms = std::chrono::duration<double, std::milli>(t_xue_sparse_1 - t_xue_sparse_0).count();
-    static int64_t xue_sparse_call_count = 0;
-    static double xue_sparse_total_ms = 0.0;
-    ++xue_sparse_call_count;
-    xue_sparse_total_ms += xue_sparse_ms;
-    std::cout << "[XUE_SPARSE_TIMING] stripe_id=" << stripe_id
-              << " time_ms=" << xue_sparse_ms
-              << " | total_calls=" << xue_sparse_call_count
-              << " total_ms=" << xue_sparse_total_ms << std::endl;
     // 在 uploadXueUpdate 入口处显式输出传输时间窗，避免依赖下层函数打印行为。
     log_append_schedule_visual(scheduled_tasks);
     // std::cout << "end log_append_schedule_visual" << std::endl;
@@ -4070,6 +4117,17 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return grpc::Status(grpc::StatusCode::CANCELLED, "client deadline exceeded before notify");
     }
 
+    auto t_xue_sparse_1 = std::chrono::high_resolution_clock::now();
+    double xue_sparse_ms = std::chrono::duration<double, std::milli>(t_xue_sparse_1 - t_xue_sparse_0).count();
+    static int64_t xue_sparse_call_count = 0;
+    static double xue_sparse_total_ms = 0.0;
+    ++xue_sparse_call_count;
+    xue_sparse_total_ms += xue_sparse_ms;
+    std::cout << "[XUE_SPARSE_TIMING] stripe_id=" << stripe_id
+              << " time_ms=" << xue_sparse_ms
+              << " (prep+sched+plan+build)"
+              << " | total_calls=" << xue_sparse_call_count
+              << " total_ms=" << xue_sparse_total_ms << std::endl;
     // 并行通知 proxy，避免串行阻塞 — 与 generateAppendPlan 保持一致
     {
       std::vector<std::thread> notify_threads;
@@ -4746,6 +4804,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     t_stripe.r = m_sys_config->r;
     t_stripe.z = m_sys_config->z;
     t_stripe.object_keys.push_back(clientID);
+    auto t_init_place_0 = std::chrono::high_resolution_clock::now();
     if (code_type == "UniLRC" || code_type == "AzureLRC")
     {
       initialize_unilrc_and_azurelrc_stripe_placement(&t_stripe);
@@ -4762,10 +4821,32 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       initialize_xue_tripe_placement(&t_stripe);
     }
+    auto t_init_place_1 = std::chrono::high_resolution_clock::now();
+    double init_place_ms = std::chrono::duration<double, std::milli>(t_init_place_1 - t_init_place_0).count();
+    static int64_t init_place_call_count = 0;
+    static double init_place_total_ms = 0.0;
+    ++init_place_call_count;
+    init_place_total_ms += init_place_ms;
+    std::cout << "[INIT_PLACE_TIMING] stripe_id=" << t_stripe.stripe_id
+              << " time_ms=" << init_place_ms
+              << " | total_calls=" << init_place_call_count
+              << " total_ms=" << init_place_total_ms << std::endl;
 
     print_stripe_data_placement(t_stripe);
 
+    auto t_set_place_0b = std::chrono::high_resolution_clock::now();
     std::vector<proxy_proto::AppendStripeDataPlacement> add_plans = generate_add_plans(&t_stripe);
+    auto t_set_place_1 = std::chrono::high_resolution_clock::now();
+    double set_place_ms = std::chrono::duration<double, std::milli>(t_set_place_1 - t_set_place_0b).count();
+    static int64_t set_place_call_count = 0;
+    static double set_place_total_ms = 0.0;
+    ++set_place_call_count;
+    set_place_total_ms += set_place_ms;
+    std::cout << "[SET_PLACEMENT_TIMING] stripe_id=" << t_stripe.stripe_id
+              << " time_ms=" << set_place_ms
+              << " (add_plans)"
+              << " | total_calls=" << set_place_call_count
+              << " total_ms=" << set_place_total_ms << std::endl;
 
     for (const auto &plan : add_plans)
     {
