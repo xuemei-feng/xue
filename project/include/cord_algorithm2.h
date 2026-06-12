@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -68,6 +69,7 @@ namespace ECProject
       std::vector<TimeslotEntry> timeslot_schedule;
       int slot_unit_bytes = 1;
       int center_global_block_id = -1; // 最后一组相交集中心（调试）
+      std::set<int> local_parity_in_rack_groups; // 本地校验可在机架内直接更新的 group
     };
 
     /**

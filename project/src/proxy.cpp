@@ -818,6 +818,21 @@ namespace ECProject
       const auto wall_t0 = std::chrono::steady_clock::now();
 
       const int k = plan.k_datablock();
+      const int encode_r = plan.cord_encode_meta().g_m(); // global parity count
+      const int encode_z = plan.cord_encode_meta().l();   // local parity count
+
+      // 检测哪些 group 的本地校验可以在机架内直接更新（无需 collector 发回）
+      // 条件：该 group 有 STAR_DATA_TO_CENTER 但没有 STAR_CENTER_TO_LOCAL
+      std::set<int> gi_with_center_to_local;
+      for (int si = 0; si < plan.steps_size(); ++si)
+      {
+        const auto &st = plan.steps(si);
+        if (st.link_kind() == proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_LOCAL)
+          gi_with_center_to_local.insert(st.group_index());
+      }
+      plan_log(std::string("in_rack_detection: groups_with_center_to_local=") +
+               std::to_string(gi_with_center_to_local.size()));
+
       for (int si = 0; si < plan.steps_size(); ++si)
       {
         const proxy_proto::CordTransferStep &st = plan.steps(si);
@@ -901,6 +916,71 @@ namespace ECProject
             if (!ok)
               ob << " grpc_err=" << s.error_message();
             plan_log(ob.str());
+          }
+
+          // 机架内本地校验直更：如果该 group 没有 collector 发回的
+          // STAR_CENTER_TO_LOCAL，proxy 直接 XOR 更新本地校验块
+          if (ok && !gi_with_center_to_local.count(st.group_index()))
+          {
+            int local_group = cord_plan_data_block_stripe_group(plan, st.src_block_id());
+            if (local_group >= 0)
+            {
+              int Lb = k + encode_r + local_group; // 本地校验块 ID
+              std::string lp_bk, lp_ip;
+              int lp_port = 0;
+              if (cord_lookup_block_placement(plan, Lb, &lp_bk, &lp_ip, &lp_port))
+              {
+                // 校验条带偏移 (与 collector 的逻辑一致)
+                int parity_slice_offset = 0;
+                if (plan.has_cord_encode_meta())
+                  parity_slice_offset = plan.cord_encode_meta().parity_slice_offset();
+                const int parity_off = parity_slice_offset + static_cast<int>(st.chunk_byte_offset());
+
+                std::vector<char> lp_buf(chunk_len);
+                if (proxy->CordRangeReadFromDatanode(lp_bk, Lb, parity_off,
+                                                     lp_buf.data(), chunk_len,
+                                                     lp_ip.c_str(), lp_port))
+                {
+                  cord_pure_xfer_parity_dn_begin(plan.plan_key());
+                  for (size_t u = 0; u < chunk_len; ++u)
+                    lp_buf[u] = static_cast<char>(
+                        static_cast<unsigned char>(lp_buf[u]) ^
+                        static_cast<unsigned char>(buf[static_cast<size_t>(u)]));
+                  if (proxy->CordRangeWriteToDatanode(lp_bk, Lb, parity_off,
+                                                       lp_buf.data(), chunk_len,
+                                                       lp_ip.c_str(), lp_port))
+                  {
+                    // 校验读
+                    std::vector<char> verify(chunk_len);
+                    if (proxy->CordRangeReadFromDatanode(lp_bk, Lb, parity_off,
+                                                          verify.data(), chunk_len,
+                                                          lp_ip.c_str(), lp_port))
+                    {
+                      cord_log() << "[CORD_INRACK][" << proxy_tag
+                                << "] direct_XOR local_parity Lb=" << Lb
+                                << " data_blk=" << st.src_block_id()
+                                << " group=" << local_group
+                                << " off=" << parity_off
+                                << " len=" << chunk_len
+                                << " AFTER=" << cord_dbg_hex_preview(verify.data(), chunk_len, 16)
+                                << std::endl;
+                    }
+                    cord_pure_xfer_parity_dn_done_verified(plan.plan_key());
+                  }
+                  else
+                  {
+                    cord_pure_xfer_parity_dn_abort(plan.plan_key());
+                    plan_log("in_rack_XOR_write_failed Lb=" + std::to_string(Lb) +
+                             " group=" + std::to_string(local_group));
+                  }
+                }
+                else
+                {
+                  plan_log("in_rack_XOR_read_failed Lb=" + std::to_string(Lb) +
+                           " group=" + std::to_string(local_group));
+                }
+              }
+            }
           }
           continue;
         }

@@ -1161,7 +1161,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
   // ─── CORD LRC 新放置方案 ──────────────────────────────────────────────
   // r = 全局校验块数, z = 本地校验块数 (= 本地组数), h = k/z = 每组数据块数
-  // 块布局: D[0..k), L[k..k+z), G[k+z..k+z+r)
+  // 块布局: D[0..k), G[k..k+r), L[k+r..k+r+z)   (与 encode/decode 一致)
   // ───────────────────────────────────────────────────────────────────────
   void CoordinatorImpl::initialize_cord_lrc_stripe_placement(Stripe *stripe)
   {
@@ -1201,27 +1201,27 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         blocks_info[i].block_type = 'D';
         blocks_info[i].map2group = i / h;
       }
-      else if (i < k + z)
-      {
-        // Local parity L0..L(z-1)
-        const int li = i - k;
-        std::string tmp = "_L";
-        if (li < 10) tmp = "_L0";
-        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(li);
-        blocks_info[i].block_id = i;
-        blocks_info[i].block_type = 'L';
-        blocks_info[i].map2group = li; // one local parity per group
-      }
-      else
+      else if (i < k + r)
       {
         // Global parity G0..G(r-1)
-        const int gi = i - k - z;
+        const int gi = i - k;
         std::string tmp = "_G";
         if (gi < 10) tmp = "_G0";
         blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(gi);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'G';
         blocks_info[i].map2group = z; // global parity in a separate "group"
+      }
+      else
+      {
+        // Local parity L0..L(z-1)
+        const int li = i - k - r;
+        std::string tmp = "_L";
+        if (li < 10) tmp = "_L0";
+        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(li);
+        blocks_info[i].block_id = i;
+        blocks_info[i].block_type = 'L';
+        blocks_info[i].map2group = li; // one local parity per group
       }
     }
 
@@ -1261,7 +1261,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     cord_log() << "[CORD_PLACEMENT] Step1: r=" << r << " global parity → cluster " << global_cluster << ":";
     for (int i = 0; i < r; ++i)
     {
-      int bid = k + z + i;
+      int bid = k + i;
       place_block(bid, global_cluster);
       cord_log() << " G" << i << "(" << bid << ")";
     }
@@ -1282,14 +1282,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         int take = std::min(r, h);
         cord_log() << "[CORD_PLACEMENT] Step2: group " << g
                   << " min(r,h)=" << take << " data + L" << g
-                  << "(" << (k + g) << ") → cluster " << main_cluster << ":";
+                  << "(" << (k + r + g) << ") → cluster " << main_cluster << ":";
         for (int t = 0; t < take; ++t)
         {
           int bid = group_start + t;
           place_block(bid, main_cluster);
           cord_log() << " D" << bid;
         }
-        place_block(k + g, main_cluster);
+        place_block(k + r + g, main_cluster);
         cord_log() << " L" << g << "\n";
         consumed += take;
       }

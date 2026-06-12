@@ -372,6 +372,24 @@ namespace ECProject
               if (parity_local_b <= 0)
                 continue;
               int lc = block_cluster(stripe, Lb);
+
+              // 优化：如果该组所有被更新的数据块都和本地校验在同一集群，跳过 collector，
+              // 由 proxy 在机架内直接 XOR 更新本地校验（全局校验仍走 collector）。
+              bool all_co_located = true;
+              for (int d : blocks_same_local_group)
+              {
+                if (block_cluster(stripe, d) != lc)
+                {
+                  all_co_located = false;
+                  break;
+                }
+              }
+              if (all_co_located)
+              {
+                out.local_parity_in_rack_groups.insert(gnum);
+                continue; // skip STAR_CENTER_TO_LOCAL
+              }
+
               TrainLink L;
               L.src_block_id = best_c;
               L.dst_block_id = Lb;
