@@ -15,9 +15,10 @@
     <alpha>2</alpha>
     <!-- LRC: UniLRC; AzureLRC; OptimalLRC; UniformLRC; XueLRC -->
     <CodeType>XueLRC</CodeType>
-    <k>8</k>
-    <r>2</r>
+    <k>10</k>
     <z>2</z>
+    <r>2</r>
+   
     <!-- <CodeType>UniformLRC</CodeType>
     <k>30</k>
     <r>6</r>

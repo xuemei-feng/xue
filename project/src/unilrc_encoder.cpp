@@ -762,6 +762,9 @@ ECProject::get_multi_decode_plan(int k, int r, int z, std::string code_type, con
     else if(code_type == "AzureLRC"){
         gen_azure_lrc_matrix(gen_matrix, k, r, z);
     }
+    else if(code_type == "XueLRC"){
+        gen_azure_lrc_matrix(gen_matrix, k, z, r);  // z=本地(XOR), r=全局(RS), 交换
+    }
     else if(code_type == "OptimalLRC"){
         gen_optimal_lrc_matrix(gen_matrix, k, r, z);
     }

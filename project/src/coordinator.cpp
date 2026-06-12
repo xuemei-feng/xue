@@ -1476,7 +1476,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           if (g >= 0 && g < static_cast<int>(alt_group_resolved.size()) && alt_group_resolved[g])
           {
             // alt_group 已决议后，只清理互斥入口任务；
-            // 不能清理已选链路上的后续任务（alt_kind=2），否则会吞掉"中继第二跳"。
+            // 不能清理已选链路上的后续任务（alt_kind=2），否则会吞掉“中继第二跳”。
             const int kind = tasks[tid].alt_kind;
             if (kind == 1 || kind == 3)
             {
@@ -1937,7 +1937,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       std::map<std::pair<int, int>, std::vector<DataSliceUpdate>> class3_by_cluster_and_group;
       std::vector<TransferPlanDecision> decisions;
 
-      // 1) 找到此次请求涉及的"数据块更新"
+      // 1) 找到此次请求涉及的“数据块更新”
       for (const auto &entry : block_to_slice_sizes)
       {
         int block_id = entry.first;
@@ -2092,7 +2092,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         c2_i = c2_j;
       }
 
-      // 3) 第3类：仅在"同一 data cluster 且同一本地组"内按 offset 相交分组
+      // 3) 第3类：仅在“同一 data cluster 且同一本地组”内按 offset 相交分组
       for (auto &kv : class3_by_cluster_and_group)
       {
         std::vector<DataSliceUpdate> updates = kv.second;
@@ -2120,7 +2120,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           {
             // 第3类相交集合：
             //   (a) 发送各数据块增量到全局校验块cluster
-            //   (b) 再在"到本地校验cluster"和"到全局校验cluster"中择高带宽目标发送校验增量
+            //   (b) 再在“到本地校验cluster”和“到全局校验cluster”中择高带宽目标发送校验增量
             TransferPlanDecision d;
             d.hot_cluster = g.front().global_parity_cluster;
             d.reason = "class3-overlap: send data delta to global parity cluster, then choose parity path by max(data->local, global->local)";
@@ -2227,7 +2227,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
       log_append_route_decisions(decisions);
 
-      // 根据依赖 + 机架端口约束做时间调度，输出"谁先谁后、谁可并发"
+      // 根据依赖 + 机架端口约束做时间调度，输出“谁先谁后、谁可并发”
       std::vector<ScheduledTask> schedule = schedule_transfer_steps(decisions);
       log_append_schedule_visual(schedule);
       result.route_decisions = std::move(decisions);
@@ -2468,7 +2468,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                                  fmt_cluster_id(u0.data_cluster) + " 上 " + fmt_block_multi_slice_ranges(bid, sls) + " -> " +
                                      fmt_cluster_id(u0.global_parity_cluster) + " " + fmt_global_parity_block(gp_id), batch_sz});
             }
-            // 相交集合的 parity 传输采用"先并集后发送"：例如 [1,3] 与 [2,5] 合并为 [1,5]。
+            // 相交集合的 parity 传输采用“先并集后发送”：例如 [1,3] 与 [2,5] 合并为 [1,5]。
             bool same_group = true;
             const int base_group = g.front().group_id;
             const int base_local = g.front().local_parity_cluster;
@@ -2988,16 +2988,16 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   void CoordinatorImpl::initialize_xue_tripe_placement(Stripe *stripe)
   {
     // Xue placement definition:
-    // k: data blocks, r: local parity blocks (and local groups), z: global parity blocks.
+    // k: data blocks, z: local parity blocks (XOR, local groups), r: global parity blocks (RS).
     Block *blocks_info = new Block[stripe->n];
     assert(stripe->object_keys.size() == 1);
     assert(stripe->r > 0 && stripe->z > 0);
-    assert(stripe->k % stripe->r == 0 && "Xue placement requires k % r == 0");
+    assert(stripe->k % stripe->z == 0 && "Xue placement requires k % z == 0");
 
     const int k = stripe->k;
-    const int r = stripe->r; // local group number == local parity number
-    const int z = stripe->z; // global parity number
-    const int h = k / r;
+    const int z = stripe->z; // local parity number == local group number (XOR)
+    const int r = stripe->r; // global parity number (RS)
+    const int h = k / z;
     const int cluster_num = m_sys_config->ClusterNum;
     const int global_cluster_id = stripe->stripe_id % cluster_num;
     int cluster_cursor = (global_cluster_id + 1) % cluster_num;
@@ -3028,7 +3028,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     };
 
     // Build block metadata with Xue numbering:
-    // [0, k): data, [k, k + r): local parity, [k + r, k + r + z): global parity.
+    // [0, k): data, [k, k + z): local parity (XOR), [k + z, k + z + r): global parity (RS).
     for (int i = 0; i < stripe->n; i++)
     {
       blocks_info[i].block_size = m_sys_config->BlockSize;
@@ -3044,7 +3044,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         blocks_info[i].block_type = 'D';
         blocks_info[i].map2group = i / h;
       }
-      else if (i < k + r)
+      else if (i < k + z)
       {
         const int local_idx = i - k;
         std::string tmp = "_L";
@@ -3057,36 +3057,36 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       else
       {
-        const int global_idx = i - k - r;
+        const int global_idx = i - k - z;
         std::string tmp = "_G";
         if (global_idx < 10)
           tmp = "_G0";
         blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(global_idx);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'G';
-        blocks_info[i].map2group = r;
+        blocks_info[i].map2group = z;
       }
     }
 
-    // Step 1: place all global parity blocks in one rotating cluster.
-    for (int i = 0; i < z; i++)
+    // Step 1: place all global parity blocks (RS) in one rotating cluster.
+    for (int i = 0; i < r; i++)
     {
-      place_block(k + r + i, global_cluster_id);
+      place_block(k + z + i, global_cluster_id);
     }
 
     // Track remaining data range per local group after Steps 2-4.
-    std::vector<int> remain_start(r, 0);
-    std::vector<int> remain_count(r, 0);
+    std::vector<int> remain_start(z, 0);
+    std::vector<int> remain_count(z, 0);
 
     // Step 2-4 per local group.
-    for (int g = 0; g < r; g++)
+    for (int g = 0; g < z; g++)
     {
       int group_data_begin = g * h;
       int consumed = 0;
 
-      // Step 2: place z data + local parity in one cluster for this local group.
+      // Step 2: place r data + local parity in one cluster for this local group.
       int primary_cluster_id = next_cluster(true);
-      int first_data_num = std::min(z, h);
+      int first_data_num = std::min(r, h);
       for (int t = 0; t < first_data_num; t++)
       {
         place_block(group_data_begin + t, primary_cluster_id);
@@ -3103,24 +3103,24 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       place_block(group_data_begin + consumed, global_cluster_id);
       consumed++;
 
-      // Step 4: place each z+1 data blocks into one cluster.
-      while (consumed + (z + 1) <= h)
+      // Step 4: place each r+1 data blocks into one cluster.
+      while (consumed + (r + 1) <= h)
       {
         int chunk_cluster_id = next_cluster(true);
-        for (int t = 0; t < z + 1; t++)
+        for (int t = 0; t < r + 1; t++)
         {
           place_block(group_data_begin + consumed + t, chunk_cluster_id);
         }
-        consumed += z + 1;
+        consumed += r + 1;
       }
 
       remain_start[g] = group_data_begin + consumed;
       remain_count[g] = h - consumed;
     }
 
-    // Step 5: m = (h - z - 1) mod (z + 1), aggregate leftovers from theta groups.
+    // Step 5: m = h - r - 1, aggregate leftovers from theta groups.
     int m = 0;
-    for (int g = 0; g < r; g++)
+    for (int g = 0; g < z; g++)
     {
       if (remain_count[g] > 0)
       {
@@ -3133,17 +3133,17 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       int theta = 1;
       if (m > 1)
       {
-        theta = std::max(1, z / (m - 1));
+        theta = std::max(1, r / (m - 1));
       }
       else
       {
-        theta = r;
+        theta = z;
       }
-      for (int g = 0; g < r;)
+      for (int g = 0; g < z;)
       {
         int batch_cluster_id = next_cluster(true);
         int grouped = 0;
-        while (g < r && grouped < theta)
+        while (g < z && grouped < theta)
         {
           for (int t = 0; t < remain_count[g]; t++)
           {
@@ -3224,7 +3224,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return false;
     }
 
-    // 新语义：输入区间直接按"条带内顺序拼接的数据块地址空间"映射：
+    // 新语义：输入区间直接按“条带内顺序拼接的数据块地址空间”映射：
     // block_id = logical_offset / BlockSize, block_offset = logical_offset % BlockSize。
     const int logical_end = curr_logical_offset + append_size - 1;
     int pos = curr_logical_offset;
@@ -3284,15 +3284,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return append_plans;
     }
 
-    // xue_update: 统一封装"传输路径选择 + 时间调度"
+    // xue_update: 统一封装“传输路径选择 + 时间调度”
     XueUpdateResult update_result = xue_update(stripe, block_to_slice_sizes, m_sys_config->CodeType);
     const std::map<int, int> &group_to_ingress_cluster = update_result.group_to_ingress_cluster;
 
-    // XueLRC: number of local groups is stripe->r (z is the number of global parity blocks).
+    // XueLRC: number of local groups is stripe->z (r is the number of global parity blocks).
     // Other code types: number of local groups is stripe->z.
-    const int xue_num_groups =
-        (m_sys_config->CodeType == "XueLRC") ? stripe->r : stripe->z;
-    for (int i = 0; i < xue_num_groups; i++)
+    const int xue_num_groups_gen =
+        (m_sys_config->CodeType == "XueLRC") ? stripe->z : stripe->z;
+    for (int i = 0; i < xue_num_groups_gen; i++)
     {
       proxy_proto::AppendStripeDataPlacement plan;
       plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, i));
@@ -3320,8 +3320,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
 
       // Add data slices to plan
-      for (int j = i * stripe->k / xue_num_groups;
-           j < (i + 1) * stripe->k / xue_num_groups; j++)
+      for (int j = i * stripe->k / xue_num_groups_gen;
+           j < (i + 1) * stripe->k / xue_num_groups_gen; j++)
       {
         if (block_to_slice_sizes.find(j) != block_to_slice_sizes.end())
         {
@@ -3333,12 +3333,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
       if (m_sys_config->CodeType == "XueLRC")
       {
-        // XueLRC: local parity block for group i is k + i.
+        // XueLRC: local parity block (XOR) for group i is k + i.
         addBlockToAppendPlan(plan, stripe->blocks[stripe->k + i],
                              m_node_table[stripe->blocks[stripe->k + i]->map2node],
                              block_to_slice_sizes.at(stripe->k + i));
-        // XueLRC: all global parity blocks (k+r through k+r+z-1) for every group.
-        for (int j = stripe->k + stripe->r; j < stripe->k + stripe->r + stripe->z; j++)
+        // XueLRC: all global parity blocks (RS, k+z through k+z+r-1) for every group.
+        for (int j = stripe->k + stripe->z; j < stripe->k + stripe->z + stripe->r; j++)
         {
           addBlockToAppendPlan(plan, stripe->blocks[j],
                                m_node_table[stripe->blocks[j]->map2node],
@@ -3669,7 +3669,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "empty ranges");
     }
-    // 将多个不连续区间视为"同一时刻的一次联合更新"，并保留块内离散切片（稀疏更新）。
+    // 将多个不连续区间视为“同一时刻的一次联合更新”，并保留块内离散切片（稀疏更新）。
     std::map<int, std::vector<std::pair<int, int>>> block_to_slices;
     const int unit_size = static_cast<int>(m_sys_config->UnitSize);
     const int block_size = static_cast<int>(m_sys_config->BlockSize);
@@ -3777,7 +3777,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     // std::cout << std::endl;
     //debug
-    // std::cout << "start xue_update_sparse" << std::endl;
     XueUpdateResult update_result = xue_update_sparse(stripe, block_to_slices, m_sys_config->CodeType);
     const std::map<int, int> &group_to_ingress_cluster = update_result.group_to_ingress_cluster;
     const std::map<int, Class1RelayRoute> &group_to_class1_relay = update_result.group_to_class1_relay;
@@ -3791,15 +3790,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     bool global_data_forward_assigned = false;
     auto add_all_global_parity_metadata = [&](proxy_proto::AppendStripeDataPlacement &plan,
                                               const auto &add_block_slices_fn) {
-      for (int j = stripe->k + stripe->r; j < stripe->k + stripe->r + stripe->z; j++)
+      for (int j = stripe->k + stripe->z; j < stripe->k + stripe->z + stripe->r; j++)
       {
         add_block_slices_fn(j, false);
       }
     };
-    // XueLRC: number of local groups is stripe->r (z is the number of global parity blocks).
+    // XueLRC: number of local groups is stripe->z (r is the number of global parity blocks).
     // Other code types: number of local groups is stripe->z.
     const int xue_num_groups =
-        (m_sys_config->CodeType == "XueLRC") ? stripe->r : stripe->z;
+        (m_sys_config->CodeType == "XueLRC") ? stripe->z : stripe->z;
     for (int i = 0; i < xue_num_groups; i++)
     {
       if (!xue_plan_group_has_data_update(stripe, i, xue_num_groups, block_to_slices))
@@ -5123,7 +5122,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       coordinator_proto::ReplyProxyIPsPorts *proxyIPPort)
   {
 
-    //std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     int stripe_id = std::stoi(keyClient->key());
     Stripe &t_stripe = m_stripe_table[stripe_id];
     int k = t_stripe.k;
@@ -5166,9 +5164,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       thread.detach();
     }
-    /*std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-    std::cout << "[GET] getting stripe " << stripe_id << " took " << duration.count() << " seconds" << std::endl;*/
 
     return grpc::Status::OK;
   }
@@ -5581,7 +5576,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     
     unsigned char *res = static_cast<unsigned char*>(std::aligned_alloc(32, m_sys_config->BlockSize));
-    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     if(is_azure_like_code(code_type)){
       decode_azure_lrc(k, r, z, block_num, &recovery_block_ids, recovery_data_ptrs.data(), res, block_size, failed_block_id);
     }
@@ -5598,10 +5592,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       std::cout << "[Coordinator] decodeTest: unknown code type!" << std::endl;
       return grpc::Status(grpc::INVALID_ARGUMENT, "unknown code type");
     }
-    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-    std::cout << "[Coordinator] decodeTest took " << duration.count() << " seconds" << std::endl;
-    degradedReadReply->set_decode_time(duration.count());
     delete[] res;
     delete[] recovery_data;
 
@@ -6321,7 +6311,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     double start_time = std::chrono::duration_cast<std::chrono::duration<double>>(start.time_since_epoch()).count();
     degradedReadReply->set_grpc_start_time(start_time);
-    std::cout << start_time << std::endl;
     int stripe_id = std::stoi(keyClient->key().substr(0, keyClient->key().find('_')));
     int failed_block_id = std::stoi(keyClient->key().substr(keyClient->key().find('_') + 1));
     std::string client_ip = keyClient->clientip();

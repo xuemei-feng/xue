@@ -1333,8 +1333,8 @@ namespace ECProject
     const int z0 = m_sys_config->z;
     const int slice_num = placement.blockkeys_size();
     const bool xue_lrc = m_sys_config->CodeType == "XueLRC";
-    const int global_begin = xue_lrc ? (k0 + r0) : k0;
-    const int global_end = xue_lrc ? (k0 + r0 + z0) : (k0 + r0);
+    const int global_begin = xue_lrc ? (k0 + z0) : k0;
+    const int global_end = xue_lrc ? (k0 + z0 + r0) : (k0 + r0);
     const int global_count = global_end - global_begin;
 
     std::vector<int> global_parity_indices;
@@ -1368,7 +1368,10 @@ namespace ECProject
     }
     const int m = k0 + r0;
     std::vector<unsigned char> enc(static_cast<size_t>((m + z0) * k0));
-    gen_azure_lrc_matrix(enc.data(), k0, r0, z0);
+    if (xue_lrc)
+      gen_azure_lrc_matrix(enc.data(), k0, z0, r0);
+    else
+      gen_azure_lrc_matrix(enc.data(), k0, r0, z0);
 
     using RangeKey = std::pair<int, int>;
     std::map<RangeKey, std::vector<int>> data_slices_by_range;
@@ -1487,8 +1490,8 @@ namespace ECProject
     const int z0 = m_sys_config->z;
     const int slice_num = placement.blockkeys_size();
     const bool xue_lrc = m_sys_config->CodeType == "XueLRC";
-    const int global_begin = xue_lrc ? (k0 + r0) : k0;
-    const int global_end = xue_lrc ? (k0 + r0 + z0) : (k0 + r0);
+    const int global_begin = xue_lrc ? (k0 + z0) : k0;
+    const int global_end = xue_lrc ? (k0 + z0 + r0) : (k0 + r0);
     const int global_count = global_end - global_begin;
 
     std::vector<int> global_parity_indices;
@@ -1522,7 +1525,10 @@ namespace ECProject
     }
     const int m = k0 + r0;
     std::vector<unsigned char> enc(static_cast<size_t>((m + z0) * k0));
-    gen_azure_lrc_matrix(enc.data(), k0, r0, z0);
+    if (xue_lrc)
+      gen_azure_lrc_matrix(enc.data(), k0, z0, r0);
+    else
+      gen_azure_lrc_matrix(enc.data(), k0, r0, z0);
 
     using RangeKey = std::pair<int, int>;
     std::map<RangeKey, std::vector<int>> data_slices_by_range;
@@ -1629,7 +1635,8 @@ namespace ECProject
 
   static std::vector<ParityDeltaSlice> compute_local_parity_delta_slices(
       int k0, int r0, int z0, const proxy_proto::AppendStripeDataPlacement &placement,
-      const std::vector<char *> &slices, int tcp_slice_count, int local_parity_plan_idx)
+      const std::vector<char *> &slices, int tcp_slice_count, int local_parity_plan_idx,
+      bool xue_lrc = false)
   {
     std::vector<ParityDeltaSlice> out;
     if (local_parity_plan_idx < 0 || tcp_slice_count <= 0)
@@ -1638,7 +1645,7 @@ namespace ECProject
     }
     const int slice_num = placement.blockids_size();
     const int local_begin = k0;
-    const int local_end = k0 + r0;
+    const int local_end = xue_lrc ? (k0 + z0) : (k0 + r0);
     const int local_count = local_end - local_begin;
     const int local_bid = placement.blockids(local_parity_plan_idx);
     const int li = local_bid - local_begin;
@@ -1654,7 +1661,10 @@ namespace ECProject
     }
     const int m = k0 + r0;
     std::vector<unsigned char> enc(static_cast<size_t>((m + z0) * k0));
-    gen_azure_lrc_matrix(enc.data(), k0, r0, z0);
+    if (xue_lrc)
+      gen_azure_lrc_matrix(enc.data(), k0, z0, r0);
+    else
+      gen_azure_lrc_matrix(enc.data(), k0, r0, z0);
 
     using RangeKey = std::pair<int, int>;
     std::map<RangeKey, std::vector<int>> data_slices_by_range;
@@ -1682,7 +1692,7 @@ namespace ECProject
       for (int j : range_kv.second)
       {
         const int bid = placement.blockids(j);
-        const int matrix_row = k0 + li;
+        const int matrix_row = xue_lrc ? (k0 + z0 + li) : (k0 + li);
         const unsigned char coeff = enc[static_cast<size_t>(matrix_row * k0 + bid)];
         if (coeff == 0)
         {
@@ -1792,8 +1802,9 @@ namespace ECProject
     {
       return false;
     }
+    const bool xl = m_sys_config->CodeType == "XueLRC";
     std::vector<ParityDeltaSlice> raw =
-        compute_local_parity_delta_slices(k0, r0, z0, placement, data_delta_slices, tcp_slice_count, lp_idx);
+        compute_local_parity_delta_slices(k0, r0, z0, placement, data_delta_slices, tcp_slice_count, lp_idx, xl);
     if (raw.empty())
     {
       return false;
@@ -1878,8 +1889,9 @@ namespace ECProject
     {
       return stats;
     }
+    const bool xl2 = m_sys_config->CodeType == "XueLRC";
     std::vector<ParityDeltaSlice> raw =
-        compute_local_parity_delta_slices(k0, r0, z0, placement, slices, tcp_slice_count, lp_idx);
+        compute_local_parity_delta_slices(k0, r0, z0, placement, slices, tcp_slice_count, lp_idx, xl2);
     const std::vector<ParityDeltaSlice> merged = merge_parity_delta_slices(std::move(raw));
     const int local_bid = placement.blockids(lp_idx);
     const std::string &pbk = placement.blockkeys(lp_idx);
@@ -2951,11 +2963,9 @@ namespace ECProject
           const int bid = placement_copy->blockids(j);
           const bool xue_data_path = (append_mode_str == "XUE_UPDATE" && !slices_are_delta && bid >= 0 &&
                                       bid < m_sys_config->k);
-          const int xue_global_begin = (m_sys_config->CodeType == "XueLRC")
-                                           ? (m_sys_config->k + m_sys_config->r)
-                                           : m_sys_config->k;
+          const int xue_global_begin = m_sys_config->k;
           const int xue_global_end = (m_sys_config->CodeType == "XueLRC")
-                                         ? (m_sys_config->k + m_sys_config->r + m_sys_config->z)
+                                         ? (m_sys_config->k + m_sys_config->z)
                                          : (m_sys_config->k + m_sys_config->r);
           const bool xue_global_parity_deferred = (append_mode_str == "XUE_UPDATE" && azure_like &&
                                                    bid >= xue_global_begin && bid < xue_global_end &&
