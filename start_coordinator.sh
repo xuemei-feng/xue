@@ -1,17 +1,19 @@
 #!/bin/bash
 
 USER="root"
+COORDINATOR_NODE="10.10.1.2"
 
 REMOTE_COMMAND="cd /users/xue/xue && sh run_coordinator.sh"
-
 PARALLEL=5
 
-echo "Running command on all nodes..."
-pdsh -R ssh -w 10.10.1.2 -l $USER -f $PARALLEL "$REMOTE_COMMAND"
+# Clean up stale remote log before starting
+ssh ${USER}@${COORDINATOR_NODE} "rm -f /tmp/cord_coordinator_update.log" 2>/dev/null || true
+
+echo "Running coordinator on ${COORDINATOR_NODE}..."
+pdsh -R ssh -w ${COORDINATOR_NODE} -l $USER -f $PARALLEL "$REMOTE_COMMAND"
 
 if [ $? -eq 0 ]; then
-	echo "Command executed successfully on all nodes."
-	echo "Coordinator log file: /tmp/run_coordinator.log"
+    echo "Coordinator exited successfully."
 else
-	echo "Failed to execute command on some nodes."
+    echo "Coordinator exited with error."
 fi

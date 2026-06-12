@@ -1,0 +1,939 @@
+[CORD_ROUTE] stripe_id=147 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 5: [16384,65536)
+  block 6: [49152,65536)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [intersecting_group] 数据块: 5 6
+[CORD_ROUTE] 算法2链路: |U|=1 links=4:
+    [0] STAR_DATA_TO_CENTER 数据块 5->10 集群 4->5 字节=49152 预估=0.00246875s 组=0
+    [1] STAR_DATA_TO_CENTER 数据块 6->10 集群 4->5 字节=16384 预估=0.00215625s 组=0
+    [2] STAR_CENTER_TO_GLOBAL 数据块 10->11 集群 5->5 字节=49152 预估=0.00056875s 组=0
+    [3] STAR_CENTER_TO_LOCAL 数据块 10->13 集群 5->4 字节=49152 预估=0.00246875s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=20 slot_unit_bytes=8192 center_global_block=10
+  时隙 0: links [0]
+  时隙 1: links [0]
+  时隙 2: links [0]
+  时隙 3: links [0]
+  时隙 4: links [0]
+  时隙 5: links [0]
+  时隙 6: links [1]
+  时隙 7: links [1]
+  时隙 8: links [2]
+  时隙 9: links [2]
+  时隙 10: links [2]
+  时隙 11: links [2]
+  时隙 12: links [2]
+  时隙 13: links [2]
+  时隙 14: links [3]
+  时隙 15: links [3]
+  时隙 16: links [3]
+  时隙 17: links [3]
+  时隙 18: links [3]
+  时隙 19: links [3]
+[CORD_ROUTE] CordTransferPlan: steps=4 total_rounds=4 plan_key=cord_xfer_147_4345929018403285 (raw algorithm2 timeslots=20)
+  step 0: STAR_DATA_TO_CENTER 集群 4->5 数据块 5->10 chunk=[16384,65536) 字节=49152 slot=0 group=0 payload=DATA_DELTA
+  step 1: STAR_DATA_TO_CENTER 集群 4->5 数据块 6->10 chunk=[49152,65536) 字节=16384 slot=6 group=0 payload=DATA_DELTA
+  step 2: STAR_CENTER_TO_GLOBAL 集群 5->5 数据块 10->11 chunk=[0,49152) 字节=49152 slot=8 group=0 payload=PARITY_DELTA
+  step 3: STAR_CENTER_TO_LOCAL 集群 5->4 数据块 10->13 chunk=[0,49152) 字节=49152 slot=14 group=0 payload=PARITY_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=147 plan_key=cord_xfer_147_4345929018403285 total_steps=4 total_rounds=4 k=10 g_m=-805296352 l=32646 n=-805263696
+  --- round 0 (slot 0) ---
+    step 0: STAR_DATA_TO_CENTER 集群4->5 数据块5->10 chunk=[16384,65536) 字节=49152 预估=0.00246875s group=0 payload=DATA_DELTA
+  --- round 1 (slot 6) ---
+    step 1: STAR_DATA_TO_CENTER 集群4->5 数据块6->10 chunk=[49152,65536) 字节=16384 预估=0.00215625s group=0 payload=DATA_DELTA
+  --- round 2 (slot 8) ---
+    step 2: STAR_CENTER_TO_GLOBAL 集群5->5 数据块10->11 chunk=[0,49152) 字节=49152 预估=0.00056875s group=0 payload=PARITY_DELTA
+  --- round 3 (slot 14) ---
+    step 3: STAR_CENTER_TO_LOCAL 集群5->4 数据块10->13 chunk=[0,49152) 字节=49152 预估=0.00246875s group=0 payload=PARITY_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_147_4345929018403285
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_147_4345929018403285 stripe_id=147 steps=4 rounds=4 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 4 (10.10.1.7:50409)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 4 (10.10.1.7:50409)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_147_4345929018403285
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_147_4345929018403285 cluster=4 proxy_endpoint=10.10.1.7:50409 pure_xfer_sec=0.0218124 wall_start_unix_ms=1781253122925 wall_end_unix_ms=1781253122947 proxy_wall_span_sec=0.022
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_147_4345929018403285 cluster=5 proxy_endpoint=10.10.1.8:50410 pure_xfer_sec=0.0466891 wall_start_unix_ms=1781253122927 wall_end_unix_ms=1781253122974 proxy_wall_span_sec=0.047
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.049 plan_key=cord_xfer_147_4345929018403285 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.0466891 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=358 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 0: [0,32768)
+  block 1: [0,65536)
+  block 2: [0,65536)
+  block 3: [0,65536)
+  block 4: [0,65536)
+  block 5: [0,65536)
+  block 6: [0,65536)
+  block 7: [0,65536)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [intersecting_group] 数据块: 0 1 2 3 4 5 6 7
+[CORD_ROUTE] 算法2链路: |U|=1 links=13:
+    [0] STAR_DATA_TO_CENTER 数据块 0->10 集群 4->0 字节=32768 预估=0.0023125s 组=0
+    [1] STAR_DATA_TO_CENTER 数据块 1->11 集群 4->0 字节=65536 预估=0.002625s 组=0
+    [2] STAR_DATA_TO_CENTER 数据块 2->11 集群 4->0 字节=65536 预估=0.002625s 组=0
+    [3] STAR_DATA_TO_CENTER 数据块 3->10 集群 4->0 字节=65536 预估=0.002625s 组=0
+    [4] STAR_DATA_TO_CENTER 数据块 4->10 集群 4->0 字节=65536 预估=0.002625s 组=0
+    [5] STAR_DATA_TO_CENTER 数据块 5->10 集群 5->0 字节=65536 预估=0.002625s 组=0
+    [6] STAR_DATA_TO_CENTER 数据块 6->10 集群 5->0 字节=65536 预估=0.002625s 组=0
+    [7] STAR_DATA_TO_CENTER 数据块 7->10 集群 5->0 字节=65536 预估=0.002625s 组=0
+    [8] STAR_CENTER_TO_GLOBAL 数据块 10->11 集群 0->0 字节=65536 预估=0.000725s 组=0
+    [9] STAR_CENTER_TO_LOCAL 数据块 10->12 集群 0->4 字节=65536 预估=0.002625s 组=0
+    [10] STAR_CENTER_TO_LOCAL 数据块 10->13 集群 0->5 字节=65536 预估=0.002625s 组=0
+    [11] STAR_CENTER_TO_GLOBAL 数据块 11->10 集群 0->0 字节=65536 预估=0.000725s 组=0
+    [12] STAR_CENTER_TO_LOCAL 数据块 11->12 集群 0->4 字节=65536 预估=0.002625s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=92 slot_unit_bytes=8192 center_global_block=10
+  时隙 0: links [0]
+  时隙 1: links [0]
+  时隙 2: links [0]
+  时隙 3: links [0]
+  时隙 4: links [1]
+  时隙 5: links [1]
+  时隙 6: links [1]
+  时隙 7: links [1]
+  时隙 8: links [1]
+  时隙 9: links [1]
+  时隙 10: links [1]
+  时隙 11: links [1]
+  时隙 12: links [2]
+  时隙 13: links [2]
+  时隙 14: links [2]
+  时隙 15: links [2]
+  时隙 16: links [2]
+  时隙 17: links [2]
+  时隙 18: links [2]
+  时隙 19: links [2]
+  时隙 20: links [12,3]
+  时隙 21: links [12,3]
+  时隙 22: links [12,3]
+  时隙 23: links [12,3]
+  时隙 24: links [12,3]
+  时隙 25: links [12,3]
+  时隙 26: links [12,3]
+  时隙 27: links [12,3]
+  时隙 28: links [11]
+  时隙 29: links [11]
+  时隙 30: links [11]
+  时隙 31: links [11]
+  时隙 32: links [11]
+  时隙 33: links [11]
+  时隙 34: links [11]
+  时隙 35: links [11]
+  时隙 36: links [4]
+  时隙 37: links [4]
+  时隙 38: links [4]
+  时隙 39: links [4]
+  时隙 40: links [4]
+  时隙 41: links [4]
+  时隙 42: links [4]
+  时隙 43: links [4]
+  时隙 44: links [5]
+  时隙 45: links [5]
+  时隙 46: links [5]
+  时隙 47: links [5]
+  时隙 48: links [5]
+  时隙 49: links [5]
+  时隙 50: links [5]
+  时隙 51: links [5]
+  时隙 52: links [6]
+  时隙 53: links [6]
+  时隙 54: links [6]
+  时隙 55: links [6]
+  时隙 56: links [6]
+  时隙 57: links [6]
+  时隙 58: links [6]
+  时隙 59: links [6]
+  时隙 60: links [7]
+  时隙 61: links [7]
+  时隙 62: links [7]
+  时隙 63: links [7]
+  时隙 64: links [7]
+  时隙 65: links [7]
+  时隙 66: links [7]
+  时隙 67: links [7]
+  时隙 68: links [8]
+  时隙 69: links [8]
+  时隙 70: links [8]
+  时隙 71: links [8]
+  时隙 72: links [8]
+  时隙 73: links [8]
+  时隙 74: links [8]
+  时隙 75: links [8]
+  时隙 76: links [9]
+  时隙 77: links [9]
+  时隙 78: links [9]
+  时隙 79: links [9]
+  时隙 80: links [9]
+  时隙 81: links [9]
+  时隙 82: links [9]
+  时隙 83: links [9]
+  时隙 84: links [10]
+  时隙 85: links [10]
+  时隙 86: links [10]
+  时隙 87: links [10]
+  时隙 88: links [10]
+  时隙 89: links [10]
+  时隙 90: links [10]
+  时隙 91: links [10]
+[CORD_ROUTE] CordTransferPlan: steps=13 total_rounds=12 plan_key=cord_xfer_358_4345929095962170 (raw algorithm2 timeslots=92)
+  step 0: STAR_DATA_TO_CENTER 集群 4->0 数据块 0->10 chunk=[0,32768) 字节=32768 slot=0 group=0 payload=DATA_DELTA
+  step 1: STAR_DATA_TO_CENTER 集群 4->0 数据块 1->11 chunk=[0,65536) 字节=65536 slot=4 group=0 payload=DATA_DELTA
+  step 2: STAR_DATA_TO_CENTER 集群 4->0 数据块 2->11 chunk=[0,65536) 字节=65536 slot=12 group=0 payload=DATA_DELTA
+  step 3: STAR_CENTER_TO_LOCAL 集群 0->4 数据块 11->12 chunk=[0,65536) 字节=65536 slot=20 group=0 payload=PARITY_DELTA
+  step 4: STAR_DATA_TO_CENTER 集群 4->0 数据块 3->10 chunk=[0,65536) 字节=65536 slot=20 group=0 payload=DATA_DELTA
+  step 5: STAR_CENTER_TO_GLOBAL 集群 0->0 数据块 11->10 chunk=[0,65536) 字节=65536 slot=28 group=0 payload=PARITY_DELTA
+  step 6: STAR_DATA_TO_CENTER 集群 4->0 数据块 4->10 chunk=[0,65536) 字节=65536 slot=36 group=0 payload=DATA_DELTA
+  step 7: STAR_DATA_TO_CENTER 集群 5->0 数据块 5->10 chunk=[0,65536) 字节=65536 slot=44 group=0 payload=DATA_DELTA
+  step 8: STAR_DATA_TO_CENTER 集群 5->0 数据块 6->10 chunk=[0,65536) 字节=65536 slot=52 group=0 payload=DATA_DELTA
+  step 9: STAR_DATA_TO_CENTER 集群 5->0 数据块 7->10 chunk=[0,65536) 字节=65536 slot=60 group=0 payload=DATA_DELTA
+  step 10: STAR_CENTER_TO_GLOBAL 集群 0->0 数据块 10->11 chunk=[0,65536) 字节=65536 slot=68 group=0 payload=PARITY_DELTA
+  step 11: STAR_CENTER_TO_LOCAL 集群 0->4 数据块 10->12 chunk=[0,65536) 字节=65536 slot=76 group=0 payload=PARITY_DELTA
+  step 12: STAR_CENTER_TO_LOCAL 集群 0->5 数据块 10->13 chunk=[0,65536) 字节=65536 slot=84 group=0 payload=PARITY_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=358 plan_key=cord_xfer_358_4345929095962170 total_steps=13 total_rounds=12 k=10 g_m=-1275046304 l=32646 n=-1275013648
+  --- round 0 (slot 0) ---
+    step 0: STAR_DATA_TO_CENTER 集群4->0 数据块0->10 chunk=[0,32768) 字节=32768 预估=0.0023125s group=0 payload=DATA_DELTA
+  --- round 1 (slot 4) ---
+    step 1: STAR_DATA_TO_CENTER 集群4->0 数据块1->11 chunk=[0,65536) 字节=65536 预估=0.002625s group=0 payload=DATA_DELTA
+  --- round 2 (slot 12) ---
+    step 2: STAR_DATA_TO_CENTER 集群4->0 数据块2->11 chunk=[0,65536) 字节=65536 预估=0.002625s group=0 payload=DATA_DELTA
+  --- round 3 (slot 20) ---
+    step 3: STAR_CENTER_TO_LOCAL 集群0->4 数据块11->12 chunk=[0,65536) 字节=65536 预估=0.002625s group=0 payload=PARITY_DELTA
+    step 4: STAR_DATA_TO_CENTER 集群4->0 数据块3->10 chunk=[0,65536) 字节=65536 预估=0.002625s group=0 payload=DATA_DELTA
+  --- round 4 (slot 28) ---
+    step 5: STAR_CENTER_TO_GLOBAL 集群0->0 数据块11->10 chunk=[0,65536) 字节=65536 预估=0.000725s group=0 payload=PARITY_DELTA
+  --- round 5 (slot 36) ---
+    step 6: STAR_DATA_TO_CENTER 集群4->0 数据块4->10 chunk=[0,65536) 字节=65536 预估=0.002625s group=0 payload=DATA_DELTA
+  --- round 6 (slot 44) ---
+    step 7: STAR_DATA_TO_CENTER 集群5->0 数据块5->10 chunk=[0,65536) 字节=65536 预估=0.002625s group=0 payload=DATA_DELTA
+  --- round 7 (slot 52) ---
+    step 8: STAR_DATA_TO_CENTER 集群5->0 数据块6->10 chunk=[0,65536) 字节=65536 预估=0.002625s group=0 payload=DATA_DELTA
+  --- round 8 (slot 60) ---
+    step 9: STAR_DATA_TO_CENTER 集群5->0 数据块7->10 chunk=[0,65536) 字节=65536 预估=0.002625s group=0 payload=DATA_DELTA
+  --- round 9 (slot 68) ---
+    step 10: STAR_CENTER_TO_GLOBAL 集群0->0 数据块10->11 chunk=[0,65536) 字节=65536 预估=0.000725s group=0 payload=PARITY_DELTA
+  --- round 10 (slot 76) ---
+    step 11: STAR_CENTER_TO_LOCAL 集群0->4 数据块10->12 chunk=[0,65536) 字节=65536 预估=0.002625s group=0 payload=PARITY_DELTA
+  --- round 11 (slot 84) ---
+    step 12: STAR_CENTER_TO_LOCAL 集群0->5 数据块10->13 chunk=[0,65536) 字节=65536 预估=0.002625s group=0 payload=PARITY_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_358_4345929095962170
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_358_4345929095962170 stripe_id=358 steps=13 rounds=12 clusters_involved=3
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 0 (10.10.1.3:50405)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 4 (10.10.1.7:50409)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 0 (10.10.1.3:50405)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 4 (10.10.1.7:50409)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_358_4345929095962170
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_358_4345929095962170 cluster=0 proxy_endpoint=10.10.1.3:50405 pure_xfer_sec=0.149933 wall_start_unix_ms=1781253123051 wall_end_unix_ms=1781253123201 proxy_wall_span_sec=0.15
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_358_4345929095962170 cluster=4 proxy_endpoint=10.10.1.7:50409 pure_xfer_sec=0.0825773 wall_start_unix_ms=1781253123052 wall_end_unix_ms=1781253123134 proxy_wall_span_sec=0.082
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_358_4345929095962170 cluster=5 proxy_endpoint=10.10.1.8:50410 pure_xfer_sec=0.0490361 wall_start_unix_ms=1781253123053 wall_end_unix_ms=1781253123102 proxy_wall_span_sec=0.049
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.15 plan_key=cord_xfer_358_4345929095962170 joined_proxies=3 timing_samples=3 max_proxy_pure_xfer_sec=0.149933 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=359 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 0: [32768,65536)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 0
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 0->10 集群 5->1 字节=32768 预估=0.0023125s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 1->1 字节=32768 预估=0.0004125s 组=0
+    [2] MST_FORWARD 数据块 0->12 集群 5->5 字节=32768 预估=0.0004125s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=8 slot_unit_bytes=8192
+  时隙 0: links [1,2]
+  时隙 1: links [1,2]
+  时隙 2: links [1,2]
+  时隙 3: links [1,2]
+  时隙 4: links [0]
+  时隙 5: links [0]
+  时隙 6: links [0]
+  时隙 7: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_359_4345929324817502 (raw algorithm2 timeslots=8)
+  step 0: MST_FORWARD 集群 1->1 数据块 10->11 chunk=[0,32768) 字节=32768 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 5->5 数据块 0->12 chunk=[0,32768) 字节=32768 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 5->1 数据块 0->10 chunk=[0,32768) 字节=32768 slot=4 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=359 plan_key=cord_xfer_359_4345929324817502 total_steps=3 total_rounds=2 k=10 g_m=-335534496 l=32646 n=-335501840
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群1->1 数据块10->11 chunk=[0,32768) 字节=32768 预估=0.0004125s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群5->5 数据块0->12 chunk=[0,32768) 字节=32768 预估=0.0004125s group=0 payload=DATA_DELTA
+  --- round 1 (slot 4) ---
+    step 2: MST_FORWARD 集群5->1 数据块0->10 chunk=[0,32768) 字节=32768 预估=0.0023125s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_359_4345929324817502
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_359_4345929324817502 stripe_id=359 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 1 (10.10.1.4:50406)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 1 (10.10.1.4:50406)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_359_4345929324817502
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_359_4345929324817502 cluster=1 proxy_endpoint=10.10.1.4:50406 pure_xfer_sec=3.6167e-05 wall_start_unix_ms=1781253123226 wall_end_unix_ms=1781253123226 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_359_4345929324817502 cluster=5 proxy_endpoint=10.10.1.8:50410 pure_xfer_sec=0.0270547 wall_start_unix_ms=1781253123228 wall_end_unix_ms=1781253123255 proxy_wall_span_sec=0.027
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.029 plan_key=cord_xfer_359_4345929324817502 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.0270547 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=153 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 7: [28672,36864)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 7
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 7->10 集群 4->5 字节=8192 预估=0.00207813s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 5->5 字节=8192 预估=0.000178125s 组=0
+    [2] MST_FORWARD 数据块 7->13 集群 4->4 字节=8192 预估=0.000178125s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=2 slot_unit_bytes=8192
+  时隙 0: links [2,1]
+  时隙 1: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_153_4345929374912615 (raw algorithm2 timeslots=2)
+  step 0: MST_FORWARD 集群 4->4 数据块 7->13 chunk=[0,8192) 字节=8192 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 5->5 数据块 10->11 chunk=[0,8192) 字节=8192 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 4->5 数据块 7->10 chunk=[0,8192) 字节=8192 slot=1 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=153 plan_key=cord_xfer_153_4345929374912615 total_steps=3 total_rounds=2 k=10 g_m=-1677708064 l=32646 n=-1677675408
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群4->4 数据块7->13 chunk=[0,8192) 字节=8192 预估=0.000178125s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群5->5 数据块10->11 chunk=[0,8192) 字节=8192 预估=0.000178125s group=0 payload=DATA_DELTA
+  --- round 1 (slot 1) ---
+    step 2: MST_FORWARD 集群4->5 数据块7->10 chunk=[0,8192) 字节=8192 预估=0.00207813s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_153_4345929374912615
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_153_4345929374912615 stripe_id=153 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 4 (10.10.1.7:50409)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 4 (10.10.1.7:50409)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_153_4345929374912615
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_153_4345929374912615 cluster=4 proxy_endpoint=10.10.1.7:50409 pure_xfer_sec=0.0194765 wall_start_unix_ms=1781253123276 wall_end_unix_ms=1781253123296 proxy_wall_span_sec=0.02
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_153_4345929374912615 cluster=5 proxy_endpoint=10.10.1.8:50410 pure_xfer_sec=2.2296e-05 wall_start_unix_ms=1781253123277 wall_end_unix_ms=1781253123277 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.02 plan_key=cord_xfer_153_4345929374912615 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.0194765 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=143 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 5: [0,65536)
+  block 6: [0,65536)
+  block 7: [0,16384)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [intersecting_group] 数据块: 5 6 7
+[CORD_ROUTE] 算法2链路: |U|=1 links=7:
+    [0] STAR_DATA_TO_CENTER 数据块 5->11 集群 0->1 字节=65536 预估=0.002625s 组=0
+    [1] STAR_DATA_TO_CENTER 数据块 6->10 集群 0->1 字节=65536 预估=0.002625s 组=0
+    [2] STAR_DATA_TO_CENTER 数据块 7->10 集群 0->1 字节=16384 预估=0.00215625s 组=0
+    [3] STAR_CENTER_TO_GLOBAL 数据块 10->11 集群 1->1 字节=65536 预估=0.000725s 组=0
+    [4] STAR_CENTER_TO_LOCAL 数据块 10->13 集群 1->0 字节=65536 预估=0.002625s 组=0
+    [5] STAR_CENTER_TO_GLOBAL 数据块 11->10 集群 1->1 字节=65536 预估=0.000725s 组=0
+    [6] STAR_CENTER_TO_LOCAL 数据块 11->13 集群 1->0 字节=65536 预估=0.002625s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=42 slot_unit_bytes=8192 center_global_block=10
+  时隙 0: links [0]
+  时隙 1: links [0]
+  时隙 2: links [0]
+  时隙 3: links [0]
+  时隙 4: links [0]
+  时隙 5: links [0]
+  时隙 6: links [0]
+  时隙 7: links [0]
+  时隙 8: links [1,6]
+  时隙 9: links [1,6]
+  时隙 10: links [1,6]
+  时隙 11: links [1,6]
+  时隙 12: links [1,6]
+  时隙 13: links [1,6]
+  时隙 14: links [1,6]
+  时隙 15: links [1,6]
+  时隙 16: links [2]
+  时隙 17: links [2]
+  时隙 18: links [3]
+  时隙 19: links [3]
+  时隙 20: links [3]
+  时隙 21: links [3]
+  时隙 22: links [3]
+  时隙 23: links [3]
+  时隙 24: links [3]
+  时隙 25: links [3]
+  时隙 26: links [4]
+  时隙 27: links [4]
+  时隙 28: links [4]
+  时隙 29: links [4]
+  时隙 30: links [4]
+  时隙 31: links [4]
+  时隙 32: links [4]
+  时隙 33: links [4]
+  时隙 34: links [5]
+  时隙 35: links [5]
+  时隙 36: links [5]
+  时隙 37: links [5]
+  时隙 38: links [5]
+  时隙 39: links [5]
+  时隙 40: links [5]
+  时隙 41: links [5]
+[CORD_ROUTE] CordTransferPlan: steps=7 total_rounds=6 plan_key=cord_xfer_143_4345929417992752 (raw algorithm2 timeslots=42)
+  step 0: STAR_DATA_TO_CENTER 集群 0->1 数据块 5->11 chunk=[0,65536) 字节=65536 slot=0 group=0 payload=DATA_DELTA
+  step 1: STAR_DATA_TO_CENTER 集群 0->1 数据块 6->10 chunk=[0,65536) 字节=65536 slot=8 group=0 payload=DATA_DELTA
+  step 2: STAR_CENTER_TO_LOCAL 集群 1->0 数据块 11->13 chunk=[0,65536) 字节=65536 slot=8 group=0 payload=PARITY_DELTA
+  step 3: STAR_DATA_TO_CENTER 集群 0->1 数据块 7->10 chunk=[0,16384) 字节=16384 slot=16 group=0 payload=DATA_DELTA
+  step 4: STAR_CENTER_TO_GLOBAL 集群 1->1 数据块 10->11 chunk=[0,65536) 字节=65536 slot=18 group=0 payload=PARITY_DELTA
+  step 5: STAR_CENTER_TO_LOCAL 集群 1->0 数据块 10->13 chunk=[0,65536) 字节=65536 slot=26 group=0 payload=PARITY_DELTA
+  step 6: STAR_CENTER_TO_GLOBAL 集群 1->1 数据块 11->10 chunk=[0,65536) 字节=65536 slot=34 group=0 payload=PARITY_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=143 plan_key=cord_xfer_143_4345929417992752 total_steps=7 total_rounds=6 k=10 g_m=-1275058592 l=32646 n=-1275025936
+  --- round 0 (slot 0) ---
+    step 0: STAR_DATA_TO_CENTER 集群0->1 数据块5->11 chunk=[0,65536) 字节=65536 预估=0.002625s group=0 payload=DATA_DELTA
+  --- round 1 (slot 8) ---
+    step 1: STAR_DATA_TO_CENTER 集群0->1 数据块6->10 chunk=[0,65536) 字节=65536 预估=0.002625s group=0 payload=DATA_DELTA
+    step 2: STAR_CENTER_TO_LOCAL 集群1->0 数据块11->13 chunk=[0,65536) 字节=65536 预估=0.002625s group=0 payload=PARITY_DELTA
+  --- round 2 (slot 16) ---
+    step 3: STAR_DATA_TO_CENTER 集群0->1 数据块7->10 chunk=[0,16384) 字节=16384 预估=0.00215625s group=0 payload=DATA_DELTA
+  --- round 3 (slot 18) ---
+    step 4: STAR_CENTER_TO_GLOBAL 集群1->1 数据块10->11 chunk=[0,65536) 字节=65536 预估=0.000725s group=0 payload=PARITY_DELTA
+  --- round 4 (slot 26) ---
+    step 5: STAR_CENTER_TO_LOCAL 集群1->0 数据块10->13 chunk=[0,65536) 字节=65536 预估=0.002625s group=0 payload=PARITY_DELTA
+  --- round 5 (slot 34) ---
+    step 6: STAR_CENTER_TO_GLOBAL 集群1->1 数据块11->10 chunk=[0,65536) 字节=65536 预估=0.000725s group=0 payload=PARITY_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_143_4345929417992752
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_143_4345929417992752 stripe_id=143 steps=7 rounds=6 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 0 (10.10.1.3:50405)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 1 (10.10.1.4:50406)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 0 (10.10.1.3:50405)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 1 (10.10.1.4:50406)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_143_4345929417992752
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_143_4345929417992752 cluster=0 proxy_endpoint=10.10.1.3:50405 pure_xfer_sec=0.0577244 wall_start_unix_ms=1781253123334 wall_end_unix_ms=1781253123392 proxy_wall_span_sec=0.058
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_143_4345929417992752 cluster=1 proxy_endpoint=10.10.1.4:50406 pure_xfer_sec=0.104664 wall_start_unix_ms=1781253123335 wall_end_unix_ms=1781253123440 proxy_wall_span_sec=0.105
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.106 plan_key=cord_xfer_143_4345929417992752 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.104664 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=820 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 5: [36864,45056)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 5
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 5->10 集群 5->0 字节=8192 预估=0.00207813s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 0->0 字节=8192 预估=0.000178125s 组=0
+    [2] MST_FORWARD 数据块 5->13 集群 5->5 字节=8192 预估=0.000178125s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=2 slot_unit_bytes=8192
+  时隙 0: links [1,2]
+  时隙 1: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_820_4345929560507894 (raw algorithm2 timeslots=2)
+  step 0: MST_FORWARD 集群 0->0 数据块 10->11 chunk=[0,8192) 字节=8192 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 5->5 数据块 5->13 chunk=[0,8192) 字节=8192 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 5->0 数据块 5->10 chunk=[0,8192) 字节=8192 slot=1 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=820 plan_key=cord_xfer_820_4345929560507894 total_steps=3 total_rounds=2 k=10 g_m=-402643232 l=32646 n=-402610576
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群0->0 数据块10->11 chunk=[0,8192) 字节=8192 预估=0.000178125s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群5->5 数据块5->13 chunk=[0,8192) 字节=8192 预估=0.000178125s group=0 payload=DATA_DELTA
+  --- round 1 (slot 1) ---
+    step 2: MST_FORWARD 集群5->0 数据块5->10 chunk=[0,8192) 字节=8192 预估=0.00207813s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_820_4345929560507894
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_820_4345929560507894 stripe_id=820 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 0 (10.10.1.3:50405)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 0 (10.10.1.3:50405)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_820_4345929560507894
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_820_4345929560507894 cluster=0 proxy_endpoint=10.10.1.3:50405 pure_xfer_sec=3.1368e-05 wall_start_unix_ms=1781253123461 wall_end_unix_ms=1781253123461 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_820_4345929560507894 cluster=5 proxy_endpoint=10.10.1.8:50410 pure_xfer_sec=0.0178377 wall_start_unix_ms=1781253123462 wall_end_unix_ms=1781253123479 proxy_wall_span_sec=0.017
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.018 plan_key=cord_xfer_820_4345929560507894 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.0178377 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=384 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 2: [40960,49152)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 2
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 2->10 集群 0->2 字节=8192 预估=0.00207813s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 2->2 字节=8192 预估=0.000178125s 组=0
+    [2] MST_FORWARD 数据块 2->12 集群 0->0 字节=8192 预估=0.000178125s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=2 slot_unit_bytes=8192
+  时隙 0: links [2,1]
+  时隙 1: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_384_4345929599622915 (raw algorithm2 timeslots=2)
+  step 0: MST_FORWARD 集群 0->0 数据块 2->12 chunk=[0,8192) 字节=8192 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 2->2 数据块 10->11 chunk=[0,8192) 字节=8192 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 0->2 数据块 2->10 chunk=[0,8192) 字节=8192 slot=1 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=384 plan_key=cord_xfer_384_4345929599622915 total_steps=3 total_rounds=2 k=10 g_m=-134185248 l=32646 n=-134152592
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群0->0 数据块2->12 chunk=[0,8192) 字节=8192 预估=0.000178125s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群2->2 数据块10->11 chunk=[0,8192) 字节=8192 预估=0.000178125s group=0 payload=DATA_DELTA
+  --- round 1 (slot 1) ---
+    step 2: MST_FORWARD 集群0->2 数据块2->10 chunk=[0,8192) 字节=8192 预估=0.00207813s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_384_4345929599622915
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_384_4345929599622915 stripe_id=384 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 0 (10.10.1.3:50405)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 2 (10.10.1.5:50407)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 0 (10.10.1.3:50405)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 2 (10.10.1.5:50407)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_384_4345929599622915
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_384_4345929599622915 cluster=0 proxy_endpoint=10.10.1.3:50405 pure_xfer_sec=0.021305 wall_start_unix_ms=1781253123500 wall_end_unix_ms=1781253123521 proxy_wall_span_sec=0.021
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_384_4345929599622915 cluster=2 proxy_endpoint=10.10.1.5:50407 pure_xfer_sec=9.3282e-05 wall_start_unix_ms=1781253123501 wall_end_unix_ms=1781253123501 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.021 plan_key=cord_xfer_384_4345929599622915 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.021305 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=145 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 4: [4096,20480)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 4
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 4->10 集群 1->3 字节=16384 预估=0.00215625s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 3->3 字节=16384 预估=0.00025625s 组=0
+    [2] MST_FORWARD 数据块 4->12 集群 1->1 字节=16384 预估=0.00025625s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=4 slot_unit_bytes=8192
+  时隙 0: links [2,1]
+  时隙 1: links [2,1]
+  时隙 2: links [0]
+  时隙 3: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_145_4345929642748910 (raw algorithm2 timeslots=4)
+  step 0: MST_FORWARD 集群 1->1 数据块 4->12 chunk=[0,16384) 字节=16384 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 3->3 数据块 10->11 chunk=[0,16384) 字节=16384 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 1->3 数据块 4->10 chunk=[0,16384) 字节=16384 slot=2 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=145 plan_key=cord_xfer_145_4345929642748910 total_steps=3 total_rounds=2 k=10 g_m=-335534496 l=32646 n=-335501840
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群1->1 数据块4->12 chunk=[0,16384) 字节=16384 预估=0.00025625s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群3->3 数据块10->11 chunk=[0,16384) 字节=16384 预估=0.00025625s group=0 payload=DATA_DELTA
+  --- round 1 (slot 2) ---
+    step 2: MST_FORWARD 集群1->3 数据块4->10 chunk=[0,16384) 字节=16384 预估=0.00215625s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_145_4345929642748910
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_145_4345929642748910 stripe_id=145 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 1 (10.10.1.4:50406)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 3 (10.10.1.6:50408)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 1 (10.10.1.4:50406)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 3 (10.10.1.6:50408)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_145_4345929642748910
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_145_4345929642748910 cluster=1 proxy_endpoint=10.10.1.4:50406 pure_xfer_sec=0.199169 wall_start_unix_ms=1781253123543 wall_end_unix_ms=1781253123742 proxy_wall_span_sec=0.199
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_145_4345929642748910 cluster=3 proxy_endpoint=10.10.1.6:50408 pure_xfer_sec=6.1927e-05 wall_start_unix_ms=1781253123546 wall_end_unix_ms=1781253123546 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.199 plan_key=cord_xfer_145_4345929642748910 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.199169 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=338 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 7: [28672,32768)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 7
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 7->10 集群 3->4 字节=4096 预估=0.00203906s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 4->4 字节=4096 预估=0.000139062s 组=0
+    [2] MST_FORWARD 数据块 7->13 集群 3->3 字节=4096 预估=0.000139062s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=2 slot_unit_bytes=8192
+  时隙 0: links [2,1]
+  时隙 1: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_338_4345929864751770 (raw algorithm2 timeslots=2)
+  step 0: MST_FORWARD 集群 3->3 数据块 7->13 chunk=[0,4096) 字节=4096 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 4->4 数据块 10->11 chunk=[0,4096) 字节=4096 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 3->4 数据块 7->10 chunk=[0,4096) 字节=4096 slot=1 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=338 plan_key=cord_xfer_338_4345929864751770 total_steps=3 total_rounds=2 k=10 g_m=-1275046304 l=32646 n=-1275013648
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群3->3 数据块7->13 chunk=[0,4096) 字节=4096 预估=0.000139062s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群4->4 数据块10->11 chunk=[0,4096) 字节=4096 预估=0.000139062s group=0 payload=DATA_DELTA
+  --- round 1 (slot 1) ---
+    step 2: MST_FORWARD 集群3->4 数据块7->10 chunk=[0,4096) 字节=4096 预估=0.00203906s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_338_4345929864751770
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_338_4345929864751770 stripe_id=338 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 3 (10.10.1.6:50408)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 4 (10.10.1.7:50409)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 3 (10.10.1.6:50408)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 4 (10.10.1.7:50409)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_338_4345929864751770
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_338_4345929864751770 cluster=3 proxy_endpoint=10.10.1.6:50408 pure_xfer_sec=0.0237229 wall_start_unix_ms=1781253123766 wall_end_unix_ms=1781253123790 proxy_wall_span_sec=0.024
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_338_4345929864751770 cluster=4 proxy_endpoint=10.10.1.7:50409 pure_xfer_sec=3.4152e-05 wall_start_unix_ms=1781253123768 wall_end_unix_ms=1781253123768 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.024 plan_key=cord_xfer_338_4345929864751770 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.0237229 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=69 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 1: [53248,61440)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 1
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 1->10 集群 3->5 字节=8192 预估=0.00207813s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 5->5 字节=8192 预估=0.000178125s 组=0
+    [2] MST_FORWARD 数据块 1->12 集群 3->3 字节=8192 预估=0.000178125s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=2 slot_unit_bytes=8192
+  时隙 0: links [2,1]
+  时隙 1: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_69_4345929911548973 (raw algorithm2 timeslots=2)
+  step 0: MST_FORWARD 集群 3->3 数据块 1->12 chunk=[0,8192) 字节=8192 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 5->5 数据块 10->11 chunk=[0,8192) 字节=8192 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 3->5 数据块 1->10 chunk=[0,8192) 字节=8192 slot=1 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=69 plan_key=cord_xfer_69_4345929911548973 total_steps=3 total_rounds=2 k=10 g_m=-1006592288 l=32646 n=-1006559632
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群3->3 数据块1->12 chunk=[0,8192) 字节=8192 预估=0.000178125s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群5->5 数据块10->11 chunk=[0,8192) 字节=8192 预估=0.000178125s group=0 payload=DATA_DELTA
+  --- round 1 (slot 1) ---
+    step 2: MST_FORWARD 集群3->5 数据块1->10 chunk=[0,8192) 字节=8192 预估=0.00207813s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_69_4345929911548973
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_69_4345929911548973 stripe_id=69 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 3 (10.10.1.6:50408)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 3 (10.10.1.6:50408)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_69_4345929911548973
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_69_4345929911548973 cluster=3 proxy_endpoint=10.10.1.6:50408 pure_xfer_sec=0.0462953 wall_start_unix_ms=1781253123813 wall_end_unix_ms=1781253123859 proxy_wall_span_sec=0.046
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_69_4345929911548973 cluster=5 proxy_endpoint=10.10.1.8:50410 pure_xfer_sec=1.8307e-05 wall_start_unix_ms=1781253123814 wall_end_unix_ms=1781253123814 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.046 plan_key=cord_xfer_69_4345929911548973 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.0462953 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=729 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 3: [12288,16384)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 3
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 3->10 集群 3->5 字节=4096 预估=0.00203906s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 5->5 字节=4096 预估=0.000139062s 组=0
+    [2] MST_FORWARD 数据块 3->12 集群 3->3 字节=4096 预估=0.000139062s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=2 slot_unit_bytes=8192
+  时隙 0: links [2,1]
+  时隙 1: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_729_4345929980983178 (raw algorithm2 timeslots=2)
+  step 0: MST_FORWARD 集群 3->3 数据块 3->12 chunk=[0,4096) 字节=4096 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 5->5 数据块 10->11 chunk=[0,4096) 字节=4096 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 3->5 数据块 3->10 chunk=[0,4096) 字节=4096 slot=1 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=729 plan_key=cord_xfer_729_4345929980983178 total_steps=3 total_rounds=2 k=10 g_m=-1207936864 l=32646 n=-1207904208
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群3->3 数据块3->12 chunk=[0,4096) 字节=4096 预估=0.000139062s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群5->5 数据块10->11 chunk=[0,4096) 字节=4096 预估=0.000139062s group=0 payload=DATA_DELTA
+  --- round 1 (slot 1) ---
+    step 2: MST_FORWARD 集群3->5 数据块3->10 chunk=[0,4096) 字节=4096 预估=0.00203906s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_729_4345929980983178
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_729_4345929980983178 stripe_id=729 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 3 (10.10.1.6:50408)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 3 (10.10.1.6:50408)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_729_4345929980983178
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_729_4345929980983178 cluster=3 proxy_endpoint=10.10.1.6:50408 pure_xfer_sec=0.0159053 wall_start_unix_ms=1781253123898 wall_end_unix_ms=1781253123914 proxy_wall_span_sec=0.016
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_729_4345929980983178 cluster=5 proxy_endpoint=10.10.1.8:50410 pure_xfer_sec=2.9234e-05 wall_start_unix_ms=1781253123899 wall_end_unix_ms=1781253123899 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.016 plan_key=cord_xfer_729_4345929980983178 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.0159053 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=345 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 0: [4096,20480)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 0
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 0->10 集群 3->5 字节=16384 预估=0.00215625s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 5->5 字节=16384 预估=0.00025625s 组=0
+    [2] MST_FORWARD 数据块 0->12 集群 3->3 字节=16384 预估=0.00025625s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=4 slot_unit_bytes=8192
+  时隙 0: links [2,1]
+  时隙 1: links [2,1]
+  时隙 2: links [0]
+  时隙 3: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_345_4345930035415109 (raw algorithm2 timeslots=4)
+  step 0: MST_FORWARD 集群 3->3 数据块 0->12 chunk=[0,16384) 字节=16384 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 5->5 数据块 10->11 chunk=[0,16384) 字节=16384 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 3->5 数据块 0->10 chunk=[0,16384) 字节=16384 slot=2 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=345 plan_key=cord_xfer_345_4345930035415109 total_steps=3 total_rounds=2 k=10 g_m=-872405408 l=32646 n=-872372752
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群3->3 数据块0->12 chunk=[0,16384) 字节=16384 预估=0.00025625s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群5->5 数据块10->11 chunk=[0,16384) 字节=16384 预估=0.00025625s group=0 payload=DATA_DELTA
+  --- round 1 (slot 2) ---
+    step 2: MST_FORWARD 集群3->5 数据块0->10 chunk=[0,16384) 字节=16384 预估=0.00215625s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_345_4345930035415109
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_345_4345930035415109 stripe_id=345 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 3 (10.10.1.6:50408)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 3 (10.10.1.6:50408)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_345_4345930035415109
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_345_4345930035415109 cluster=3 proxy_endpoint=10.10.1.6:50408 pure_xfer_sec=0.0171962 wall_start_unix_ms=1781253123935 wall_end_unix_ms=1781253123952 proxy_wall_span_sec=0.017
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_345_4345930035415109 cluster=5 proxy_endpoint=10.10.1.8:50410 pure_xfer_sec=3.1169e-05 wall_start_unix_ms=1781253123937 wall_end_unix_ms=1781253123937 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.017 plan_key=cord_xfer_345_4345930035415109 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.0171962 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=724 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 3: [12288,16384)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 3
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 3->10 集群 4->0 字节=4096 预估=0.00203906s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 0->0 字节=4096 预估=0.000139062s 组=0
+    [2] MST_FORWARD 数据块 3->12 集群 4->4 字节=4096 预估=0.000139062s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=2 slot_unit_bytes=8192
+  时隙 0: links [1,2]
+  时隙 1: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_724_4345930074214197 (raw algorithm2 timeslots=2)
+  step 0: MST_FORWARD 集群 0->0 数据块 10->11 chunk=[0,4096) 字节=4096 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 4->4 数据块 3->12 chunk=[0,4096) 字节=4096 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 4->0 数据块 3->10 chunk=[0,4096) 字节=4096 slot=1 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=724 plan_key=cord_xfer_724_4345930074214197 total_steps=3 total_rounds=2 k=10 g_m=-1140839200 l=32646 n=-1140806544
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群0->0 数据块10->11 chunk=[0,4096) 字节=4096 预估=0.000139062s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群4->4 数据块3->12 chunk=[0,4096) 字节=4096 预估=0.000139062s group=0 payload=DATA_DELTA
+  --- round 1 (slot 1) ---
+    step 2: MST_FORWARD 集群4->0 数据块3->10 chunk=[0,4096) 字节=4096 预估=0.00203906s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_724_4345930074214197
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_724_4345930074214197 stripe_id=724 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 0 (10.10.1.3:50405)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 4 (10.10.1.7:50409)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 0 (10.10.1.3:50405)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 4 (10.10.1.7:50409)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_724_4345930074214197
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_724_4345930074214197 cluster=0 proxy_endpoint=10.10.1.3:50405 pure_xfer_sec=2.9722e-05 wall_start_unix_ms=1781253123975 wall_end_unix_ms=1781253123975 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_724_4345930074214197 cluster=4 proxy_endpoint=10.10.1.7:50409 pure_xfer_sec=0.0185003 wall_start_unix_ms=1781253123977 wall_end_unix_ms=1781253123996 proxy_wall_span_sec=0.019
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.021 plan_key=cord_xfer_724_4345930074214197 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.0185003 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=384 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 7: [16384,36864)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 7
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 7->10 集群 1->2 字节=20480 预估=0.00219531s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 2->2 字节=20480 预估=0.000295313s 组=0
+    [2] MST_FORWARD 数据块 7->13 集群 1->1 字节=20480 预估=0.000295313s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=6 slot_unit_bytes=8192
+  时隙 0: links [2,1]
+  时隙 1: links [2,1]
+  时隙 2: links [2,1]
+  时隙 3: links [0]
+  时隙 4: links [0]
+  时隙 5: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_384_4345930115359407 (raw algorithm2 timeslots=6)
+  step 0: MST_FORWARD 集群 1->1 数据块 7->13 chunk=[0,20480) 字节=20480 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 2->2 数据块 10->11 chunk=[0,20480) 字节=20480 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 1->2 数据块 7->10 chunk=[0,20480) 字节=20480 slot=3 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=384 plan_key=cord_xfer_384_4345930115359407 total_steps=3 total_rounds=2 k=10 g_m=-134185248 l=32646 n=-134152592
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群1->1 数据块7->13 chunk=[0,20480) 字节=20480 预估=0.000295313s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群2->2 数据块10->11 chunk=[0,20480) 字节=20480 预估=0.000295313s group=0 payload=DATA_DELTA
+  --- round 1 (slot 3) ---
+    step 2: MST_FORWARD 集群1->2 数据块7->10 chunk=[0,20480) 字节=20480 预估=0.00219531s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_384_4345930115359407
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_384_4345930115359407 stripe_id=384 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 1 (10.10.1.4:50406)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 2 (10.10.1.5:50407)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 1 (10.10.1.4:50406)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 2 (10.10.1.5:50407)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_384_4345930115359407
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_384_4345930115359407 cluster=1 proxy_endpoint=10.10.1.4:50406 pure_xfer_sec=0.023456 wall_start_unix_ms=1781253124018 wall_end_unix_ms=1781253124041 proxy_wall_span_sec=0.023
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_384_4345930115359407 cluster=2 proxy_endpoint=10.10.1.5:50407 pure_xfer_sec=3.9485e-05 wall_start_unix_ms=1781253124019 wall_end_unix_ms=1781253124019 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.023 plan_key=cord_xfer_384_4345930115359407 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.023456 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=765 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 4: [53248,57344)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 4
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 4->10 集群 3->5 字节=4096 预估=0.00203906s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 5->5 字节=4096 预估=0.000139062s 组=0
+    [2] MST_FORWARD 数据块 4->12 集群 3->3 字节=4096 预估=0.000139062s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=2 slot_unit_bytes=8192
+  时隙 0: links [2,1]
+  时隙 1: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_765_4345930163418495 (raw algorithm2 timeslots=2)
+  step 0: MST_FORWARD 集群 3->3 数据块 4->12 chunk=[0,4096) 字节=4096 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 5->5 数据块 10->11 chunk=[0,4096) 字节=4096 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 3->5 数据块 4->10 chunk=[0,4096) 字节=4096 slot=1 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=765 plan_key=cord_xfer_765_4345930163418495 total_steps=3 total_rounds=2 k=10 g_m=-1275046304 l=32646 n=-1275013648
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群3->3 数据块4->12 chunk=[0,4096) 字节=4096 预估=0.000139062s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群5->5 数据块10->11 chunk=[0,4096) 字节=4096 预估=0.000139062s group=0 payload=DATA_DELTA
+  --- round 1 (slot 1) ---
+    step 2: MST_FORWARD 集群3->5 数据块4->10 chunk=[0,4096) 字节=4096 预估=0.00203906s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_765_4345930163418495
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_765_4345930163418495 stripe_id=765 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 3 (10.10.1.6:50408)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 3 (10.10.1.6:50408)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_765_4345930163418495
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_765_4345930163418495 cluster=3 proxy_endpoint=10.10.1.6:50408 pure_xfer_sec=0.0219775 wall_start_unix_ms=1781253124063 wall_end_unix_ms=1781253124085 proxy_wall_span_sec=0.022
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_765_4345930163418495 cluster=5 proxy_endpoint=10.10.1.8:50410 pure_xfer_sec=3.1102e-05 wall_start_unix_ms=1781253124065 wall_end_unix_ms=1781253124065 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.022 plan_key=cord_xfer_765_4345930163418495 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.0219775 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=490 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 3: [49152,57344)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 3
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 3->10 集群 4->0 字节=8192 预估=0.00207813s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 0->0 字节=8192 预估=0.000178125s 组=0
+    [2] MST_FORWARD 数据块 3->12 集群 4->4 字节=8192 预估=0.000178125s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=2 slot_unit_bytes=8192
+  时隙 0: links [1,2]
+  时隙 1: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_490_4345930207437340 (raw algorithm2 timeslots=2)
+  step 0: MST_FORWARD 集群 0->0 数据块 10->11 chunk=[0,8192) 字节=8192 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 4->4 数据块 3->12 chunk=[0,8192) 字节=8192 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 4->0 数据块 3->10 chunk=[0,8192) 字节=8192 slot=1 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=490 plan_key=cord_xfer_490_4345930207437340 total_steps=3 total_rounds=2 k=10 g_m=-134184608 l=32646 n=-134151952
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群0->0 数据块10->11 chunk=[0,8192) 字节=8192 预估=0.000178125s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群4->4 数据块3->12 chunk=[0,8192) 字节=8192 预估=0.000178125s group=0 payload=DATA_DELTA
+  --- round 1 (slot 1) ---
+    step 2: MST_FORWARD 集群4->0 数据块3->10 chunk=[0,8192) 字节=8192 预估=0.00207813s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_490_4345930207437340
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_490_4345930207437340 stripe_id=490 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 0 (10.10.1.3:50405)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 4 (10.10.1.7:50409)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 0 (10.10.1.3:50405)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 4 (10.10.1.7:50409)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_490_4345930207437340
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_490_4345930207437340 cluster=0 proxy_endpoint=10.10.1.3:50405 pure_xfer_sec=3.0818e-05 wall_start_unix_ms=1781253124107 wall_end_unix_ms=1781253124107 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_490_4345930207437340 cluster=4 proxy_endpoint=10.10.1.7:50409 pure_xfer_sec=0.0176568 wall_start_unix_ms=1781253124109 wall_end_unix_ms=1781253124127 proxy_wall_span_sec=0.018
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.02 plan_key=cord_xfer_490_4345930207437340 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.0176568 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=97 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 7: [16384,20480)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 7
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 7->10 集群 2->3 字节=4096 预估=0.00203906s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 3->3 字节=4096 预估=0.000139062s 组=0
+    [2] MST_FORWARD 数据块 7->13 集群 2->2 字节=4096 预估=0.000139062s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=2 slot_unit_bytes=8192
+  时隙 0: links [2,1]
+  时隙 1: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_97_4345930246686537 (raw algorithm2 timeslots=2)
+  step 0: MST_FORWARD 集群 2->2 数据块 7->13 chunk=[0,4096) 字节=4096 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 3->3 数据块 10->11 chunk=[0,4096) 字节=4096 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 2->3 数据块 7->10 chunk=[0,4096) 字节=4096 slot=1 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=97 plan_key=cord_xfer_97_4345930246686537 total_steps=3 total_rounds=2 k=10 g_m=-1677708064 l=32646 n=-1677675408
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群2->2 数据块7->13 chunk=[0,4096) 字节=4096 预估=0.000139062s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群3->3 数据块10->11 chunk=[0,4096) 字节=4096 预估=0.000139062s group=0 payload=DATA_DELTA
+  --- round 1 (slot 1) ---
+    step 2: MST_FORWARD 集群2->3 数据块7->10 chunk=[0,4096) 字节=4096 预估=0.00203906s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_97_4345930246686537
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_97_4345930246686537 stripe_id=97 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 2 (10.10.1.5:50407)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 3 (10.10.1.6:50408)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 2 (10.10.1.5:50407)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 3 (10.10.1.6:50408)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_97_4345930246686537
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_97_4345930246686537 cluster=2 proxy_endpoint=10.10.1.5:50407 pure_xfer_sec=0.0954011 wall_start_unix_ms=1781253124147 wall_end_unix_ms=1781253124243 proxy_wall_span_sec=0.096
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_97_4345930246686537 cluster=3 proxy_endpoint=10.10.1.6:50408 pure_xfer_sec=1.7639e-05 wall_start_unix_ms=1781253124149 wall_end_unix_ms=1781253124149 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.096 plan_key=cord_xfer_97_4345930246686537 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.0954011 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=521 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 4: [24576,28672)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 4
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 4->10 集群 5->1 字节=4096 预估=0.00203906s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 1->1 字节=4096 预估=0.000139062s 组=0
+    [2] MST_FORWARD 数据块 4->12 集群 5->5 字节=4096 预估=0.000139062s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=2 slot_unit_bytes=8192
+  时隙 0: links [1,2]
+  时隙 1: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_521_4345930365401638 (raw algorithm2 timeslots=2)
+  step 0: MST_FORWARD 集群 1->1 数据块 10->11 chunk=[0,4096) 字节=4096 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 5->5 数据块 4->12 chunk=[0,4096) 字节=4096 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 5->1 数据块 4->10 chunk=[0,4096) 字节=4096 slot=1 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=521 plan_key=cord_xfer_521_4345930365401638 total_steps=3 total_rounds=2 k=10 g_m=-1006600480 l=32646 n=-1006567824
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群1->1 数据块10->11 chunk=[0,4096) 字节=4096 预估=0.000139062s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群5->5 数据块4->12 chunk=[0,4096) 字节=4096 预估=0.000139062s group=0 payload=DATA_DELTA
+  --- round 1 (slot 1) ---
+    step 2: MST_FORWARD 集群5->1 数据块4->10 chunk=[0,4096) 字节=4096 预估=0.00203906s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_521_4345930365401638
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_521_4345930365401638 stripe_id=521 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 1 (10.10.1.4:50406)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 1 (10.10.1.4:50406)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 5 (10.10.1.8:50410)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_521_4345930365401638
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_521_4345930365401638 cluster=1 proxy_endpoint=10.10.1.4:50406 pure_xfer_sec=3.1924e-05 wall_start_unix_ms=1781253124266 wall_end_unix_ms=1781253124266 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_521_4345930365401638 cluster=5 proxy_endpoint=10.10.1.8:50410 pure_xfer_sec=0.0205709 wall_start_unix_ms=1781253124268 wall_end_unix_ms=1781253124288 proxy_wall_span_sec=0.02
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.022 plan_key=cord_xfer_521_4345930365401638 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.0205709 (min wall start -> max wall end over proxies; clock sync assumed)
+[CORD_ROUTE] stripe_id=460 updated data blocks (block_id -> in-block intervals [off,end)):
+  block 4: [0,4096)
+
+========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========
+[CORD_ROUTE] 算法1分组: 1 groups (intersection closure; singletons = pairwise disjoint from all other updated blocks):
+  组0 [disjoint_singleton] 数据块: 4
+[CORD_ROUTE] 算法2链路: |U|=1 links=3:
+    [0] MST_FORWARD 数据块 4->10 集群 4->0 字节=4096 预估=0.00203906s 组=0
+    [1] MST_FORWARD 数据块 10->11 集群 0->0 字节=4096 预估=0.000139062s 组=0
+    [2] MST_FORWARD 数据块 4->12 集群 4->4 字节=4096 预估=0.000139062s 组=0
+[CORD_ROUTE] 算法2时隙调度: timeslots=2 slot_unit_bytes=8192
+  时隙 0: links [1,2]
+  时隙 1: links [0]
+[CORD_ROUTE] CordTransferPlan: steps=3 total_rounds=2 plan_key=cord_xfer_460_4345930408726615 (raw algorithm2 timeslots=2)
+  step 0: MST_FORWARD 集群 0->0 数据块 10->11 chunk=[0,4096) 字节=4096 slot=0 group=0 payload=DATA_DELTA
+  step 1: MST_FORWARD 集群 4->4 数据块 4->12 chunk=[0,4096) 字节=4096 slot=0 group=0 payload=DATA_DELTA
+  step 2: MST_FORWARD 集群 4->0 数据块 4->10 chunk=[0,4096) 字节=4096 slot=1 group=0 payload=DATA_DELTA
+
+========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========
+[CORD_SCHED] stripe_id=460 plan_key=cord_xfer_460_4345930408726615 total_steps=3 total_rounds=2 k=10 g_m=-134185248 l=32646 n=-134152592
+  --- round 0 (slot 0) ---
+    step 0: MST_FORWARD 集群0->0 数据块10->11 chunk=[0,4096) 字节=4096 预估=0.000139062s group=0 payload=DATA_DELTA
+    step 1: MST_FORWARD 集群4->4 数据块4->12 chunk=[0,4096) 字节=4096 预估=0.000139062s group=0 payload=DATA_DELTA
+  --- round 1 (slot 1) ---
+    step 2: MST_FORWARD 集群4->0 数据块4->10 chunk=[0,4096) 字节=4096 预估=0.00203906s group=0 payload=DATA_DELTA
+[CORD_PLAN] cordPlanBeginTransfer plan_key=cord_xfer_460_4345930408726615
+
+========== [CORD_PLAN] 下发传输计划到Proxy ==========
+[CORD_PLAN] plan_key=cord_xfer_460_4345930408726615 stripe_id=460 steps=3 rounds=2 clusters_involved=2
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 0 (10.10.1.3:50405)
+[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster 4 (10.10.1.7:50409)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 0 (10.10.1.3:50405)
+[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster 4 (10.10.1.7:50409)
+[CORD_PLAN] cordPlanWaitTransferComplete plan_key=cord_xfer_460_4345930408726615
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_460_4345930408726615 cluster=0 proxy_endpoint=10.10.1.3:50405 pure_xfer_sec=2.9218e-05 wall_start_unix_ms=1781253124310 wall_end_unix_ms=1781253124310 proxy_wall_span_sec=0
+[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=cord_xfer_460_4345930408726615 cluster=4 proxy_endpoint=10.10.1.7:50409 pure_xfer_sec=0.0168734 wall_start_unix_ms=1781253124312 wall_end_unix_ms=1781253124328 proxy_wall_span_sec=0.016
+[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=0.018 plan_key=cord_xfer_460_4345930408726615 joined_proxies=2 timing_samples=2 max_proxy_pure_xfer_sec=0.0168734 (min wall start -> max wall end over proxies; clock sync assumed)

@@ -46,6 +46,56 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 {
   namespace  // 匿名命名空间：里面的内容只在当前文件内可见（内部链接）
   {
+    // CoRD logging helper: writes to both stderr (for pdsh → node0 real-time) and a local file.
+    // Log files are collected to node0 by start scripts after execution.
+    struct CordLogStream
+    {
+      std::ostream &a; // stderr (real-time via pdsh)
+      std::ostream &b; // local file
+
+      template <typename T> CordLogStream &operator<<(const T &val)
+      {
+        a << val;
+        b << val;
+        return *this;
+      }
+      // Support for std::endl, std::flush, etc.
+      CordLogStream &operator<<(std::ostream &(*manip)(std::ostream &))
+      {
+        manip(a);
+        manip(b);
+        return *this;
+      }
+    };
+
+    static CordLogStream cord_log()
+    {
+      static std::ofstream log_file("/tmp/cord_coordinator_update.log", std::ios::app);
+      return {std::cerr, log_file};
+    }
+
+    static const char *cord_transfer_link_kind_name(proxy_proto::CordTransferLinkKind k)
+    {
+      switch (k)
+      {
+      case proxy_proto::CORD_TRANSFER_STAR_DATA_TO_CENTER: return "STAR_DATA_TO_CENTER";
+      case proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_GLOBAL: return "STAR_CENTER_TO_GLOBAL";
+      case proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_LOCAL: return "STAR_CENTER_TO_LOCAL";
+      case proxy_proto::CORD_TRANSFER_MST_FORWARD: return "MST_FORWARD";
+      default: return "UNKNOWN";
+      }
+    }
+
+    static const char *cord_plan_delta_kind_name(proxy_proto::CordDeltaPayloadKind k)
+    {
+      switch (k)
+      {
+      case proxy_proto::CORD_DELTA_DATA: return "DATA_DELTA";
+      case proxy_proto::CORD_DELTA_PARITY: return "PARITY_DELTA";
+      default: return "UNKNOWN_DELTA";
+      }
+    }
+
     bool is_azure_like_code(const std::string &code_type) // 辅助函数：判断是否为 Azure 系列分组规则编码
     {
       return code_type == "AzureLRC" || code_type == "RandomLRC";
@@ -332,14 +382,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           auto cit_lp = cluster_table.find(lp_c);
           if (cit_hub == cluster_table.end() || cit_lp == cluster_table.end())
           {
-            std::cout << "[CoRD-LP-GH] invalid cluster id hub=" << hub_c << " lp=" << lp_c << std::endl;
+            cord_log() << "[CoRD-LP-GH] invalid cluster id hub=" << hub_c << " lp=" << lp_c << std::endl;
             return false;
           }
           std::string hub_proxy_key = cit_hub->second.proxy_ip + ":" + std::to_string(cit_hub->second.proxy_port);
           auto hub_stub_it = proxy_ptrs.find(hub_proxy_key);
           if (hub_stub_it == proxy_ptrs.end() || !hub_stub_it->second)
           {
-            std::cout << "[CoRD-LP-GH] no stub for hub proxy " << hub_proxy_key << std::endl;
+            cord_log() << "[CoRD-LP-GH] no stub for hub proxy " << hub_proxy_key << std::endl;
             return false;
           }
 
@@ -361,7 +411,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           grpc::Status stb = hub_stub_it->second->cordLpHubSessionBegin(&ctx_begin, begin, &rep_begin);
           if (!stb.ok() || !rep_begin.ifcommit())
           {
-            std::cout << "[CoRD-LP-GH] session begin failed: " << stb.error_message() << std::endl;
+            cord_log() << "[CoRD-LP-GH] session begin failed: " << stb.error_message() << std::endl;
             return false;
           }
 
@@ -370,14 +420,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             auto cit_sc = cluster_table.find(sc);
             if (cit_sc == cluster_table.end())
             {
-              std::cout << "[CoRD-LP-GH] invalid source cluster " << sc << std::endl;
+              cord_log() << "[CoRD-LP-GH] invalid source cluster " << sc << std::endl;
               return false;
             }
             std::string sc_key = cit_sc->second.proxy_ip + ":" + std::to_string(cit_sc->second.proxy_port);
             auto sc_stub_it = proxy_ptrs.find(sc_key);
             if (sc_stub_it == proxy_ptrs.end() || !sc_stub_it->second)
             {
-              std::cout << "[CoRD-LP-GH] no stub for source proxy " << sc_key << std::endl;
+              cord_log() << "[CoRD-LP-GH] no stub for source proxy " << sc_key << std::endl;
               return false;
             }
             proxy_proto::CordLpComputePartialAndPush cp;
@@ -410,7 +460,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             grpc::Status stc = sc_stub_it->second->cordLpComputePartialAndPush(&ctx_cp, cp, &rep_cp);
             if (!stc.ok() || !rep_cp.ifcommit())
             {
-              std::cout << "[CoRD-LP-GH] compute/push from cluster " << sc << " failed: " << stc.error_message()
+              cord_log() << "[CoRD-LP-GH] compute/push from cluster " << sc << " failed: " << stc.error_message()
                         << std::endl;
               return false;
             }
@@ -1109,55 +1159,92 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     throw std::runtime_error("XueLRC placement strategy has been removed");
   }
 
-  void CoordinatorImpl::initialize_random_lrc_stripe_placement(Stripe *stripe)
+  // ─── CORD LRC 新放置方案 ──────────────────────────────────────────────
+  // r = 全局校验块数, z = 本地校验块数 (= 本地组数), h = k/z = 每组数据块数
+  // 块布局: D[0..k), L[k..k+z), G[k+z..k+z+r)
+  // ───────────────────────────────────────────────────────────────────────
+  void CoordinatorImpl::initialize_cord_lrc_stripe_placement(Stripe *stripe)
   {
-    // Replaced random placement with Xue placement:
-    // k data blocks, r local parity blocks (= r local groups), z global parity blocks.
-    // Requires k % r == 0.
-    // 5-step deterministic per-stripe placement using rotating cluster assignment.
-    Block *blocks_info = new Block[stripe->n];
-    assert(stripe->object_keys.size() == 1);
-    assert(stripe->r > 0 && stripe->z > 0);
-    assert(stripe->k % stripe->r == 0 && "Xue placement requires k % r == 0");
-
     const int k = stripe->k;
-    const int r = stripe->r;
-    const int z = stripe->z;
-    const int h = k / r;
-    const int cluster_num = m_sys_config->ClusterNum;
-    const int global_cluster_id = stripe->stripe_id % cluster_num;
-    int cluster_cursor = (global_cluster_id + 1) % cluster_num;
+    const int r = stripe->r; // 全局校验块数
+    const int z = stripe->z; // 本地校验块数 = 本地组数
+    const int h = k / z;     // 每组数据块数
+    const int n = k + r + z; // 总块数
+    const int C = m_sys_config->ClusterNum;
 
+    assert(stripe->object_keys.size() == 1);
+    assert(r > 0 && z > 0);
+    assert(k % z == 0 && "CORD LRC requires k % z == 0");
+
+    Block *blocks_info = new Block[static_cast<size_t>(n)];
+
+    // RNG for node selection (deterministic when PlacementRandomSeed != 0)
     std::mt19937 gen;
-    const std::uint64_t placement_seed = m_sys_config->PlacementRandomSeed;
-    if (placement_seed != 0ULL)
-    {
-      seed_placement_mt19937(gen, placement_seed, stripe->stripe_id);
-    }
+    if (m_sys_config->PlacementRandomSeed != 0ULL)
+      seed_placement_mt19937(gen, m_sys_config->PlacementRandomSeed, stripe->stripe_id);
     else
+      gen.seed(std::random_device{}());
+
+    // ── Build block metadata ──
+    for (int i = 0; i < n; ++i)
     {
-      std::random_device rd;
-      gen.seed(rd());
+      blocks_info[i].block_size = m_sys_config->BlockSize;
+      blocks_info[i].map2stripe = stripe->stripe_id;
+      blocks_info[i].map2key = stripe->object_keys[0];
+      if (i < k)
+      {
+        // Data blocks D0..D(k-1)
+        std::string tmp = "_D";
+        if (i < 10) tmp = "_D0";
+        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i);
+        blocks_info[i].block_id = i;
+        blocks_info[i].block_type = 'D';
+        blocks_info[i].map2group = i / h;
+      }
+      else if (i < k + z)
+      {
+        // Local parity L0..L(z-1)
+        const int li = i - k;
+        std::string tmp = "_L";
+        if (li < 10) tmp = "_L0";
+        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(li);
+        blocks_info[i].block_id = i;
+        blocks_info[i].block_type = 'L';
+        blocks_info[i].map2group = li; // one local parity per group
+      }
+      else
+      {
+        // Global parity G0..G(r-1)
+        const int gi = i - k - z;
+        std::string tmp = "_G";
+        if (gi < 10) tmp = "_G0";
+        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(gi);
+        blocks_info[i].block_id = i;
+        blocks_info[i].block_type = 'G';
+        blocks_info[i].map2group = z; // global parity in a separate "group"
+      }
     }
 
-    auto next_cluster = [&](bool avoid_global) -> int
-    {
-      int cid = cluster_cursor % cluster_num;
-      cluster_cursor++;
-      if (avoid_global && cluster_num > 1 && cid == global_cluster_id)
+    // ── Cluster cursor ──
+    const int global_cluster = stripe->stripe_id % C;
+    int cursor = (global_cluster + 1) % C;
+    auto next_cluster = [&](bool avoid_global) -> int {
+      int cid = cursor;
+      cursor = (cursor + 1) % C;
+      if (avoid_global && C > 1 && cid == global_cluster)
       {
-        cid = cluster_cursor % cluster_num;
-        cluster_cursor++;
+        cid = cursor;
+        cursor = (cursor + 1) % C;
       }
       return cid;
     };
 
-    auto place_block = [&](int block_idx, int cluster_id)
-    {
-      int t_node_id = randomly_select_a_node(cluster_id, stripe->stripe_id, gen);
+    // ── Place block helper ──
+    auto place_block = [&](int block_idx, int cluster_id) {
+      int nid = randomly_select_a_node(cluster_id, stripe->stripe_id, gen);
       blocks_info[block_idx].map2cluster = cluster_id;
-      blocks_info[block_idx].map2node = t_node_id;
-      update_stripe_info_in_node(t_node_id, stripe->stripe_id, block_idx);
+      blocks_info[block_idx].map2node = nid;
+      update_stripe_info_in_node(true, nid, stripe->stripe_id);
       m_cluster_table[cluster_id].blocks.push_back(&blocks_info[block_idx]);
       m_cluster_table[cluster_id].stripes.insert(stripe->stripe_id);
       stripe->blocks.push_back(&blocks_info[block_idx]);
@@ -1165,132 +1252,134 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       add_to_map(stripe->group_to_blocks, blocks_info[block_idx].map2group, block_idx);
     };
 
-    // Build block metadata: [0,k) data, [k,k+r) local parity, [k+r,k+r+z) global parity.
-    for (int i = 0; i < stripe->n; i++)
+    cord_log() << "\n========== [CORD_PLACEMENT] stripe_id=" << stripe->stripe_id
+              << " k=" << k << " r=" << r << " z=" << z << " h=" << h
+              << " n=" << n << " C=" << C
+              << " global_cluster=" << global_cluster << " ==========\n";
+
+    // ── Step 1: r global parity blocks → global cluster ──
+    cord_log() << "[CORD_PLACEMENT] Step1: r=" << r << " global parity → cluster " << global_cluster << ":";
+    for (int i = 0; i < r; ++i)
     {
-      blocks_info[i].block_size = m_sys_config->BlockSize;
-      blocks_info[i].map2stripe = stripe->stripe_id;
-      blocks_info[i].map2key = stripe->object_keys[0];
-      if (i < k)
-      {
-        std::string tmp = "_D";
-        if (i < 10)
-          tmp = "_D0";
-        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i);
-        blocks_info[i].block_id = i;
-        blocks_info[i].block_type = 'D';
-        blocks_info[i].map2group = i / h;
-      }
-      else if (i < k + r)
-      {
-        const int local_idx = i - k;
-        std::string tmp = "_L";
-        if (local_idx < 10)
-          tmp = "_L0";
-        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(local_idx);
-        blocks_info[i].block_id = i;
-        blocks_info[i].block_type = 'L';
-        blocks_info[i].map2group = local_idx;
-      }
-      else
-      {
-        const int global_idx = i - k - r;
-        std::string tmp = "_G";
-        if (global_idx < 10)
-          tmp = "_G0";
-        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(global_idx);
-        blocks_info[i].block_id = i;
-        blocks_info[i].block_type = 'G';
-        blocks_info[i].map2group = r;
-      }
+      int bid = k + z + i;
+      place_block(bid, global_cluster);
+      cord_log() << " G" << i << "(" << bid << ")";
     }
+    cord_log() << "\n";
 
-    // Step 1: place all global parity blocks in one rotating cluster.
-    for (int i = 0; i < z; i++)
+    // ── Steps 2-4 per local group ──
+    std::vector<int> remain_start(z, 0);
+    std::vector<int> remain_count(z, 0);
+
+    for (int g = 0; g < z; ++g)
     {
-      place_block(k + r + i, global_cluster_id);
-    }
-
-    // Track remaining data range per local group after Steps 2-4.
-    std::vector<int> remain_start(r, 0);
-    std::vector<int> remain_count(r, 0);
-
-    // Step 2-4 per local group.
-    for (int g = 0; g < r; g++)
-    {
-      int group_data_begin = g * h;
+      int group_start = g * h;
       int consumed = 0;
 
-      // Step 2: place z data + local parity in one cluster for this local group.
-      int primary_cluster_id = next_cluster(true);
-      int first_data_num = std::min(z, h);
-      for (int t = 0; t < first_data_num; t++)
+      // Step 2: min(r, h) data blocks + local parity → main cluster
       {
-        place_block(group_data_begin + t, primary_cluster_id);
-      }
-      place_block(k + g, primary_cluster_id);
-      consumed += first_data_num;
-
-      if (consumed >= h)
-      {
-        continue;
-      }
-
-      // Step 3: place one data block with global parity cluster.
-      place_block(group_data_begin + consumed, global_cluster_id);
-      consumed++;
-
-      // Step 4: place each z+1 data blocks into one cluster.
-      while (consumed + (z + 1) <= h)
-      {
-        int chunk_cluster_id = next_cluster(true);
-        for (int t = 0; t < z + 1; t++)
+        int main_cluster = next_cluster(/*avoid_global=*/true);
+        int take = std::min(r, h);
+        cord_log() << "[CORD_PLACEMENT] Step2: group " << g
+                  << " min(r,h)=" << take << " data + L" << g
+                  << "(" << (k + g) << ") → cluster " << main_cluster << ":";
+        for (int t = 0; t < take; ++t)
         {
-          place_block(group_data_begin + consumed + t, chunk_cluster_id);
+          int bid = group_start + t;
+          place_block(bid, main_cluster);
+          cord_log() << " D" << bid;
         }
-        consumed += z + 1;
+        place_block(k + g, main_cluster);
+        cord_log() << " L" << g << "\n";
+        consumed += take;
       }
 
-      remain_start[g] = group_data_begin + consumed;
+      if (consumed >= h) continue;
+
+      // Step 3: 1 data block → global cluster
+      {
+        int bid = group_start + consumed;
+        place_block(bid, global_cluster);
+        cord_log() << "[CORD_PLACEMENT] Step3: group " << g
+                  << " D" << bid << " → global cluster " << global_cluster << "\n";
+        ++consumed;
+      }
+
+      // Step 4: remaining data in batches of (r+1)
+      while (consumed + (r + 1) <= h)
+      {
+        int batch_cluster = next_cluster(/*avoid_global=*/true);
+        cord_log() << "[CORD_PLACEMENT] Step4: group " << g
+                  << " (r+1)=" << (r + 1) << " data → cluster " << batch_cluster << ":";
+        for (int t = 0; t < r + 1; ++t)
+        {
+          int bid = group_start + consumed + t;
+          place_block(bid, batch_cluster);
+          cord_log() << " D" << bid;
+        }
+        cord_log() << "\n";
+        consumed += r + 1;
+      }
+
+      remain_start[g] = group_start + consumed;
       remain_count[g] = h - consumed;
     }
 
-    // Step 5: m = (h - z - 1) mod (z + 1), aggregate leftovers from theta groups.
-    int m = 0;
-    for (int g = 0; g < r; g++)
-    {
-      if (remain_count[g] > 0)
-      {
-        m = remain_count[g];
-        break;
-      }
-    }
+    // ── Step 5: aggregate remainders ──
+    int m = h - r - 1;
     if (m > 0)
     {
-      int theta = 1;
-      if (m > 1)
-      {
-        theta = std::max(1, z / (m - 1));
-      }
+      int theta;
+      if (m == 1)
+        theta = z;
       else
+        theta = std::max(1, r / (m - 1)); // integer floor division
+
+      cord_log() << "[CORD_PLACEMENT] Step5: m=" << m << " theta=" << theta << "\n";
+
+      for (int g = 0; g < z; )
       {
-        theta = r;
-      }
-      for (int g = 0; g < r;)
-      {
-        int batch_cluster_id = next_cluster(true);
+        if (remain_count[g] == 0) { ++g; continue; }
+        int agg_cluster = next_cluster(/*avoid_global=*/true);
+        cord_log() << "[CORD_PLACEMENT] Step5: aggregate → cluster " << agg_cluster << " ← groups";
         int grouped = 0;
-        while (g < r && grouped < theta)
+        while (g < z && grouped < theta)
         {
-          for (int t = 0; t < remain_count[g]; t++)
+          if (remain_count[g] > 0)
           {
-            place_block(remain_start[g] + t, batch_cluster_id);
+            cord_log() << " " << g << "(";
+            for (int t = 0; t < remain_count[g]; ++t)
+            {
+              int bid = remain_start[g] + t;
+              place_block(bid, agg_cluster);
+              cord_log() << "D" << bid;
+              if (t + 1 < remain_count[g]) cord_log() << ",";
+            }
+            cord_log() << ")";
+            ++grouped;
           }
-          g++;
-          grouped++;
+          ++g;
         }
+        cord_log() << "\n";
       }
     }
+
+    // ── Final distribution summary ──
+    cord_log() << "[CORD_PLACEMENT] result (n=" << n << "):\n";
+    std::map<int, std::vector<int>> cluster_blocks;
+    for (int i = 0; i < n; ++i)
+      cluster_blocks[stripe->blocks[static_cast<size_t>(i)]->map2cluster].push_back(i);
+    for (const auto &kv : cluster_blocks)
+    {
+      cord_log() << "  cluster " << kv.first << " (" << kv.second.size() << " blocks): [";
+      for (size_t bi = 0; bi < kv.second.size(); ++bi)
+      {
+        if (bi > 0) cord_log() << ", ";
+        cord_log() << kv.second[bi];
+      }
+      cord_log() << "]\n";
+    }
+    cord_log() << "========== [CORD_PLACEMENT] done ==========\n";
 
     stripe->num_groups = stripe->group_to_blocks.size();
   }
@@ -1492,7 +1581,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     else
     {
-      std::cout << "[CoRD] scheduleCordDataUpdate key=" << plan.key() << " failed" << std::endl;
+      cord_log() << "[CoRD] scheduleCordDataUpdate key=" << plan.key() << " failed\n";
     }
   }
 
@@ -1508,6 +1597,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       clusters.insert(plan.steps(i).src_proxy_cluster_id());
       clusters.insert(plan.steps(i).dst_proxy_cluster_id());
     }
+
+    cord_log() << "\n========== [CORD_PLAN] 下发传输计划到Proxy ==========\n";
+    cord_log() << "[CORD_PLAN] plan_key=" << plan.plan_key()
+              << " stripe_id=" << plan.stripe_id()
+              << " steps=" << plan.steps_size()
+              << " rounds=" << plan.total_rounds()
+              << " clusters_involved=" << clusters.size() << "\n";
+
   // Phase 1: register plan on every involved proxy before any execution starts.
     for (int cid : clusters)
     {
@@ -1524,7 +1621,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       auto pit = m_proxy_ptrs.find(pkey);
       if (pit == m_proxy_ptrs.end() || !pit->second)
       {
-        std::cout << "[CoRD-PLAN] no proxy stub for cluster " << cid << " (" << pkey << ")" << std::endl;
+        cord_log() << "[CORD_PLAN] no proxy stub for cluster " << cid << " (" << pkey << ")\n";
         continue;
       }
       grpc::ClientContext ctx;
@@ -1532,8 +1629,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       grpc::Status st = pit->second->scheduleCordTransferPlan(&ctx, plan, &rep);
       if (!st.ok() || !rep.ifcommit())
       {
-        std::cout << "[CoRD-PLAN] scheduleCordTransferPlan failed cluster " << cid << " st=" << st.error_message()
-                  << std::endl;
+        cord_log() << "[CORD_PLAN] Phase1 scheduleCordTransferPlan FAIL cluster " << cid
+                  << " (" << pkey << ") err=" << st.error_message() << "\n";
+      }
+      else
+      {
+        cord_log() << "[CORD_PLAN] Phase1 scheduleCordTransferPlan OK cluster " << cid
+                  << " (" << pkey << ")\n";
       }
     }
   // Phase 2: start execution on all proxies (all plan_key registrations are visible).
@@ -1561,8 +1663,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       grpc::Status st = pit->second->cordPlanStartExecution(&ctx, start_msg, &rep);
       if (!st.ok() || !rep.ifcommit())
       {
-        std::cout << "[CoRD-PLAN] cordPlanStartExecution failed cluster " << cid << " st=" << st.error_message()
-                  << std::endl;
+        cord_log() << "[CORD_PLAN] Phase2 cordPlanStartExecution FAIL cluster " << cid
+                  << " (" << pkey << ") err=" << st.error_message() << "\n";
+      }
+      else
+      {
+        cord_log() << "[CORD_PLAN] Phase2 cordPlanStartExecution OK cluster " << cid
+                  << " (" << pkey << ")\n";
       }
     }
   }
@@ -1604,7 +1711,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::string err;
     if (!build_slice_plan_for_logical_range(stripe, global_lo, append_size, &b2s, &ps, &po, &merge, &err))
     {
-      std::cout << "[CoRD] enrich_cord_transfer_plan_encoding build_slice failed: " << err << std::endl;
+      cord_log() << "[CoRD] enrich_cord_transfer_plan_encoding build_slice failed: " << err << std::endl;
       return;
     }
     proxy_proto::CordTransferEncodeMeta *meta = plan->mutable_cord_encode_meta();
@@ -1719,7 +1826,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       else if (code_type == "RandomLRC")
       {
-        initialize_random_lrc_stripe_placement(&t_stripe);
+        initialize_cord_lrc_stripe_placement(&t_stripe);
       }
       else
       {
@@ -1851,32 +1958,31 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
     }
 
-    // --- CoRD uploadCordUpdate verbose debug (muted) ---
-    // std::cout << "[CoRD] stripe_id=" << stripe_id
-    //           << " updated data blocks (block_id -> in-block intervals [off,end)):\n";
-    // for (const auto &kv : block_intervals)
-    // {
-    //   std::cout << "  block " << kv.first << ":";
-    //   for (const auto &seg : kv.second)
-    //   {
-    //     std::cout << " [" << seg.first << "," << seg.second << ")";
-    //   }
-    //   std::cout << "\n";
-    // }
+    // --- CoRD uploadCordUpdate: 更新区间明细 ---
+    cord_log() << "[CORD_ROUTE] stripe_id=" << stripe_id
+              << " updated data blocks (block_id -> in-block intervals [off,end)):\n";
+    for (const auto &kv : block_intervals)
+    {
+      cord_log() << "  block " << kv.first << ":";
+      for (const auto &seg : kv.second)
+        cord_log() << " [" << seg.first << "," << seg.second << ")";
+      cord_log() << "\n";
+    }
 
     const auto groups = cord_partition_groups_algorithm1(block_intervals);
 
-    // std::cout << "[CoRD] Algorithm 1 partition (intersection closure; singletons = pairwise disjoint from all other "
-    //              "updated blocks):\n";
-    // for (size_t gi = 0; gi < groups.size(); ++gi)
-    // {
-    //   const auto &g = groups[gi];
-    //   const char *tag = (g.size() >= 2) ? "intersecting_group" : "disjoint_singleton";
-    //   std::cout << "  cluster " << gi << " [" << tag << "] blocks";
-    //   for (int bid : g)
-    //     std::cout << " " << bid;
-    //   std::cout << "\n";
-    // }
+    cord_log() << "\n========== [CORD_ROUTE] 路由决策明细 (算法1分组 + 算法2链路) ==========\n";
+    cord_log() << "[CORD_ROUTE] 算法1分组: " << groups.size() << " groups"
+              << " (intersection closure; singletons = pairwise disjoint from all other updated blocks):\n";
+    for (size_t gi = 0; gi < groups.size(); ++gi)
+    {
+      const auto &g = groups[gi];
+      const char *tag = (g.size() >= 2) ? "intersecting_group" : "disjoint_singleton";
+      cord_log() << "  组" << gi << " [" << tag << "] 数据块:";
+      for (int bid : g)
+        cord_log() << " " << bid;
+      cord_log() << "\n";
+    }
 
     cord_alg2::Algorithm2Result alg2_result;
     {
@@ -1885,28 +1991,31 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       const int slot_unit = static_cast<int>(k_cord_alg2_slot_unit_bytes);
       alg2_result =
           cord_alg2::build_algorithm2(*stripe, block_intervals, groups, m_sys_config->ClusterNum, tp, slot_unit);
-      // std::cout << "[CoRD] Algorithm 2 train_route (|U|=" << groups.size() << ", links=" << alg2_result.train_route.size()
-      //           << "):\n";
-      // for (size_t i = 0; i < alg2_result.train_route.size(); ++i)
-      // {
-      //   const auto &L = alg2_result.train_route[i];
-      //   std::cout << "  [" << i << "] " << cord_alg2::train_link_kind_name(L.kind) << " blk " << L.src_block_id
-      //             << "->" << L.dst_block_id << " c " << L.src_cluster << "->" << L.dst_cluster
-      //             << " bytes=" << L.payload_bytes << " est_s=" << L.est_transfer_sec << " grp=" << L.group_index
-      //             << "\n";
-      // }
-      // std::cout << "[CoRD] Algorithm 2 timeslots=" << alg2_result.timeslot_schedule.size()
-      //           << " slot_unit_bytes=" << alg2_result.slot_unit_bytes;
-      // if (alg2_result.center_global_block_id >= 0)
-      //   std::cout << " last_star_center_G=" << alg2_result.center_global_block_id;
-      // std::cout << "\n";
-      // for (const auto &ts : alg2_result.timeslot_schedule)
-      // {
-      //   std::cout << "  slot " << ts.timeslot << ":";
-      //   for (int id : ts.link_indices)
-      //     std::cout << " " << id;
-      //   std::cout << "\n";
-      // }
+      cord_log() << "[CORD_ROUTE] 算法2链路: |U|=" << groups.size()
+                << " links=" << alg2_result.train_route.size() << ":\n";
+      for (size_t i = 0; i < alg2_result.train_route.size(); ++i)
+      {
+        const auto &L = alg2_result.train_route[i];
+        cord_log() << "    [" << i << "] " << cord_alg2::train_link_kind_name(L.kind) << " 数据块 "
+                  << L.src_block_id << "->" << L.dst_block_id << " 集群 " << L.src_cluster << "->"
+                  << L.dst_cluster << " 字节=" << L.payload_bytes
+                  << " 预估=" << L.est_transfer_sec << "s 组=" << L.group_index << "\n";
+      }
+      cord_log() << "[CORD_ROUTE] 算法2时隙调度: timeslots=" << alg2_result.timeslot_schedule.size()
+                << " slot_unit_bytes=" << alg2_result.slot_unit_bytes;
+      if (alg2_result.center_global_block_id >= 0)
+        cord_log() << " center_global_block=" << alg2_result.center_global_block_id;
+      cord_log() << "\n";
+      for (const auto &ts : alg2_result.timeslot_schedule)
+      {
+        cord_log() << "  时隙 " << ts.timeslot << ": links [";
+        for (size_t li = 0; li < ts.link_indices.size(); ++li)
+        {
+          if (li > 0) cord_log() << ",";
+          cord_log() << ts.link_indices[li];
+        }
+        cord_log() << "]\n";
+      }
       // 算法三已在 build_algorithm2 内与算法二融合（|N|≥3 成功时）；此处不再单独调用以免重复计算。
     }
 
@@ -1919,10 +2028,25 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                                               .count());
       cord_xfer_plan = cord_transfer_plan_from_algorithm2(stripe_id, cord_xfer_plan_key, alg2_result, stripe->k,
                                                             block_intervals);
-      // std::cout << "[CoRD] CordTransferPlan merged consecutive identical slots: steps=" << cord_xfer_plan.steps_size()
-      //           << " total_rounds=" << cord_xfer_plan.total_rounds()
-      //           << " (debug print above still shows raw Algorithm2 timeslots="
-      //           << alg2_result.timeslot_schedule.size() << ")\n";
+      cord_log() << "[CORD_ROUTE] CordTransferPlan: steps=" << cord_xfer_plan.steps_size()
+                << " total_rounds=" << cord_xfer_plan.total_rounds()
+                << " plan_key=" << cord_xfer_plan_key
+                << " (raw algorithm2 timeslots=" << alg2_result.timeslot_schedule.size() << ")\n";
+      for (int si = 0; si < cord_xfer_plan.steps_size(); ++si)
+      {
+        const auto &st = cord_xfer_plan.steps(si);
+        cord_log() << "  step " << st.step_index() << ": "
+                  << cord_transfer_link_kind_name(st.link_kind())
+                  << " 集群 " << st.src_proxy_cluster_id() << "->" << st.dst_proxy_cluster_id()
+                  << " 数据块 " << st.src_block_id() << "->" << st.dst_block_id()
+                  << " chunk=[" << st.chunk_byte_offset() << ","
+                  << (st.chunk_byte_offset() + static_cast<int32_t>(st.chunk_byte_length())) << ")"
+                  << " 字节=" << st.chunk_byte_length()
+                  << " slot=" << st.scheduled_slot()
+                  << " group=" << st.group_index()
+                  << " payload=" << cord_plan_delta_kind_name(st.delta_payload_kind())
+                  << "\n";
+      }
       enrich_cord_transfer_plan_delta_segs(block_intervals, stripe->k, &cord_xfer_plan);
       fill_group_xor_hints_from_alg2(alg2_result, block_intervals, &cord_xfer_plan);
       enrich_cord_transfer_plan_encoding(stripe, block_intervals, alg2_result, &cord_xfer_plan);
@@ -1980,6 +2104,55 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     enrich_cord_transfer_plan_topology(stripe, m_cluster_table, m_node_table, m_toolbox, &cord_xfer_plan,
                                        sorted_clusters);
     reorder_cord_plan_steps_execution(&cord_xfer_plan);
+
+    // --- CoRD scheduling visualization ---
+    {
+      cord_log() << "\n========== [CORD_SCHED] 调度结果 (重排序后, 按round分组) ==========\n";
+      cord_log() << "[CORD_SCHED] stripe_id=" << stripe_id
+                << " plan_key=" << cord_xfer_plan_key
+                << " total_steps=" << cord_xfer_plan.steps_size()
+                << " total_rounds=" << cord_xfer_plan.total_rounds()
+                << " k=" << stripe->k << " g_m=" << stripe->g_m << " l=" << stripe->l
+                << " n=" << (stripe->k + stripe->g_m + stripe->l) << "\n";
+      int cur_slot = -1;
+      int round_no = 0;
+      for (int si = 0; si < cord_xfer_plan.steps_size(); ++si)
+      {
+        const auto &st = cord_xfer_plan.steps(si);
+        if (st.scheduled_slot() != cur_slot)
+        {
+          cur_slot = st.scheduled_slot();
+          cord_log() << "  --- round " << round_no << " (slot " << cur_slot << ") ---\n";
+          ++round_no;
+        }
+        const char *link_name = "UNKNOWN";
+        switch (st.link_kind())
+        {
+        case proxy_proto::CORD_TRANSFER_STAR_DATA_TO_CENTER: link_name = "STAR_DATA_TO_CENTER"; break;
+        case proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_GLOBAL: link_name = "STAR_CENTER_TO_GLOBAL"; break;
+        case proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_LOCAL: link_name = "STAR_CENTER_TO_LOCAL"; break;
+        case proxy_proto::CORD_TRANSFER_MST_FORWARD: link_name = "MST_FORWARD"; break;
+        default: break;
+        }
+        cord_log() << "    step " << st.step_index() << ": "
+                  << link_name
+                  << " 集群" << st.src_proxy_cluster_id() << "->" << st.dst_proxy_cluster_id()
+                  << " 数据块" << st.src_block_id() << "->" << st.dst_block_id()
+                  << " chunk=[" << st.chunk_byte_offset() << ","
+                  << (st.chunk_byte_offset() + static_cast<int32_t>(st.chunk_byte_length())) << ")"
+                  << " 字节=" << st.chunk_byte_length()
+                  << " 预估=" << st.estimated_transfer_sec() << "s"
+                  << " group=" << st.group_index()
+                  << " payload=";
+        switch (st.delta_payload_kind())
+        {
+        case proxy_proto::CORD_DELTA_DATA: cord_log() << "DATA_DELTA"; break;
+        case proxy_proto::CORD_DELTA_PARITY: cord_log() << "PARITY_DELTA"; break;
+        default: cord_log() << "?"; break;
+        }
+        cord_log() << "\n";
+      }
+    }
 
     for (const auto &plan_entry : sorted_clusters)
     {
@@ -2063,6 +2236,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     const std::string &pk = request->plan_key();
     if (pk.empty())
       return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "empty plan_key");
+    cord_log() << "[CORD_PLAN] cordPlanBeginTransfer plan_key=" << pk << std::endl;
     proxy_proto::CordTransferPlan plan;
     {
       std::lock_guard<std::mutex> lk(m_cord_pending_mu);
@@ -2086,6 +2260,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     const std::string &pk = request->plan_key();
     if (pk.empty())
       return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "empty plan_key");
+    cord_log() << "[CORD_PLAN] cordPlanWaitTransferComplete plan_key=" << pk << std::endl;
     std::vector<int> clusters;
     {
       std::lock_guard<std::mutex> lk(m_cord_pending_mu);
@@ -2113,7 +2288,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       auto pit = m_proxy_ptrs.find(pkey);
       if (pit == m_proxy_ptrs.end() || !pit->second)
       {
-        std::cout << "[CoRD-PLAN] cordPlanWaitTransferComplete: no stub cluster=" << cid << std::endl;
+        cord_log() << "[CoRD-PLAN] cordPlanWaitTransferComplete: no stub cluster=" << cid << std::endl;
         return grpc::Status(grpc::StatusCode::INTERNAL, "proxy stub missing");
       }
       grpc::ClientContext ctx;
@@ -2121,7 +2296,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       grpc::Status st = pit->second->cordPlanJoinExecution(&ctx, msg, &rep);
       if (!st.ok() || !rep.ifcommit())
       {
-        std::cout << "[CoRD-PLAN] cordPlanJoinExecution failed cluster=" << cid << " " << st.error_message()
+        cord_log() << "[CoRD-PLAN] cordPlanJoinExecution failed cluster=" << cid << " " << st.error_message()
                   << std::endl;
         return grpc::Status(grpc::StatusCode::INTERNAL, "cordPlanJoinExecution failed");
       }
@@ -2132,12 +2307,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         const int64_t em = rep.cord_join_pure_xfer_end_unix_ms();
         const double proxy_wall_span_sec =
             (em >= sm) ? static_cast<double>(em - sm) / 1000. : -1.;
-        // std::cout << "[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=" << pk << " cluster=" << cid
-        //           << " proxy_endpoint=" << pkey << " pure_xfer_sec=" << rep.cord_join_pure_xfer_sec()
-        //           << " wall_start_unix_ms=" << sm << " wall_end_unix_ms=" << em << " proxy_wall_span_sec="
-        //           << proxy_wall_span_sec << std::endl;
-        (void)proxy_wall_span_sec;
-        (void)pkey;
+        cord_log() << "[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=" << pk << " cluster=" << cid
+                  << " proxy_endpoint=" << pkey << " pure_xfer_sec=" << rep.cord_join_pure_xfer_sec()
+                  << " wall_start_unix_ms=" << sm << " wall_end_unix_ms=" << em << " proxy_wall_span_sec="
+                  << proxy_wall_span_sec << std::endl;
         max_proxy_pure_xfer_sec = std::max(max_proxy_pure_xfer_sec, rep.cord_join_pure_xfer_sec());
         if (!span_have)
         {
@@ -2153,12 +2326,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           ++timing_samples;
         }
       }
-      // else
-      // {
-      //   std::cout << "[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=" << pk << " cluster=" << cid
-      //             << " proxy_endpoint=" << pkey << " timing=n/a (no cord_join_xfer_timing from proxy)"
-      //             << std::endl;
-      // }
+      else
+      {
+        cord_log() << "[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=" << pk << " cluster=" << cid
+                  << " proxy_endpoint=" << pkey << " timing=n/a (no cord_join_xfer_timing from proxy)"
+                  << std::endl;
+      }
       (void)pkey;
     }
     {
@@ -2169,23 +2342,19 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       const double cluster_pure_xfer_span_wall_sec =
           static_cast<double>(span_max_end_ms - span_min_start_ms) / 1000.;
-      // std::cout << "[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=" << cluster_pure_xfer_span_wall_sec
-      //           << " plan_key=" << pk << " joined_proxies=" << joined_proxies
-      //           << " timing_samples=" << timing_samples << " max_proxy_pure_xfer_sec=" << max_proxy_pure_xfer_sec
-      //           << " (min wall start -> max wall end over proxies; clock sync assumed)" << std::endl;
-      // if (timing_samples < joined_proxies)
-      //   std::cout << "[CoRD-PLAN][Coordinator] WARN timing_samples<joined_proxies (mixed proxy versions?)"
-      //             << std::endl;
-      (void)cluster_pure_xfer_span_wall_sec;
-      (void)joined_proxies;
-      (void)timing_samples;
-      (void)max_proxy_pure_xfer_sec;
+      cord_log() << "[CoRD-PLAN][Coordinator] cluster_pure_xfer_span_wall_sec=" << cluster_pure_xfer_span_wall_sec
+                << " plan_key=" << pk << " joined_proxies=" << joined_proxies
+                << " timing_samples=" << timing_samples << " max_proxy_pure_xfer_sec=" << max_proxy_pure_xfer_sec
+                << " (min wall start -> max wall end over proxies; clock sync assumed)" << std::endl;
+      if (timing_samples < joined_proxies)
+        cord_log() << "[CoRD-PLAN][Coordinator] WARN timing_samples<joined_proxies (mixed proxy versions?)"
+                  << std::endl;
     }
-    // else if (joined_proxies > 0)
-    // {
-    //   std::cout << "[CoRD-PLAN][Coordinator] WARN cluster_pure_xfer_span_wall_sec unavailable plan_key=" << pk
-    //             << " joined_proxies=" << joined_proxies << std::endl;
-    // }
+    else if (joined_proxies > 0)
+    {
+      cord_log() << "[CoRD-PLAN][Coordinator] WARN cluster_pure_xfer_span_wall_sec unavailable plan_key=" << pk
+                << " joined_proxies=" << joined_proxies << std::endl;
+    }
     reply->set_ifcommit(true);
     return grpc::Status::OK;
   }
@@ -2197,7 +2366,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     proxy_proto::SetReply set_reply;
     if (m_cluster_table.find(target_cluster_id) == m_cluster_table.end())
     {
-      std::cout << "[CoRD-LP] invalid target cluster " << target_cluster_id << std::endl;
+      cord_log() << "[CoRD-LP] invalid target cluster " << target_cluster_id << std::endl;
       return;
     }
     std::string chosen_proxy =
@@ -2206,12 +2375,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     auto pit = m_proxy_ptrs.find(chosen_proxy);
     if (pit == m_proxy_ptrs.end())
     {
-      std::cout << "[CoRD-LP] no proxy stub for " << chosen_proxy << std::endl;
+      cord_log() << "[CoRD-LP] no proxy stub for " << chosen_proxy << std::endl;
       return;
     }
     grpc::Status status = pit->second->scheduleCordLocalParityApply(&cont, bundle, &set_reply);
     if (!status.ok())
-      std::cout << "[CoRD-LP] scheduleCordLocalParityApply key=" << bundle.key()
+      cord_log() << "[CoRD-LP] scheduleCordLocalParityApply key=" << bundle.key()
                 << " failed: " << status.error_message() << std::endl;
   }
 
@@ -2324,7 +2493,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         std::string err;
         if (!build_slice_plan_for_logical_range(stripe, lo, seg_len, &b2s, &ps, &po, &merge, &err))
         {
-          std::cout << "[CoRD-LP] build_slice failed: " << err << std::endl;
+          cord_log() << "[CoRD-LP] build_slice failed: " << err << std::endl;
           continue;
         }
         const auto pit = b2s.find(lb);
@@ -2340,7 +2509,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         uint64_t blob_off = 0;
         if (!cord_lp_find_delta_blob_offset(csit->second, bid, a, seg_len, &blob_off))
         {
-          std::cout << "[CoRD-LP] missing delta layout for stripe=" << stripe_id << " cluster=" << cid
+          cord_log() << "[CoRD-LP] missing delta layout for stripe=" << stripe_id << " cluster=" << cid
                     << " block=" << bid << std::endl;
           continue;
         }
@@ -2372,7 +2541,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         fs.source_cluster_id = cid;
         w.fetches.push_back(std::move(fs));
 
-        // std::cout << "[CoRD-LP] map2group=" << gnum << " hub_global_blk=" << hub_blk
+        // cord_log() << "[CoRD-LP] map2group=" << gnum << " hub_global_blk=" << hub_blk
         //           << " data_blk=" << bid << " seg=[" << a << "," << b << ") -> LP blk " << lb
         //           << " parity_off=" << poff << " len=" << psz << " fetch " << blob_key << "@" << blob_off
         //           << " len=" << seg_len << std::endl;
@@ -2533,7 +2702,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         std::string err;
         if (!build_slice_plan_for_logical_range(stripe, lo, seg_len, &b2s, &ps, &po, &merge, &err))
         {
-          std::cout << "[CoRD-LP-GH] build_slice failed: " << err << std::endl;
+          cord_log() << "[CoRD-LP-GH] build_slice failed: " << err << std::endl;
           continue;
         }
         const auto pit = b2s.find(lb);
@@ -2549,7 +2718,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         uint64_t blob_off = 0;
         if (!cord_lp_find_delta_blob_offset(csit->second, bid, a, seg_len, &blob_off))
         {
-          std::cout << "[CoRD-LP-GH] missing delta layout for stripe=" << stripe_id << " cluster=" << cid
+          cord_log() << "[CoRD-LP-GH] missing delta layout for stripe=" << stripe_id << " cluster=" << cid
                     << " block=" << bid << std::endl;
           continue;
         }
@@ -2750,7 +2919,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     else if (code_type == "RandomLRC")
     {
-      initialize_random_lrc_stripe_placement(&t_stripe);
+      initialize_unilrc_and_azurelrc_stripe_placement(&t_stripe);
     }
     print_stripe_data_placement(t_stripe);
 
@@ -2812,7 +2981,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     else if (code_type == "RandomLRC")
     {
-      initialize_random_lrc_stripe_placement(&t_stripe);
+      initialize_unilrc_and_azurelrc_stripe_placement(&t_stripe);
     }
     print_stripe_data_placement(t_stripe);
 
