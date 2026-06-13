@@ -373,35 +373,40 @@ namespace ECProject
                 continue;
               int lc = block_cluster(stripe, Lb);
 
-              // 优化：如果该组所有被更新的数据块都和本地校验在同一集群，跳过 collector，
-              // 由 proxy 在机架内直接 XOR 更新本地校验（全局校验仍走 collector）。
-              bool all_co_located = true;
+              // 优化：将同机架数据块拆出，由 proxy 在机架内直接 XOR 更新本地校验；
+              // 跨机架数据块仍走 collector -> STAR_CENTER_TO_LOCAL。
+              // 全局校验块不受影响（所有数据块 delta 仍发往 collector）。
+              std::vector<int> in_rack_blocks, cross_rack_blocks;
               for (int d : blocks_same_local_group)
               {
-                if (block_cluster(stripe, d) != lc)
+                if (block_cluster(stripe, d) == lc)
+                  in_rack_blocks.push_back(d);
+                else
+                  cross_rack_blocks.push_back(d);
+              }
+              for (int d : in_rack_blocks)
+                out.local_parity_in_rack_data_blocks.insert(d);
+
+              if (!cross_rack_blocks.empty())
+              {
+                const int64_t parity_local_b_cross =
+                    merged_delta_hull_span_bytes(block_intervals, cross_rack_blocks);
+                if (parity_local_b_cross > 0)
                 {
-                  all_co_located = false;
-                  break;
+                  TrainLink L;
+                  L.src_block_id = best_c;
+                  L.dst_block_id = Lb;
+                  L.src_cluster = cc_center;
+                  L.dst_cluster = lc;
+                  L.payload_bytes = parity_local_b_cross;
+                  L.est_transfer_sec = transfer_sec(cc_center, lc, parity_local_b_cross, tp);
+                  L.group_index = gi;
+                  L.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
+                  L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
+                  L.parity_merge_data_block_ids = cross_rack_blocks;
+                  out.train_route.push_back(std::move(L));
                 }
               }
-              if (all_co_located)
-              {
-                out.local_parity_in_rack_groups.insert(gnum);
-                continue; // skip STAR_CENTER_TO_LOCAL
-              }
-
-              TrainLink L;
-              L.src_block_id = best_c;
-              L.dst_block_id = Lb;
-              L.src_cluster = cc_center;
-              L.dst_cluster = lc;
-              L.payload_bytes = parity_local_b;
-              L.est_transfer_sec = transfer_sec(cc_center, lc, parity_local_b, tp);
-              L.group_index = gi;
-              L.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
-              L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
-              L.parity_merge_data_block_ids = blocks_same_local_group;
-              out.train_route.push_back(std::move(L));
             }
           };
 
@@ -523,18 +528,37 @@ namespace ECProject
                     if (parity_local_col <= 0)
                       continue;
                     int lc = block_cluster(stripe, Lb);
-                    TrainLink L;
-                    L.src_block_id = col;
-                    L.dst_block_id = Lb;
-                    L.src_cluster = cc;
-                    L.dst_cluster = lc;
-                    L.payload_bytes = parity_local_col;
-                    L.est_transfer_sec = transfer_sec(cc, lc, parity_local_col, tp);
-                    L.group_index = gi;
-                    L.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
-                    L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
-                    L.parity_merge_data_block_ids = blocks_local;
-                    out.train_route.push_back(std::move(L));
+                    std::vector<int> in_rack_local, cross_rack_local;
+                    for (int bid : blocks_local)
+                    {
+                      if (block_cluster(stripe, bid) == lc)
+                        in_rack_local.push_back(bid);
+                      else
+                        cross_rack_local.push_back(bid);
+                    }
+                    for (int bid : in_rack_local)
+                      out.local_parity_in_rack_data_blocks.insert(bid);
+
+                    if (!cross_rack_local.empty())
+                    {
+                      const int64_t parity_local_col_cross =
+                          merged_delta_hull_span_bytes(block_intervals, cross_rack_local);
+                      if (parity_local_col_cross > 0)
+                      {
+                        TrainLink L;
+                        L.src_block_id = col;
+                        L.dst_block_id = Lb;
+                        L.src_cluster = cc;
+                        L.dst_cluster = lc;
+                        L.payload_bytes = parity_local_col_cross;
+                        L.est_transfer_sec = transfer_sec(cc, lc, parity_local_col_cross, tp);
+                        L.group_index = gi;
+                        L.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
+                        L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
+                        L.parity_merge_data_block_ids = cross_rack_local;
+                        out.train_route.push_back(std::move(L));
+                      }
+                    }
                   }
                 }
                 out.center_global_block_id = *used_collectors.begin();

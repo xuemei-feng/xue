@@ -821,17 +821,21 @@ namespace ECProject
       const int encode_r = plan.cord_encode_meta().g_m(); // global parity count
       const int encode_z = plan.cord_encode_meta().l();   // local parity count
 
-      // 检测哪些 group 的本地校验可以在机架内直接更新（无需 collector 发回）
-      // 条件：该 group 有 STAR_DATA_TO_CENTER 但没有 STAR_CENTER_TO_LOCAL
-      std::set<int> gi_with_center_to_local;
+      // 检测哪些数据块的本地校验需要走 collector（跨机架），
+      // 其余数据块可在机架内由 proxy 直接 XOR 更新本地校验。
+      // 条件：数据块出现在某个 STAR_CENTER_TO_LOCAL 的 parity_merge_data_block_ids 中
+      std::set<int> cross_rack_data_blocks;
       for (int si = 0; si < plan.steps_size(); ++si)
       {
         const auto &st = plan.steps(si);
         if (st.link_kind() == proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_LOCAL)
-          gi_with_center_to_local.insert(st.group_index());
+        {
+          for (int i = 0; i < st.parity_merge_data_block_ids_size(); ++i)
+            cross_rack_data_blocks.insert(st.parity_merge_data_block_ids(i));
+        }
       }
-      plan_log(std::string("in_rack_detection: groups_with_center_to_local=") +
-               std::to_string(gi_with_center_to_local.size()));
+      plan_log(std::string("in_rack_detection: cross_rack_data_blocks=") +
+               std::to_string(cross_rack_data_blocks.size()));
 
       for (int si = 0; si < plan.steps_size(); ++si)
       {
@@ -918,9 +922,10 @@ namespace ECProject
             plan_log(ob.str());
           }
 
-          // 机架内本地校验直更：如果该 group 没有 collector 发回的
-          // STAR_CENTER_TO_LOCAL，proxy 直接 XOR 更新本地校验块
-          if (ok && !gi_with_center_to_local.count(st.group_index()))
+          // 机架内本地校验直更：如果该数据块不在任何 STAR_CENTER_TO_LOCAL
+          // 的 parity_merge_data_block_ids 中（即与本地校验同机架），
+          // proxy 直接 XOR 更新本地校验块
+          if (ok && !cross_rack_data_blocks.count(st.src_block_id()))
           {
             int local_group = cord_plan_data_block_stripe_group(plan, st.src_block_id());
             if (local_group >= 0)
@@ -998,7 +1003,8 @@ namespace ECProject
               static_cast<int64_t>(parity_payload_abs_lo) + static_cast<int64_t>(st.chunk_byte_offset()));
           const int parity_ingest =
               st.has_parity_ingest_stripe_group() ? st.parity_ingest_stripe_group() : -1;
-          if (cord_uses_matrix_encode(plan))
+          if (cord_uses_matrix_encode(plan) &&
+              st.link_kind() == proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_GLOBAL)
           {
             if (!cord_ensure_collector_parity_coded(plan, st.group_index(), st.src_block_id(), parity_ingest))
             {
@@ -1035,15 +1041,13 @@ namespace ECProject
           {
             if (st.has_parity_ingest_stripe_group())
             {
-              if (!cord_uses_matrix_encode(plan))
+              // 本地校验恒为 XOR（即使全局校验用矩阵编码），统一走 filtered_xor
+              if (!cord_spin_until_collector_ingress_ready(plan, st.group_index(), st.src_block_id(),
+                                                           st.parity_ingest_stripe_group()))
               {
-                if (!cord_spin_until_collector_ingress_ready(plan, st.group_index(), st.src_block_id(),
-                                                             st.parity_ingest_stripe_group()))
-                {
-                  plan_log("abort_step parity filtered_xor ingress_timeout collector_blk=" +
-                           std::to_string(st.src_block_id()) + " step_index=" + std::to_string(st.step_index()));
-                  continue;
-                }
+                plan_log("abort_step parity filtered_xor ingress_timeout collector_blk=" +
+                         std::to_string(st.src_block_id()) + " step_index=" + std::to_string(st.step_index()));
+                continue;
               }
               cord_filtered_xor_parity_chunk(plan, st.group_index(), st.src_block_id(),
                                              st.parity_ingest_stripe_group(), st, st.chunk_byte_offset(), chunk_len,

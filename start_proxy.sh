@@ -15,7 +15,8 @@ PARALLEL=50
 
 # Clean up stale remote logs before starting
 while IFS= read -r host; do
-    [[ -z "$host" || "$host" =~ ^[[:space:]]*# ]] && continue
+    [ -z "$host" ] && continue
+    echo "$host" | grep -qE '^[[:space:]]*#' && continue
     ssh ${USER}@${host} "rm -f /tmp/cord_proxy_update.log" 2>/dev/null || true
 done < "$HOSTS_FILE"
 
