@@ -1064,22 +1064,9 @@ namespace ECProject
     const uint64_t xfer_plan_id = placement->xue_xfer_plan_id();
     const auto xfer_t0 = std::chrono::steady_clock::now();
     const int64_t xfer_w0 = xue_wall_unix_ms_now();
-    if (m_coordinator_ptr != nullptr && stripe_id >= 0)
-    {
-      grpc::ClientContext wait_ctx;
-      coordinator_proto::XueStripeScheduleId wait_req;
-      coordinator_proto::ReplyFromCoordinator wait_rep;
-      wait_req.set_stripe_id(stripe_id);
-      const grpc::Status wait_st =
-          m_coordinator_ptr->waitXueAllIngressReady(&wait_ctx, wait_req, &wait_rep);
-      if (!wait_st.ok())
-      {
-        std::cerr << "[Proxy] strict schedule: waitXueAllIngressReady failed stripe=" << stripe_id
-                  << " append_key=" << placement->key() << " err=" << wait_st.error_message()
-                  << std::endl;
-        return;
-      }
-    }
+
+    // 不再调用 waitXueAllIngressReady：step 依赖图已保证
+    // 前驱 ingress step 完成后转发 step 才会 READY
 
     const size_t cluster_append_size = append_buf->size();
     bool ok = true;

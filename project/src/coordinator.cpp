@@ -185,6 +185,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             append_size += static_cast<size_t>(e.size);
           }
         }
+        std::sort(tcp_block_ids.begin(), tcp_block_ids.end());
+        tcp_block_ids.erase(std::unique(tcp_block_ids.begin(), tcp_block_ids.end()), tcp_block_ids.end());
+        std::sort(meta_block_ids.begin(), meta_block_ids.end());
+        meta_block_ids.erase(std::unique(meta_block_ids.begin(), meta_block_ids.end()), meta_block_ids.end());
         out.set_cluster_id(cluster_id);
         out.set_key(ToolBox::getInstance()->gen_append_key_cluster_plan(
             out.stripe_id(), -1, cluster_id, tcp_block_ids, meta_block_ids));
@@ -301,6 +305,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             meta_block_ids.push_back(plan.blockids(j));
           }
         }
+        // 去重：同一 block_id 可能被不同 class_sub 阶段重复添加到 meta
+        std::sort(tcp_block_ids.begin(), tcp_block_ids.end());
+        tcp_block_ids.erase(std::unique(tcp_block_ids.begin(), tcp_block_ids.end()), tcp_block_ids.end());
+        std::sort(meta_block_ids.begin(), meta_block_ids.end());
+        meta_block_ids.erase(std::unique(meta_block_ids.begin(), meta_block_ids.end()), meta_block_ids.end());
         proxy_proto::AppendStripeDataPlacement sub = plan;
         sub.clear_datanodeip();
         sub.clear_datanodeport();
@@ -919,6 +928,25 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         int k,
         int r)
     {
+      // 诊断：汇总所有 step 的 from→to 信息，便于排查 outgoing 挂载不匹配
+      std::cerr << "[Coord] attach_outgoing BEGIN plans=" << append_plans.size()
+                << " steps=" << strict.steps.size() << std::endl;
+      for (size_t pi = 0; pi < append_plans.size(); ++pi)
+      {
+        const auto &p = append_plans[pi];
+        std::cerr << "[Coord] attach_outgoing PLAN[" << pi << "] cluster=" << p.cluster_id()
+                  << " key=" << p.key() << std::endl;
+      }
+      for (size_t si = 0; si < strict.steps.size(); ++si)
+      {
+        const auto &s = strict.steps[si];
+        std::cerr << "[Coord] attach_outgoing STEP[" << si << "] step_no=" << s.step_no()
+                  << " from=" << s.from_cluster() << " to=" << s.to_cluster()
+                  << " key=" << s.append_key()
+                  << " mode=" << s.forward_append_mode()
+                  << " payload=" << s.payload() << std::endl;
+      }
+
       for (auto &plan : append_plans)
       {
         plan.clear_xue_strict_outgoing();
@@ -936,6 +964,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           const bool key_match = (s.append_key() == plan.key());
           if (!key_match)
           {
+            // 诊断：步骤的 from_cluster 和 plan 的 cluster 匹配，但 key 不匹配
+            std::cerr << "[Coord] attach_outgoing KEY_MISMATCH plan_cluster=" << plan.cluster_id()
+                      << " plan_key=" << plan.key()
+                      << " step_from=" << s.from_cluster() << " step_to=" << s.to_cluster()
+                      << " step_key=" << s.append_key()
+                      << " step_mode=" << s.forward_append_mode()
+                      << " step_payload=" << s.payload()
+                      << " step_no=" << s.step_no() << std::endl;
             continue;
           }
           // class3：data 在远端 ingress 算 local parity，改由 proxy ingress 侧 merged forward 完成
@@ -944,6 +980,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
               s.to_cluster() == plan_lp_cluster && plan.cluster_id() != plan_lp_cluster &&
               !plan.xue_compute_global_parity())
           {
+            std::cerr << "[Coord] attach_outgoing CLASS3_SKIP plan_cluster=" << plan.cluster_id()
+                      << " step_from=" << s.from_cluster() << " step_to=" << s.to_cluster()
+                      << " lp_cluster=" << plan_lp_cluster << std::endl;
             continue;
           }
           const auto hop_key = make_xue_strict_hop_key(s);
@@ -962,15 +1001,19 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           {
             has_relay_hop = true;
           }
+          std::cerr << "[Coord] attach_outgoing ATTACHED plan_cluster=" << plan.cluster_id()
+                    << " plan_key=" << plan.key()
+                    << " step_from=" << s.from_cluster() << " step_to=" << s.to_cluster()
+                    << " mode=" << s.forward_append_mode() << std::endl;
         }
         if (plan.xue_class1_relay_path() && !has_relay_hop)
         {
           plan.set_xue_class1_relay_path(false);
           plan.set_xue_relay_cluster_id(-1);
         }
-        // std::cout << "[XUE_SCHEDULE] plan_outgoing key=" << plan.key()
-                  // << " cluster=" << plan.cluster_id()
-                  // << " hops=" << plan.xue_strict_outgoing_size() << std::endl;
+        std::cerr << "[Coord] attach_outgoing PLAN_RESULT cluster=" << plan.cluster_id()
+                  << " key=" << plan.key()
+                  << " hops=" << plan.xue_strict_outgoing_size() << std::endl;
       }
     }
 
@@ -987,62 +1030,72 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       const int gid = get_group_id_for_data_block(stripe, decision.block_ids[0]);
       std::string from_cluster_ingress_key;
-      std::string data_cluster_ingress_key;
       std::string any_ingress_tcp_key;
-      int data_cluster = -1;
-      if (!decision.block_ids.empty())
-      {
-        const Block *db = find_block_by_id(stripe, decision.block_ids[0]);
-        if (db != nullptr)
-        {
-          data_cluster = db->map2cluster;
-        }
-      }
+      int from_cluster_plan_found = 0;
+      int total_candidate_plans = 0;
       for (const auto &ap : append_plans)
       {
         if (parse_group_id_from_cluster_append_key(ap.key()) != gid)
-        {
           continue;
-        }
         const bool is_client_ingress =
             ap.append_mode() == "XUE_UPDATE" && ap.xue_tcp_slice_count() > 0 &&
             !ap.xue_data_slices_are_delta();
         if (!is_client_ingress)
         {
+          // 诊断：gid 匹配但不满足 XUE_UPDATE 条件
+          std::cerr << "[Coord] resolve_key SKIP plan group=" << gid
+                    << " plan_cluster=" << ap.cluster_id()
+                    << " plan_key=" << ap.key()
+                    << " append_mode=" << ap.append_mode()
+                    << " tcp_slices=" << ap.xue_tcp_slice_count()
+                    << " is_delta=" << ap.xue_data_slices_are_delta()
+                    << " from_cluster=" << from_cluster
+                    << " stripe=" << stripe->stripe_id << std::endl;
           continue;
         }
+        ++total_candidate_plans;
         if (ap.cluster_id() == from_cluster)
         {
           from_cluster_ingress_key = ap.key();
-        }
-        if (data_cluster >= 0 && ap.cluster_id() == data_cluster && data_cluster_ingress_key.empty())
-        {
-          data_cluster_ingress_key = ap.key();
+          ++from_cluster_plan_found;
         }
         if (any_ingress_tcp_key.empty())
-        {
           any_ingress_tcp_key = ap.key();
-        }
       }
-      // 中转 hop（如 class1 relay 的 3->0）须用数据所在 cluster 的 ingress key，不能用 relay 上的 key。
-      if (!data_cluster_ingress_key.empty())
-      {
-        return data_cluster_ingress_key;
-      }
-      if (!from_cluster_ingress_key.empty() &&
-          (data_cluster < 0 || from_cluster == data_cluster))
-      {
+      if (!from_cluster_ingress_key.empty())
         return from_cluster_ingress_key;
+      // 诊断：回退路径 —— from_cluster 上没有满足条件的 plan
+      {
+        std::cerr << "[Coord] resolve_key FALLBACK stripe=" << stripe->stripe_id
+                  << " group=" << gid
+                  << " from_cluster=" << from_cluster
+                  << " cand_plans=" << total_candidate_plans
+                  << " from_cluster_hits=" << from_cluster_plan_found;
+        if (!any_ingress_tcp_key.empty())
+        {
+          const int fallback_cluster = parse_group_id_from_cluster_append_key(
+              any_ingress_tcp_key);
+          std::cerr << " fallback_to=" << any_ingress_tcp_key
+                    << " fallback_cluster=" << fallback_cluster;
+        }
+        else
+        {
+          const auto git = group_primary_append_key.find(gid);
+          if (git != group_primary_append_key.end())
+            std::cerr << " fallback_to_primary=" << git->second;
+          else
+            std::cerr << " fallback_to=EMPTY";
+        }
+        std::cerr << " block_ids=[";
+        for (int bid : decision.block_ids)
+          std::cerr << " " << bid;
+        std::cerr << " ]" << std::endl;
       }
       if (!any_ingress_tcp_key.empty())
-      {
         return any_ingress_tcp_key;
-      }
       const auto git = group_primary_append_key.find(gid);
       if (git != group_primary_append_key.end())
-      {
         return git->second;
-      }
       return "";
     }
 
@@ -1069,6 +1122,27 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         if (group_primary_append_key.find(gid) == group_primary_append_key.end())
         {
           group_primary_append_key[gid] = ap.key();
+        }
+      }
+      // 诊断：打印 group→primary_key 映射 与 所有 append_plan 信息
+      {
+        std::cerr << "[Coord] build_strict_steps stripe=" << stripe->stripe_id
+                  << " groups=" << group_primary_append_key.size()
+                  << " append_plans=" << append_plans.size() << std::endl;
+        for (const auto &kv : group_primary_append_key)
+        {
+          std::cerr << "[Coord] build_strict_steps GROUP_PRIMARY group=" << kv.first
+                    << " key=" << kv.second << std::endl;
+        }
+        for (size_t i = 0; i < append_plans.size(); ++i)
+        {
+          const auto &ap = append_plans[i];
+          std::cerr << "[Coord] build_strict_steps PLAN[" << i << "] cluster=" << ap.cluster_id()
+                    << " key=" << ap.key()
+                    << " mode=" << ap.append_mode()
+                    << " tcp_slices=" << ap.xue_tcp_slice_count()
+                    << " is_delta=" << ap.xue_data_slices_are_delta()
+                    << " compute_global=" << ap.xue_compute_global_parity() << std::endl;
         }
       }
 
@@ -1137,6 +1211,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             info.add_pred_step_nos(pit->second);
           }
         }
+        // 诊断：打印每个步骤的完整信息
+        std::cerr << "[Coord] build_strict_steps STEP[" << (out.steps.size())
+                  << "] step_no=" << step_no
+                  << " from=" << t->from_cluster << " to=" << t->to_cluster
+                  << " key=" << append_key
+                  << " mode=" << info.forward_append_mode()
+                  << " payload=" << t->payload
+                  << " decision_id=" << t->decision_id
+                  << " start_time=" << t->start_time << std::endl;
         out.steps.push_back(info);
       }
       out.num_parallel_groups = static_cast<int>(time_to_parallel_group.size());
@@ -3623,31 +3706,27 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       {
         continue;
       }
-      if (hop_ingress_cluster >= 0 && !steps[i].append_key().empty())
-      {
-        const size_t step_cpos = steps[i].append_key().find('c', steps[i].append_key().find('_'));
-        int step_ingress_cluster = -1;
-        if (step_cpos != std::string::npos)
-        {
-          const size_t step_hash = steps[i].append_key().find('#', step_cpos);
-          if (step_hash != std::string::npos && step_hash > step_cpos + 1)
-          {
-            step_ingress_cluster =
-                std::stoi(steps[i].append_key().substr(step_cpos + 1, step_hash - step_cpos - 1));
-          }
-        }
-        if (step_ingress_cluster >= 0 && step_ingress_cluster != hop_ingress_cluster)
-        {
-          continue;
-        }
-      }
-      fallback_idx = static_cast<int>(i);
+      if (fallback_idx < 0)
+        fallback_idx = static_cast<int>(i);
       ++fallback_count;
     }
-    if (fallback_count == 1)
+    if (fallback_count >= 1)
     {
       return fallback_idx;
     }
+    // 诊断：打印步骤表里所有 from→to 相同的 key，便于排查不匹配原因
+    std::cerr << "[Coord] find_step FAIL exact_key=" << append_key
+              << " from=" << from_cluster << " to=" << to_cluster
+              << " group=" << hop_group_id << " ingress=" << hop_ingress_cluster
+              << " cand_count=" << fallback_count << " step_keys=[";
+    for (size_t i = 0; i < steps.size(); ++i)
+    {
+      if (steps[i].from_cluster() == from_cluster && steps[i].to_cluster() == to_cluster)
+      {
+        std::cerr << " " << steps[i].append_key();
+      }
+    }
+    std::cerr << " ]" << std::endl;
     return -1;
   }
 
@@ -4414,6 +4493,22 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       if (make_xue_strict_hop_key(session->steps[i]) == matched_hop)
       {
+        session->step_states[i] = new_state;
+      }
+    }
+    // 如果走了模糊匹配，同时消掉所有同 (from,to,group) 的步骤（不限制 ingress cluster）
+    if (matched_step.append_key() != request->append_key())
+    {
+      const int match_group = parse_group_id_from_cluster_append_key(request->append_key());
+      for (size_t i = 0; i < session->steps.size(); ++i)
+      {
+        if (session->step_states[i] == new_state)
+          continue;
+        if (session->steps[i].from_cluster() != request->from_cluster() ||
+            session->steps[i].to_cluster() != request->to_cluster())
+          continue;
+        if (parse_group_id_from_cluster_append_key(session->steps[i].append_key()) != match_group)
+          continue;
         session->step_states[i] = new_state;
       }
     }

@@ -9,6 +9,8 @@
 #include <cstring>
 #include <map>
 #include <mutex>
+#include <sys/socket.h>
+#include <sys/time.h>
 #include "unilrc_encoder.h"
 namespace ECProject
 {
@@ -1120,7 +1122,26 @@ namespace ECProject
 
     asio::write(sock_data, asio::buffer(cluster_slice_data, cluster_slice_size), error);
     asio::error_code ignore_ec;
-    sock_data.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
+    if (!error)
+    {
+      sock_data.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
+      // Wait for Proxy to acknowledge receipt: read 1-byte ACK or wait for clean close.
+      // Proxy strict-schedule paths send an explicit ACK byte; non-strict paths
+      // close the connection, which yields EOF on the client read.
+      {
+        struct timeval tv;
+        tv.tv_sec = 5;
+        tv.tv_usec = 0;
+        setsockopt(sock_data.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+      }
+      char ack_byte = 0;
+      asio::error_code read_ec;
+      asio::read(sock_data, asio::buffer(&ack_byte, 1), read_ec);
+      // read_ec == success  → received explicit ACK from Proxy
+      // read_ec == eof      → Proxy closed cleanly without ACK (non-strict path)
+      // read_ec == timeout  → Proxy did not respond within 5 s (network loss / crash)
+      // read_ec == other    → network error
+    }
     sock_data.close(ignore_ec);
     const auto tcp_t1 = std::chrono::high_resolution_clock::now();
     if (out_timing != nullptr)
