@@ -666,7 +666,9 @@ namespace ECProject
       return;
     }
     grpc::ClientContext ctx;
-    ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
+    // 步进门控：等待 coordinator 放行当前 hop，可能需等待前置 step 完成（含跨集群转发）。
+    // coordinator 在 client 取消时自动 abandon session 并唤醒 waiter，故不需要短 deadline。
+    ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(30000));
     coordinator_proto::XueScheduleHopWait req;
     coordinator_proto::ReplyFromCoordinator rep;
     req.set_stripe_id(stripe_id);
@@ -691,7 +693,9 @@ namespace ECProject
       return false;
     }
     grpc::ClientContext ctx;
-    ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
+    // 步进门控：等待 coordinator 放行当前 step，可能需等待前置 step 完成（含跨集群转发）。
+    // coordinator 在 client 取消时自动 abandon session 并唤醒 waiter，故不需要短 deadline。
+    ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(30000));
     coordinator_proto::XueScheduleStepWait req;
     coordinator_proto::ReplyFromCoordinator rep;
     req.set_stripe_id(stripe_id);

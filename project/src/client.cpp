@@ -894,7 +894,7 @@ namespace ECProject
     coordinator_proto::XueStripeScheduleId wait_req;
     coordinator_proto::ReplyFromCoordinator wait_rep;
     wait_req.set_stripe_id(stripe_id);
-    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(3000));
+    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(10000));
     const grpc::Status wait_st =
         m_coordinator_ptr->waitXueAllCommitsReady(&wait_ctx, wait_req, &wait_rep);
     if (timing != nullptr)
