@@ -157,6 +157,7 @@ message XueScheduleStepWait {
   string append_key = 3;
   int32 from_cluster = 4;
   int32 to_cluster = 5;
+  uint64 xue_xfer_plan_id = 6;
 }
 
 message XueScheduleStepDone {
@@ -166,6 +167,7 @@ message XueScheduleStepDone {
   string append_key = 4;
   int32 from_cluster = 5;
   int32 to_cluster = 6;
+  uint64 xue_xfer_plan_id = 7;
 }
 
 // Legacy wave schedule (client ingress waves + proxy hop release)

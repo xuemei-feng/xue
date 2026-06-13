@@ -1017,6 +1017,71 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
     }
 
+    // Plan B: 将 orphan step（from_cluster 无 ingress plan）的转发指令
+    // 预注入到上游 Proxy 的 downstream_forward_plans 中。
+    // 这样上游 forwardXueDataDeltaSync 时自动拷贝到下游 placement。
+    void build_downstream_forward_plans(
+        std::vector<proxy_proto::AppendStripeDataPlacement> &append_plans,
+        const XueStrictTransferPlan &strict)
+    {
+      std::set<int> ingress_clusters;
+      for (const auto &ap : append_plans)
+      {
+        ingress_clusters.insert(ap.cluster_id());
+      }
+      for (const auto &s : strict.steps)
+      {
+        if (ingress_clusters.count(s.from_cluster()) > 0)
+        {
+          continue; // 已在 attach_strict_outgoing_to_plans 中处理
+        }
+        // orphan step: from_cluster 没有自己的 ingress plan
+        // 找到转发到此 from_cluster 的上游 plan，将 orphan step 挂入其 downstream_forward_plans
+        for (auto &plan : append_plans)
+        {
+          bool plan_forwards_here = false;
+          for (const auto &hop : plan.xue_strict_outgoing())
+          {
+            if (hop.to_cluster() == s.from_cluster())
+            {
+              plan_forwards_here = true;
+              break;
+            }
+          }
+          if (!plan_forwards_here)
+          {
+            continue;
+          }
+          proxy_proto::XueDownstreamForwardPlan *dp = nullptr;
+          for (int di = 0; di < plan.xue_downstream_forward_plans_size(); ++di)
+          {
+            if (plan.xue_downstream_forward_plans(di).target_cluster() == s.from_cluster())
+            {
+              dp = plan.mutable_xue_downstream_forward_plans(di);
+              break;
+            }
+          }
+          if (dp == nullptr)
+          {
+            dp = plan.add_xue_downstream_forward_plans();
+            dp->set_target_cluster(s.from_cluster());
+          }
+          auto *hop = dp->add_outgoing();
+          hop->set_to_cluster(s.to_cluster());
+          hop->set_forward_append_mode(s.forward_append_mode());
+          // 日志：记录 orphan step 被注入到哪个 plan
+          std::cerr << "[Coord] downstream_plan INJECT from=" << s.from_cluster()
+                    << " to=" << s.to_cluster()
+                    << " step_key=" << s.append_key()
+                    << " into_plan_cluster=" << plan.cluster_id()
+                    << " plan_key=" << plan.key()
+                    << " hop_mode=" << s.forward_append_mode()
+                    << " step_no=" << s.step_no() << std::endl;
+          break;
+        }
+      }
+    }
+
     std::string resolve_strict_step_append_key(
         Stripe *stripe,
         const TransferPlanDecision &decision,
@@ -4128,9 +4193,20 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       plan.set_xue_xfer_plan_id(xue_xfer_plan_id);
     }
+    // 将 plan_id 写入 session，供后续 step sync 做版本校验
+    if (use_strict_schedule)
+    {
+      std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
+      auto it = m_xue_strict_by_stripe.find(stripe_id);
+      if (it != m_xue_strict_by_stripe.end() && it->second)
+      {
+        it->second->xue_xfer_plan_id = xue_xfer_plan_id;
+      }
+    }
     if (use_strict_schedule)
     {
       attach_strict_outgoing_to_plans(append_plans, strict_schedule, stripe->k, stripe->r);
+      build_downstream_forward_plans(append_plans, strict_schedule);
     }
 
     // client 已超时取消，跳过 proxy 通知，避免遗留无主 task 阻塞 proxy 队列
@@ -4401,6 +4477,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       session = it->second;
     }
+    // 校验 plan_id：拒绝来自旧 session 的 deferred thread 请求
+    if (request->xue_xfer_plan_id() != 0 &&
+        request->xue_xfer_plan_id() != session->xue_xfer_plan_id)
+    {
+      return grpc::Status(grpc::StatusCode::ABORTED,
+                          "plan_id mismatch: session superseded");
+    }
     int step_idx = -1;
     if (request->step_no() > 0)
     {
@@ -4468,6 +4551,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                             "no strict xue schedule session for stripe");
       }
       session = it->second;
+    }
+    // 校验 plan_id：拒绝来自旧 session 的 deferred thread 请求
+    if (request->xue_xfer_plan_id() != 0 &&
+        request->xue_xfer_plan_id() != session->xue_xfer_plan_id)
+    {
+      return grpc::Status(grpc::StatusCode::ABORTED,
+                          "plan_id mismatch: session superseded");
     }
     int step_idx = -1;
     if (request->step_no() > 0)

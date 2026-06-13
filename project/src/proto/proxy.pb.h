@@ -99,6 +99,9 @@ extern SetReplyDefaultTypeInternal _SetReply_default_instance_;
 class StripeAndBlockIDs;
 struct StripeAndBlockIDsDefaultTypeInternal;
 extern StripeAndBlockIDsDefaultTypeInternal _StripeAndBlockIDs_default_instance_;
+class XueDownstreamForwardPlan;
+struct XueDownstreamForwardPlanDefaultTypeInternal;
+extern XueDownstreamForwardPlanDefaultTypeInternal _XueDownstreamForwardPlan_default_instance_;
 class XueStrictOutgoingHop;
 struct XueStrictOutgoingHopDefaultTypeInternal;
 extern XueStrictOutgoingHopDefaultTypeInternal _XueStrictOutgoingHop_default_instance_;
@@ -143,6 +146,7 @@ template<> ::proxy_proto::RepIfSuccess* Arena::CreateMaybeMessage<::proxy_proto:
 template<> ::proxy_proto::RequestResult* Arena::CreateMaybeMessage<::proxy_proto::RequestResult>(Arena*);
 template<> ::proxy_proto::SetReply* Arena::CreateMaybeMessage<::proxy_proto::SetReply>(Arena*);
 template<> ::proxy_proto::StripeAndBlockIDs* Arena::CreateMaybeMessage<::proxy_proto::StripeAndBlockIDs>(Arena*);
+template<> ::proxy_proto::XueDownstreamForwardPlan* Arena::CreateMaybeMessage<::proxy_proto::XueDownstreamForwardPlan>(Arena*);
 template<> ::proxy_proto::XueStrictOutgoingHop* Arena::CreateMaybeMessage<::proxy_proto::XueStrictOutgoingHop>(Arena*);
 template<> ::proxy_proto::XueXferTimingProxyReply* Arena::CreateMaybeMessage<::proxy_proto::XueXferTimingProxyReply>(Arena*);
 template<> ::proxy_proto::XueXferTimingPull* Arena::CreateMaybeMessage<::proxy_proto::XueXferTimingPull>(Arena*);
@@ -4901,6 +4905,7 @@ class AppendStripeDataPlacement final :
     kSizesFieldNumber = 10,
     kBlockClusterIdsFieldNumber = 21,
     kXueStrictOutgoingFieldNumber = 23,
+    kXueDownstreamForwardPlansFieldNumber = 25,
     kKeyFieldNumber = 1,
     kAppendModeFieldNumber = 12,
     kClusterIdFieldNumber = 2,
@@ -5094,6 +5099,24 @@ class AppendStripeDataPlacement final :
   const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueStrictOutgoingHop >&
       xue_strict_outgoing() const;
 
+  // repeated .proxy_proto.XueDownstreamForwardPlan xue_downstream_forward_plans = 25;
+  int xue_downstream_forward_plans_size() const;
+  private:
+  int _internal_xue_downstream_forward_plans_size() const;
+  public:
+  void clear_xue_downstream_forward_plans();
+  ::proxy_proto::XueDownstreamForwardPlan* mutable_xue_downstream_forward_plans(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueDownstreamForwardPlan >*
+      mutable_xue_downstream_forward_plans();
+  private:
+  const ::proxy_proto::XueDownstreamForwardPlan& _internal_xue_downstream_forward_plans(int index) const;
+  ::proxy_proto::XueDownstreamForwardPlan* _internal_add_xue_downstream_forward_plans();
+  public:
+  const ::proxy_proto::XueDownstreamForwardPlan& xue_downstream_forward_plans(int index) const;
+  ::proxy_proto::XueDownstreamForwardPlan* add_xue_downstream_forward_plans();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueDownstreamForwardPlan >&
+      xue_downstream_forward_plans() const;
+
   // string key = 1;
   void clear_key();
   const std::string& key() const;
@@ -5269,6 +5292,7 @@ class AppendStripeDataPlacement final :
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > block_cluster_ids_;
     mutable std::atomic<int> _block_cluster_ids_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueStrictOutgoingHop > xue_strict_outgoing_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueDownstreamForwardPlan > xue_downstream_forward_plans_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr append_mode_;
     int32_t cluster_id_;
@@ -5785,6 +5809,174 @@ class XueStrictOutgoingHop final :
 };
 // -------------------------------------------------------------------
 
+class XueDownstreamForwardPlan final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.XueDownstreamForwardPlan) */ {
+ public:
+  inline XueDownstreamForwardPlan() : XueDownstreamForwardPlan(nullptr) {}
+  ~XueDownstreamForwardPlan() override;
+  explicit PROTOBUF_CONSTEXPR XueDownstreamForwardPlan(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  XueDownstreamForwardPlan(const XueDownstreamForwardPlan& from);
+  XueDownstreamForwardPlan(XueDownstreamForwardPlan&& from) noexcept
+    : XueDownstreamForwardPlan() {
+    *this = ::std::move(from);
+  }
+
+  inline XueDownstreamForwardPlan& operator=(const XueDownstreamForwardPlan& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline XueDownstreamForwardPlan& operator=(XueDownstreamForwardPlan&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const XueDownstreamForwardPlan& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const XueDownstreamForwardPlan* internal_default_instance() {
+    return reinterpret_cast<const XueDownstreamForwardPlan*>(
+               &_XueDownstreamForwardPlan_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    23;
+
+  friend void swap(XueDownstreamForwardPlan& a, XueDownstreamForwardPlan& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(XueDownstreamForwardPlan* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(XueDownstreamForwardPlan* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  XueDownstreamForwardPlan* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<XueDownstreamForwardPlan>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const XueDownstreamForwardPlan& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const XueDownstreamForwardPlan& from) {
+    XueDownstreamForwardPlan::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(XueDownstreamForwardPlan* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.XueDownstreamForwardPlan";
+  }
+  protected:
+  explicit XueDownstreamForwardPlan(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kOutgoingFieldNumber = 2,
+    kTargetClusterFieldNumber = 1,
+  };
+  // repeated .proxy_proto.XueStrictOutgoingHop outgoing = 2;
+  int outgoing_size() const;
+  private:
+  int _internal_outgoing_size() const;
+  public:
+  void clear_outgoing();
+  ::proxy_proto::XueStrictOutgoingHop* mutable_outgoing(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueStrictOutgoingHop >*
+      mutable_outgoing();
+  private:
+  const ::proxy_proto::XueStrictOutgoingHop& _internal_outgoing(int index) const;
+  ::proxy_proto::XueStrictOutgoingHop* _internal_add_outgoing();
+  public:
+  const ::proxy_proto::XueStrictOutgoingHop& outgoing(int index) const;
+  ::proxy_proto::XueStrictOutgoingHop* add_outgoing();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueStrictOutgoingHop >&
+      outgoing() const;
+
+  // int32 target_cluster = 1;
+  void clear_target_cluster();
+  int32_t target_cluster() const;
+  void set_target_cluster(int32_t value);
+  private:
+  int32_t _internal_target_cluster() const;
+  void _internal_set_target_cluster(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.XueDownstreamForwardPlan)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueStrictOutgoingHop > outgoing_;
+    int32_t target_cluster_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
 class SetReply final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.SetReply) */ {
  public:
@@ -5833,7 +6025,7 @@ class SetReply final :
                &_SetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    24;
 
   friend void swap(SetReply& a, SetReply& b) {
     a.Swap(&b);
@@ -5981,7 +6173,7 @@ class GetReply final :
                &_GetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    24;
+    25;
 
   friend void swap(GetReply& a, GetReply& b) {
     a.Swap(&b);
@@ -6129,7 +6321,7 @@ class StripeAndBlockIDs final :
                &_StripeAndBlockIDs_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    25;
+    26;
 
   friend void swap(StripeAndBlockIDs& a, StripeAndBlockIDs& b) {
     a.Swap(&b);
@@ -11827,6 +12019,46 @@ inline void AppendStripeDataPlacement::set_xue_xfer_plan_id(uint64_t value) {
   // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.xue_xfer_plan_id)
 }
 
+// repeated .proxy_proto.XueDownstreamForwardPlan xue_downstream_forward_plans = 25;
+inline int AppendStripeDataPlacement::_internal_xue_downstream_forward_plans_size() const {
+  return _impl_.xue_downstream_forward_plans_.size();
+}
+inline int AppendStripeDataPlacement::xue_downstream_forward_plans_size() const {
+  return _internal_xue_downstream_forward_plans_size();
+}
+inline void AppendStripeDataPlacement::clear_xue_downstream_forward_plans() {
+  _impl_.xue_downstream_forward_plans_.Clear();
+}
+inline ::proxy_proto::XueDownstreamForwardPlan* AppendStripeDataPlacement::mutable_xue_downstream_forward_plans(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.AppendStripeDataPlacement.xue_downstream_forward_plans)
+  return _impl_.xue_downstream_forward_plans_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueDownstreamForwardPlan >*
+AppendStripeDataPlacement::mutable_xue_downstream_forward_plans() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.AppendStripeDataPlacement.xue_downstream_forward_plans)
+  return &_impl_.xue_downstream_forward_plans_;
+}
+inline const ::proxy_proto::XueDownstreamForwardPlan& AppendStripeDataPlacement::_internal_xue_downstream_forward_plans(int index) const {
+  return _impl_.xue_downstream_forward_plans_.Get(index);
+}
+inline const ::proxy_proto::XueDownstreamForwardPlan& AppendStripeDataPlacement::xue_downstream_forward_plans(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.xue_downstream_forward_plans)
+  return _internal_xue_downstream_forward_plans(index);
+}
+inline ::proxy_proto::XueDownstreamForwardPlan* AppendStripeDataPlacement::_internal_add_xue_downstream_forward_plans() {
+  return _impl_.xue_downstream_forward_plans_.Add();
+}
+inline ::proxy_proto::XueDownstreamForwardPlan* AppendStripeDataPlacement::add_xue_downstream_forward_plans() {
+  ::proxy_proto::XueDownstreamForwardPlan* _add = _internal_add_xue_downstream_forward_plans();
+  // @@protoc_insertion_point(field_add:proxy_proto.AppendStripeDataPlacement.xue_downstream_forward_plans)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueDownstreamForwardPlan >&
+AppendStripeDataPlacement::xue_downstream_forward_plans() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.AppendStripeDataPlacement.xue_downstream_forward_plans)
+  return _impl_.xue_downstream_forward_plans_;
+}
+
 // -------------------------------------------------------------------
 
 // XueXferTimingPull
@@ -12007,6 +12239,70 @@ inline void XueStrictOutgoingHop::set_allocated_forward_append_mode(std::string*
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:proxy_proto.XueStrictOutgoingHop.forward_append_mode)
+}
+
+// -------------------------------------------------------------------
+
+// XueDownstreamForwardPlan
+
+// int32 target_cluster = 1;
+inline void XueDownstreamForwardPlan::clear_target_cluster() {
+  _impl_.target_cluster_ = 0;
+}
+inline int32_t XueDownstreamForwardPlan::_internal_target_cluster() const {
+  return _impl_.target_cluster_;
+}
+inline int32_t XueDownstreamForwardPlan::target_cluster() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueDownstreamForwardPlan.target_cluster)
+  return _internal_target_cluster();
+}
+inline void XueDownstreamForwardPlan::_internal_set_target_cluster(int32_t value) {
+  
+  _impl_.target_cluster_ = value;
+}
+inline void XueDownstreamForwardPlan::set_target_cluster(int32_t value) {
+  _internal_set_target_cluster(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueDownstreamForwardPlan.target_cluster)
+}
+
+// repeated .proxy_proto.XueStrictOutgoingHop outgoing = 2;
+inline int XueDownstreamForwardPlan::_internal_outgoing_size() const {
+  return _impl_.outgoing_.size();
+}
+inline int XueDownstreamForwardPlan::outgoing_size() const {
+  return _internal_outgoing_size();
+}
+inline void XueDownstreamForwardPlan::clear_outgoing() {
+  _impl_.outgoing_.Clear();
+}
+inline ::proxy_proto::XueStrictOutgoingHop* XueDownstreamForwardPlan::mutable_outgoing(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.XueDownstreamForwardPlan.outgoing)
+  return _impl_.outgoing_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueStrictOutgoingHop >*
+XueDownstreamForwardPlan::mutable_outgoing() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.XueDownstreamForwardPlan.outgoing)
+  return &_impl_.outgoing_;
+}
+inline const ::proxy_proto::XueStrictOutgoingHop& XueDownstreamForwardPlan::_internal_outgoing(int index) const {
+  return _impl_.outgoing_.Get(index);
+}
+inline const ::proxy_proto::XueStrictOutgoingHop& XueDownstreamForwardPlan::outgoing(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueDownstreamForwardPlan.outgoing)
+  return _internal_outgoing(index);
+}
+inline ::proxy_proto::XueStrictOutgoingHop* XueDownstreamForwardPlan::_internal_add_outgoing() {
+  return _impl_.outgoing_.Add();
+}
+inline ::proxy_proto::XueStrictOutgoingHop* XueDownstreamForwardPlan::add_outgoing() {
+  ::proxy_proto::XueStrictOutgoingHop* _add = _internal_add_outgoing();
+  // @@protoc_insertion_point(field_add:proxy_proto.XueDownstreamForwardPlan.outgoing)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::XueStrictOutgoingHop >&
+XueDownstreamForwardPlan::outgoing() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.XueDownstreamForwardPlan.outgoing)
+  return _impl_.outgoing_;
 }
 
 // -------------------------------------------------------------------
@@ -12418,6 +12714,8 @@ StripeAndBlockIDs::mutable_datanodeports() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

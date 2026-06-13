@@ -406,6 +406,7 @@ PROTOBUF_CONSTEXPR AppendStripeDataPlacement::AppendStripeDataPlacement(
   , /*decltype(_impl_.block_cluster_ids_)*/{}
   , /*decltype(_impl_._block_cluster_ids_cached_byte_size_)*/{0}
   , /*decltype(_impl_.xue_strict_outgoing_)*/{}
+  , /*decltype(_impl_.xue_downstream_forward_plans_)*/{}
   , /*decltype(_impl_.key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.append_mode_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.cluster_id_)*/0
@@ -475,6 +476,20 @@ struct XueStrictOutgoingHopDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueStrictOutgoingHopDefaultTypeInternal _XueStrictOutgoingHop_default_instance_;
+PROTOBUF_CONSTEXPR XueDownstreamForwardPlan::XueDownstreamForwardPlan(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.outgoing_)*/{}
+  , /*decltype(_impl_.target_cluster_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct XueDownstreamForwardPlanDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR XueDownstreamForwardPlanDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~XueDownstreamForwardPlanDefaultTypeInternal() {}
+  union {
+    XueDownstreamForwardPlan _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueDownstreamForwardPlanDefaultTypeInternal _XueDownstreamForwardPlan_default_instance_;
 PROTOBUF_CONSTEXPR SetReply::SetReply(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.ifcommit_)*/false
@@ -524,7 +539,7 @@ struct StripeAndBlockIDsDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StripeAndBlockIDsDefaultTypeInternal _StripeAndBlockIDs_default_instance_;
 }  // namespace proxy_proto
-static ::_pb::Metadata file_level_metadata_proxy_2eproto[26];
+static ::_pb::Metadata file_level_metadata_proxy_2eproto[27];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_proxy_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_proxy_2eproto = nullptr;
 
@@ -796,6 +811,7 @@ const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.xue_strict_schedule_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.xue_strict_outgoing_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.xue_xfer_plan_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::AppendStripeDataPlacement, _impl_.xue_downstream_forward_plans_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::XueXferTimingPull, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -821,6 +837,14 @@ const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::XueStrictOutgoingHop, _impl_.to_cluster_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::XueStrictOutgoingHop, _impl_.forward_append_mode_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::XueDownstreamForwardPlan, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::XueDownstreamForwardPlan, _impl_.target_cluster_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::XueDownstreamForwardPlan, _impl_.outgoing_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::SetReply, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -871,12 +895,13 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 207, -1, -1, sizeof(::proxy_proto::MultipleRecoveryRequest)},
   { 218, -1, -1, sizeof(::proxy_proto::RecoveryReply)},
   { 237, -1, -1, sizeof(::proxy_proto::AppendStripeDataPlacement)},
-  { 267, -1, -1, sizeof(::proxy_proto::XueXferTimingPull)},
-  { 275, -1, -1, sizeof(::proxy_proto::XueXferTimingProxyReply)},
-  { 284, -1, -1, sizeof(::proxy_proto::XueStrictOutgoingHop)},
-  { 292, -1, -1, sizeof(::proxy_proto::SetReply)},
-  { 299, -1, -1, sizeof(::proxy_proto::GetReply)},
-  { 306, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
+  { 268, -1, -1, sizeof(::proxy_proto::XueXferTimingPull)},
+  { 276, -1, -1, sizeof(::proxy_proto::XueXferTimingProxyReply)},
+  { 285, -1, -1, sizeof(::proxy_proto::XueStrictOutgoingHop)},
+  { 293, -1, -1, sizeof(::proxy_proto::XueDownstreamForwardPlan)},
+  { 301, -1, -1, sizeof(::proxy_proto::SetReply)},
+  { 308, -1, -1, sizeof(::proxy_proto::GetReply)},
+  { 315, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -903,6 +928,7 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::proxy_proto::_XueXferTimingPull_default_instance_._instance,
   &::proxy_proto::_XueXferTimingProxyReply_default_instance_._instance,
   &::proxy_proto::_XueStrictOutgoingHop_default_instance_._instance,
+  &::proxy_proto::_XueDownstreamForwardPlan_default_instance_._instance,
   &::proxy_proto::_SetReply_default_instance_._instance,
   &::proxy_proto::_GetReply_default_instance_._instance,
   &::proxy_proto::_StripeAndBlockIDs_default_instance_._instance,
@@ -987,7 +1013,7 @@ const char descriptor_table_protodef_proxy_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "ta_node_grpc_notify_time\030\n \001(\001\022!\n\031data_n"
   "ode_grpc_start_time\030\013 \001(\001\022#\n\033dest_data_n"
   "ode_network_time\030\014 \001(\001\022#\n\033dest_data_node"
-  "_disk_io_time\030\r \001(\001\"\206\005\n\031AppendStripeData"
+  "_disk_io_time\030\r \001(\001\"\323\005\n\031AppendStripeData"
   "Placement\022\013\n\003key\030\001 \001(\t\022\022\n\ncluster_id\030\002 \001"
   "(\005\022\021\n\tstripe_id\030\003 \001(\005\022\023\n\013append_size\030\004 \001"
   "(\004\022\022\n\ndatanodeip\030\005 \003(\t\022\024\n\014datanodeport\030\006"
@@ -1003,59 +1029,63 @@ const char descriptor_table_protodef_proxy_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "(\005\022\031\n\021block_cluster_ids\030\025 \003(\005\022\033\n\023xue_str"
   "ict_schedule\030\026 \001(\010\022>\n\023xue_strict_outgoin"
   "g\030\027 \003(\0132!.proxy_proto.XueStrictOutgoingH"
-  "op\022\030\n\020xue_xfer_plan_id\030\030 \001(\004\"@\n\021XueXferT"
-  "imingPull\022\021\n\tstripe_id\030\001 \001(\005\022\030\n\020xue_xfer"
-  "_plan_id\030\002 \001(\004\"v\n\027XueXferTimingProxyRepl"
-  "y\022\033\n\023proxy_pure_xfer_sec\030\001 \001(\001\022\037\n\027wall_s"
-  "pan_start_unix_ms\030\002 \001(\003\022\035\n\025wall_span_end"
-  "_unix_ms\030\003 \001(\003\"G\n\024XueStrictOutgoingHop\022\022"
-  "\n\nto_cluster\030\001 \001(\005\022\033\n\023forward_append_mod"
-  "e\030\002 \001(\t\"\034\n\010SetReply\022\020\n\010ifcommit\030\001 \001(\010\"\036\n"
-  "\010GetReply\022\022\n\ngetsuccess\030\001 \001(\010\"\261\001\n\021Stripe"
-  "AndBlockIDs\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010group_"
-  "id\030\002 \001(\005\022\020\n\010clientip\030\003 \001(\t\022\022\n\nclientport"
-  "\030\004 \001(\005\022\021\n\tblock_ids\030\005 \003(\005\022\022\n\nblock_keys\030"
-  "\006 \003(\t\022\023\n\013datanodeips\030\007 \003(\t\022\025\n\rdatanodepo"
-  "rts\030\010 \003(\0052\242\n\n\014proxyService\022D\n\ncheckalive"
-  "\022\032.proxy_proto.CheckaliveCMD\032\032.proxy_pro"
-  "to.RequestResult\022L\n\022encodeAndSetObject\022\037"
-  ".proxy_proto.ObjectAndPlacement\032\025.proxy_"
-  "proto.SetReply\022L\n\022decodeAndGetObject\022\037.p"
-  "roxy_proto.ObjectAndPlacement\032\025.proxy_pr"
-  "oto.GetReply\022P\n\014degradedRead\022 .proxy_pro"
-  "to.DegradedReadRequest\032\036.proxy_proto.Deg"
-  "radedReadReply\022S\n\023degradedRead2Client\022\034."
-  "proxy_proto.RecoveryRequest\032\036.proxy_prot"
-  "o.DegradedReadReply\022Y\n\025degradedReadBreak"
-  "down\022 .proxy_proto.DegradedReadRequest\032\036"
-  ".proxy_proto.DegradedReadReply\022\\\n\034degrad"
-  "edRead2ClientBreakdown\022\034.proxy_proto.Rec"
-  "overyRequest\032\036.proxy_proto.DegradedReadR"
-  "eply\022X\n\035degradedReadWithBlockStripeID\022 ."
-  "proxy_proto.DegradedReadRequest\032\025.proxy_"
-  "proto.GetReply\022V\n\017partialDecoding\022#.prox"
-  "y_proto.PartialDecodingRequest\032\036.proxy_p"
-  "roto.DegradedReadReply\022D\n\010recovery\022\034.pro"
-  "xy_proto.RecoveryRequest\032\032.proxy_proto.R"
-  "ecoveryReply\022M\n\021recoveryBreakdown\022\034.prox"
-  "y_proto.RecoveryRequest\032\032.proxy_proto.Re"
-  "coveryReply\022O\n\020multipleRecovery\022$.proxy_"
-  "proto.MultipleRecoveryRequest\032\025.proxy_pr"
-  "oto.GetReply\022\?\n\013deleteBlock\022\031.proxy_prot"
-  "o.NodeAndBlock\032\025.proxy_proto.DelReply\022X\n"
-  "\027scheduleAppend2Datanode\022&.proxy_proto.A"
-  "ppendStripeDataPlacement\032\025.proxy_proto.S"
-  "etReply\022Y\n\021xuePullXferTiming\022\036.proxy_pro"
-  "to.XueXferTimingPull\032$.proxy_proto.XueXf"
-  "erTimingProxyReply\022B\n\tgetBlocks\022\036.proxy_"
-  "proto.StripeAndBlockIDs\032\025.proxy_proto.Ge"
-  "tReplyb\006proto3"
+  "op\022\030\n\020xue_xfer_plan_id\030\030 \001(\004\022K\n\034xue_down"
+  "stream_forward_plans\030\031 \003(\0132%.proxy_proto"
+  ".XueDownstreamForwardPlan\"@\n\021XueXferTimi"
+  "ngPull\022\021\n\tstripe_id\030\001 \001(\005\022\030\n\020xue_xfer_pl"
+  "an_id\030\002 \001(\004\"v\n\027XueXferTimingProxyReply\022\033"
+  "\n\023proxy_pure_xfer_sec\030\001 \001(\001\022\037\n\027wall_span"
+  "_start_unix_ms\030\002 \001(\003\022\035\n\025wall_span_end_un"
+  "ix_ms\030\003 \001(\003\"G\n\024XueStrictOutgoingHop\022\022\n\nt"
+  "o_cluster\030\001 \001(\005\022\033\n\023forward_append_mode\030\002"
+  " \001(\t\"g\n\030XueDownstreamForwardPlan\022\026\n\016targ"
+  "et_cluster\030\001 \001(\005\0223\n\010outgoing\030\002 \003(\0132!.pro"
+  "xy_proto.XueStrictOutgoingHop\"\034\n\010SetRepl"
+  "y\022\020\n\010ifcommit\030\001 \001(\010\"\036\n\010GetReply\022\022\n\ngetsu"
+  "ccess\030\001 \001(\010\"\261\001\n\021StripeAndBlockIDs\022\021\n\tstr"
+  "ipe_id\030\001 \001(\005\022\020\n\010group_id\030\002 \001(\005\022\020\n\010client"
+  "ip\030\003 \001(\t\022\022\n\nclientport\030\004 \001(\005\022\021\n\tblock_id"
+  "s\030\005 \003(\005\022\022\n\nblock_keys\030\006 \003(\t\022\023\n\013datanodei"
+  "ps\030\007 \003(\t\022\025\n\rdatanodeports\030\010 \003(\0052\242\n\n\014prox"
+  "yService\022D\n\ncheckalive\022\032.proxy_proto.Che"
+  "ckaliveCMD\032\032.proxy_proto.RequestResult\022L"
+  "\n\022encodeAndSetObject\022\037.proxy_proto.Objec"
+  "tAndPlacement\032\025.proxy_proto.SetReply\022L\n\022"
+  "decodeAndGetObject\022\037.proxy_proto.ObjectA"
+  "ndPlacement\032\025.proxy_proto.GetReply\022P\n\014de"
+  "gradedRead\022 .proxy_proto.DegradedReadReq"
+  "uest\032\036.proxy_proto.DegradedReadReply\022S\n\023"
+  "degradedRead2Client\022\034.proxy_proto.Recove"
+  "ryRequest\032\036.proxy_proto.DegradedReadRepl"
+  "y\022Y\n\025degradedReadBreakdown\022 .proxy_proto"
+  ".DegradedReadRequest\032\036.proxy_proto.Degra"
+  "dedReadReply\022\\\n\034degradedRead2ClientBreak"
+  "down\022\034.proxy_proto.RecoveryRequest\032\036.pro"
+  "xy_proto.DegradedReadReply\022X\n\035degradedRe"
+  "adWithBlockStripeID\022 .proxy_proto.Degrad"
+  "edReadRequest\032\025.proxy_proto.GetReply\022V\n\017"
+  "partialDecoding\022#.proxy_proto.PartialDec"
+  "odingRequest\032\036.proxy_proto.DegradedReadR"
+  "eply\022D\n\010recovery\022\034.proxy_proto.RecoveryR"
+  "equest\032\032.proxy_proto.RecoveryReply\022M\n\021re"
+  "coveryBreakdown\022\034.proxy_proto.RecoveryRe"
+  "quest\032\032.proxy_proto.RecoveryReply\022O\n\020mul"
+  "tipleRecovery\022$.proxy_proto.MultipleReco"
+  "veryRequest\032\025.proxy_proto.GetReply\022\?\n\013de"
+  "leteBlock\022\031.proxy_proto.NodeAndBlock\032\025.p"
+  "roxy_proto.DelReply\022X\n\027scheduleAppend2Da"
+  "tanode\022&.proxy_proto.AppendStripeDataPla"
+  "cement\032\025.proxy_proto.SetReply\022Y\n\021xuePull"
+  "XferTiming\022\036.proxy_proto.XueXferTimingPu"
+  "ll\032$.proxy_proto.XueXferTimingProxyReply"
+  "\022B\n\tgetBlocks\022\036.proxy_proto.StripeAndBlo"
+  "ckIDs\032\025.proxy_proto.GetReplyb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_proxy_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_proxy_2eproto = {
-    false, false, 5614, descriptor_table_protodef_proxy_2eproto,
+    false, false, 5796, descriptor_table_protodef_proxy_2eproto,
     "proxy.proto",
-    &descriptor_table_proxy_2eproto_once, nullptr, 0, 26,
+    &descriptor_table_proxy_2eproto_once, nullptr, 0, 27,
     schemas, file_default_instances, TableStruct_proxy_2eproto::offsets,
     file_level_metadata_proxy_2eproto, file_level_enum_descriptors_proxy_2eproto,
     file_level_service_descriptors_proxy_2eproto,
@@ -8397,6 +8427,7 @@ AppendStripeDataPlacement::AppendStripeDataPlacement(const AppendStripeDataPlace
     , decltype(_impl_.block_cluster_ids_){from._impl_.block_cluster_ids_}
     , /*decltype(_impl_._block_cluster_ids_cached_byte_size_)*/{0}
     , decltype(_impl_.xue_strict_outgoing_){from._impl_.xue_strict_outgoing_}
+    , decltype(_impl_.xue_downstream_forward_plans_){from._impl_.xue_downstream_forward_plans_}
     , decltype(_impl_.key_){}
     , decltype(_impl_.append_mode_){}
     , decltype(_impl_.cluster_id_){}
@@ -8456,6 +8487,7 @@ inline void AppendStripeDataPlacement::SharedCtor(
     , decltype(_impl_.block_cluster_ids_){arena}
     , /*decltype(_impl_._block_cluster_ids_cached_byte_size_)*/{0}
     , decltype(_impl_.xue_strict_outgoing_){arena}
+    , decltype(_impl_.xue_downstream_forward_plans_){arena}
     , decltype(_impl_.key_){}
     , decltype(_impl_.append_mode_){}
     , decltype(_impl_.cluster_id_){0}
@@ -8503,6 +8535,7 @@ inline void AppendStripeDataPlacement::SharedDtor() {
   _impl_.sizes_.~RepeatedField();
   _impl_.block_cluster_ids_.~RepeatedField();
   _impl_.xue_strict_outgoing_.~RepeatedPtrField();
+  _impl_.xue_downstream_forward_plans_.~RepeatedPtrField();
   _impl_.key_.Destroy();
   _impl_.append_mode_.Destroy();
 }
@@ -8525,6 +8558,7 @@ void AppendStripeDataPlacement::Clear() {
   _impl_.sizes_.Clear();
   _impl_.block_cluster_ids_.Clear();
   _impl_.xue_strict_outgoing_.Clear();
+  _impl_.xue_downstream_forward_plans_.Clear();
   _impl_.key_.ClearToEmpty();
   _impl_.append_mode_.ClearToEmpty();
   ::memset(&_impl_.cluster_id_, 0, static_cast<size_t>(
@@ -8769,6 +8803,19 @@ const char* AppendStripeDataPlacement::_InternalParse(const char* ptr, ::_pbi::P
         } else
           goto handle_unusual;
         continue;
+      // repeated .proxy_proto.XueDownstreamForwardPlan xue_downstream_forward_plans = 25;
+      case 25:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 202)) {
+          ptr -= 2;
+          do {
+            ptr += 2;
+            ptr = ctx->ParseMessage(_internal_add_xue_downstream_forward_plans(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<202>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
       default:
         goto handle_unusual;
     }  // switch
@@ -8975,6 +9022,14 @@ uint8_t* AppendStripeDataPlacement::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteUInt64ToArray(24, this->_internal_xue_xfer_plan_id(), target);
   }
 
+  // repeated .proxy_proto.XueDownstreamForwardPlan xue_downstream_forward_plans = 25;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_xue_downstream_forward_plans_size()); i < n; i++) {
+    const auto& repfield = this->_internal_xue_downstream_forward_plans(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(25, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -9080,6 +9135,13 @@ size_t AppendStripeDataPlacement::ByteSizeLong() const {
   // repeated .proxy_proto.XueStrictOutgoingHop xue_strict_outgoing = 23;
   total_size += 2UL * this->_internal_xue_strict_outgoing_size();
   for (const auto& msg : this->_impl_.xue_strict_outgoing_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // repeated .proxy_proto.XueDownstreamForwardPlan xue_downstream_forward_plans = 25;
+  total_size += 2UL * this->_internal_xue_downstream_forward_plans_size();
+  for (const auto& msg : this->_impl_.xue_downstream_forward_plans_) {
     total_size +=
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
   }
@@ -9202,6 +9264,7 @@ void AppendStripeDataPlacement::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_m
   _this->_impl_.sizes_.MergeFrom(from._impl_.sizes_);
   _this->_impl_.block_cluster_ids_.MergeFrom(from._impl_.block_cluster_ids_);
   _this->_impl_.xue_strict_outgoing_.MergeFrom(from._impl_.xue_strict_outgoing_);
+  _this->_impl_.xue_downstream_forward_plans_.MergeFrom(from._impl_.xue_downstream_forward_plans_);
   if (!from._internal_key().empty()) {
     _this->_internal_set_key(from._internal_key());
   }
@@ -9277,6 +9340,7 @@ void AppendStripeDataPlacement::InternalSwap(AppendStripeDataPlacement* other) {
   _impl_.sizes_.InternalSwap(&other->_impl_.sizes_);
   _impl_.block_cluster_ids_.InternalSwap(&other->_impl_.block_cluster_ids_);
   _impl_.xue_strict_outgoing_.InternalSwap(&other->_impl_.xue_strict_outgoing_);
+  _impl_.xue_downstream_forward_plans_.InternalSwap(&other->_impl_.xue_downstream_forward_plans_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.key_, lhs_arena,
       &other->_impl_.key_, rhs_arena
@@ -9989,6 +10053,218 @@ void XueStrictOutgoingHop::InternalSwap(XueStrictOutgoingHop* other) {
 
 // ===================================================================
 
+class XueDownstreamForwardPlan::_Internal {
+ public:
+};
+
+XueDownstreamForwardPlan::XueDownstreamForwardPlan(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.XueDownstreamForwardPlan)
+}
+XueDownstreamForwardPlan::XueDownstreamForwardPlan(const XueDownstreamForwardPlan& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  XueDownstreamForwardPlan* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.outgoing_){from._impl_.outgoing_}
+    , decltype(_impl_.target_cluster_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.target_cluster_ = from._impl_.target_cluster_;
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.XueDownstreamForwardPlan)
+}
+
+inline void XueDownstreamForwardPlan::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.outgoing_){arena}
+    , decltype(_impl_.target_cluster_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+XueDownstreamForwardPlan::~XueDownstreamForwardPlan() {
+  // @@protoc_insertion_point(destructor:proxy_proto.XueDownstreamForwardPlan)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void XueDownstreamForwardPlan::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.outgoing_.~RepeatedPtrField();
+}
+
+void XueDownstreamForwardPlan::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void XueDownstreamForwardPlan::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.XueDownstreamForwardPlan)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.outgoing_.Clear();
+  _impl_.target_cluster_ = 0;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* XueDownstreamForwardPlan::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 target_cluster = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.target_cluster_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated .proxy_proto.XueStrictOutgoingHop outgoing = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_outgoing(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* XueDownstreamForwardPlan::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.XueDownstreamForwardPlan)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 target_cluster = 1;
+  if (this->_internal_target_cluster() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_target_cluster(), target);
+  }
+
+  // repeated .proxy_proto.XueStrictOutgoingHop outgoing = 2;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_outgoing_size()); i < n; i++) {
+    const auto& repfield = this->_internal_outgoing(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(2, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.XueDownstreamForwardPlan)
+  return target;
+}
+
+size_t XueDownstreamForwardPlan::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.XueDownstreamForwardPlan)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated .proxy_proto.XueStrictOutgoingHop outgoing = 2;
+  total_size += 1UL * this->_internal_outgoing_size();
+  for (const auto& msg : this->_impl_.outgoing_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // int32 target_cluster = 1;
+  if (this->_internal_target_cluster() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_target_cluster());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData XueDownstreamForwardPlan::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    XueDownstreamForwardPlan::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*XueDownstreamForwardPlan::GetClassData() const { return &_class_data_; }
+
+
+void XueDownstreamForwardPlan::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<XueDownstreamForwardPlan*>(&to_msg);
+  auto& from = static_cast<const XueDownstreamForwardPlan&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.XueDownstreamForwardPlan)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.outgoing_.MergeFrom(from._impl_.outgoing_);
+  if (from._internal_target_cluster() != 0) {
+    _this->_internal_set_target_cluster(from._internal_target_cluster());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void XueDownstreamForwardPlan::CopyFrom(const XueDownstreamForwardPlan& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.XueDownstreamForwardPlan)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool XueDownstreamForwardPlan::IsInitialized() const {
+  return true;
+}
+
+void XueDownstreamForwardPlan::InternalSwap(XueDownstreamForwardPlan* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.outgoing_.InternalSwap(&other->_impl_.outgoing_);
+  swap(_impl_.target_cluster_, other->_impl_.target_cluster_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata XueDownstreamForwardPlan::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[23]);
+}
+
+// ===================================================================
+
 class SetReply::_Internal {
  public:
 };
@@ -10162,7 +10438,7 @@ void SetReply::InternalSwap(SetReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SetReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[23]);
+      file_level_metadata_proxy_2eproto[24]);
 }
 
 // ===================================================================
@@ -10340,7 +10616,7 @@ void GetReply::InternalSwap(GetReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata GetReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[24]);
+      file_level_metadata_proxy_2eproto[25]);
 }
 
 // ===================================================================
@@ -10789,7 +11065,7 @@ void StripeAndBlockIDs::InternalSwap(StripeAndBlockIDs* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata StripeAndBlockIDs::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[25]);
+      file_level_metadata_proxy_2eproto[26]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -10886,6 +11162,10 @@ Arena::CreateMaybeMessage< ::proxy_proto::XueXferTimingProxyReply >(Arena* arena
 template<> PROTOBUF_NOINLINE ::proxy_proto::XueStrictOutgoingHop*
 Arena::CreateMaybeMessage< ::proxy_proto::XueStrictOutgoingHop >(Arena* arena) {
   return Arena::CreateMessageInternal< ::proxy_proto::XueStrictOutgoingHop >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::XueDownstreamForwardPlan*
+Arena::CreateMaybeMessage< ::proxy_proto::XueDownstreamForwardPlan >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::XueDownstreamForwardPlan >(arena);
 }
 template<> PROTOBUF_NOINLINE ::proxy_proto::SetReply*
 Arena::CreateMaybeMessage< ::proxy_proto::SetReply >(Arena* arena) {

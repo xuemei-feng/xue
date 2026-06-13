@@ -243,6 +243,7 @@ namespace ECProject
       static constexpr double kSessionTtlSec = 5.0;
 
       int stripe_id = -1;
+      uint64_t xue_xfer_plan_id = 0;
       bool ingress_complete = false;
       bool commits_complete = false;
       bool commits_failed = false;

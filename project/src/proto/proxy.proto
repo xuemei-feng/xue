@@ -270,6 +270,11 @@ message AppendStripeDataPlacement{
   // strict schedule: network hops this ingress proxy must run (from scheduled_tasks)
   repeated XueStrictOutgoingHop xue_strict_outgoing = 23;
   uint64 xue_xfer_plan_id = 24;
+  // downstream forward plans: coordinator pre-injects forwarding instructions
+  // for intermediate proxies that lack an ingress plan.
+  // keyed by target_cluster; the upstream proxy copies the matching entry
+  // into fwd.xue_strict_outgoing before forwarding.
+  repeated XueDownstreamForwardPlan xue_downstream_forward_plans = 25;
 }
 
 message XueXferTimingPull {
@@ -286,6 +291,11 @@ message XueXferTimingProxyReply {
 message XueStrictOutgoingHop {
   int32 to_cluster = 1;
   string forward_append_mode = 2;
+}
+
+message XueDownstreamForwardPlan {
+  int32 target_cluster = 1;
+  repeated XueStrictOutgoingHop outgoing = 2;
 }
 
 message SetReply {

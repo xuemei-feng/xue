@@ -139,9 +139,11 @@ namespace ECProject
     void waitXueScheduleHopBeforeForward(int stripe_id, const std::string &append_key,
                                          int dest_cluster_id);
     bool waitXueScheduleStepBeforeForward(int stripe_id, const std::string &append_key,
-                                          int from_cluster, int to_cluster);
+                                          int from_cluster, int to_cluster,
+                                          uint64_t xue_xfer_plan_id);
     void reportXueScheduleStepDoneAfterForward(int stripe_id, const std::string &append_key,
-                                               int from_cluster, int to_cluster, bool success);
+                                               int from_cluster, int to_cluster, bool success,
+                                               uint64_t xue_xfer_plan_id);
     void reportXueIngressReadyToCoordinator(int stripe_id, const std::string &append_key);
     void record_xue_xfer_sample(int stripe_id, uint64_t xue_xfer_plan_id,
                                 const std::chrono::steady_clock::time_point &t0,

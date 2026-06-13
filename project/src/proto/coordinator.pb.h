@@ -2356,6 +2356,7 @@ class XueScheduleStepWait final :
     kStepNoFieldNumber = 2,
     kFromClusterFieldNumber = 4,
     kToClusterFieldNumber = 5,
+    kXueXferPlanIdFieldNumber = 6,
   };
   // string append_key = 3;
   void clear_append_key();
@@ -2407,6 +2408,15 @@ class XueScheduleStepWait final :
   void _internal_set_to_cluster(int32_t value);
   public:
 
+  // uint64 xue_xfer_plan_id = 6;
+  void clear_xue_xfer_plan_id();
+  uint64_t xue_xfer_plan_id() const;
+  void set_xue_xfer_plan_id(uint64_t value);
+  private:
+  uint64_t _internal_xue_xfer_plan_id() const;
+  void _internal_set_xue_xfer_plan_id(uint64_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:coordinator_proto.XueScheduleStepWait)
  private:
   class _Internal;
@@ -2420,6 +2430,7 @@ class XueScheduleStepWait final :
     int32_t step_no_;
     int32_t from_cluster_;
     int32_t to_cluster_;
+    uint64_t xue_xfer_plan_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -2553,6 +2564,7 @@ class XueScheduleStepDone final :
     kStepNoFieldNumber = 2,
     kSuccessFieldNumber = 3,
     kFromClusterFieldNumber = 5,
+    kXueXferPlanIdFieldNumber = 7,
     kToClusterFieldNumber = 6,
   };
   // string append_key = 4;
@@ -2605,6 +2617,15 @@ class XueScheduleStepDone final :
   void _internal_set_from_cluster(int32_t value);
   public:
 
+  // uint64 xue_xfer_plan_id = 7;
+  void clear_xue_xfer_plan_id();
+  uint64_t xue_xfer_plan_id() const;
+  void set_xue_xfer_plan_id(uint64_t value);
+  private:
+  uint64_t _internal_xue_xfer_plan_id() const;
+  void _internal_set_xue_xfer_plan_id(uint64_t value);
+  public:
+
   // int32 to_cluster = 6;
   void clear_to_cluster();
   int32_t to_cluster() const;
@@ -2627,6 +2648,7 @@ class XueScheduleStepDone final :
     int32_t step_no_;
     bool success_;
     int32_t from_cluster_;
+    uint64_t xue_xfer_plan_id_;
     int32_t to_cluster_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -8247,6 +8269,26 @@ inline void XueScheduleStepWait::set_to_cluster(int32_t value) {
   // @@protoc_insertion_point(field_set:coordinator_proto.XueScheduleStepWait.to_cluster)
 }
 
+// uint64 xue_xfer_plan_id = 6;
+inline void XueScheduleStepWait::clear_xue_xfer_plan_id() {
+  _impl_.xue_xfer_plan_id_ = uint64_t{0u};
+}
+inline uint64_t XueScheduleStepWait::_internal_xue_xfer_plan_id() const {
+  return _impl_.xue_xfer_plan_id_;
+}
+inline uint64_t XueScheduleStepWait::xue_xfer_plan_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.XueScheduleStepWait.xue_xfer_plan_id)
+  return _internal_xue_xfer_plan_id();
+}
+inline void XueScheduleStepWait::_internal_set_xue_xfer_plan_id(uint64_t value) {
+  
+  _impl_.xue_xfer_plan_id_ = value;
+}
+inline void XueScheduleStepWait::set_xue_xfer_plan_id(uint64_t value) {
+  _internal_set_xue_xfer_plan_id(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.XueScheduleStepWait.xue_xfer_plan_id)
+}
+
 // -------------------------------------------------------------------
 
 // XueScheduleStepDone
@@ -8399,6 +8441,26 @@ inline void XueScheduleStepDone::_internal_set_to_cluster(int32_t value) {
 inline void XueScheduleStepDone::set_to_cluster(int32_t value) {
   _internal_set_to_cluster(value);
   // @@protoc_insertion_point(field_set:coordinator_proto.XueScheduleStepDone.to_cluster)
+}
+
+// uint64 xue_xfer_plan_id = 7;
+inline void XueScheduleStepDone::clear_xue_xfer_plan_id() {
+  _impl_.xue_xfer_plan_id_ = uint64_t{0u};
+}
+inline uint64_t XueScheduleStepDone::_internal_xue_xfer_plan_id() const {
+  return _impl_.xue_xfer_plan_id_;
+}
+inline uint64_t XueScheduleStepDone::xue_xfer_plan_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.XueScheduleStepDone.xue_xfer_plan_id)
+  return _internal_xue_xfer_plan_id();
+}
+inline void XueScheduleStepDone::_internal_set_xue_xfer_plan_id(uint64_t value) {
+  
+  _impl_.xue_xfer_plan_id_ = value;
+}
+inline void XueScheduleStepDone::set_xue_xfer_plan_id(uint64_t value) {
+  _internal_set_xue_xfer_plan_id(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.XueScheduleStepDone.xue_xfer_plan_id)
 }
 
 // -------------------------------------------------------------------

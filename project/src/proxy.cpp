@@ -682,7 +682,8 @@ namespace ECProject
   }
 
   bool ProxyImpl::waitXueScheduleStepBeforeForward(int stripe_id, const std::string &append_key,
-                                                   int from_cluster, int to_cluster)
+                                                   int from_cluster, int to_cluster,
+                                                   uint64_t xue_xfer_plan_id)
   {
     if (m_coordinator_ptr == nullptr || stripe_id < 0)
     {
@@ -696,12 +697,18 @@ namespace ECProject
     req.set_append_key(append_key);
     req.set_from_cluster(from_cluster);
     req.set_to_cluster(to_cluster);
+    req.set_xue_xfer_plan_id(xue_xfer_plan_id);
     const grpc::Status st = m_coordinator_ptr->waitXueScheduleStep(&ctx, req, &rep);
     if (!st.ok())
     {
-      std::cerr << "[Proxy][XFERT] waitXueScheduleStep failed stripe=" << stripe_id
-                << " append_key=" << append_key << " " << from_cluster << "->" << to_cluster
-                << " err=" << st.error_message() << std::endl;
+      // ABORTED / DEADLINE_EXCEEDED = session 被替换或过期，预期行为，不需告警
+      if (st.error_code() != grpc::StatusCode::ABORTED &&
+          st.error_code() != grpc::StatusCode::DEADLINE_EXCEEDED)
+      {
+        std::cerr << "[Proxy][XFERT] waitXueScheduleStep failed stripe=" << stripe_id
+                  << " append_key=" << append_key << " " << from_cluster << "->" << to_cluster
+                  << " err=" << st.error_message() << std::endl;
+      }
       return false;
     }
     return true;
@@ -709,7 +716,8 @@ namespace ECProject
 
   void ProxyImpl::reportXueScheduleStepDoneAfterForward(int stripe_id, const std::string &append_key,
                                                         int from_cluster, int to_cluster,
-                                                        bool success)
+                                                        bool success,
+                                                        uint64_t xue_xfer_plan_id)
   {
     if (m_coordinator_ptr == nullptr || stripe_id < 0)
     {
@@ -724,11 +732,16 @@ namespace ECProject
     req.set_append_key(append_key);
     req.set_from_cluster(from_cluster);
     req.set_to_cluster(to_cluster);
+    req.set_xue_xfer_plan_id(xue_xfer_plan_id);
     const grpc::Status st = m_coordinator_ptr->reportXueScheduleStepDone(&ctx, req, &rep);
     if (!st.ok())
     {
-      std::cerr << "[Proxy][XFERT] reportXueScheduleStepDone failed stripe=" << stripe_id
-                << " append_key=" << append_key << " err=" << st.error_message() << std::endl;
+      // ABORTED = plan_id mismatch (session 被替换)，预期行为，静默跳过
+      if (st.error_code() != grpc::StatusCode::ABORTED)
+      {
+        std::cerr << "[Proxy][XFERT] reportXueScheduleStepDone failed stripe=" << stripe_id
+                  << " append_key=" << append_key << " err=" << st.error_message() << std::endl;
+      }
     }
   }
 
@@ -822,7 +835,7 @@ namespace ECProject
     if (placement.xue_strict_schedule() && gate_strict_schedule_step)
     {
       if (!waitXueScheduleStepBeforeForward(placement.stripe_id(), placement.key(), m_self_cluster_id,
-                                            dest_cluster_id))
+                                            dest_cluster_id, placement.xue_xfer_plan_id()))
       {
         return false;
       }
@@ -857,7 +870,7 @@ namespace ECProject
       if (placement.xue_strict_schedule() && gate_strict_schedule_step)
       {
         reportXueScheduleStepDoneAfterForward(placement.stripe_id(), placement.key(),
-                                              m_self_cluster_id, dest_cluster_id, false);
+                                              m_self_cluster_id, dest_cluster_id, false, placement.xue_xfer_plan_id());
       }
       return false;
     }
@@ -870,7 +883,7 @@ namespace ECProject
       if (placement.xue_strict_schedule() && gate_strict_schedule_step)
       {
         reportXueScheduleStepDoneAfterForward(placement.stripe_id(), placement.key(),
-                                              m_self_cluster_id, dest_cluster_id, false);
+                                              m_self_cluster_id, dest_cluster_id, false, placement.xue_xfer_plan_id());
       }
       return false;
     }
@@ -886,6 +899,39 @@ namespace ECProject
     fwd.set_xue_class1_relay_path(false);
     fwd.set_xue_compute_global_parity(append_mode == "XUE_DELTA_TO_GLOBAL");
 
+    // Plan B: 严格调度转发时，fwd 是给下游 Proxy 的 placement。
+    // placement.xue_strict_outgoing 是当前 Proxy 自己的 hop，绝不应传给下游；
+    // 下游需要的是 xue_downstream_forward_plans 中 target_cluster 匹配的条目。
+    // 即使没有下游 plan，也必须清除（最终 Proxy 不应有任何 outgoing hop）。
+    if (placement.xue_strict_schedule())
+    {
+      fwd.clear_xue_strict_outgoing();
+      for (const auto &dp : placement.xue_downstream_forward_plans())
+      {
+        if (dp.target_cluster() == dest_cluster_id)
+        {
+          for (const auto &hop : dp.outgoing())
+          {
+            *fwd.add_xue_strict_outgoing() = hop;
+          }
+        }
+      }
+      // 往下游传递更深层的 forward plan（递归链 A→B→C→D 中 B 需携带 C→D）
+      fwd.clear_xue_downstream_forward_plans();
+      for (const auto &dp : placement.xue_downstream_forward_plans())
+      {
+        if (dp.target_cluster() != dest_cluster_id)
+        {
+          auto *nested = fwd.add_xue_downstream_forward_plans();
+          nested->set_target_cluster(dp.target_cluster());
+          for (const auto &hop : dp.outgoing())
+          {
+            *nested->add_outgoing() = hop;
+          }
+        }
+      }
+    }
+
     grpc::ClientContext ctx;
     proxy_proto::SetReply rep;
     grpc::Status st = stub->scheduleAppend2Datanode(&ctx, fwd, &rep);
@@ -897,7 +943,7 @@ namespace ECProject
       if (placement.xue_strict_schedule() && gate_strict_schedule_step)
       {
         reportXueScheduleStepDoneAfterForward(placement.stripe_id(), placement.key(),
-                                              m_self_cluster_id, dest_cluster_id, false);
+                                              m_self_cluster_id, dest_cluster_id, false, placement.xue_xfer_plan_id());
       }
       return false;
     }
@@ -920,7 +966,7 @@ namespace ECProject
         if (placement.xue_strict_schedule() && gate_strict_schedule_step)
         {
           reportXueScheduleStepDoneAfterForward(placement.stripe_id(), placement.key(),
-                                                m_self_cluster_id, dest_cluster_id, false);
+                                                m_self_cluster_id, dest_cluster_id, false, placement.xue_xfer_plan_id());
         }
         return false;
       }
@@ -951,7 +997,7 @@ namespace ECProject
       if (placement.xue_strict_schedule() && gate_strict_schedule_step)
       {
         reportXueScheduleStepDoneAfterForward(placement.stripe_id(), placement.key(),
-                                              m_self_cluster_id, dest_cluster_id, ok);
+                                              m_self_cluster_id, dest_cluster_id, ok, placement.xue_xfer_plan_id());
       }
       return ok;
     }
@@ -963,7 +1009,7 @@ namespace ECProject
       if (placement.xue_strict_schedule() && gate_strict_schedule_step)
       {
         reportXueScheduleStepDoneAfterForward(placement.stripe_id(), placement.key(),
-                                              m_self_cluster_id, dest_cluster_id, false);
+                                              m_self_cluster_id, dest_cluster_id, false, placement.xue_xfer_plan_id());
       }
       return false;
     }
@@ -1106,7 +1152,8 @@ namespace ECProject
           hop.forward_append_mode() == "XUE_COMPUTE_LOCAL_PARITY")
       {
         if (!waitXueScheduleStepBeforeForward(placement->stripe_id(), placement->key(),
-                                              m_self_cluster_id, hop.to_cluster()))
+                                              m_self_cluster_id, hop.to_cluster(),
+                                              placement->xue_xfer_plan_id()))
         {
           ok = false;
           continue;
@@ -1114,7 +1161,7 @@ namespace ECProject
         const bool merged_ok =
             forwardMergedLocalParityDelta(hop.to_cluster(), *placement, slices, tcp_slice_count);
         reportXueScheduleStepDoneAfterForward(placement->stripe_id(), placement->key(),
-                                              m_self_cluster_id, hop.to_cluster(), merged_ok);
+                                              m_self_cluster_id, hop.to_cluster(), merged_ok, placement->xue_xfer_plan_id());
         if (!merged_ok)
         {
           std::cerr << "[Proxy] strict class2 scheduled local parity forward failed append_key="
@@ -1127,7 +1174,8 @@ namespace ECProject
       if (hop.forward_append_mode() == "XUE_LOCAL_PARITY_DELTA")
       {
         if (!waitXueScheduleStepBeforeForward(placement->stripe_id(), placement->key(),
-                                              m_self_cluster_id, hop.to_cluster()))
+                                              m_self_cluster_id, hop.to_cluster(),
+                                              placement->xue_xfer_plan_id()))
         {
           ok = false;
           continue;
@@ -1135,7 +1183,7 @@ namespace ECProject
         const bool merged_ok =
             forwardMergedLocalParityDelta(hop.to_cluster(), *placement, slices, tcp_slice_count);
         reportXueScheduleStepDoneAfterForward(placement->stripe_id(), placement->key(),
-                                              m_self_cluster_id, hop.to_cluster(), merged_ok);
+                                              m_self_cluster_id, hop.to_cluster(), merged_ok, placement->xue_xfer_plan_id());
         if (!merged_ok)
         {
           std::cerr << "[Proxy] strict local parity delta forward failed append_key="
