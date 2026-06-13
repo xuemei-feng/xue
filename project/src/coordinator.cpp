@@ -1,5 +1,6 @@
 #include "coordinator.h"
 #include "tinyxml2.h"
+#include <memory>
 #include <random>
 #include <unistd.h>
 #include "lrc.h"
@@ -3528,9 +3529,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     return append_plans;
   }
 
-  void CoordinatorImpl::notify_proxies_ready(const proxy_proto::AppendStripeDataPlacement &plan)
+  bool CoordinatorImpl::notify_proxies_ready(const proxy_proto::AppendStripeDataPlacement &plan)
   {
     grpc::ClientContext cont;
+    // 设置 500ms deadline，防止 proxy 无响应时永久阻塞 coordinator 线程
+    cont.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
     proxy_proto::SetReply set_reply;
     std::string chosen_proxy = m_cluster_table[plan.cluster_id()].proxy_ip + ":" + std::to_string(m_cluster_table[plan.cluster_id()].proxy_port);
     grpc::Status status = m_proxy_ptrs[chosen_proxy]->scheduleAppend2Datanode(&cont, plan, &set_reply);
@@ -3539,10 +3542,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       m_mutex.lock();
       m_object_updating_table[plan.key()] = ObjectInfo(plan.append_size(), plan.stripe_id());
       m_mutex.unlock();
+      return true;
     }
     else
     {
-      std::cout << "[APPEND434] Send append plan" << plan.key() << " failed! " << std::endl;
+      std::cerr << "[Coord] notify_proxies_ready failed key=" << plan.key()
+                << " cluster=" << plan.cluster_id()
+                << " err=" << status.error_message() << std::endl;
+      return false;
     }
   }
 
@@ -3623,17 +3630,32 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       m_mutex.unlock();
     }
 
-    // 3. notify proxies to receive data
-    // need multiple proxies to receive data, so need multiple threads
+    // 3. notify proxies to receive data，单个 proxy 失败不影响整体
+    const size_t notify_n = append_plans.size();
+    std::unique_ptr<bool[]> notify_ok(new bool[notify_n]());
     std::vector<std::thread> threads;
-    for (const auto &plan : append_plans)
+    for (size_t i = 0; i < notify_n; ++i)
     {
-      threads.push_back(std::thread(&CoordinatorImpl::notify_proxies_ready, this, plan));
+      threads.push_back(std::thread(
+          [this, &plan = append_plans[i], result_ptr = &notify_ok[i]]() {
+            *result_ptr = notify_proxies_ready(plan);
+          }));
     }
     for (auto &thread : threads)
     {
       thread.join();
     }
+    // 移除通知失败的 plan
+    std::vector<proxy_proto::AppendStripeDataPlacement> ok_plans;
+    ok_plans.reserve(notify_n);
+    for (size_t i = 0; i < notify_n; ++i)
+    {
+      if (notify_ok[i])
+      {
+        ok_plans.push_back(std::move(append_plans[i]));
+      }
+    }
+    append_plans.swap(ok_plans);
     fill_reply_from_append_plans(this, append_plans, proxyIPPort);
 
     m_cur_offset_table[clientID].offset += appendSizeBytes;
@@ -4215,19 +4237,48 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return grpc::Status(grpc::StatusCode::CANCELLED, "client deadline exceeded before notify");
     }
 
-    // 并行通知 proxy，避免串行阻塞 — 与 generateAppendPlan 保持一致
+    // 并行通知 proxy，单个 proxy 失败不影响整体；
+    // 每个 notify_proxies_ready 内部有 500ms deadline，防止无限阻塞。
     {
+      const size_t n = append_plans.size();
+      std::unique_ptr<bool[]> notify_ok(new bool[n]());
       std::vector<std::thread> notify_threads;
-      for (const auto &plan : append_plans)
+      for (size_t i = 0; i < n; ++i)
       {
-        notify_threads.push_back(
-            std::thread(&CoordinatorImpl::notify_proxies_ready, this, plan));
+        notify_threads.push_back(std::thread(
+            [this, &plan = append_plans[i], result_ptr = &notify_ok[i]]() {
+              *result_ptr = notify_proxies_ready(plan);
+            }));
       }
       for (auto &t : notify_threads)
       {
         t.join();
       }
+      // 移除通知失败的 plan，避免 client 向未就绪的 proxy 发送 TCP 数据
+      std::vector<proxy_proto::AppendStripeDataPlacement> ok_plans;
+      ok_plans.reserve(n);
+      for (size_t i = 0; i < n; ++i)
+      {
+        if (notify_ok[i])
+        {
+          ok_plans.push_back(std::move(append_plans[i]));
+        }
+      }
+      if (ok_plans.size() < n)
+      {
+        std::cerr << "[Coord] uploadXueUpdate stripe=" << stripe_id
+                  << " notify_proxies_ready " << ok_plans.size() << "/" << n
+                  << " succeeded, " << (n - ok_plans.size()) << " failed" << std::endl;
+      }
+      append_plans.swap(ok_plans);
     }
+
+    // notify 完成后再次检查 client 是否已取消，避免向已放弃的 client 填充回复
+    if (context->IsCancelled())
+    {
+      return grpc::Status(grpc::StatusCode::CANCELLED, "client cancelled during proxy notify");
+    }
+
     fill_reply_from_append_plans(this, append_plans, proxyIPPort);
     proxyIPPort->set_xue_xfer_plan_id(xue_xfer_plan_id);
     if (use_strict_schedule)
@@ -4949,15 +5000,31 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       m_mutex.unlock();
     }
 
+    const size_t set_notify_n = add_plans.size();
+    std::unique_ptr<bool[]> set_notify_ok(new bool[set_notify_n]());
     std::vector<std::thread> threads;
-    for (const auto &plan : add_plans)
+    for (size_t i = 0; i < set_notify_n; ++i)
     {
-      threads.push_back(std::thread(&CoordinatorImpl::notify_proxies_ready, this, plan));
+      threads.push_back(std::thread(
+          [this, &plan = add_plans[i], result_ptr = &set_notify_ok[i]]() {
+            *result_ptr = notify_proxies_ready(plan);
+          }));
     }
     for (auto &thread : threads)
     {
       thread.join();
     }
+    // 移除通知失败的 plan
+    std::vector<proxy_proto::AppendStripeDataPlacement> set_ok_plans;
+    set_ok_plans.reserve(set_notify_n);
+    for (size_t i = 0; i < set_notify_n; ++i)
+    {
+      if (set_notify_ok[i])
+      {
+        set_ok_plans.push_back(std::move(add_plans[i]));
+      }
+    }
+    add_plans.swap(set_ok_plans);
     fill_reply_from_append_plans(this, add_plans, proxyIPPort);
 
     m_stripe_table[t_stripe.stripe_id] = std::move(t_stripe);
@@ -5011,22 +5078,38 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       m_mutex.unlock();
     }
 
+    const size_t subset_notify_n = add_plans.size();
+    std::unique_ptr<bool[]> subset_notify_ok(new bool[subset_notify_n]());
     std::vector<std::thread> threads;
-    for (const auto &plan : add_plans)
+    for (size_t i = 0; i < subset_notify_n; ++i)
     {
-      threads.push_back(std::thread(&CoordinatorImpl::notify_proxies_ready, this, plan));
+      threads.push_back(std::thread(
+          [this, &plan = add_plans[i], result_ptr = &subset_notify_ok[i]]() {
+            *result_ptr = notify_proxies_ready(plan);
+          }));
     }
     for (auto &thread : threads)
     {
       thread.join();
     }
+    // 移除通知失败的 plan
+    std::vector<proxy_proto::AppendStripeDataPlacement> subset_ok_plans;
+    subset_ok_plans.reserve(subset_notify_n);
+    for (size_t i = 0; i < subset_notify_n; ++i)
+    {
+      if (subset_notify_ok[i])
+      {
+        subset_ok_plans.push_back(std::move(add_plans[i]));
+      }
+    }
+    add_plans.swap(subset_ok_plans);
     fill_reply_from_append_plans(this, add_plans, proxyIPPort);
 
     m_stripe_table[t_stripe.stripe_id] = std::move(t_stripe);
 
     return grpc::Status::OK;
   }
-  
+
   std::vector<int> CoordinatorImpl::get_recovery_group_ids(std::string code_type, int k, int r, int z, int failed_block_id)
   {
     std::vector<int> recovery_group_ids;

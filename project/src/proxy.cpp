@@ -666,6 +666,7 @@ namespace ECProject
       return;
     }
     grpc::ClientContext ctx;
+    ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
     coordinator_proto::XueScheduleHopWait req;
     coordinator_proto::ReplyFromCoordinator rep;
     req.set_stripe_id(stripe_id);
@@ -690,6 +691,7 @@ namespace ECProject
       return false;
     }
     grpc::ClientContext ctx;
+    ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
     coordinator_proto::XueScheduleStepWait req;
     coordinator_proto::ReplyFromCoordinator rep;
     req.set_stripe_id(stripe_id);
@@ -724,6 +726,7 @@ namespace ECProject
       return;
     }
     grpc::ClientContext ctx;
+    ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
     coordinator_proto::XueScheduleStepDone req;
     coordinator_proto::ReplyFromCoordinator rep;
     req.set_stripe_id(stripe_id);
@@ -752,6 +755,7 @@ namespace ECProject
       return;
     }
     grpc::ClientContext ctx;
+    ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
     coordinator_proto::XueIngressReadyReport req;
     coordinator_proto::ReplyFromCoordinator rep;
     req.set_stripe_id(stripe_id);
@@ -933,6 +937,7 @@ namespace ECProject
     }
 
     grpc::ClientContext ctx;
+    ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
     proxy_proto::SetReply rep;
     grpc::Status st = stub->scheduleAppend2Datanode(&ctx, fwd, &rep);
     if (!st.ok())
