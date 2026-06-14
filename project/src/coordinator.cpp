@@ -1111,27 +1111,27 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
   void CoordinatorImpl::initialize_random_lrc_stripe_placement(Stripe *stripe)
   {
-    // Random placement:
-    // 1) 从条带全部块中随机顺序投放
-    // 2) 仅在 4 个随机 cluster 中放置（若总 cluster < 4，则使用全部）
-    // 3) 约束：同一 cluster 块数 <= r + l，l 为该 cluster 中“去除全局校验组后的跨 group 数”
+    // cord_cu 放置策略：
+    // G 集群 = stripe_id % cluster_num（所有全局校验块）
+    // L 集群 = (stripe_id + 1) % cluster_num（所有本地校验块）
+    // 数据块随机放入剩余 4 个集群，约束：data_blocks <= r + cross_local_groups
     Block *blocks_info = new Block[stripe->n];
     assert(stripe->object_keys.size() == 1);
 
     const int cluster_num = m_sys_config->ClusterNum;
-    if (cluster_num <= 0)
+    if (cluster_num < 2)
     {
-      throw std::runtime_error("ClusterNum must be positive for RandomLRC placement");
+      throw std::runtime_error("ClusterNum must be >= 2 for cord_cu placement");
     }
 
-    const int target_cluster_num = std::min(4, cluster_num);
-    std::vector<int> selected_clusters;
-    selected_clusters.reserve(target_cluster_num);
-    // 轮询选择紧邻 cluster：以 stripe_id 为起点，按环形连续取 4 个。
-    const int start_cluster = stripe->stripe_id % cluster_num;
-    for (int i = 0; i < target_cluster_num; ++i)
+    const int G_cluster = stripe->stripe_id % cluster_num;
+    const int L_cluster = (stripe->stripe_id + 1) % cluster_num;
+
+    std::vector<int> data_clusters;
+    for (int c = 0; c < cluster_num; ++c)
     {
-      selected_clusters.push_back((start_cluster + i) % cluster_num);
+      if (c != G_cluster && c != L_cluster)
+        data_clusters.push_back(c);
     }
 
     std::mt19937 gen;
@@ -1146,7 +1146,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       gen.seed(rd());
     }
 
-    // 按 Azure 风格构建 group：数据组 0..z-1，全局校验组 z，本地校验组 0..z-1。
+    // 构建 block 元数据：D[0..k), G[k..k+r), L[k+r..k+r+z)
     const int global_parity_group_id = stripe->z;
     for (int i = 0; i < stripe->n; i++)
     {
@@ -1185,44 +1185,44 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
     }
 
-    std::vector<int> block_order(stripe->n);
-    std::iota(block_order.begin(), block_order.end(), 0);
+    // G 和 L 块确定性放置在专用集群
+    std::vector<int> assigned_cluster(stripe->n, -1);
+    for (int i = stripe->k; i < stripe->k + stripe->r; ++i)
+      assigned_cluster[i] = G_cluster;
+    for (int i = stripe->k + stripe->r; i < stripe->n; ++i)
+      assigned_cluster[i] = L_cluster;
+
+    // 数据块随机放入 data_clusters，约束：blocks <= r + cross_groups
+    std::vector<int> data_block_order(stripe->k);
+    std::iota(data_block_order.begin(), data_block_order.end(), 0);
     const int max_attempts = 256;
     bool placed = false;
-    std::vector<int> assigned_cluster(stripe->n, -1);
 
     for (int attempt = 0; attempt < max_attempts && !placed; ++attempt)
     {
-      std::shuffle(block_order.begin(), block_order.end(), gen);
-      std::fill(assigned_cluster.begin(), assigned_cluster.end(), -1);
+      std::shuffle(data_block_order.begin(), data_block_order.end(), gen);
       std::map<int, int> cluster_block_count;
-      std::map<int, std::set<int>> cluster_groups_excluding_global;
+      std::map<int, std::set<int>> cluster_groups;
       bool ok = true;
 
-      for (int block_idx : block_order)
+      for (int block_idx : data_block_order)
       {
-        std::vector<int> candidate_clusters = selected_clusters;
-        std::shuffle(candidate_clusters.begin(), candidate_clusters.end(), gen);
+        std::vector<int> candidates = data_clusters;
+        std::shuffle(candidates.begin(), candidates.end(), gen);
         bool assigned = false;
         const int block_group = blocks_info[block_idx].map2group;
 
-        for (int cid : candidate_clusters)
+        for (int cid : candidates)
         {
           int next_block_count = cluster_block_count[cid] + 1;
-          int next_group_count = static_cast<int>(cluster_groups_excluding_global[cid].size());
-          if (block_group != global_parity_group_id &&
-              cluster_groups_excluding_global[cid].find(block_group) == cluster_groups_excluding_global[cid].end())
-          {
+          int next_group_count = static_cast<int>(cluster_groups[cid].size());
+          if (cluster_groups[cid].find(block_group) == cluster_groups[cid].end())
             next_group_count++;
-          }
           if (next_block_count <= stripe->r + next_group_count)
           {
             assigned_cluster[block_idx] = cid;
             cluster_block_count[cid] = next_block_count;
-            if (block_group != global_parity_group_id)
-            {
-              cluster_groups_excluding_global[cid].insert(block_group);
-            }
+            cluster_groups[cid].insert(block_group);
             assigned = true;
             break;
           }
@@ -1231,15 +1231,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         if (!assigned)
         {
           ok = false;
-        break;
+          break;
+        }
       }
-    }
       placed = ok;
     }
 
     if (!placed)
     {
-      throw std::runtime_error("RandomLRC placement failed to satisfy cluster constraints");
+      throw std::runtime_error("cord_cu placement failed to satisfy data block constraints");
     }
 
     for (int i = 0; i < stripe->n; i++)
@@ -1323,7 +1323,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return false;
     }
 
-    // 新语义：输入区间直接按“条带内顺序拼接的数据块地址空间”映射：
+    // 新语义：输入区间直接按"条带内顺序拼接的数据块地址空间"映射：
     // block_id = logical_offset / BlockSize, block_offset = logical_offset % BlockSize。
     const int logical_end = curr_logical_offset + append_size - 1;
     int pos = curr_logical_offset;
@@ -2008,8 +2008,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       m_object_commit_table.erase(plan.key());
       m_mutex.unlock();
 
-      std::thread t(&CoordinatorImpl::notify_proxies_cord_ready, this, plan);
-      t.join();
+      notify_proxies_cord_ready(plan);
 
       proxyIPPort->add_append_keys(plan.key());
       proxyIPPort->add_proxyips(m_cluster_table[cid].proxy_ip);

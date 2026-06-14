@@ -753,11 +753,30 @@ namespace ECProject
         }
         return true;
       };
+      /** MST_FORWARD 中继边：源块须已收到上游数据（即所有 dst==该源块的 MST 边已完成） */
+      auto mst_relay_ingress_done = [&](size_t i) -> bool {
+        const TrainLink &L = out.train_route[i];
+        if (L.kind != TrainLinkKind::MST_FORWARD)
+          return true;
+        // 若 src_block_id 是原始数据块（mst_origin_data_block），则无需等待
+        if (L.src_block_id == L.mst_origin_data_block)
+          return true;
+        // 否则须等待所有 dst==src 的 MST 边完成
+        for (size_t j = 0; j < out.train_route.size(); ++j)
+        {
+          const TrainLink &J = out.train_route[j];
+          if (J.kind != TrainLinkKind::MST_FORWARD)
+            continue;
+          if (J.dst_block_id == L.src_block_id && remaining[j] > 0)
+            return false;
+        }
+        return true;
+      };
       auto link_eligible_for_slot = [&](size_t i) -> bool {
         const TrainLink &L = out.train_route[i];
         if (L.kind == TrainLinkKind::STAR_CENTER_TO_GLOBAL || L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL)
           return collector_star_data_ingress_done(L.group_index, L.src_block_id);
-        return true;
+        return mst_relay_ingress_done(i);
       };
 
       while (true)
