@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HOSTS_FILE="hosts"
+HOSTS_FILE="proxy_hosts"
 
 USER="root"
 
