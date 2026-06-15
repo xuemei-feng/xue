@@ -5,8 +5,8 @@ import netifaces
 
 current_path = os.getcwd()
 parent_path = os.path.dirname(current_path)
-cluster_number = 4
-datanode_number_per_cluster = 30
+cluster_number = 6
+datanode_number_per_cluster = 8
 datanode_port_start = 17600
 cluster_id_start = 0
 iftest = False
@@ -14,9 +14,11 @@ RUN_ENV = os.environ.get("UNILRC_ENV", "half-sim").strip().lower()
 
 proxy_ip_list = [
     ["10.10.1.3",50405],
-    ["10.10.1.4",50405],
-    ["10.10.1.5",50405],
-    ["10.10.1.6",50405]
+    ["10.10.1.12",50405],
+    ["10.10.1.21",50405],
+    ["10.10.1.30",50405],
+    ["10.10.1.39",50405],
+    ["10.10.1.48",50405]
 ]
 coordinator_ip = "10.10.1.2"
 
@@ -29,18 +31,29 @@ def get_local_ip(interface_name):
     return addresses[netifaces.AF_INET][0]['addr']
 
 def get_interface_with_ip_prefix(prefix="10.10.1"):
+    """返回所有以 prefix 开头的本机 IPv4 地址（包括主地址和别名）。"""
+    ips = []
     interfaces = netifaces.interfaces()
     for interface in interfaces:
         try:
             addresses = netifaces.ifaddresses(interface)
-            if netifaces.AF_INET in addresses:  # 检查是否有IPv4地址
+            if netifaces.AF_INET in addresses:
                 for addr in addresses[netifaces.AF_INET]:
                     ip = addr['addr']
-                    if ip.startswith(prefix):  # 检查IP地址是否以指定前缀开头
-                        return ip
+                    if ip.startswith(prefix):
+                        ips.append(ip)
         except Exception as e:
             print(f"Error processing interface {interface}: {e}")
-    return None, None
+    if ips:
+        return ips
+    return None
+
+def get_primary_ip_with_prefix(prefix="10.10.1"):
+    """返回第一个匹配的前缀 IP（向后兼容）。"""
+    result = get_interface_with_ip_prefix(prefix)
+    if isinstance(result, list) and len(result) > 0:
+        return result[0]
+    return None
 
 
 cluster_informtion = {}
@@ -82,18 +95,24 @@ def load_cluster_information_xml(xml_path):
         cluster_informtion[cid] = {"proxy": proxy, "datanode": datanode_list}
 
 
-def resolve_cluster_id_for_local_ip(local_ip):
-    """本机 IP 与某 cluster 的 proxy 或任一 datanode 主机一致时，返回该 cluster id。"""
-    if not local_ip:
-        return None
-    for cid, info in cluster_informtion.items():
-        proxy_host = info["proxy"].split(":", 1)[0]
-        if proxy_host == local_ip:
-            return cid
-        for host, _port in info["datanode"]:
-            if host == local_ip:
-                return cid
-    return None
+def resolve_cluster_id_for_local_ip(local_ips):
+    """本机 IP 与某 cluster 的 proxy 或任一 datanode 主机一致时，返回所有匹配的 cluster id 列表。"""
+    if not local_ips:
+        return []
+    if isinstance(local_ips, str):
+        local_ips = [local_ips]
+    matched = []
+    for local_ip in local_ips:
+        for cid, info in cluster_informtion.items():
+            proxy_host = info["proxy"].split(":", 1)[0]
+            if proxy_host == local_ip:
+                if cid not in matched:
+                    matched.append(cid)
+            for host, _port in info["datanode"]:
+                if host == local_ip:
+                    if cid not in matched:
+                        matched.append(cid)
+    return matched
 
 
 def generate_cluster_info_dict():
@@ -148,32 +167,40 @@ def generate_run_proxy_datanode_file():
             f.write("\n")
         return
 
-    local_ip = get_interface_with_ip_prefix(prefix="10.10.1")
-    if isinstance(local_ip, tuple):
-        local_ip = local_ip[0]
-    if not local_ip:
+    local_ips = get_interface_with_ip_prefix(prefix="10.10.1")
+    if local_ips is None or (isinstance(local_ips, list) and len(local_ips) == 0):
         print("Warning: no 10.10.1.x address found; skip run_proxy_datanode.sh")
         return
-    cluster_id = resolve_cluster_id_for_local_ip(local_ip)
-    if cluster_id is None:
-        print("Skip run_proxy_datanode.sh: no cluster in clusterInformation.xml matches local_ip", local_ip)
-        return
-    #local_ip = "0.0.0.0" # for test
-    #cluster_id = 0 # for test
+    if isinstance(local_ips, str):
+        local_ips = [local_ips]
+
+    cluster_ids = resolve_cluster_id_for_local_ip(local_ips)
+    if not cluster_ids:
+        # No match found, but we have 10.10.1.x IPs — single-machine multi-cluster setup:
+        # generate script for ALL clusters in clusterInformation.xml
+        if len(cluster_informtion) > 0:
+            print("Single-machine multi-cluster mode: generating run_proxy_datanode.sh for all",
+                  len(cluster_informtion), "clusters (local_ips:", local_ips[0], "...)")
+            cluster_ids = sorted(cluster_informtion.keys())
+        else:
+            print("Skip run_proxy_datanode.sh: no cluster in clusterInformation.xml matches local_ips",
+                  local_ips)
+            return
+
     file_name = parent_path + '/run_proxy_datanode.sh'
     with open(file_name, 'w') as f:
         f.write("pkill -9 run_datanode\n")
         f.write("pkill -9 run_proxy\n")
         f.write("\n")
-        print("cluster_id",cluster_id)
-        for each_datanode in cluster_informtion[cluster_id]["datanode"]:
-            f.write("./project/cmake/build/run_datanode "+str(each_datanode[0])+":"+str(each_datanode[1])+" & \n")
+        print("Generating for cluster_ids:", cluster_ids)
+        for cid in sorted(cluster_ids):
+            for each_datanode in cluster_informtion[cid]["datanode"]:
+                f.write("./project/cmake/build/run_datanode " + str(each_datanode[0]) + ":" + str(each_datanode[1]) + " & \n")
         f.write("\n")
-        
         f.write("sleep 5s\n")
-        
         f.write("\n")
-        f.write("./project/cmake/build/run_proxy "+str(cluster_informtion[cluster_id]["proxy"])+" "+" & \n")
+        for cid in sorted(cluster_ids):
+            f.write("./project/cmake/build/run_proxy " + str(cluster_informtion[cid]["proxy"]) + " " + " & \n")
         f.write("\n")
         
 def generater_cluster_information_xml():
@@ -223,10 +250,6 @@ if __name__ == "__main__":
     if RUN_ENV == "local":
         convert_cluster_info_to_local()
     # print(cluster_informtion)
-    local_ip = get_interface_with_ip_prefix(prefix="10.10.1")
-    if isinstance(local_ip, tuple):
-        local_ip = local_ip[0]
-    #local_ip = "0.0.0.0" # for test
     generate_run_proxy_datanode_file()
     #generate_run_proxy_datanode_file() # for test
     # 不再默认重写 clusterInformation.xml：update_all -> generate_run_proxy 会在各节点执行本脚本，
