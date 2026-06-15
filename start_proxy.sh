@@ -1,7 +1,7 @@
 #!/bin/bash
 
 REPO_ROOT="/users/xue/xue"
-RUN_ENV=${UNILRC_ENV:-half-sim}
+RUN_ENV=${UNILRC_ENV:-local}
 
 if [ "$RUN_ENV" = "local" ]; then
   echo "Local mode detected, running run_proxy_datanode.sh on localhost..."

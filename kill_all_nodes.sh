@@ -1,7 +1,7 @@
 #!/bin/bash
 
 REPO_ROOT="/users/xue/xue"
-HOSTS_FILE="$REPO_ROOT/hosts"
+HOSTS_FILE="$REPO_ROOT/proxy_hosts"
 
 USER="root"
 

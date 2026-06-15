@@ -5,10 +5,9 @@ fi
 set -euo pipefail
 
 # Real bandwidth shaping by tc/htb (egress).
-# Matrix: /users/xue/xue/project/config/BW_limit — symmetric Asia rack MB/s table (TABLE II),
-#   converted to Mbit/s for tc (×8, override with BW_MATRIX_MB_TO_MBIT).
-# get_bw_mbps(src_cluster,dst_cluster) → egress rate to dst (Mbps).
-# 输出：默认一行摘要；BW_MATRIX_VERBOSE=1 打印每条 dst；=2 再 dump tc。
+# Matrix: /users/xue/xue/project/config/BW_limit — TABLE II MB/s (symmetric from upper triangle + diagonal),
+#   converted to Mbit/s for tc via BW_MATRIX_MB_PER_SEC_TO_TC_MBIT (default ×8).
+# get_bw_mbps(src,dst) is a legacy name: it returns tc rate in Mbit/s (see get_bw_tc_mbit_rate in BW_limit).
 
 BW_FILE="/users/xue/xue/project/config/BW_limit"
 if [[ ! -f "$BW_FILE" ]]; then
@@ -33,13 +32,24 @@ skip_bw_limit_this_host() {
   return 1
 }
 
+# Proxy IPs — one per cluster (6 clusters, id 0-5)
 CLUSTER_IPS=(
-  "10.10.1.3"  # 0: TYO
-  "10.10.1.4"  # 1: MEL
-  "10.10.1.5"  # 2: SG
-  "10.10.1.6"  # 3: SEO
-  "10.10.1.7"  # 4: JAK
-  "10.10.1.8"  # 5: HK
+  "10.10.1.3"   # 0
+  "10.10.1.12"  # 1
+  "10.10.1.21"  # 2
+  "10.10.1.30"  # 3
+  "10.10.1.39"  # 4
+  "10.10.1.48"  # 5
+)
+
+# All IPs per cluster: proxy + 8 datanodes (space-separated, index matches CLUSTER_IPS)
+ALL_CLUSTER_IPS=(
+  "10.10.1.3 10.10.1.4 10.10.1.5 10.10.1.6 10.10.1.7 10.10.1.8 10.10.1.9 10.10.1.10 10.10.1.11"
+  "10.10.1.12 10.10.1.13 10.10.1.14 10.10.1.15 10.10.1.16 10.10.1.17 10.10.1.18 10.10.1.19 10.10.1.20"
+  "10.10.1.21 10.10.1.22 10.10.1.23 10.10.1.24 10.10.1.25 10.10.1.26 10.10.1.27 10.10.1.28 10.10.1.29"
+  "10.10.1.30 10.10.1.31 10.10.1.32 10.10.1.33 10.10.1.34 10.10.1.35 10.10.1.36 10.10.1.37 10.10.1.38"
+  "10.10.1.39 10.10.1.40 10.10.1.41 10.10.1.42 10.10.1.43 10.10.1.44 10.10.1.45 10.10.1.46 10.10.1.47"
+  "10.10.1.48 10.10.1.49 10.10.1.50 10.10.1.51 10.10.1.52 10.10.1.53 10.10.1.54 10.10.1.55 10.10.1.56"
 )
 
 detect_iface() {
@@ -49,15 +59,17 @@ detect_iface() {
   fi
   local ip dev my_ips
   my_ips="$(hostname -I 2>/dev/null || true)"
-  for ip in "${CLUSTER_IPS[@]}"; do
-    for lip in $my_ips; do
-      [[ "$lip" == "$ip" ]] && continue 2
+  for cluster_ips in "${ALL_CLUSTER_IPS[@]}"; do
+    for ip in $cluster_ips; do
+      for lip in $my_ips; do
+        [[ "$lip" == "$ip" ]] && continue 2
+      done
+      dev="$(ip route get "$ip" 2>/dev/null | awk '{ for (i = 1; i <= NF; i++) if ($i == "dev") { print $(i + 1); exit } }')"
+      if [[ -n "$dev" && "$dev" != "lo" ]]; then
+        echo "$dev"
+        return 0
+      fi
     done
-    dev="$(ip route get "$ip" 2>/dev/null | awk '{ for (i = 1; i <= NF; i++) if ($i == "dev") { print $(i + 1); exit } }')"
-    if [[ -n "$dev" && "$dev" != "lo" ]]; then
-      echo "$dev"
-      return 0
-    fi
   done
   dev="$(ip route | awk '/^default/ {print $5; exit}')"
   if [[ -n "$dev" ]]; then
@@ -82,6 +94,14 @@ detect_local_cluster() {
         echo "$i"
         return 0
       fi
+    done
+    for i in "${!ALL_CLUSTER_IPS[@]}"; do
+      for cip in ${ALL_CLUSTER_IPS[$i]}; do
+        if [[ "$cip" == "$local_ip" ]]; then
+          echo "$i"
+          return 0
+        fi
+      done
     done
   done
   return 1
@@ -121,24 +141,50 @@ main() {
   tc class add dev "$iface" parent 1: classid 1:1 htb rate 10000mbit ceil 10000mbit
   tc class add dev "$iface" parent 1: classid 1:999 htb rate 10000mbit ceil 10000mbit
 
-  local idx dst_ip bw_mbps bw_mbit class_minor classid rules=0
+  local idx dst_ips bw_mbps bw_mbit class_minor classid rules=0
   for idx in "${!CLUSTER_IPS[@]}"; do
+    dst_ips="${ALL_CLUSTER_IPS[$idx]}"
     if [[ "$idx" == "$src_cluster" ]]; then
-      continue
+      # Same cluster: use diagonal bandwidth for intra-cluster traffic
+      bw_mbps="$(get_bw_mbps "$src_cluster" "$idx")"
+      if [[ -z "$bw_mbps" || "$bw_mbps" == "0" ]]; then
+        ((v >= 1)) && echo "Skip intra-cluster $src_cluster (no diagonal entry)"
+        continue
+      fi
+      bw_mbit="$(mbps_to_tc_mbit "$bw_mbps")"
+      class_minor=$((200 + idx))
+      classid="1:${class_minor}"
+      tc class add dev "$iface" parent 1: classid "$classid" htb rate "${bw_mbit}mbit" ceil "${bw_mbit}mbit"
+      for dst_ip in $dst_ips; do
+        if [[ "$dst_ip" == "${CLUSTER_IPS[$src_cluster]}" ]]; then
+          continue
+        fi
+        local skip_self=0
+        for lip in $(hostname -I 2>/dev/null); do
+          [[ "$lip" == "$dst_ip" ]] && skip_self=1 && break
+        done
+        [[ $skip_self -eq 1 ]] && continue
+        tc filter add dev "$iface" protocol ip parent 1:0 prio 1 u32 match ip dst "${dst_ip}/32" flowid "$classid"
+        ((rules++)) || true
+        ((v >= 1)) && echo "Intra-cluster dst=${dst_ip} cluster=${idx} bw=${bw_mbps}Mbps"
+      done
+    else
+      # Cross cluster: use off-diagonal bandwidth
+      bw_mbps="$(get_bw_mbps "$src_cluster" "$idx")"
+      if [[ -z "$bw_mbps" || "$bw_mbps" == "0" ]]; then
+        ((v >= 1)) && echo "Skip $src_cluster->$idx (no bandwidth entry)"
+        continue
+      fi
+      bw_mbit="$(mbps_to_tc_mbit "$bw_mbps")"
+      class_minor=$((100 + idx))
+      classid="1:${class_minor}"
+      tc class add dev "$iface" parent 1: classid "$classid" htb rate "${bw_mbit}mbit" ceil "${bw_mbit}mbit"
+      for dst_ip in $dst_ips; do
+        tc filter add dev "$iface" protocol ip parent 1:0 prio 1 u32 match ip dst "${dst_ip}/32" flowid "$classid"
+        ((rules++)) || true
+        ((v >= 1)) && echo "Cross-cluster dst=${dst_ip} cluster=${idx} bw=${bw_mbps}Mbps"
+      done
     fi
-    dst_ip="${CLUSTER_IPS[$idx]}"
-    bw_mbps="$(get_bw_mbps "$src_cluster" "$idx")"
-    if [[ -z "$bw_mbps" || "$bw_mbps" == "0" ]]; then
-      ((v >= 1)) && echo "Skip $src_cluster->$idx (no bandwidth entry)"
-      continue
-    fi
-    bw_mbit="$(mbps_to_tc_mbit "$bw_mbps")"
-    class_minor=$((100 + idx))
-    classid="1:${class_minor}"
-    tc class add dev "$iface" parent 1: classid "$classid" htb rate "${bw_mbit}mbit" ceil "${bw_mbit}mbit"
-    tc filter add dev "$iface" protocol ip parent 1:0 prio 1 u32 match ip dst "${dst_ip}/32" flowid "$classid"
-    ((rules++)) || true
-    ((v >= 1)) && echo "Limit dst=${dst_ip} cluster=${idx} bw=${bw_mbps}Mbps (${bw_mbit}mbit)"
   done
 
   echo "OK bw-matrix dev=${iface} host=${CLUSTER_IPS[$src_cluster]} cluster_id=${src_cluster} dst_rules=${rules}"
