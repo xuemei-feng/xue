@@ -1,41 +1,43 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# 本机与远程统一写死的路径（与 update_all.sh 中 REPO_ROOT / REMOTE_DIR 一致）
-REPO_ROOT="/users/xue/xue"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SOURCE_FILE="${SCRIPT_DIR}/small_tools/generator_sh.py"
+HOSTS_FILE="${SCRIPT_DIR}/hosts"
 
-SOURCE_FILE="$REPO_ROOT/small_tools/generator_sh.py"
-HOSTS_FILE="$REPO_ROOT/hosts"
-
-if [ ! -f "$HOSTS_FILE" ]; then
-  echo "Error: hosts file not found!"
+if [[ ! -f "$HOSTS_FILE" ]]; then
+  echo "Error: hosts file not found: $HOSTS_FILE" >&2
   exit 1
 fi
 
-HOSTS=$(cat "$HOSTS_FILE")
-
-echo "Copying $SOURCE_FILE to all hosts..."
-for HOST in $HOSTS; do
-  echo "Copying to $HOST..."
-  scp "$SOURCE_FILE" "$HOST:$REPO_ROOT/small_tools/"
-  if [ $? -eq 0 ]; then
-    echo "Successfully copied to $HOST!"
-  else
-    echo "Failed to copy to $HOST!"
-    exit 1
-  fi
-done
-
-REMOTE_COMMAND="cd $REPO_ROOT/small_tools/ && python generator_sh.py"
-PARALLEL=50
 USER="root"
+REMOTE_DIR="/users/xue/xue/small_tools"
 
-echo "Running generator_sh.py on all hosts..."
-pdsh -R ssh -w ^$HOSTS_FILE -l $USER -f $PARALLEL "$REMOTE_COMMAND"
+# update_all.sh 已用 sudo rsync 同步全仓库时，可设 SKIP_COPY=1 跳过重复 scp
+if [[ "${SKIP_COPY:-0}" != "1" ]]; then
+  echo "Copying $SOURCE_FILE to all hosts (as ${USER})..."
+  while read -r HOST; do
+    [[ -z "${HOST// }" || "$HOST" =~ ^# ]] && continue
+    echo "Copying to $HOST..."
+    scp -o ConnectTimeout=15 -o StrictHostKeyChecking=no \
+      "$SOURCE_FILE" "${USER}@${HOST}:${REMOTE_DIR}/"
+    echo "Successfully copied to $HOST!"
+  done < "$HOSTS_FILE"
+else
+  echo "SKIP_COPY=1, assuming generator_sh.py already synced."
+fi
 
-if [ $? -eq 0 ]; then
+PARALLEL=10
+
+# 每台机器网卡上挂了整段 10.10.1.* 别名，必须逐台显式传 LOCAL_IP=<hosts 中该行 IP>。
+# LOCAL_IP=... 必须紧贴 python，不能写在 cd 前。
+echo "Running generator_sh.py on all hosts (parallel=${PARALLEL}, LOCAL_IP per host)..."
+if xargs -P "$PARALLEL" -I{} ssh -o ConnectTimeout=15 -o StrictHostKeyChecking=no \
+    "${USER}@{}" "cd ${REMOTE_DIR} && LOCAL_IP={} python generator_sh.py" \
+    < "$HOSTS_FILE"; then
   echo "Successfully ran generator_sh.py on all hosts!"
 else
-  echo "Failed to run generator_sh.py on some hosts!"
+  echo "Failed to run generator_sh.py on some hosts!" >&2
   exit 1
 fi
 
