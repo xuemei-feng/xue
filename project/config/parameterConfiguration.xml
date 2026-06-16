@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
     <AlignedSize>4096</AlignedSize>
-    <UnitSize>4096</UnitSize>
+    <UnitSize>8192</UnitSize>
     <BlockSize>65536</BlockSize>
+    <!-- 64 KiB -->
     <!--1048576-->
     <!--8388608-->
     <!--67108864-->
-    <DatanodeNumPerCluster>7</DatanodeNumPerCluster>
+    <DatanodeNumPerCluster>8</DatanodeNumPerCluster>
     <ClusterNum>6</ClusterNum>
     <CoordinatorIP>10.10.1.2</CoordinatorIP>
     <CoordinatorPort>55555</CoordinatorPort>
@@ -16,9 +17,11 @@
     <!-- LRC: UniLRC; AzureLRC; OptimalLRC; UniformLRC; XueLRC -->
     <CodeType>XueLRC</CodeType>
     <k>10</k>
-    <z>2</z>
-    <r>2</r>
-   
+    <r>2</r>  //是全局校验块数量
+    <z>2</z>  //是本地校验块数量
+    <!-- XueLRC: r = global parity blocks (RS), z = local parity blocks (XOR) -->
+    <!-- 0 = non-deterministic placement RNG; non-zero = reproducible RandomLRC / encode Ran placement for same seed+stripe_id+topology -->
+    <PlacementRandomSeed>17</PlacementRandomSeed>
     <!-- <CodeType>UniformLRC</CodeType>
     <k>30</k>
     <r>6</r>

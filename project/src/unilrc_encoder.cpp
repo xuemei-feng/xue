@@ -366,6 +366,27 @@ void ECProject::gen_azure_lrc_matrix(unsigned char *encode_matrix, int k, int r,
     }
 }
 
+void ECProject::gen_xue_lrc_matrix(unsigned char *encode_matrix, int k, int r, int z)
+{
+    unsigned char *azure_matrix = new unsigned char[(k + r + z) * k];
+    gen_azure_lrc_matrix(azure_matrix, k, r, z);
+    memset(encode_matrix, 0, (k + r + z) * k);
+    memcpy(encode_matrix, azure_matrix, static_cast<size_t>(k) * static_cast<size_t>(k));
+    for (int i = 0; i < z; ++i)
+    {
+        memcpy(encode_matrix + static_cast<size_t>(k + i) * static_cast<size_t>(k),
+               azure_matrix + static_cast<size_t>(k + r + i) * static_cast<size_t>(k),
+               static_cast<size_t>(k));
+    }
+    for (int i = 0; i < r; ++i)
+    {
+        memcpy(encode_matrix + static_cast<size_t>(k + z + i) * static_cast<size_t>(k),
+               azure_matrix + static_cast<size_t>(k + i) * static_cast<size_t>(k),
+               static_cast<size_t>(k));
+    }
+    delete[] azure_matrix;
+}
+
 void ECProject::gen_optimal_lrc_matrix(unsigned char *encode_matrix, int k, int r, int z)
 {
     int m = k + r;
@@ -461,6 +482,69 @@ void ECProject::decode_azure_lrc(const int k, const int r, const int z, const in
         gf_invert_matrix(temp_matrix, invert_matrix, k);
         unsigned char * vect_all = new unsigned char[k];
         gf_mul_vect_matrix(encode_matrix + failed_block_id * k, invert_matrix, vect_all, k);
+        unsigned char *decode_vector = new unsigned char[block_num];
+        for(int i = 0; i < block_num; i++){
+            decode_vector[i] = vect_all[idx_to_row[block_indexes->at(i)]];
+        }
+        unsigned char *g_tbls = new unsigned char[block_num * 32];
+        ec_init_tables(block_num, 1, decode_vector, g_tbls);
+        unsigned char **res_ptr_ptr = new unsigned char *[1];
+        res_ptr_ptr[0] = res_ptr;
+        ec_encode_data_avx2(block_size, block_num, 1, g_tbls, block_ptrs, res_ptr_ptr);
+        delete[] encode_matrix;
+        delete[] decode_matrix;
+        delete[] temp_matrix;
+        delete[] invert_matrix;
+        delete[] vect_all;
+        delete[] decode_vector;
+        delete[] g_tbls;
+        delete[] res_ptr_ptr;
+    }
+}
+
+void ECProject::decode_xue_lrc(const int k, const int r, const int z, const int block_num,
+                               const std::vector<int> *block_indexes, unsigned char **block_ptrs, unsigned char *res_ptr, int block_size,
+                               int failed_block_id)
+{
+    memset(res_ptr, 0, block_size);
+    if (failed_block_id < k + z)
+    {
+        unsigned char *vect_ptrs[block_num + 1];
+        for(int i = 0; i < block_num; i++){
+            vect_ptrs[i] = block_ptrs[i];
+        }
+        vect_ptrs[block_num] = res_ptr;
+        xor_gen_avx(block_num + 1, block_size, (void **)vect_ptrs);
+    }
+    else
+    {
+        const int rs_row = k + (failed_block_id - k - z);
+        int m = k + r;
+        unsigned char *encode_matrix = new unsigned char[m * k];
+        memset(encode_matrix, 0,  m * k);
+        gf_gen_rs_matrix1(encode_matrix, m, k);
+        unsigned char *decode_matrix = new unsigned char[k * k];
+        memset(decode_matrix, 0, k * k);
+        unsigned char *temp_matrix = new unsigned char[k * k];
+        memset(temp_matrix, 0, k * k);
+        int used_row[k];
+        std::unordered_map<int, int> idx_to_row;
+        for(int i = k / z, j = 0; j < k && i < k + r; i++){
+            if(i != rs_row){
+                used_row[j] = i;
+                idx_to_row[i] = j;
+                j++;
+            }
+        }
+        for(int i = 0; i < k; i++){
+            for(int j = 0; j < k; j++){
+                temp_matrix[i * k + j] = encode_matrix[used_row[i] * k + j];
+            }
+        }
+        unsigned char *invert_matrix = new unsigned char[k * k];
+        gf_invert_matrix(temp_matrix, invert_matrix, k);
+        unsigned char * vect_all = new unsigned char[k];
+        gf_mul_vect_matrix(encode_matrix + rs_row * k, invert_matrix, vect_all, k);
         unsigned char *decode_vector = new unsigned char[block_num];
         for(int i = 0; i < block_num; i++){
             decode_vector[i] = vect_all[idx_to_row[block_indexes->at(i)]];
@@ -763,7 +847,7 @@ ECProject::get_multi_decode_plan(int k, int r, int z, std::string code_type, con
         gen_azure_lrc_matrix(gen_matrix, k, r, z);
     }
     else if(code_type == "XueLRC"){
-        gen_azure_lrc_matrix(gen_matrix, k, z, r);  // z=本地(XOR), r=全局(RS), 交换
+        gen_xue_lrc_matrix(gen_matrix, k, r, z);
     }
     else if(code_type == "OptimalLRC"){
         gen_optimal_lrc_matrix(gen_matrix, k, r, z);

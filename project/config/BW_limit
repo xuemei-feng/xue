@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Bandwidth matrix for limit_bw_matrix.sh / limit_all_bw_matrix.sh
+#
+# Units: MB/s (megabytes per second), TABLE II — "Bandwidth measurements in Asia regions".
+# Region index matches CLUSTER_IPS in limit_bw_matrix.sh (proxy IP per cluster):
+#   0=TYO(.3)  1=MEL(.12)  2=SG(.21)  3=SEO(.30)  4=JAK(.39)  5=HK(.48)
+#
+# Construction (for tc symmetric egress matrix):
+#   - Diagonal [i,i]: intra-region MB/s from TABLE II.
+#   - Upper triangle (row i < col j): TABLE II cell (i,j).
+#   - Lower triangle: mirror A[j,i]=A[i,j] (paper may show slight asymmetry; limit uses symmetric cap).
+#
+# Upper triangle (i<j) values used (MB/s):
+#   TYO→MEL 4.21  TYO→SG 4.69  TYO→SEO 5.98  TYO→JAK 4.69  TYO→HK 5.37
+#   MEL→SG 5.51  MEL→SEO 3.23  MEL→JAK 5.24  MEL→HK 4.96
+#   SG→SEO 5.52  SG→JAK 7.41  SG→HK 5.53
+#   SEO→JAK 4.19  SEO→HK 5.19
+#   JAK→HK 4.47
+#
+# Linux tc HTB uses Mbit/s ("mbit"). Convert MB/s → Mbit/s for tc by multiplying
+# bytes→bits factor (default 8). Override with BW_MATRIX_MB_PER_SEC_TO_TC_MBIT.
+
+readonly BW_MATRIX_MB_PER_SEC_TO_TC_MBIT="${BW_MATRIX_MB_PER_SEC_TO_TC_MBIT:-8}"
+
+# Symmetric 6×6, row-major, units: MB/s (see construction above)
+readonly BW_MATRIX_MB_PER_SEC=(
+  43.62 4.21 4.69 5.98 4.69 5.37
+  4.21 51.33 5.51 3.23 5.24 4.96
+  4.69 5.51 39.68 5.52 7.41 5.53
+  5.98 3.23 5.52 32.54 4.19 5.19
+  4.69 5.24 7.41 4.19 46.82 4.47
+  5.37 4.96 5.53 5.19 4.47 35.87
+)
+
+_get_bw_matrix_index() {
+  local src=$1 dst=$2
+  if ! [[ "$src" =~ ^[0-5]$ && "$dst" =~ ^[0-5]$ ]]; then
+    return 1
+  fi
+  echo $((src * 6 + dst))
+}
+
+# strip bandwidth from matrix in MB/s (for logging / display)
+get_bw_matrix_mb_per_sec() {
+  local src=$1 dst=$2
+  local idx
+  idx="$(_get_bw_matrix_index "$src" "$dst")" || return 1
+  local m="${BW_MATRIX_MB_PER_SEC[$idx]:-}"
+  [[ -n "$m" ]] || return 1
+  printf '%s' "$m"
+}
+
+# tc HTB rate in Mbit/s (numeric string suitable for "XXXmbit")
+get_bw_tc_mbit_rate() {
+  local src=$1 dst=$2
+  local idx
+  idx="$(_get_bw_matrix_index "$src" "$dst")" || return 1
+  local mbs="${BW_MATRIX_MB_PER_SEC[$idx]:-}"
+  [[ -n "$mbs" ]] || return 1
+  awk -v x="$mbs" -v s="$BW_MATRIX_MB_PER_SEC_TO_TC_MBIT" 'BEGIN { printf "%.6f", x * s }'
+}
+
+# Deprecated alias: historically misnamed; returns Mbit/s for tc, not MB/s.
+get_bw_mbps() {
+  get_bw_tc_mbit_rate "$@"
+}

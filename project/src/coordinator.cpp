@@ -46,9 +46,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 {
   namespace  // 匿名命名空间：里面的内容只在当前文件内可见（内部链接）
   {
-    bool is_azure_like_code(const std::string &code_type) // 辅助函数：判断是否为 Azure或xue类型的编码
+    bool is_azure_like_code(const std::string &code_type)
     {
-      return code_type == "AzureLRC" || code_type == "XueLRC";
+      return is_azure_lrc_code(code_type);
     }
 
     int parse_group_id_from_cluster_append_key(const std::string &key)
@@ -760,16 +760,19 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
 
     int local_parity_cluster_from_ingress_plan(
-        const proxy_proto::AppendStripeDataPlacement *plan, int k, int r)
+        const proxy_proto::AppendStripeDataPlacement *plan, const std::string &code_type, int k,
+        int r, int z)
     {
       if (plan == nullptr)
       {
         return -1;
       }
+      const int local_begin = lrc_local_parity_begin(code_type, k, r, z);
+      const int local_end = lrc_local_parity_end(code_type, k, r, z);
       for (int j = 0; j < plan->blockids_size(); ++j)
       {
         const int bid = plan->blockids(j);
-        if (bid >= k && bid < k + r && j < plan->block_cluster_ids_size())
+        if (bid >= local_begin && bid < local_end && j < plan->block_cluster_ids_size())
         {
           return plan->block_cluster_ids(j);
         }
@@ -781,8 +784,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         const proxy_proto::AppendStripeDataPlacement *ingress_plan,
         int to_cluster,
         const std::string &payload,
+        const std::string &code_type,
         int k,
-        int r)
+        int r,
+        int z)
     {
       if (payload == "parity_delta")
       {
@@ -795,7 +800,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       if (payload == "data_delta" && ingress_plan != nullptr && k > 0 && r > 0)
       {
-        const int lp_cluster = local_parity_cluster_from_ingress_plan(ingress_plan, k, r);
+        const int lp_cluster = local_parity_cluster_from_ingress_plan(ingress_plan, code_type, k, r, z);
         if (lp_cluster >= 0 && to_cluster == lp_cluster)
         {
           return "XUE_COMPUTE_LOCAL_PARITY";
@@ -926,8 +931,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     void attach_strict_outgoing_to_plans(
         std::vector<proxy_proto::AppendStripeDataPlacement> &append_plans,
         const XueStrictTransferPlan &strict,
+        const std::string &code_type,
         int k,
-        int r)
+        int r,
+        int z)
     {
       // 诊断：汇总所有 step 的 from→to 信息，便于排查 outgoing 挂载不匹配
       std::cerr << "[Coord] attach_outgoing BEGIN plans=" << append_plans.size()
@@ -952,7 +959,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       {
         plan.clear_xue_strict_outgoing();
         bool has_relay_hop = false;
-        const int plan_lp_cluster = local_parity_cluster_from_ingress_plan(&plan, k, r);
+        const int plan_lp_cluster =
+            local_parity_cluster_from_ingress_plan(&plan, code_type, k, r, z);
         // 调度器按 block 拆 step，client ingress 可能合并为一次 TCP；同一
         // (append_key, from, to, mode) 只保留一个 outgoing hop，避免整包重复转发。
         std::set<std::tuple<std::string, int, int, std::string>> seen_outgoing_hops;
@@ -1167,6 +1175,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
     XueStrictTransferPlan build_xue_strict_transfer_steps(
         Stripe *stripe,
+        const std::string &code_type,
         const std::vector<TransferPlanDecision> &decisions,
         const std::vector<ScheduledTask> &scheduled_tasks,
         const std::vector<proxy_proto::AppendStripeDataPlacement> &append_plans)
@@ -1267,8 +1276,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         info.set_path_desc(t->path_desc);
         info.set_start_time(t->start_time);
         info.set_forward_append_mode(
-            infer_strict_forward_append_mode(ingress_plan, t->to_cluster, t->payload, stripe->k,
-                                             stripe->r));
+            infer_strict_forward_append_mode(ingress_plan, t->to_cluster, t->payload, code_type,
+                                             stripe->k, stripe->r, stripe->z));
         for (int pred_tid : t->pred_task_ids)
         {
           const auto pit = task_id_to_step_no.find(pred_tid);
@@ -4150,7 +4159,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
 
     const XueStrictTransferPlan strict_schedule_raw =
-        build_xue_strict_transfer_steps(stripe, update_result.route_decisions,
+        build_xue_strict_transfer_steps(stripe, m_sys_config->CodeType, update_result.route_decisions,
                                         update_result.scheduled_tasks, append_plans);
     XueStrictTransferPlan strict_schedule = strict_schedule_raw;
     dedupe_strict_transfer_steps(strict_schedule);
@@ -4227,7 +4236,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     if (use_strict_schedule)
     {
-      attach_strict_outgoing_to_plans(append_plans, strict_schedule, stripe->k, stripe->r);
+      attach_strict_outgoing_to_plans(append_plans, strict_schedule, m_sys_config->CodeType,
+                                      stripe->k, stripe->r, stripe->z);
       build_downstream_forward_plans(append_plans, strict_schedule);
     }
 
@@ -5131,6 +5141,24 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         recovery_group_ids.push_back(failed_block_id / (k / z));
       }
     }
+    else if (code_type == "XueLRC")
+    {
+      if (failed_block_id >= k + z && failed_block_id < k + z + r)
+      {
+        for (int i = 1; i <= z; i++)
+        {
+          recovery_group_ids.push_back(i);
+        }
+      }
+      else if (failed_block_id >= k && failed_block_id < k + z)
+      {
+        recovery_group_ids.push_back(failed_block_id - k);
+      }
+      else
+      {
+        recovery_group_ids.push_back(failed_block_id / (k / z));
+      }
+    }
     else if (code_type == "UniLRC")
     {
       if (failed_block_id >= k && failed_block_id < k + r)
@@ -5274,7 +5302,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   std::vector<int> CoordinatorImpl::get_data_block_num_per_group(int k, int r, int z, std::string code_type)
   {
     std::vector<int> data_block_num_per_group;
-    if (is_azure_like_code(code_type))
+    if (is_azure_or_xue_lrc_code(code_type))
     {
       for (int i = 0; i < z; i++)
       {
@@ -5704,10 +5732,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[i]];
           for (int j = 0; j < int(blockids.size()); j++)
           {
-            if(is_azure_like_code(m_sys_config->CodeType) && degraded_read_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
+            if(is_azure_or_xue_lrc_code(m_sys_config->CodeType) && degraded_read_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
               break;
 
-            if ((is_azure_like_code(m_sys_config->CodeType) && blockids[j] >= m_sys_config->k + m_sys_config->r) || blockids[j] == failed_block_id)
+            if ((is_azure_or_xue_lrc_code(m_sys_config->CodeType) &&
+                 is_local_parity_block_id(m_sys_config->CodeType, blockids[j], m_sys_config->k,
+                                          m_sys_config->r, m_sys_config->z)) ||
+                blockids[j] == failed_block_id)
               continue;
 
             Block *t_block = t_stripe.blocks[blockids[j]];
@@ -5760,7 +5791,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         std::vector<int> blockids = t_stripe.group_to_blocks[dest_group_id];
         for (int i = 0; i < int(blockids.size()); i++)
         {
-          if(is_azure_like_code(m_sys_config->CodeType) && recovery_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
+          if(is_azure_or_xue_lrc_code(m_sys_config->CodeType) && recovery_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
             break;
 
           if (blockids[i] == failed_block_id)
@@ -5827,9 +5858,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     for(int i = 0; i < recovery_group_ids.size(); i++){
       std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[i]];
       for(int j = 0; j < blockids.size(); j++){
-        if(is_azure_like_code(m_sys_config->CodeType) && recovery_block_ids.size() == (k / z))
+        if(is_azure_or_xue_lrc_code(m_sys_config->CodeType) && recovery_block_ids.size() == (k / z))
           break;
-        if ((is_azure_like_code(m_sys_config->CodeType) && blockids[j] >= m_sys_config->k + m_sys_config->r) || blockids[j] == failed_block_id)
+        if ((is_azure_or_xue_lrc_code(m_sys_config->CodeType) &&
+             is_local_parity_block_id(m_sys_config->CodeType, blockids[j], k, r, z)) ||
+            blockids[j] == failed_block_id)
           continue;
         if(blockids[j] != failed_block_id){
           recovery_block_ids.push_back(blockids[j]);
@@ -5844,8 +5877,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     
     unsigned char *res = static_cast<unsigned char*>(std::aligned_alloc(32, m_sys_config->BlockSize));
-    if(is_azure_like_code(code_type)){
+    if(is_azure_lrc_code(code_type)){
       decode_azure_lrc(k, r, z, block_num, &recovery_block_ids, recovery_data_ptrs.data(), res, block_size, failed_block_id);
+    }
+    else if(code_type == "XueLRC"){
+      decode_xue_lrc(k, r, z, block_num, &recovery_block_ids, recovery_data_ptrs.data(), res, block_size, failed_block_id);
     }
     else if(code_type == "UniLRC"){
       decode_unilrc(k, r, z, block_num, &recovery_block_ids, recovery_data_ptrs.data(), res, block_size);
@@ -5944,10 +5980,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[i]];
           for (int j = 0; j < int(blockids.size()); j++)
           {
-            if(is_azure_like_code(m_sys_config->CodeType) && degraded_read_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
+            if(is_azure_or_xue_lrc_code(m_sys_config->CodeType) && degraded_read_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
               break;
 
-            if ((is_azure_like_code(m_sys_config->CodeType) && blockids[j] >= m_sys_config->k + m_sys_config->r) || blockids[j] == failed_block_id)
+            if ((is_azure_or_xue_lrc_code(m_sys_config->CodeType) &&
+                 is_local_parity_block_id(m_sys_config->CodeType, blockids[j], m_sys_config->k,
+                                          m_sys_config->r, m_sys_config->z)) ||
+                blockids[j] == failed_block_id)
               continue;
 
             Block *t_block = t_stripe.blocks[blockids[j]];
@@ -5992,7 +6031,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         std::vector<int> blockids = t_stripe.group_to_blocks[dest_group_id];
         for (int i = 0; i < int(blockids.size()); i++)
         {
-          if(is_azure_like_code(m_sys_config->CodeType) && recovery_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
+          if(is_azure_or_xue_lrc_code(m_sys_config->CodeType) && recovery_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
             break;
 
           if (blockids[i] == failed_block_id)
@@ -6181,10 +6220,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[i]];
           for (int j = 0; j < int(blockids.size()); j++)
           {
-            if(is_azure_like_code(m_sys_config->CodeType) && degraded_read_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
+            if(is_azure_or_xue_lrc_code(m_sys_config->CodeType) && degraded_read_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
               break;
 
-            if ((is_azure_like_code(m_sys_config->CodeType) && blockids[j] >= m_sys_config->k + m_sys_config->r) || blockids[j] == failed_block_id)
+            if ((is_azure_or_xue_lrc_code(m_sys_config->CodeType) &&
+                 is_local_parity_block_id(m_sys_config->CodeType, blockids[j], m_sys_config->k,
+                                          m_sys_config->r, m_sys_config->z)) ||
+                blockids[j] == failed_block_id)
               continue;
 
             Block *t_block = t_stripe.blocks[blockids[j]];
@@ -6232,7 +6274,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         std::vector<int> blockids = t_stripe.group_to_blocks[dest_group_id];
         for (int i = 0; i < int(blockids.size()); i++)
         {
-          if(is_azure_like_code(m_sys_config->CodeType) && recovery_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
+          if(is_azure_or_xue_lrc_code(m_sys_config->CodeType) && recovery_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
             break;
 
           if (blockids[i] == failed_block_id)
@@ -6352,10 +6394,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[i]];
           for (int j = 0; j < int(blockids.size()); j++)
           {
-            if(is_azure_like_code(m_sys_config->CodeType) && degraded_read_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
+            if(is_azure_or_xue_lrc_code(m_sys_config->CodeType) && degraded_read_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
               break;
 
-            if ((is_azure_like_code(m_sys_config->CodeType) && blockids[j] >= m_sys_config->k + m_sys_config->r) || blockids[j] == failed_block_id)
+            if ((is_azure_or_xue_lrc_code(m_sys_config->CodeType) &&
+                 is_local_parity_block_id(m_sys_config->CodeType, blockids[j], m_sys_config->k,
+                                          m_sys_config->r, m_sys_config->z)) ||
+                blockids[j] == failed_block_id)
               continue;
 
             Block *t_block = t_stripe.blocks[blockids[j]];
@@ -6390,7 +6435,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         std::vector<int> blockids = t_stripe.group_to_blocks[dest_group_id];
         for (int i = 0; i < int(blockids.size()); i++)
         {
-          if(is_azure_like_code(m_sys_config->CodeType) && recovery_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
+          if(is_azure_or_xue_lrc_code(m_sys_config->CodeType) && recovery_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
             break;
 
           if (blockids[i] == failed_block_id)
@@ -6499,10 +6544,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[i]];
           for (int j = 0; j < int(blockids.size()); j++)
           {
-            if(is_azure_like_code(m_sys_config->CodeType) && degraded_read_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
+            if(is_azure_or_xue_lrc_code(m_sys_config->CodeType) && degraded_read_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
               break;
 
-            if ((is_azure_like_code(m_sys_config->CodeType) && blockids[j] >= m_sys_config->k + m_sys_config->r) || blockids[j] == failed_block_id)
+            if ((is_azure_or_xue_lrc_code(m_sys_config->CodeType) &&
+                 is_local_parity_block_id(m_sys_config->CodeType, blockids[j], m_sys_config->k,
+                                          m_sys_config->r, m_sys_config->z)) ||
+                blockids[j] == failed_block_id)
               continue;
 
             Block *t_block = t_stripe.blocks[blockids[j]];
@@ -6539,7 +6587,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         std::vector<int> blockids = t_stripe.group_to_blocks[dest_group_id];
         for (int i = 0; i < int(blockids.size()); i++)
         {
-          if(is_azure_like_code(m_sys_config->CodeType) && recovery_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
+          if(is_azure_or_xue_lrc_code(m_sys_config->CodeType) && recovery_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
             break;
 
           if (blockids[i] == failed_block_id)

@@ -34,11 +34,6 @@ namespace ECProject
       }
       return *slot;
     }
-    bool is_azure_like_code(const std::string &code_type)
-    {
-      return code_type == "AzureLRC" || code_type == "XueLRC";
-    }
-
     double chron_elapsed_s(const std::chrono::high_resolution_clock::time_point &t0,
                            const std::chrono::high_resolution_clock::time_point &t1)
     {
@@ -337,50 +332,32 @@ namespace ECProject
       }
       for (int bid : block_ids)
       {
-        if (code_type == "XueLRC")
+        if (!is_azure_or_xue_lrc_code(code_type))
         {
-          if (bid < k)
+          continue;
+        }
+        if (bid < k)
+        {
+          if (data_n)
           {
-            if (data_n)
-            {
-              ++(*data_n);
-            }
+            ++(*data_n);
           }
-          else if (bid < k + r)
-          {
-            if (local_n)
-            {
-              ++(*local_n);
-            }
-          }
-          else if (global_n)
+        }
+        else if (is_global_parity_block_id(code_type, bid, k, r, z))
+        {
+          if (global_n)
           {
             ++(*global_n);
           }
         }
-        else if (is_azure_like_code(code_type))
+        else if (is_local_parity_block_id(code_type, bid, k, r, z))
         {
-          if (bid < k)
-          {
-            if (data_n)
-            {
-              ++(*data_n);
-            }
-          }
-          else if (bid < k + r)
-          {
-            if (global_n)
-            {
-              ++(*global_n);
-            }
-          }
-          else if (local_n)
+          if (local_n)
           {
             ++(*local_n);
           }
         }
       }
-      (void)z;
     }
 
     void repack_logical_buffer_for_cluster_plans(
@@ -436,32 +413,17 @@ namespace ECProject
           {
             break;
           }
-          if (code_type == "XueLRC")
+          if (is_azure_or_xue_lrc_code(code_type))
           {
             if (bid < k)
             {
               data_by_id[bid] = node_slices[slice_idx++];
             }
-            else if (bid < k + r)
-            {
-              local_by_id[bid] = node_slices[slice_idx++];
-            }
-            else
+            else if (is_global_parity_block_id(code_type, bid, k, r, z))
             {
               global_by_id[bid] = node_slices[slice_idx++];
             }
-          }
-          else if (is_azure_like_code(code_type))
-          {
-            if (bid < k)
-            {
-              data_by_id[bid] = node_slices[slice_idx++];
-            }
-            else if (bid < k + r)
-            {
-              global_by_id[bid] = node_slices[slice_idx++];
-            }
-            else
+            else if (is_local_parity_block_id(code_type, bid, k, r, z))
             {
               local_by_id[bid] = node_slices[slice_idx++];
             }
@@ -473,15 +435,15 @@ namespace ECProject
         auto it = data_by_id.find(bid);
         data_ptr_array.push_back(it != data_by_id.end() ? it->second : nullptr);
       }
-      const int global_begin = (code_type == "XueLRC") ? (k + r) : k;
-      const int global_end = (code_type == "XueLRC") ? (k + r + z) : (k + r);
+      const int global_begin = lrc_global_parity_begin(code_type, k, r, z);
+      const int global_end = lrc_global_parity_end(code_type, k, r, z);
       for (int bid = global_begin; bid < global_end; ++bid)
       {
         auto it = global_by_id.find(bid);
         global_parity_ptr_array.push_back(it != global_by_id.end() ? it->second : nullptr);
       }
-      const int local_begin = (code_type == "XueLRC") ? k : (k + r);
-      const int local_end = (code_type == "XueLRC") ? (k + r) : (k + r + z);
+      const int local_begin = lrc_local_parity_begin(code_type, k, r, z);
+      const int local_end = lrc_local_parity_end(code_type, k, r, z);
       for (int bid = local_begin; bid < local_end; ++bid)
       {
         auto it = local_by_id.find(bid);
@@ -1200,7 +1162,7 @@ namespace ECProject
   std::vector<int> Client::get_data_block_num_per_group(int k, int r, int z, std::string code_type)
   {
     std::vector<int> data_block_num_per_group;
-    if (is_azure_like_code(code_type))
+    if (is_azure_or_xue_lrc_code(code_type))
     {
       for (int i = 0; i < z; i++)
       {
@@ -1277,7 +1239,7 @@ namespace ECProject
   std::vector<int> Client::get_global_parity_block_num_per_group(int k, int r, int z, std::string code_type)
   {
     std::vector<int> global_pairty_block_num_per_group;
-    if (is_azure_like_code(code_type))
+    if (is_azure_or_xue_lrc_code(code_type))
     {
       for (int i = 0; i < z; i++)
       {
@@ -1335,7 +1297,7 @@ namespace ECProject
   std::vector<int> Client::get_local_parity_block_num_per_group(int k, int r, int z, std::string code_type)
   {
     std::vector<int> local_parity_block_num_per_group;
-    if (is_azure_like_code(code_type))
+    if (is_azure_or_xue_lrc_code(code_type))
     {
       for (int i = 0; i < z; i++)
       {
@@ -1449,7 +1411,7 @@ namespace ECProject
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
 
-      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
+      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_or_xue_lrc_code(m_sys_config->CodeType));
       std::vector<char *> data_ptr_array, global_parity_ptr_array, local_parity_ptr_array;
       if (reply_uses_cluster_ingress(&reply))
       {
@@ -1495,7 +1457,7 @@ namespace ECProject
       }
       else if (m_sys_config->CodeType == "XueLRC")
       {
-        ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->z, m_sys_config->r, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+        ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
       launch_append_to_proxies_serial_per_endpoint(reply, send_buf, if_commit_arr.get());
 
@@ -1551,7 +1513,7 @@ namespace ECProject
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
 
-      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
+      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_or_xue_lrc_code(m_sys_config->CodeType));
       std::vector<char *> data_ptr_array, global_parity_ptr_array, local_parity_ptr_array;
       if (reply_uses_cluster_ingress(&reply))
       {
@@ -1608,7 +1570,7 @@ namespace ECProject
       }
       else if (m_sys_config->CodeType == "XueLRC")
       {
-        ECProject::partial_encode_azure_lrc(m_sys_config->k, m_sys_config->z, m_sys_config->r, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+        ECProject::partial_encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
       launch_append_to_proxies_serial_per_endpoint(reply, send_buf, if_commit_arr.get());
 
@@ -2291,7 +2253,7 @@ namespace ECProject
     parameters.push_back(m_sys_config->r);
     parameters.push_back(m_sys_config->z);
     parameters.push_back(m_sys_config->BlockSize);
-    if(is_azure_like_code(m_sys_config->CodeType))
+    if(is_azure_or_xue_lrc_code(m_sys_config->CodeType))
     {
       parameters.push_back(0);
     }

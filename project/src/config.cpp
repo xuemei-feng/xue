@@ -43,7 +43,7 @@ namespace ECProject
     if (CodeType == "XueLRC")
     {
       assert(r > 0 && z > 0 && "Error: XueLRC requires r > 0 and z > 0");
-      assert(k % r == 0 && "Error: XueLRC requires k % r == 0");
+      assert(k % z == 0 && "Error: XueLRC requires k % z == 0");
       assert(DatanodeNumPerCluster > z && "Error: DatanodeNumPerCluster should be greater than z");
       assert(ClusterNum > 1 && "Error: XueLRC requires at least 2 clusters");
     }

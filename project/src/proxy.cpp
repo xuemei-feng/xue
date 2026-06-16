@@ -180,10 +180,11 @@ namespace
     return merged;
   }
 
-  int find_local_parity_plan_index(const proxy_proto::AppendStripeDataPlacement &placement, int k, int r)
+  int find_local_parity_plan_index(const proxy_proto::AppendStripeDataPlacement &placement,
+                                   const std::string &code_type, int k, int r, int z)
   {
-    const int local_begin = k;
-    const int local_end = k + r;
+    const int local_begin = ECProject::lrc_local_parity_begin(code_type, k, r, z);
+    const int local_end = ECProject::lrc_local_parity_end(code_type, k, r, z);
     for (int j = 0; j < placement.blockids_size(); ++j)
     {
       const int bid = placement.blockids(j);
@@ -210,14 +211,15 @@ namespace
   }
 
   bool infer_local_parity_cluster_from_plan(const proxy_proto::AppendStripeDataPlacement &placement,
-                                            int k, int r, int *out_local_cluster)
+                                            const std::string &code_type, int k, int r, int z,
+                                            int *out_local_cluster)
   {
     if (out_local_cluster == nullptr)
     {
       return false;
     }
     *out_local_cluster = -1;
-    const int lp_idx = find_local_parity_plan_index(placement, k, r);
+    const int lp_idx = find_local_parity_plan_index(placement, code_type, k, r, z);
     if (lp_idx >= 0 && lp_idx < placement.block_cluster_ids_size())
     {
       *out_local_cluster = placement.block_cluster_ids(lp_idx);
@@ -227,8 +229,8 @@ namespace
   }
 
   bool infer_class2_remote_local_parity_cluster(
-      const proxy_proto::AppendStripeDataPlacement &placement, int k, int r, int tcp_slice_count,
-      int proxy_cluster_id, int *out_local_cluster)
+      const proxy_proto::AppendStripeDataPlacement &placement, const std::string &code_type, int k,
+      int r, int z, int tcp_slice_count, int proxy_cluster_id, int *out_local_cluster)
   {
     if (out_local_cluster == nullptr || !placement.xue_compute_global_parity())
     {
@@ -241,16 +243,18 @@ namespace
     {
       return false;
     }
-    if (infer_local_parity_cluster_from_plan(placement, k, r, out_local_cluster) &&
+    if (infer_local_parity_cluster_from_plan(placement, code_type, k, r, z, out_local_cluster) &&
         *out_local_cluster >= 0 && *out_local_cluster != proxy_cluster_id)
     {
       return true;
     }
     *out_local_cluster = -1;
+    const int local_begin = ECProject::lrc_local_parity_begin(code_type, k, r, z);
+    const int local_end = ECProject::lrc_local_parity_end(code_type, k, r, z);
     for (int j = 0; j < placement.blockids_size(); ++j)
     {
       const int bid = placement.blockids(j);
-      if (bid >= k && bid < k + r && j < placement.block_cluster_ids_size())
+      if (bid >= local_begin && bid < local_end && j < placement.block_cluster_ids_size())
       {
         const int cl = placement.block_cluster_ids(j);
         if (cl >= 0 && cl != proxy_cluster_id)
@@ -501,7 +505,8 @@ namespace
 
   // 第1类：本地校验块仅在 plan 元数据中（j >= tcp_slice_count），且与数据块同 cluster
   bool infer_class1_local_parity_cluster(const proxy_proto::AppendStripeDataPlacement &placement,
-                                         int k, int r, int *out_local_cluster)
+                                         const std::string &code_type, int k, int r, int z,
+                                         int *out_local_cluster)
   {
     if (out_local_cluster == nullptr)
     {
@@ -517,6 +522,8 @@ namespace
     bool has_local_meta = false;
     int local_cluster = -1;
     const int slice_num = placement.blockids_size();
+    const int local_begin = ECProject::lrc_local_parity_begin(code_type, k, r, z);
+    const int local_end = ECProject::lrc_local_parity_end(code_type, k, r, z);
     for (int j = 0; j < slice_num; ++j)
     {
       const int bid = placement.blockids(j);
@@ -532,7 +539,7 @@ namespace
           return false;
         }
       }
-      if (bid >= k && bid < k + r && j >= tcp)
+      if (bid >= local_begin && bid < local_end && j >= tcp)
       {
         has_local_meta = true;
         if (local_cluster < 0)
@@ -1078,8 +1085,8 @@ namespace ECProject
     if (azure_like)
     {
       int local_parity_cluster = -1;
-      if (infer_class1_local_parity_cluster(placement, m_sys_config->k, m_sys_config->r,
-                                            &local_parity_cluster) &&
+      if (infer_class1_local_parity_cluster(placement, m_sys_config->CodeType, m_sys_config->k,
+                                            m_sys_config->r, m_sys_config->z, &local_parity_cluster) &&
           local_parity_cluster >= 0 && m_self_cluster_id == local_parity_cluster)
       {
         const XueParityWriteStats local_write =
@@ -1149,8 +1156,8 @@ namespace ECProject
       const auto &hop = placement->xue_strict_outgoing(hi);
       int lp_cluster = -1;
       if (needsClass3MergedLocalParityForward(*placement, tcp_slice_count) &&
-          infer_local_parity_cluster_from_plan(*placement, m_sys_config->k, m_sys_config->r,
-                                               &lp_cluster) &&
+          infer_local_parity_cluster_from_plan(*placement, m_sys_config->CodeType, m_sys_config->k,
+                                               m_sys_config->r, m_sys_config->z, &lp_cluster) &&
           lp_cluster >= 0 && hop.to_cluster() == lp_cluster &&
           (hop.forward_append_mode() == "XUE_COMPUTE_LOCAL_PARITY" ||
            hop.forward_append_mode() == "XUE_UPDATE"))
@@ -1376,9 +1383,9 @@ namespace ECProject
     const int r0 = m_sys_config->r;
     const int z0 = m_sys_config->z;
     const int slice_num = placement.blockkeys_size();
-    const bool xue_lrc = m_sys_config->CodeType == "XueLRC";
-    const int global_begin = xue_lrc ? (k0 + z0) : k0;
-    const int global_end = xue_lrc ? (k0 + z0 + r0) : (k0 + r0);
+    const int global_begin =
+        ECProject::lrc_global_parity_begin(m_sys_config->CodeType, k0, r0, z0);
+    const int global_end = ECProject::lrc_global_parity_end(m_sys_config->CodeType, k0, r0, z0);
     const int global_count = global_end - global_begin;
 
     std::vector<int> global_parity_indices;
@@ -1412,10 +1419,7 @@ namespace ECProject
     }
     const int m = k0 + r0;
     std::vector<unsigned char> enc(static_cast<size_t>((m + z0) * k0));
-    if (xue_lrc)
-      gen_azure_lrc_matrix(enc.data(), k0, z0, r0);
-    else
-      gen_azure_lrc_matrix(enc.data(), k0, r0, z0);
+    gen_azure_lrc_matrix(enc.data(), k0, r0, z0);
 
     using RangeKey = std::pair<int, int>;
     std::map<RangeKey, std::vector<int>> data_slices_by_range;
@@ -1455,7 +1459,7 @@ namespace ECProject
           const int bid = placement.blockids(j);
           for (int gi = 0; gi < global_count; ++gi)
           {
-            const int matrix_row = xue_lrc ? (m + gi) : (k0 + gi);
+            const int matrix_row = k0 + gi;
             const unsigned char coeff = enc[static_cast<size_t>(matrix_row * k0 + bid)];
             if (coeff == 0)
             {
@@ -1533,9 +1537,9 @@ namespace ECProject
     const int r0 = m_sys_config->r;
     const int z0 = m_sys_config->z;
     const int slice_num = placement.blockkeys_size();
-    const bool xue_lrc = m_sys_config->CodeType == "XueLRC";
-    const int global_begin = xue_lrc ? (k0 + z0) : k0;
-    const int global_end = xue_lrc ? (k0 + z0 + r0) : (k0 + r0);
+    const int global_begin =
+        ECProject::lrc_global_parity_begin(m_sys_config->CodeType, k0, r0, z0);
+    const int global_end = ECProject::lrc_global_parity_end(m_sys_config->CodeType, k0, r0, z0);
     const int global_count = global_end - global_begin;
 
     std::vector<int> global_parity_indices;
@@ -1569,10 +1573,7 @@ namespace ECProject
     }
     const int m = k0 + r0;
     std::vector<unsigned char> enc(static_cast<size_t>((m + z0) * k0));
-    if (xue_lrc)
-      gen_azure_lrc_matrix(enc.data(), k0, z0, r0);
-    else
-      gen_azure_lrc_matrix(enc.data(), k0, r0, z0);
+    gen_azure_lrc_matrix(enc.data(), k0, r0, z0);
 
     using RangeKey = std::pair<int, int>;
     std::map<RangeKey, std::vector<int>> data_slices_by_range;
@@ -1604,7 +1605,7 @@ namespace ECProject
         const int bid = placement.blockids(j);
         for (int gi = 0; gi < global_count; ++gi)
         {
-          const int matrix_row = xue_lrc ? (m + gi) : (k0 + gi);
+          const int matrix_row = k0 + gi;
           const unsigned char coeff = enc[static_cast<size_t>(matrix_row * k0 + bid)];
           if (coeff == 0)
           {
@@ -1688,8 +1689,10 @@ namespace ECProject
       return out;
     }
     const int slice_num = placement.blockids_size();
-    const int local_begin = k0;
-    const int local_end = xue_lrc ? (k0 + z0) : (k0 + r0);
+    const int local_begin = ECProject::lrc_local_parity_begin(
+        xue_lrc ? "XueLRC" : "AzureLRC", k0, r0, z0);
+    const int local_end = ECProject::lrc_local_parity_end(
+        xue_lrc ? "XueLRC" : "AzureLRC", k0, r0, z0);
     const int local_count = local_end - local_begin;
     const int local_bid = placement.blockids(local_parity_plan_idx);
     const int li = local_bid - local_begin;
@@ -1705,10 +1708,7 @@ namespace ECProject
     }
     const int m = k0 + r0;
     std::vector<unsigned char> enc(static_cast<size_t>((m + z0) * k0));
-    if (xue_lrc)
-      gen_azure_lrc_matrix(enc.data(), k0, z0, r0);
-    else
-      gen_azure_lrc_matrix(enc.data(), k0, r0, z0);
+    gen_azure_lrc_matrix(enc.data(), k0, r0, z0);
 
     using RangeKey = std::pair<int, int>;
     std::map<RangeKey, std::vector<int>> data_slices_by_range;
@@ -1736,7 +1736,7 @@ namespace ECProject
       for (int j : range_kv.second)
       {
         const int bid = placement.blockids(j);
-        const int matrix_row = xue_lrc ? (k0 + z0 + li) : (k0 + li);
+        const int matrix_row = k0 + r0 + li;
         const unsigned char coeff = enc[static_cast<size_t>(matrix_row * k0 + bid)];
         if (coeff == 0)
         {
@@ -1768,8 +1768,11 @@ namespace ECProject
     }
     const int k0 = m_sys_config->k;
     const int r0 = m_sys_config->r;
+    const int z0 = m_sys_config->z;
     int local_cluster = -1;
-    if (!infer_local_parity_cluster_from_plan(placement, k0, r0, &local_cluster) || local_cluster < 0)
+    if (!infer_local_parity_cluster_from_plan(placement, m_sys_config->CodeType, k0, r0, z0,
+                                             &local_cluster) ||
+        local_cluster < 0)
     {
       return false;
     }
@@ -1793,7 +1796,8 @@ namespace ECProject
     XueParityWriteStats stats;
     const int k0 = m_sys_config->k;
     const int r0 = m_sys_config->r;
-    const int lp_idx = find_local_parity_plan_index(placement, k0, r0);
+    const int z0 = m_sys_config->z;
+    const int lp_idx = find_local_parity_plan_index(placement, m_sys_config->CodeType, k0, r0, z0);
     if (lp_idx < 0)
     {
       return stats;
@@ -1841,7 +1845,7 @@ namespace ECProject
     const int k0 = m_sys_config->k;
     const int r0 = m_sys_config->r;
     const int z0 = m_sys_config->z;
-    const int lp_idx = find_local_parity_plan_index(placement, k0, r0);
+    const int lp_idx = find_local_parity_plan_index(placement, m_sys_config->CodeType, k0, r0, z0);
     if (lp_idx < 0)
     {
       return false;
@@ -1928,7 +1932,7 @@ namespace ECProject
     const int k0 = m_sys_config->k;
     const int r0 = m_sys_config->r;
     const int z0 = m_sys_config->z;
-    const int lp_idx = find_local_parity_plan_index(placement, k0, r0);
+    const int lp_idx = find_local_parity_plan_index(placement, m_sys_config->CodeType, k0, r0, z0);
     if (lp_idx < 0)
     {
       return stats;
@@ -1964,10 +1968,13 @@ namespace ECProject
   {
     const int k0 = m_sys_config->k;
     const int r0 = m_sys_config->r;
+    const int z0 = m_sys_config->z;
     const int data_cluster =
         infer_data_block_cluster_from_placement(placement, tcp_slice_count, k0);
     int local_cluster = -1;
-    if (!infer_local_parity_cluster_from_plan(placement, k0, r0, &local_cluster) || local_cluster < 0 ||
+    if (!infer_local_parity_cluster_from_plan(placement, m_sys_config->CodeType, k0, r0, z0,
+                                              &local_cluster) ||
+        local_cluster < 0 ||
         data_cluster < 0 || data_cluster == local_cluster || m_self_cluster_id != data_cluster)
     {
       if (m_self_cluster_id == data_cluster && data_cluster >= 0 && local_cluster < 0)
@@ -3007,10 +3014,12 @@ namespace ECProject
           const int bid = placement_copy->blockids(j);
           const bool xue_data_path = (append_mode_str == "XUE_UPDATE" && !slices_are_delta && bid >= 0 &&
                                       bid < m_sys_config->k);
-          const int xue_global_begin = m_sys_config->k;
-          const int xue_global_end = (m_sys_config->CodeType == "XueLRC")
-                                         ? (m_sys_config->k + m_sys_config->z)
-                                         : (m_sys_config->k + m_sys_config->r);
+          const int xue_global_begin =
+              ECProject::lrc_global_parity_begin(m_sys_config->CodeType, m_sys_config->k,
+                                                 m_sys_config->r, m_sys_config->z);
+          const int xue_global_end =
+              ECProject::lrc_global_parity_end(m_sys_config->CodeType, m_sys_config->k,
+                                               m_sys_config->r, m_sys_config->z);
           const bool xue_global_parity_deferred = (append_mode_str == "XUE_UPDATE" && azure_like &&
                                                    bid >= xue_global_begin && bid < xue_global_end &&
                                                    placement_copy->xue_compute_global_parity());
@@ -3074,7 +3083,8 @@ namespace ECProject
           if (azure_like)
           {
             int local_parity_cluster = -1;
-            if (infer_class1_local_parity_cluster(*placement_copy, m_sys_config->k, m_sys_config->r,
+            if (infer_class1_local_parity_cluster(*placement_copy, m_sys_config->CodeType,
+                                                  m_sys_config->k, m_sys_config->r, m_sys_config->z,
                                                   &local_parity_cluster) &&
                 local_parity_cluster >= 0 && m_self_cluster_id == local_parity_cluster)
             {
@@ -3092,8 +3102,9 @@ namespace ECProject
                      needsClass3MergedLocalParityForward(*placement_copy, tcp_slice_count))
             {
               int lp_cluster = -1;
-              if (infer_local_parity_cluster_from_plan(*placement_copy, m_sys_config->k, m_sys_config->r,
-                                                       &lp_cluster) &&
+              if (infer_local_parity_cluster_from_plan(*placement_copy, m_sys_config->CodeType,
+                                                       m_sys_config->k, m_sys_config->r,
+                                                       m_sys_config->z, &lp_cluster) &&
                   lp_cluster >= 0)
               {
                 const bool fwd_ok = forwardMergedLocalParityDelta(lp_cluster, *placement_copy, slices,
@@ -3119,8 +3130,8 @@ namespace ECProject
               }
               int local_parity_cluster = -1;
               if (infer_class2_remote_local_parity_cluster(
-                      *placement_copy, m_sys_config->k, m_sys_config->r, tcp_slice_count,
-                      m_self_cluster_id, &local_parity_cluster))
+                      *placement_copy, m_sys_config->CodeType, m_sys_config->k, m_sys_config->r,
+                      m_sys_config->z, tcp_slice_count, m_self_cluster_id, &local_parity_cluster))
               {
                 bool scheduled_local_hop = false;
                 for (int hi = 0; hi < placement_copy->xue_strict_outgoing_size(); ++hi)
@@ -3172,7 +3183,8 @@ namespace ECProject
         if (append_mode_str == "XUE_UPDATE" && azure_like)
         {
           int local_parity_cluster = -1;
-          if (infer_class1_local_parity_cluster(*placement_copy, m_sys_config->k, m_sys_config->r,
+          if (infer_class1_local_parity_cluster(*placement_copy, m_sys_config->CodeType,
+                                                m_sys_config->k, m_sys_config->r, m_sys_config->z,
                                                 &local_parity_cluster) &&
               local_parity_cluster >= 0)
           {
@@ -3249,7 +3261,8 @@ namespace ECProject
                                " reason=apply_returned_zero meta_blocks_present");
           }
           int local_parity_cluster_after_global = -1;
-          if (infer_class1_local_parity_cluster(*placement_copy, m_sys_config->k, m_sys_config->r,
+          if (infer_class1_local_parity_cluster(*placement_copy, m_sys_config->CodeType,
+                                                m_sys_config->k, m_sys_config->r, m_sys_config->z,
                                                 &local_parity_cluster_after_global) &&
               local_parity_cluster_after_global >= 0 &&
               needsClass3MergedLocalParityForward(*placement_copy, tcp_slice_count))
@@ -3929,6 +3942,12 @@ namespace ECProject
           decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
           std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_azure_lrc success!" << std::endl;
         }
+        else if (code_type == "XueLRC")
+        {
+          std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_xue_lrc" << std::endl;
+          decode_xue_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
+          std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_xue_lrc success!" << std::endl;
+        }
         else if (code_type == "OptimalLRC")
         {
           std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc" << std::endl;
@@ -4094,6 +4113,12 @@ namespace ECProject
           decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
           std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_azure_lrc success!" << std::endl;
         }
+        else if (code_type == "XueLRC")
+        {
+          std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_xue_lrc" << std::endl;
+          decode_xue_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
+          std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_xue_lrc success!" << std::endl;
+        }
         else if (code_type == "OptimalLRC")
         {
           std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc" << std::endl;
@@ -4228,6 +4253,12 @@ namespace ECProject
         std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_azure_lrc" << std::endl;
         decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
         std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_azure_lrc success!" << std::endl;
+      }
+      else if (code_type == "XueLRC")
+      {
+        std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_xue_lrc" << std::endl;
+        decode_xue_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
+        std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_xue_lrc success!" << std::endl;
       }
       else if (code_type == "OptimalLRC")
       {
@@ -4366,6 +4397,10 @@ namespace ECProject
       else if (code_type == "AzureLRC")
       {
         decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
+      }
+      else if (code_type == "XueLRC")
+      {
+        decode_xue_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
       }
       else if (code_type == "OptimalLRC")
       {
@@ -4561,6 +4596,10 @@ namespace ECProject
       else if (code_type == "AzureLRC")
       {
         decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
+      }
+      else if (code_type == "XueLRC")
+      {
+        decode_xue_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
       }
       else if (code_type == "OptimalLRC")
       {

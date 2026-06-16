@@ -4,8 +4,53 @@
 #include <vector>
 #include <cstring>
 #include <chrono>
+#include <string>
 namespace ECProject
 {
+    // XueLRC: z local XOR blocks at [k, k+z), r global RS blocks at [k+z, k+z+r).
+    // AzureLRC: r global RS blocks at [k, k+r), z local XOR blocks at [k+r, k+r+z).
+    inline bool is_xue_lrc_code(const std::string &code_type) { return code_type == "XueLRC"; }
+    inline bool is_azure_lrc_code(const std::string &code_type) { return code_type == "AzureLRC"; }
+    inline bool is_azure_or_xue_lrc_code(const std::string &code_type)
+    {
+        return is_azure_lrc_code(code_type) || is_xue_lrc_code(code_type);
+    }
+    inline int lrc_local_parity_begin(const std::string &code_type, int k, int r, int /*z*/)
+    {
+        return is_xue_lrc_code(code_type) ? k : k + r;
+    }
+    inline int lrc_local_parity_end(const std::string &code_type, int k, int r, int z)
+    {
+        return is_xue_lrc_code(code_type) ? k + z : k + r + z;
+    }
+    inline int lrc_global_parity_begin(const std::string &code_type, int k, int r, int z)
+    {
+        return is_xue_lrc_code(code_type) ? k + z : k;
+    }
+    inline int lrc_global_parity_end(const std::string &code_type, int k, int r, int z)
+    {
+        return is_xue_lrc_code(code_type) ? k + z + r : k + r;
+    }
+    inline bool is_local_parity_block_id(const std::string &code_type, int bid, int k, int r, int z)
+    {
+        return bid >= lrc_local_parity_begin(code_type, k, r, z) &&
+               bid < lrc_local_parity_end(code_type, k, r, z);
+    }
+    inline bool is_global_parity_block_id(const std::string &code_type, int bid, int k, int r, int z)
+    {
+        return bid >= lrc_global_parity_begin(code_type, k, r, z) &&
+               bid < lrc_global_parity_end(code_type, k, r, z);
+    }
+    inline int lrc_global_parity_matrix_row(const std::string &code_type, int bid, int k, int r, int z)
+    {
+        (void)code_type;
+        return k + (bid - lrc_global_parity_begin(code_type, k, r, z));
+    }
+    inline int lrc_local_parity_matrix_row(const std::string &code_type, int bid, int k, int r, int z)
+    {
+        (void)code_type;
+        return k + r + (bid - lrc_local_parity_begin(code_type, k, r, z));
+    }
     static const unsigned char gff_base[] = {
         0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1d, 0x3a, 0x74, 0xe8, 0xcd, 0x87, 0x13,
         0x26, 0x4c, 0x98, 0x2d, 0x5a, 0xb4, 0x75, 0xea, 0xc9, 0x8f, 0x03, 0x06, 0x0c, 0x18, 0x30,
@@ -76,6 +121,12 @@ namespace ECProject
     void decode_azure_lrc(const int k, const int r, const int z, const int block_num,
                           const std::vector<int> *block_indexes, unsigned char **block_ptrs, unsigned char *res_ptr, int block_size,
                           int failed_block_id);
+
+    void decode_xue_lrc(const int k, const int r, const int z, const int block_num,
+                        const std::vector<int> *block_indexes, unsigned char **block_ptrs, unsigned char *res_ptr, int block_size,
+                        int failed_block_id);
+
+    void gen_xue_lrc_matrix(unsigned char *encode_matrix, int k, int r, int z);
 
     void decode_optimal_lrc(const int k, const int r, const int z, const int block_num,
                             const std::vector<int> *block_indexes, unsigned char **block_ptrs, unsigned char *res_ptr, int block_size,
