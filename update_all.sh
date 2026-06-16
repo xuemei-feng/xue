@@ -1,47 +1,98 @@
 #!/bin/bash
-set -euo pipefail
-
-# 必须用 bash 执行（不要用 `sh`）：脚本用了 [[ 等 bash 语法。
-#   bash /users/xue/xue/update_all.sh
-#   或: chmod +x update_all.sh && ./update_all.sh
+[ -n "${BASH_VERSION:-}" ] || exec bash "$0" "$@"
+set -e
 
 SOURCE_DIR="/users/xue/xue"
-HOSTS_FILE="${SOURCE_DIR}/hosts"
-
-# 旧环境曾用 /users/xue/UniLRC；当前仓库在 SOURCE_DIR，仅当目录存在时才处理
-if [[ -d /users/xue/UniLRC ]]; then
-  cd /users/xue
-  sudo chmod 777 -R UniLRC
-  cd UniLRC
-fi
-
-if [[ ! -f "$HOSTS_FILE" ]]; then
-  echo "Error: hosts file not found: $HOSTS_FILE" >&2
-  exit 1
-fi
-
 REMOTE_DIR="/users/xue/xue"
+SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-while read -r ip; do
-  [[ -z "${ip// }" ]] && continue
-  [[ "$ip" =~ ^# ]] && continue
+# How many rsync+ssh sessions run at once (default tuned for many racks / many hosts).
+# Lower if the control node disk or uplink becomes saturated; raise if idle (e.g. 48, 64).
+: "${UPDATE_ALL_PARALLEL:=8}"
 
-  echo "Copying to host: $ip..."
+# Rsync mode: on fast LAN, compression (-z) often hurts; whole-file avoids delta algorithm overhead.
+# Override if needed, e.g.  UPDATE_ALL_RSYNC_FLAGS="-az"  for slow links.
+: "${UPDATE_ALL_RSYNC_FLAGS:=-a --whole-file --no-compress}"
 
-  if sudo rsync -avz --delete \
-    --exclude='project/cmake/build/CMakeFiles' \
-    --exclude='project/cmake/build/run_client' \
-    --exclude='project/cmake/build/main_test' \
-    --exclude='project/cmake/build/main_client' \
-    --exclude='storage/*' \
-    -e ssh "${SOURCE_DIR}/" "${ip}:${REMOTE_DIR}/"; then
-    echo "Successfully copied to $ip!"
-  else
-    echo "Failed to copy to $ip!" >&2
-  fi
-done <"$HOSTS_FILE"
+# Extra ssh tuning (optional): multiplex one connection per target for less TCP/SSH handshake cost.
+# Example: export UPDATE_ALL_SSH_EXTRA="-o ControlMaster=auto -o ControlPath=~/.ssh/cm-%r@%h:%p -o ControlPersist=300"
+: "${UPDATE_ALL_SSH_EXTRA:=}"
 
-cd "$SOURCE_DIR"
-sh generate_run_proxy.sh
+SSH_FULL_OPTS="$SSH_OPTS $UPDATE_ALL_SSH_EXTRA"
+
+# Sync to all main nodes + all datanode hosts.
+HOST_FILES=("hosts" "datanode_hosts")
+
+for hf in "${HOST_FILES[@]}"; do
+    if [ ! -f "$SOURCE_DIR/$hf" ]; then
+        echo "Error: $hf not found at $SOURCE_DIR/$hf"
+        exit 1
+    fi
+done
+
+# Build a unique host list from both files.
+mapfile -t HOST_LIST < <(
+    awk 'NF > 0 {print $1}' "$SOURCE_DIR/hosts" "$SOURCE_DIR/datanode_hosts" \
+    | sort -u
+)
+
+if [ "${#HOST_LIST[@]}" -eq 0 ]; then
+    echo "Error: no hosts to sync."
+    exit 1
+fi
+
+echo "Syncing UniLRC to ${#HOST_LIST[@]} hosts (parallel=${UPDATE_ALL_PARALLEL})..."
+echo "rsync flags: ${UPDATE_ALL_RSYNC_FLAGS}"
+any_failed=0
+failtmp="$(mktemp)"
+trap 'rm -f "$failtmp"' EXIT
+
+sync_one() {
+    local ip="$1"
+    echo "[$ip] starting..."
+    if sudo rsync ${UPDATE_ALL_RSYNC_FLAGS} \
+      --exclude='project/cmake/build/CMakeFiles' \
+      --exclude='project/cmake/build/run_client' \
+      --exclude='project/cmake/build/main_test' \
+      --exclude='project/cmake/build/main_client' \
+      --exclude='storage/*' \
+      -e "ssh $SSH_FULL_OPTS" \
+      "$SOURCE_DIR/" "$ip:$REMOTE_DIR/"; then
+        echo "[$ip] OK"
+    else
+        echo "[$ip] FAILED" >&2
+        echo "$ip" >>"$failtmp"
+    fi
+}
+
+export -f sync_one
+export SOURCE_DIR REMOTE_DIR UPDATE_ALL_RSYNC_FLAGS SSH_FULL_OPTS failtmp
+
+# Parallel xargs: one rsync per host, up to UPDATE_ALL_PARALLEL at a time.
+printf '%s\n' "${HOST_LIST[@]}" | xargs -P "${UPDATE_ALL_PARALLEL}" -n1 bash -c 'sync_one "$1"' _ || true
+
+if [ -s "$failtmp" ]; then
+    echo "Sync finished with failures:"
+    sort -u "$failtmp"
+    any_failed=1
+fi
+
+if [ $any_failed -ne 0 ]; then
+    echo "Please re-run after fixing SSH/rsync on failed hosts, or lower UPDATE_ALL_PARALLEL if overload."
+    exit 1
+fi
+
+echo "Sync finished successfully on ${#HOST_LIST[@]} hosts."
+
+# 同步完成后在各节点生成本机 run_proxy_datanode.sh / run_datanode.sh。
+# generator_sh.py 不会改写 clusterInformation.xml（除非 GEN_LEGACY_CLUSTER_XML=1）。
+# 仅同步、不生成时：UPDATE_ALL_SKIP_GENERATE=1 bash update_all.sh
+if [ "${UPDATE_ALL_SKIP_GENERATE:-0}" != "1" ]; then
+    echo "Generating per-host run scripts (generate_run_proxy.sh, SKIP_COPY=1)..."
+    SKIP_COPY=1 bash "$SOURCE_DIR/generate_run_proxy.sh"
+else
+    echo "UPDATE_ALL_SKIP_GENERATE=1, skipped run script generation."
+    echo "Run manually if needed: SKIP_COPY=1 bash generate_run_proxy.sh"
+fi
 
 echo "All done!"

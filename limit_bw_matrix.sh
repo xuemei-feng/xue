@@ -5,11 +5,12 @@ fi
 set -euo pipefail
 
 # Real bandwidth shaping by tc/htb (egress).
-# Matrix: project/config/BW_limit — BW_MATRIX_MB_PER_SEC in MB/s; tc uses Mbit/s via get_bw_tc_mbit_rate.
-# 输出：默认一行摘要；BW_MATRIX_VERBOSE=1 打印 matrix=…MB/s 与 tc=…mbit；=2 再 dump tc。
+# Matrix: /users/xue/xue/project/config/BW_limit same — TABLE II MB/s (symmetric from upper triangle + diagonal),
+#   converted to Mbit/s for tc via BW_MATRIX_MB_PER_SEC_TO_TC_MBIT (default ×8).
+# get_bw_mbps(src,dst) is a legacy name: it returns tc rate in Mbit/s (see get_bw_tc_mbit_rate in BW_limit same).
+# 输出：默认一行摘要；BW_MATRIX_VERBOSE=1 打印每条 dst；=2 再 dump tc。
 
-_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BW_FILE="${_SCRIPT_DIR}/project/config/BW_limit"
+BW_FILE="/users/xue/xue/project/config/BW_limit"
 if [[ ! -f "$BW_FILE" ]]; then
   echo "Error: bandwidth file not found: $BW_FILE" >&2
   exit 1
@@ -32,13 +33,14 @@ skip_bw_limit_this_host() {
   return 1
 }
 
+# 与 proxy_hosts / clusterInformation.xml 中 6 个 proxy 一致（一机一角色）
 CLUSTER_IPS=(
-  "10.10.1.3"  # 0: TYO
-  "10.10.1.4"  # 1: MEL
-  "10.10.1.5"  # 2: SG
-  "10.10.1.6"  # 3: SEO
-  "10.10.1.7"  # 4: JAK
-  "10.10.1.8"  # 5: HK
+  "10.10.1.3"   # 0: TYO  cluster 0 proxy
+  "10.10.1.12"  # 1: MEL  cluster 1 proxy
+  "10.10.1.21"  # 2: SG   cluster 2 proxy
+  "10.10.1.30"  # 3: SEO  cluster 3 proxy
+  "10.10.1.39"  # 4: JAK  cluster 4 proxy
+  "10.10.1.48"  # 5: HK   cluster 5 proxy
 )
 
 detect_iface() {
@@ -86,7 +88,7 @@ detect_local_cluster() {
   return 1
 }
 
-float3() {
+mbps_to_tc_mbit() {
   awk -v m="$1" 'BEGIN { printf "%.3f", m + 0.0 }'
 }
 
@@ -120,25 +122,24 @@ main() {
   tc class add dev "$iface" parent 1: classid 1:1 htb rate 10000mbit ceil 10000mbit
   tc class add dev "$iface" parent 1: classid 1:999 htb rate 10000mbit ceil 10000mbit
 
-  local idx dst_ip bw_mb_per_sec bw_mbit_rate class_minor classid rules=0
+  local idx dst_ip bw_mbps bw_mbit class_minor classid rules=0
   for idx in "${!CLUSTER_IPS[@]}"; do
     if [[ "$idx" == "$src_cluster" ]]; then
       continue
     fi
     dst_ip="${CLUSTER_IPS[$idx]}"
-    bw_mb_per_sec="$(get_bw_matrix_mb_per_sec "$src_cluster" "$idx")"
-    bw_mbit_rate="$(get_bw_tc_mbit_rate "$src_cluster" "$idx")"
-    if [[ -z "$bw_mbit_rate" || "$bw_mbit_rate" == "0" ]]; then
+    bw_mbps="$(get_bw_mbps "$src_cluster" "$idx")"
+    if [[ -z "$bw_mbps" || "$bw_mbps" == "0" ]]; then
       ((v >= 1)) && echo "Skip $src_cluster->$idx (no bandwidth entry)"
       continue
     fi
-    bw_mbit="$(float3 "$bw_mbit_rate")"
+    bw_mbit="$(mbps_to_tc_mbit "$bw_mbps")"
     class_minor=$((100 + idx))
     classid="1:${class_minor}"
     tc class add dev "$iface" parent 1: classid "$classid" htb rate "${bw_mbit}mbit" ceil "${bw_mbit}mbit"
     tc filter add dev "$iface" protocol ip parent 1:0 prio 1 u32 match ip dst "${dst_ip}/32" flowid "$classid"
     ((rules++)) || true
-    ((v >= 1)) && echo "Limit dst=${dst_ip} cluster=${idx} matrix=${bw_mb_per_sec}MB/s tc=${bw_mbit}mbit"
+    ((v >= 1)) && echo "Limit dst=${dst_ip} cluster=${idx} tc_rate=${bw_mbit}mbit (from matrix MB/s×${BW_MATRIX_MB_PER_SEC_TO_TC_MBIT:-8})"
   done
 
   echo "OK bw-matrix dev=${iface} host=${CLUSTER_IPS[$src_cluster]} cluster_id=${src_cluster} dst_rules=${rules}"
