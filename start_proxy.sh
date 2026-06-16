@@ -8,23 +8,23 @@ if [ "$RUN_ENV" = "local" ]; then
   exit $?
 fi
 
-HOSTS_FILE="proxy_hosts"
+# 真实节点部署：proxy 与 datanode 分布在不同机器上，需在所有 cluster 节点上各自
+# 启动“本机角色”（每台机器的 run_proxy_datanode.sh 由 generator_sh.py 按本机 IP 生成）。
+# 因此这里用 hosts（全部节点），而非只含 6 个 proxy 的 proxy_hosts。
+# client(.1)/coordinator(.2) 上的脚本只有 pkill，无害。
+HOSTS_FILE="hosts"
+
 USER="root"
+
 REMOTE_COMMAND="cd /users/xue/xue && sh run_proxy_datanode.sh"
+
 PARALLEL=50
 
-# Clean up stale remote logs before starting
-while IFS= read -r host; do
-    [ -z "$host" ] && continue
-    echo "$host" | grep -qE '^[[:space:]]*#' && continue
-    ssh ${USER}@${host} "rm -f /tmp/cord_proxy_update.log" 2>/dev/null || true
-done < "$HOSTS_FILE"
-
-echo "Running proxy+datanode on all proxy nodes..."
-pdsh -R ssh -w ^$HOSTS_FILE -l $USER -f $PARALLEL "$REMOTE_COMMAND"
+echo "Running command on all nodes..."
+sudo pdsh -R ssh -w ^$HOSTS_FILE -l $USER -f $PARALLEL "$REMOTE_COMMAND"
 
 if [ $? -eq 0 ]; then
-    echo "Proxies exited successfully."
+	echo "Command executed successfully on all nodes."
 else
-    echo "Proxies exited with error."
+	echo "Failed to execute command on some nodes."
 fi

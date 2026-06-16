@@ -9,9 +9,9 @@ third_party/jerasure
 storage/*
 !storage/.gitkeep
 data/*
-project/config/*
-!project/config/BW_limit
-small_tools/*
+#project/config/*
+#!project/config/BW_limit
+#small_tools/*
 logs/*
 project/build/*
 project/cmake/*
