@@ -17,7 +17,7 @@ namespace ECProject
   {
     assert(BlockSize % UnitSize == 0 && "Error: BlockSize must be divisible by UnitSize");
     assert((AppendMode == "REP_MODE" || AppendMode == "UNILRC_MODE" || AppendMode == "CACHED_MODE") && "Error: AppendMode must be REP_MODE, UNILRC_MODE, or CACHED_MODE");
-    assert((CodeType == "UniLRC" || CodeType == "AzureLRC" || CodeType == "RandomLRC" || CodeType == "OptimalLRC" || CodeType == "UniformLRC" || CodeType == "XueLRC") && "Error: CodeType must be UniLRC, AzureLRC, RandomLRC, OptimalLRC, UniformLRC, or XueLRC");
+    assert((CodeType == "UniLRC" || CodeType == "AzureLRC" || CodeType == "RandomLRC" || CodeType == "CordD" || CodeType == "OptimalLRC" || CodeType == "UniformLRC" || CodeType == "XueLRC") && "Error: CodeType must be UniLRC, AzureLRC, RandomLRC, CordD, OptimalLRC, UniformLRC, or XueLRC");
     assert(DatanodeNumPerCluster > 0 && "Error: DatanodeNumPerCluster must be greater than 0");
     assert(ClusterNum > 0 && "Error: ClusterNum must be greater than 0");
     if (CodeType == "UniLRC")
@@ -25,7 +25,7 @@ namespace ECProject
       assert(DatanodeNumPerCluster > n / z && "Error: DatanodeNumPerCluster must be greater than n / z");
       assert(ClusterNum > z && "Error: ClusterNum must be greater than z");
     }
-    if (CodeType == "AzureLRC" || CodeType == "RandomLRC")
+    if (CodeType == "AzureLRC" || CodeType == "RandomLRC" || CodeType == "CordD")
     {
       assert(DatanodeNumPerCluster > k / z + 1 && "Error: DatanodeNumPerCluster must be greater than k / z + 1");
       assert(ClusterNum > z + 1 && "Error: ClusterNum must be greater than z + 1");

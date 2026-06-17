@@ -759,7 +759,7 @@ ECProject::get_multi_decode_plan(int k, int r, int z, std::string code_type, con
     if(code_type == "UniLRC"){
         gen_unilrc_matrix(gen_matrix, k, r, z);
     }
-    else if(code_type == "AzureLRC" || code_type == "RandomLRC"){
+    else if(code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "CordD"){
         gen_azure_lrc_matrix(gen_matrix, k, r, z);
     }
     else if(code_type == "OptimalLRC"){

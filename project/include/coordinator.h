@@ -175,6 +175,7 @@ namespace ECProject
     void initialize_optimal_lrc_stripe_placement(Stripe *stripe);
     void initialize_uniform_lrc_stripe_placement(Stripe *stripe);
     void initialize_random_lrc_stripe_placement(Stripe *stripe);
+    void initialize_cord_d_stripe_placement(Stripe *stripe);
     void initialize_xue_tripe_placement(Stripe *stripe);
     void add_to_map(std::map<int, std::vector<int>> &map, int key, int value);
     std::vector<proxy_proto::AppendStripeDataPlacement> generate_add_plans(Stripe *stripe);
