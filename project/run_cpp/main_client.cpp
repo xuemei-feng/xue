@@ -18,6 +18,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <map>
+#include <queue>
+#include <atomic>
 #include <future>
 
 namespace
@@ -148,121 +150,150 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        // ===== 并行 batch 处理开始 =====
-        // 可配置的 stripe 级并发度（默认 4）
+        // ===== 线程池版本并行 batch 处理开始 =====
+        // 可配置的 stripe 级并发度（默认 16）
         constexpr int MAX_CONCURRENT_STRIPES = 16;
 
         int total_failures = 0;
         int success_count = 0;
-        double success_wall_sum = 0.0;  // 各请求独立耗时累加（用于 avg_wall_sec_per_request）
+        double success_wall_sum = 0.0;
         std::vector<double> per_success_wall_sec;
         per_success_wall_sec.reserve(64);
 
-        // 用于计算 batch 真实墙钟时间（从第一个请求开始到最后一个请求结束）
-        auto batch_wall_start = std::chrono::steady_clock::now();
-        bool batch_has_any = false;
-        auto batch_wall_end = batch_wall_start;
+        // batch 墙钟时间：从第一个任务开始执行到最后一个任务完成
+        std::atomic<bool> batch_timed{false};
+        std::chrono::steady_clock::time_point batch_wall_start_tp;
+        std::chrono::steady_clock::time_point batch_wall_end_tp;
 
         std::string line;
         int line_no = 0;
 
-        // per-stripe 互斥锁：同一 stripe 的请求必须串行
-        std::map<int, std::unique_ptr<std::mutex>> stripe_mutex_map;
-        // 全局并发计数 + 条件变量
-        std::mutex concurrency_mu;
-        std::condition_variable concurrency_cv;
-        int active_stripes = 0;
+        // ===== 任务队列 + Worker 线程池 =====
+        struct CordTask {
+            std::string line_content;
+            int line_no;
+        };
 
-        // 存储异步任务结果
+        std::queue<CordTask> task_queue;
+        std::mutex queue_mu;
+        std::condition_variable queue_cv;
+        std::atomic<bool> all_tasks_done{false};
+
+        // per-stripe 互斥锁（同一 stripe 串行）
+        std::map<int, std::unique_ptr<std::mutex>> stripe_mutex_map;
+        std::mutex stripe_map_mu;
+
+        // 结果收集
         struct RequestResult {
             int line_no;
             int stripe_id;
             double wall_sec;
             bool success;
         };
-        std::vector<std::future<RequestResult>> futures;
+        std::vector<RequestResult> all_results;
+        std::mutex results_mu;
 
-        auto process_one_line = [&](const std::string& ln, int lno) -> RequestResult {
-            RequestResult res{lno, 0, 0.0, false};
-            int stripe_id = 0;
-            int range_cnt = 0;
-            std::vector<std::pair<int, int>> logical_ranges;
-            std::string parse_err;
-            if (!parse_cord_trace_line(ln, stripe_id, range_cnt, logical_ranges, parse_err)) {
-                std::cout << "[CoRD batch] line " << lno << " parse error: " << parse_err << " (skipped)" << std::endl;
-                res.success = false;
-                return res;
-            }
-            res.stripe_id = stripe_id;
+        // Worker 线程函数
+        auto worker_func = [&](int worker_id) {
+            while (true) {
+                CordTask task;
+                {
+                    std::unique_lock<std::mutex> lk(queue_mu);
+                    queue_cv.wait(lk, [&] { return !task_queue.empty() || all_tasks_done.load(); });
+                    if (all_tasks_done.load() && task_queue.empty()) {
+                        break;
+                    }
+                    if (task_queue.empty()) continue;
+                    task = task_queue.front();
+                    task_queue.pop();
+                }
 
-            // 获取该 stripe 的专用锁
-            std::unique_lock<std::mutex> stripe_lk;
-            {
-                std::lock_guard<std::mutex> map_lk(concurrency_mu);
-                if (stripe_mutex_map.find(stripe_id) == stripe_mutex_map.end()) {
-                    stripe_mutex_map[stripe_id] = std::make_unique<std::mutex>();
+                // 解析
+                int stripe_id = 0;
+                int range_cnt = 0;
+                std::vector<std::pair<int, int>> logical_ranges;
+                std::string parse_err;
+                if (!parse_cord_trace_line(task.line_content, stripe_id, range_cnt, logical_ranges, parse_err)) {
+                    std::cout << "[CoRD batch] line " << task.line_no << " parse error: " << parse_err << " (skipped)" << std::endl;
+                    {
+                        std::lock_guard<std::mutex> lk(results_mu);
+                        all_results.push_back({task.line_no, stripe_id, 0.0, false});
+                    }
+                    continue;
+                }
+
+                // 获取 stripe 专用锁
+                {
+                    std::lock_guard<std::mutex> map_lk(stripe_map_mu);
+                    if (stripe_mutex_map.find(stripe_id) == stripe_mutex_map.end()) {
+                        stripe_mutex_map[stripe_id] = std::make_unique<std::mutex>();
+                    }
+                }
+                std::unique_lock<std::mutex> stripe_lk(*stripe_mutex_map[stripe_id]);
+
+                // 记录 batch 墙钟开始时间（仅第一次）
+                if (!batch_timed.load()) {
+                    batch_wall_start_tp = std::chrono::steady_clock::now();
+                    batch_timed.store(true);
+                }
+
+                std::cout << "[CoRD batch][W" << worker_id << "] line " << task.line_no
+                          << " stripe_id=" << stripe_id << " ranges=" << range_cnt << " ..." << std::endl;
+
+                const auto req_t0 = std::chrono::steady_clock::now();
+                const bool ok = client.cord_update(stripe_id, logical_ranges, nullptr, 0);
+                const auto req_t1 = std::chrono::steady_clock::now();
+                const double req_wall_sec = std::chrono::duration<double>(req_t1 - req_t0).count();
+
+                // 更新 batch 墙钟结束时间
+                batch_wall_end_tp = std::chrono::steady_clock::now();
+
+                {
+                    std::lock_guard<std::mutex> lk(results_mu);
+                    all_results.push_back({task.line_no, stripe_id, req_wall_sec, ok});
+                }
+
+                if (!ok) {
+                    std::cout << "[CoRD batch][W" << worker_id << "] line " << task.line_no
+                              << " FAILED wall_sec=" << std::fixed << std::setprecision(6) << req_wall_sec << std::endl;
+                } else {
+                    std::cout << "[CoRD batch][W" << worker_id << "] line " << task.line_no
+                              << " OK wall_sec=" << std::fixed << std::setprecision(6) << req_wall_sec << std::endl;
                 }
             }
-            stripe_lk = std::unique_lock<std::mutex>(*stripe_mutex_map[stripe_id]);
-
-            // 等待全局并发度许可
-            {
-                std::unique_lock<std::mutex> lk(concurrency_mu);
-                concurrency_cv.wait(lk, [&] { return active_stripes < MAX_CONCURRENT_STRIPES; });
-                ++active_stripes;
-            }
-
-            std::cout << "[CoRD batch] line " << lno << " stripe_id=" << stripe_id
-                      << " ranges=" << range_cnt << " ... (active=" << active_stripes << ")" << std::endl;
-
-            const auto req_t0 = std::chrono::steady_clock::now();
-            const bool ok = client.cord_update(stripe_id, logical_ranges, nullptr, 0);
-            const auto req_t1 = std::chrono::steady_clock::now();
-            const double req_wall_sec = std::chrono::duration<double>(req_t1 - req_t0).count();
-            res.wall_sec = req_wall_sec;
-
-            // 释放并发度许可
-            {
-                std::lock_guard<std::mutex> lk(concurrency_mu);
-                --active_stripes;
-                concurrency_cv.notify_all();
-            }
-
-            if (!ok) {
-                std::cout << "[CoRD batch] line " << lno << " FAILED wall_sec=" << std::fixed
-                          << std::setprecision(6) << req_wall_sec << std::endl;
-                res.success = false;
-                return res;
-            }
-
-            res.success = true;
-            std::cout << "[CoRD batch] line " << lno << " OK wall_sec=" << std::fixed
-                      << std::setprecision(6) << req_wall_sec << std::endl;
-            return res;
         };
 
-        // 先顺序读取所有行，启动并行任务
-        std::vector<std::pair<std::string, int>> pending_lines;
+        // 启动固定数量的 worker 线程
+        std::vector<std::thread> workers;
+        for (int w = 0; w < MAX_CONCURRENT_STRIPES; ++w) {
+            workers.emplace_back(worker_func, w);
+        }
+
+        // 读取 trace 并填充任务队列
         while (std::getline(trace_file, line)) {
             ++line_no;
             if (is_blank_or_comment_line(line)) continue;
-            pending_lines.emplace_back(line, line_no);
-        }
-
-        // 使用 std::async 启动任务
-        for (auto& pl : pending_lines) {
-            futures.push_back(std::async(std::launch::async, process_one_line, pl.first, pl.second));
-        }
-
-        // 收集结果
-        for (auto& fut : futures) {
-            RequestResult r = fut.get();
-            if (!batch_has_any) {
-                batch_wall_start = std::chrono::steady_clock::now();
-                batch_has_any = true;
+            {
+                std::lock_guard<std::mutex> lk(queue_mu);
+                task_queue.push({line, line_no});
             }
-            batch_wall_end = std::chrono::steady_clock::now();
+            queue_cv.notify_one();
+        }
 
+        // 通知 workers 所有任务已入队完毕
+        {
+            std::lock_guard<std::mutex> lk(queue_mu);
+            all_tasks_done.store(true);
+        }
+        queue_cv.notify_all();
+
+        // 等待所有 worker 结束
+        for (auto& th : workers) {
+            if (th.joinable()) th.join();
+        }
+
+        // 统计结果
+        for (const auto& r : all_results) {
             if (!r.success) {
                 ++total_failures;
                 continue;
@@ -271,7 +302,7 @@ int main(int argc, char **argv)
             success_wall_sum += r.wall_sec;
             per_success_wall_sec.push_back(r.wall_sec);
         }
-        // ===== 并行 batch 处理结束 =====
+        // ===== 线程池版本并行 batch 处理结束 =====
         std::cout << "=== CoRD batch summary ===" << std::endl;
         std::cout << "trace_file=" << trace_path << std::endl;
         for (size_t i = 0; i < per_success_wall_sec.size(); ++i) {
@@ -281,8 +312,11 @@ int main(int argc, char **argv)
         std::cout << "success_count=" << success_count << std::endl;
         std::cout << "total_failures=" << total_failures << std::endl;
         std::cout << "per_request_sum_wall_sec=" << std::fixed << std::setprecision(6) << success_wall_sum << "  // sum of individual request times" << std::endl;
-        const double batch_real_wall_sec = batch_has_any ? std::chrono::duration<double>(batch_wall_end - batch_wall_start).count() : 0.0;
-        std::cout << "batch_real_wall_sec=" << std::fixed << std::setprecision(6) << batch_real_wall_sec << "  // from first start to last end (wall clock)" << std::endl;
+        double batch_real_wall_sec = 0.0;
+        if (batch_timed.load()) {
+            batch_real_wall_sec = std::chrono::duration<double>(batch_wall_end_tp - batch_wall_start_tp).count();
+        }
+        std::cout << "batch_real_wall_sec=" << std::fixed << std::setprecision(6) << batch_real_wall_sec << "  // from first cord_update start to last end (wall clock)" << std::endl;
         if (success_count > 0) {
             const double avg_wall_sec_per_request = success_wall_sum / static_cast<double>(success_count);
             std::cout << "avg_wall_sec_per_request=" << std::fixed << std::setprecision(6)
