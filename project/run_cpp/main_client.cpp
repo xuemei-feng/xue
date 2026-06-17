@@ -15,8 +15,59 @@
 #include <vector>
 #include "unilrc_encoder.h"
 
+#include <thread>
+#include <mutex>
+#include <map>
+#include <memory>
+#include <atomic>
+
 namespace
 {
+    // 最大并发更新数，可按需修改；也可通过命令行第 3 个参数覆盖
+    constexpr int kDefaultMaxConcurrentParixUpdates = 4;
+
+    struct ParixUpdateTask
+    {
+        int req_index = 0;
+        int line_no = 0;
+        int stripe_id = 0;
+        std::vector<std::pair<int, int>> ranges;
+    };
+
+    class StripeLockManager
+    {
+    public:
+        std::unique_lock<std::mutex> lock_stripe(int stripe_id)
+        {
+            std::mutex *mtx_ptr = nullptr;
+            {
+                std::lock_guard<std::mutex> map_lk(map_mutex_);
+                auto &mtx = stripe_mutexes_[stripe_id];
+                if (!mtx)
+                {
+                    mtx = std::make_unique<std::mutex>();
+                }
+                mtx_ptr = mtx.get();
+            }
+            return std::unique_lock<std::mutex>(*mtx_ptr);
+        }
+
+    private:
+        std::mutex map_mutex_;
+        std::map<int, std::unique_ptr<std::mutex>> stripe_mutexes_;
+    };
+
+    std::mutex g_log_mutex;
+
+    template <typename... Args>
+    void safe_log(Args &&...args)
+    {
+        std::ostringstream oss;
+        (oss << ... << args);
+        std::lock_guard<std::mutex> lk(g_log_mutex);
+        std::cout << oss.str() << std::endl;
+    }
+
     bool parse_update_request_line(const std::string &line, int &stripe_id, std::vector<std::pair<int, int>> &ranges)
     {
         std::istringstream iss(line);
@@ -147,6 +198,20 @@ int main(int argc, char **argv)
     int n = k + r + z;
 
     const std::string batch_file_path = (argc >= 2) ? std::string(argv[1]) : std::string("try");
+    int max_concurrent_updates = kDefaultMaxConcurrentParixUpdates;
+    if (argc >= 3)
+    {
+        try
+        {
+            max_concurrent_updates = std::max(1, std::stoi(argv[2]));
+        }
+        catch (const std::exception &)
+        {
+            std::cout << "Invalid max_concurrent_updates argument, using default "
+                      << kDefaultMaxConcurrentParixUpdates << std::endl;
+            max_concurrent_updates = kDefaultMaxConcurrentParixUpdates;
+        }
+    }
     int stripe_num = config->ClientStripeNum;
     const int max_stripe_from_file = max_stripe_id_in_batch_file(batch_file_path);
     if (max_stripe_from_file >= 0)
@@ -181,11 +246,13 @@ int main(int argc, char **argv)
         std::cout << "Parix batch update from file: " << batch_file_path << std::endl;
         std::cout << "Line format: stripe_id range_count start0 end0 [start1 end1 ...]  (# and empty lines skipped)" << std::endl;
         std::cout << "Each range is logical half-open [start, end) in [0, k*BlockSize)." << std::endl;
+        std::cout << "Parallel mode: max_concurrent_updates=" << max_concurrent_updates
+                  << " (same stripe_id serialized, fixed worker pool)" << std::endl;
 
         int line_no = 0;
         int req_index = 0;
-        int fail_count = 0;
-        int success_count = 0;
+        std::atomic<int> fail_count{0};
+        std::atomic<int> success_count{0};
         struct BatchSuccessRecord
         {
             int req_index = 0;
@@ -194,6 +261,8 @@ int main(int argc, char **argv)
             double latency_s = 0.0;
         };
         std::vector<BatchSuccessRecord> success_records;
+        std::mutex records_mutex;
+        std::vector<ParixUpdateTask> tasks;
 
         std::string line;
         while (std::getline(batch_file, line))
@@ -208,33 +277,82 @@ int main(int argc, char **argv)
             std::vector<std::pair<int, int>> ranges;
             if (!parse_update_request_line(line, stripe_id, ranges))
             {
-                std::cout << "[batch line " << line_no << "] parse failed, skip: " << line << std::endl;
+                safe_log("[batch line ", line_no, "] parse failed, skip: ", line);
                 fail_count++;
                 continue;
             }
 
             req_index++;
-            std::cout << "--- request #" << req_index << " (file line " << line_no << ") stripe_id=" << stripe_id
-                      << " ranges=" << ranges.size() << " ---" << std::endl;
-
-            const auto req_start = std::chrono::high_resolution_clock::now();
-            const bool ok = run_parix_update_for_ranges(client, stripe_id, ranges);
-            const auto req_end = std::chrono::high_resolution_clock::now();
-            const double req_s = std::chrono::duration_cast<std::chrono::duration<double>>(req_end - req_start).count();
-
-            if (!ok)
-            {
-                std::cout << "[batch line " << line_no << "] parix update failed, skip. latency=" << req_s
-                          << " s (excluded from total and average time)" << std::endl;
-                fail_count++;
-                continue;
-            }
-
-            success_count++;
-            success_records.push_back(BatchSuccessRecord{req_index, line_no, stripe_id, req_s});
-            std::cout << "[batch line " << line_no << "] parix update success stripe_id=" << stripe_id
-                      << " latency=" << req_s << " s" << std::endl;
+            tasks.push_back(ParixUpdateTask{req_index, line_no, stripe_id, std::move(ranges)});
+            safe_log("--- queued request #", req_index, " (file line ", line_no, ") stripe_id=", stripe_id,
+                     " ranges=", tasks.back().ranges.size(), " ---");
         }
+
+        StripeLockManager stripe_locks;
+        const auto batch_wall_start = std::chrono::high_resolution_clock::now();
+        std::atomic<size_t> task_cursor{0};
+        std::vector<std::thread> workers;
+        workers.reserve(static_cast<size_t>(max_concurrent_updates));
+
+        for (int wi = 0; wi < max_concurrent_updates; ++wi)
+        {
+            workers.emplace_back([&client, &tasks, &task_cursor, &stripe_locks, &success_count, &fail_count,
+                                &success_records, &records_mutex]()
+            {
+                while (true)
+                {
+                    const size_t ti = task_cursor.fetch_add(1);
+                    if (ti >= tasks.size())
+                    {
+                        break;
+                    }
+                    const ParixUpdateTask &task = tasks[ti];
+
+                    auto stripe_guard = stripe_locks.lock_stripe(task.stripe_id);
+                    safe_log("[worker] start request #", task.req_index, " line=", task.line_no,
+                             " stripe_id=", task.stripe_id, " [tid=", std::this_thread::get_id(), "]");
+
+                    const auto req_start = std::chrono::high_resolution_clock::now();
+                    const bool ok = run_parix_update_for_ranges(client, task.stripe_id, task.ranges);
+                    const auto req_end = std::chrono::high_resolution_clock::now();
+                    const double req_s =
+                        std::chrono::duration_cast<std::chrono::duration<double>>(req_end - req_start).count();
+
+                    stripe_guard.unlock();
+
+                    if (!ok)
+                    {
+                        safe_log("[batch line ", task.line_no, "] parix update failed, skip. latency=", req_s,
+                                 " s (excluded from total and average time) [tid=", std::this_thread::get_id(), "]");
+                        fail_count++;
+                        continue;
+                    }
+
+                    success_count++;
+                    {
+                        std::lock_guard<std::mutex> lk(records_mutex);
+                        success_records.push_back(
+                            BatchSuccessRecord{task.req_index, task.line_no, task.stripe_id, req_s});
+                    }
+                    safe_log("[batch line ", task.line_no, "] parix update success stripe_id=", task.stripe_id,
+                             " latency=", req_s, " s [tid=", std::this_thread::get_id(), "]");
+                }
+            });
+        }
+
+        for (std::thread &worker : workers)
+        {
+            worker.join();
+        }
+
+        const auto batch_wall_end = std::chrono::high_resolution_clock::now();
+        const double batch_wall_s =
+            std::chrono::duration_cast<std::chrono::duration<double>>(batch_wall_end - batch_wall_start).count();
+
+        std::sort(success_records.begin(), success_records.end(),
+                  [](const BatchSuccessRecord &a, const BatchSuccessRecord &b) {
+                      return a.req_index < b.req_index;
+                  });
 
         double sum_success_latency_s = 0.0;
         for (const BatchSuccessRecord &rec : success_records)
@@ -242,19 +360,21 @@ int main(int argc, char **argv)
             sum_success_latency_s += rec.latency_s;
         }
         const double avg_success_latency_s =
-            success_count > 0 ? sum_success_latency_s / static_cast<double>(success_count) : 0.0;
+            success_count.load() > 0 ? sum_success_latency_s / static_cast<double>(success_count.load()) : 0.0;
 
         std::cout << "=== Parix batch summary ===" << std::endl;
-        std::cout << "total_requests=" << req_index << " success=" << success_count << " failed=" << fail_count << std::endl;
+        std::cout << "total_requests=" << req_index << " success=" << success_count.load()
+                  << " failed=" << fail_count.load() << std::endl;
+        std::cout << "wall_clock_time=" << batch_wall_s << " s" << std::endl;
         for (size_t i = 0; i < success_records.size(); ++i)
         {
             const BatchSuccessRecord &rec = success_records[i];
             std::cout << "success_req[" << rec.req_index << "] line=" << rec.line_no << " stripe_id=" << rec.stripe_id
                       << " latency_s=" << rec.latency_s << std::endl;
         }
-        std::cout << "total_time=" << sum_success_latency_s << " s (failures excluded)" << std::endl;
+        std::cout << "total_time=" << sum_success_latency_s << " s (failures excluded, sum of per-request latency)" << std::endl;
         std::cout << "avg_time=" << avg_success_latency_s << " s (failures excluded)" << std::endl;
-        std::cout << "成功请求数: " << success_count << ", 失败请求数: " << fail_count << std::endl;
+        std::cout << "成功请求数: " << success_count.load() << ", 失败请求数: " << fail_count.load() << std::endl;
     } 
     else 
     {

@@ -18,6 +18,7 @@
 #include <map>
 #include <unordered_map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 #include "unilrc_encoder.h"
@@ -48,6 +49,32 @@ namespace ECProject
     {
       return grpc::CreateCustomChannel(target, grpc::InsecureChannelCredentials(), parix_channel_args());
     }
+
+    /** data proxy 只有一个 TCP acceptor；并发 parixScheduleDataUpdate 会导致 accept 错配并卡住。 */
+    class ParixDataProxyLockManager
+    {
+    public:
+      std::unique_lock<std::mutex> lock_endpoint(const std::string &endpoint)
+      {
+        std::mutex *mtx_ptr = nullptr;
+        {
+          std::lock_guard<std::mutex> map_lk(map_mutex_);
+          auto &mtx = endpoint_mutexes_[endpoint];
+          if (!mtx)
+          {
+            mtx = std::make_unique<std::mutex>();
+          }
+          mtx_ptr = mtx.get();
+        }
+        return std::unique_lock<std::mutex>(*mtx_ptr);
+      }
+
+    private:
+      std::mutex map_mutex_;
+      std::unordered_map<std::string, std::unique_ptr<std::mutex>> endpoint_mutexes_;
+    };
+
+    ParixDataProxyLockManager g_parix_data_proxy_locks;
 
     // Hot-path: default off. Export PARIX_TRACE=1 for hex dumps and verbose Parix client logs.
     static bool parix_client_trace()
@@ -1885,8 +1912,10 @@ namespace ECProject
         proxy_proto::ParixDataUpdatePlacement placement;
         fill_parix_placement_from_segment(seg, stripe_id, plan.batch_id(), &placement);
 
-        const std::string dp_ip = seg.data_proxy_ip();
+        const std::string dpe = seg.data_proxy_ip() + ":" + std::to_string(seg.data_proxy_grpc_port());
+        auto data_proxy_guard = g_parix_data_proxy_locks.lock_endpoint(dpe);
         const int dp_tcp = seg.data_proxy_tcp_shift_port();
+        const std::string dp_ip = seg.data_proxy_ip();
         std::thread tcp_thr([payload_ptr, rlen, dp_ip, dp_tcp]() {
           try
           {
@@ -1908,7 +1937,6 @@ namespace ECProject
 
         grpc::ClientContext sched_ctx;
         proxy_proto::ParixScheduleDataUpdateReply sched_rep;
-        const std::string dpe = seg.data_proxy_ip() + ":" + std::to_string(seg.data_proxy_grpc_port());
         auto ds_it = data_proxy_stubs.find(dpe);
         if (ds_it == data_proxy_stubs.end())
         {
