@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
-    <AlignedSize>4096</AlignedSize>
-    <UnitSize>8192</UnitSize>
+    <AlignedSize>1024</AlignedSize>
+    <UnitSize>1024</UnitSize>
     <BlockSize>65536</BlockSize>
     <!-- 64 KiB -->
     <!--1048576-->

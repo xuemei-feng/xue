@@ -5,9 +5,8 @@ fi
 set -euo pipefail
 
 # Real bandwidth shaping by tc/htb (egress).
-# Matrix: /users/xue/xue/project/config/BW_limit same — TABLE II MB/s (symmetric from upper triangle + diagonal),
-#   converted to Mbit/s for tc via BW_MATRIX_MB_PER_SEC_TO_TC_MBIT (default ×8).
-# get_bw_mbps(src,dst) is a legacy name: it returns tc rate in Mbit/s (see get_bw_tc_mbit_rate in BW_limit same).
+# Matrix: project/config/BW_limitsame — homogeneous MB/s (default 125), converted to Mbit/s for tc via BW_MATRIX_MB_PER_SEC_TO_TC_MBIT (default ×8).
+# get_bw_mbps(src,dst) is a legacy name: it returns tc rate in Mbit/s (see get_bw_tc_mbit_rate in BW_limitsame).
 # 输出：默认一行摘要；BW_MATRIX_VERBOSE=1 打印每条 dst；=2 再 dump tc。
 
 BW_FILE="/users/xue/xue/project/config/BW_limitsame"
