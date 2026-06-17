@@ -37,11 +37,11 @@ namespace ECProject
       constexpr int k_max = 128 * 1024 * 1024;
       args.SetMaxReceiveMessageSize(k_max);
       args.SetMaxSendMessageSize(k_max);
-      // gRPC keepalive: prevent connection drops under bandwidth throttling (e.g., tc/HTB 3 MB/s).
-      args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 30000);          // ping every 30 s
-      args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 30000);       // wait 30 s for ping ACK (default 20 s)
-      args.SetInt(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, 1); // allow keepalive without active RPCs
-      args.SetInt(GRPC_ARG_HTTP2_MAX_PINGS_WITHOUT_DATA, 0);   // unlimited pings
+      // 保守 keepalive：勿设 PERMIT_WITHOUT_CALLS=1 与 MAX_PINGS_WITHOUT_DATA=0，
+      // 否则长 batch 会触发服务端 GOAWAY(ENHANCE_YOUR_CALM, too_many_pings)。
+      args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 300000);
+      args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 20000);
+      args.SetInt(GRPC_ARG_HTTP2_MIN_SENT_PING_INTERVAL_WITHOUT_DATA_MS, 300000);
       return args;
     }
 
@@ -75,6 +75,31 @@ namespace ECProject
     };
 
     ParixDataProxyLockManager g_parix_data_proxy_locks;
+
+    int parix_rpc_timeout_sec()
+    {
+      static const int timeout_sec = []() {
+        const char *env = std::getenv("PARIX_RPC_TIMEOUT_SEC");
+        if (env == nullptr || env[0] == '\0')
+        {
+          return 600;
+        }
+        try
+        {
+          return std::max(30, std::stoi(env));
+        }
+        catch (const std::exception &)
+        {
+          return 600;
+        }
+      }();
+      return timeout_sec;
+    }
+
+    void parix_set_rpc_deadline(grpc::ClientContext &ctx)
+    {
+      ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(parix_rpc_timeout_sec()));
+    }
 
     // Hot-path: default off. Export PARIX_TRACE=1 for hex dumps and verbose Parix client logs.
     static bool parix_client_trace()
@@ -173,6 +198,7 @@ namespace ECProject
         return false;
       }
       grpc::ClientContext ctx;
+      parix_set_rpc_deadline(ctx);
       datanode_proto::GetInfo req;
       req.set_block_key(block_key);
       req.set_block_size(block_size);
@@ -210,6 +236,7 @@ namespace ECProject
         return false;
       }
       grpc::ClientContext ctx;
+      parix_set_rpc_deadline(ctx);
       datanode_proto::SetInfo req;
       req.set_block_key(block_key);
       req.set_block_size(block_size);
@@ -1761,6 +1788,7 @@ namespace ECProject
     const int bs = m_sys_config->BlockSize;
 
     grpc::ClientContext pctx;
+    parix_set_rpc_deadline(pctx);
     coordinator_proto::ParixPartialPlanRequest preq;
     preq.set_stripe_id(stripe_id);
     for (const auto &ab : ranges)
@@ -1936,6 +1964,7 @@ namespace ECProject
         });
 
         grpc::ClientContext sched_ctx;
+        parix_set_rpc_deadline(sched_ctx);
         proxy_proto::ParixScheduleDataUpdateReply sched_rep;
         auto ds_it = data_proxy_stubs.find(dpe);
         if (ds_it == data_proxy_stubs.end())
@@ -1967,6 +1996,7 @@ namespace ECProject
             continue;
           }
           grpc::ClientContext sup_ctx;
+          parix_set_rpc_deadline(sup_ctx);
           proxy_proto::ParixSupplyD0Request sreq;
           sreq.set_stripe_id(stripe_id);
           sreq.set_batch_id(plan.batch_id());
@@ -2020,6 +2050,7 @@ namespace ECProject
     }
 
     grpc::ClientContext cctx;
+    parix_set_rpc_deadline(cctx);
     coordinator_proto::ParixCommitBatchRequest creq;
     creq.set_stripe_id(stripe_id);
     creq.set_batch_id(plan.batch_id());
@@ -2087,6 +2118,7 @@ namespace ECProject
     }
 
     grpc::ClientContext fctx;
+    parix_set_rpc_deadline(fctx);
     coordinator_proto::ParixFullStripePlanRequest freq;
     freq.set_stripe_id(stripe_id);
     coordinator_proto::ParixFullStripePlanReply fplan;
@@ -2124,6 +2156,7 @@ namespace ECProject
         jr->set_range_length(inv.range_length());
       }
       grpc::ClientContext po_ctx;
+      parix_set_rpc_deadline(po_ctx);
       auto pch = parix_proxy_channel(ep.proxy_ip() + ":" + std::to_string(ep.proxy_grpc_port()));
       std::unique_ptr<proxy_proto::proxyService::Stub> pstub = proxy_proto::proxyService::NewStub(pch);
       proxy_proto::SetReply prepl;

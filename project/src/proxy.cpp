@@ -42,10 +42,9 @@ namespace ECProject
       args.SetMaxReceiveMessageSize(k_max);
       args.SetMaxSendMessageSize(k_max);
       // gRPC keepalive: prevent connection drops under bandwidth throttling (e.g., tc/HTB 3 MB/s).
-      args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 30000);
-      args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 30000);
-      args.SetInt(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, 1);
-      args.SetInt(GRPC_ARG_HTTP2_MAX_PINGS_WITHOUT_DATA, 0);
+      args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 300000);
+      args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 20000);
+      args.SetInt(GRPC_ARG_HTTP2_MIN_SENT_PING_INTERVAL_WITHOUT_DATA_MS, 300000);
       return args;
     }
     inline int64_t parix_wall_unix_ms_now()

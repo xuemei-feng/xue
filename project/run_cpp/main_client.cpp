@@ -24,7 +24,7 @@
 namespace
 {
     // 最大并发更新数，可按需修改；也可通过命令行第 3 个参数覆盖
-    constexpr int kDefaultMaxConcurrentParixUpdates = 4;
+    constexpr int kDefaultMaxConcurrentParixUpdates = 16;
 
     struct ParixUpdateTask
     {
@@ -66,6 +66,7 @@ namespace
         (oss << ... << args);
         std::lock_guard<std::mutex> lk(g_log_mutex);
         std::cout << oss.str() << std::endl;
+        std::cout.flush();
     }
 
     bool parse_update_request_line(const std::string &line, int &stripe_id, std::vector<std::pair<int, int>> &ranges)
@@ -284,15 +285,34 @@ int main(int argc, char **argv)
 
             req_index++;
             tasks.push_back(ParixUpdateTask{req_index, line_no, stripe_id, std::move(ranges)});
-            safe_log("--- queued request #", req_index, " (file line ", line_no, ") stripe_id=", stripe_id,
-                     " ranges=", tasks.back().ranges.size(), " ---");
+            if (req_index <= 3 || req_index % 500 == 0)
+            {
+                safe_log("--- queued request #", req_index, " (file line ", line_no, ") stripe_id=", stripe_id,
+                         " ranges=", tasks.back().ranges.size(), " ---");
+            }
         }
+        safe_log("queued_total=", req_index, ", launching ", max_concurrent_updates, " workers");
 
         StripeLockManager stripe_locks;
         const auto batch_wall_start = std::chrono::high_resolution_clock::now();
         std::atomic<size_t> task_cursor{0};
+        std::atomic<bool> workers_done{false};
         std::vector<std::thread> workers;
         workers.reserve(static_cast<size_t>(max_concurrent_updates));
+
+        std::thread heartbeat([&success_count, &fail_count, &task_cursor, &workers_done, total = tasks.size()]() {
+            while (!workers_done.load())
+            {
+                std::this_thread::sleep_for(std::chrono::seconds(30));
+                if (workers_done.load())
+                {
+                    break;
+                }
+                const int done = success_count.load() + fail_count.load();
+                safe_log("[heartbeat] done=", done, "/", total, " success=", success_count.load(),
+                         " failed=", fail_count.load(), " task_cursor=", task_cursor.load());
+            }
+        });
 
         for (int wi = 0; wi < max_concurrent_updates; ++wi)
         {
@@ -309,8 +329,11 @@ int main(int argc, char **argv)
                     const ParixUpdateTask &task = tasks[ti];
 
                     auto stripe_guard = stripe_locks.lock_stripe(task.stripe_id);
-                    safe_log("[worker] start request #", task.req_index, " line=", task.line_no,
-                             " stripe_id=", task.stripe_id, " [tid=", std::this_thread::get_id(), "]");
+                    if (task.req_index <= 3 || task.req_index % 100 == 0)
+                    {
+                        safe_log("[worker] start request #", task.req_index, " line=", task.line_no,
+                                 " stripe_id=", task.stripe_id, " [tid=", std::this_thread::get_id(), "]");
+                    }
 
                     const auto req_start = std::chrono::high_resolution_clock::now();
                     const bool ok = run_parix_update_for_ranges(client, task.stripe_id, task.ranges);
@@ -334,8 +357,11 @@ int main(int argc, char **argv)
                         success_records.push_back(
                             BatchSuccessRecord{task.req_index, task.line_no, task.stripe_id, req_s});
                     }
-                    safe_log("[batch line ", task.line_no, "] parix update success stripe_id=", task.stripe_id,
-                             " latency=", req_s, " s [tid=", std::this_thread::get_id(), "]");
+                    if (task.req_index <= 3 || task.req_index % 100 == 0)
+                    {
+                        safe_log("[batch line ", task.line_no, "] parix update success stripe_id=", task.stripe_id,
+                                 " latency=", req_s, " s [tid=", std::this_thread::get_id(), "]");
+                    }
                 }
             });
         }
@@ -344,6 +370,12 @@ int main(int argc, char **argv)
         {
             worker.join();
         }
+        workers_done.store(true);
+        if (heartbeat.joinable())
+        {
+            heartbeat.join();
+        }
+        safe_log("[batch] all workers finished, success=", success_count.load(), " failed=", fail_count.load());
 
         const auto batch_wall_end = std::chrono::high_resolution_clock::now();
         const double batch_wall_s =
