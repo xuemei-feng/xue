@@ -34,7 +34,7 @@ namespace ECProject
     }
 
     using CordClock = std::chrono::steady_clock;
-    constexpr std::chrono::milliseconds kCordRequestTimeout{2000};
+    constexpr std::chrono::milliseconds kCordRequestTimeout{30000};
     thread_local const CordClock::time_point *g_cord_request_deadline = nullptr;
 
     bool cord_request_timed_out()
