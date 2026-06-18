@@ -13,11 +13,57 @@
 #include <random>
 #include <atomic>
 #include <thread>
+#include <condition_variable>
+#include <map>
+#include <memory>
+#include <mutex>
 #include "unilrc_encoder.h"
 
 namespace
 {
     constexpr double kXueBatchRequestTimeoutSec = 15.0;
+    constexpr int kMaxConcurrentRequests = 4;
+
+    std::mutex &mutex_for_stripe_id(int stripe_id)
+    {
+        static std::mutex map_mutex;
+        static std::map<int, std::unique_ptr<std::mutex>> stripe_mutexes;
+        std::lock_guard<std::mutex> lk(map_mutex);
+        std::unique_ptr<std::mutex> &slot = stripe_mutexes[stripe_id];
+        if (!slot)
+        {
+            slot = std::make_unique<std::mutex>();
+        }
+        return *slot;
+    }
+
+    class ConcurrencyLimiter
+    {
+    public:
+        explicit ConcurrencyLimiter(int max_slots) : max_slots_(max_slots) {}
+
+        void acquire()
+        {
+            std::unique_lock<std::mutex> lk(mutex_);
+            cv_.wait(lk, [this]() { return in_flight_ < max_slots_; });
+            ++in_flight_;
+        }
+
+        void release()
+        {
+            {
+                std::lock_guard<std::mutex> lk(mutex_);
+                --in_flight_;
+            }
+            cv_.notify_one();
+        }
+
+    private:
+        int max_slots_;
+        int in_flight_ = 0;
+        std::mutex mutex_;
+        std::condition_variable cv_;
+    };
 
     struct XueUpdateRunResult
     {
@@ -146,10 +192,16 @@ int main(int argc, char **argv)
         }
 
         int request_idx = 0;
-        int failure_count = 0;
-        int success_count = 0;
+        std::atomic<int> failure_count{0};
+        std::atomic<int> success_count{0};
         double success_elapsed_sum = 0.0;
+        std::mutex log_mutex;
+        ConcurrencyLimiter concurrency_limiter(kMaxConcurrentRequests);
+        std::vector<std::thread> batch_workers;
         std::string line;
+
+        std::cout << "Running batch updates with max_concurrency="
+                  << kMaxConcurrentRequests << std::endl;
 
         while (std::getline(req_file, line))
         {
@@ -168,16 +220,18 @@ int main(int argc, char **argv)
             int range_cnt = 0;
             if (!(iss >> stripe_id >> range_cnt))
             {
+                std::lock_guard<std::mutex> lk(log_mutex);
                 std::cout << "[XUE_BATCH] Request #" << request_idx
                           << " parse error (stripe_id/range_cnt): " << line << std::endl;
-                failure_count++;
+                failure_count.fetch_add(1, std::memory_order_relaxed);
                 continue;
             }
             if (range_cnt <= 0)
             {
+                std::lock_guard<std::mutex> lk(log_mutex);
                 std::cout << "[XUE_BATCH] Request #" << request_idx
                           << " invalid range_cnt=" << range_cnt << ", skipped" << std::endl;
-                failure_count++;
+                failure_count.fetch_add(1, std::memory_order_relaxed);
                 continue;
             }
 
@@ -190,6 +244,7 @@ int main(int argc, char **argv)
                 int logical_offset_end = 0;
                 if (!(iss >> logical_offset_start >> logical_offset_end))
                 {
+                    std::lock_guard<std::mutex> lk(log_mutex);
                     std::cout << "[XUE_BATCH] Request #" << request_idx
                               << " missing range #" << i << ", skipped" << std::endl;
                     parse_ok = false;
@@ -199,38 +254,60 @@ int main(int argc, char **argv)
             }
             if (!parse_ok)
             {
-                failure_count++;
+                failure_count.fetch_add(1, std::memory_order_relaxed);
                 continue;
             }
 
-            // std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
-            //           << " range_cnt=" << range_cnt << " ..." << std::endl;
-            const XueUpdateRunResult run_result =
-                run_xue_update_with_timeout(client, stripe_id, logical_ranges);
-            const double req_elapsed = run_result.elapsed_sec;
+            const int cur_request_idx = request_idx;
+            batch_workers.emplace_back(
+                [&client, &concurrency_limiter, &log_mutex, &success_count, &failure_count,
+                 &success_elapsed_sum, cur_request_idx, stripe_id,
+                 logical_ranges = std::move(logical_ranges)]() {
+                    std::lock_guard<std::mutex> stripe_lk(mutex_for_stripe_id(stripe_id));
+                    concurrency_limiter.acquire();
+                    struct SlotGuard
+                    {
+                        ConcurrencyLimiter &limiter;
+                        ~SlotGuard() { limiter.release(); }
+                    } slot_guard{concurrency_limiter};
 
-            if (run_result.ok)
-            {
-                success_count++;
-                success_elapsed_sum += req_elapsed;
-                std::cout << "---request" << request_idx << "--- stripe_id=" << stripe_id
-                          << ", xue update success stripe_id=" << stripe_id
-                          << " latency=" << req_elapsed << "s" << std::endl;
-            }
-            else
-            {
-                failure_count++;
-                std::cout << "---request" << request_idx << "--- stripe_id=" << stripe_id
-                          << ", xue update failed stripe_id=" << stripe_id
-                          << " latency=" << req_elapsed << "s" << std::endl;
-            }
+                    const XueUpdateRunResult run_result =
+                        run_xue_update_with_timeout(client, stripe_id, logical_ranges);
+                    const double req_elapsed = run_result.elapsed_sec;
+
+                    std::lock_guard<std::mutex> lk(log_mutex);
+                    if (run_result.ok)
+                    {
+                        success_count.fetch_add(1, std::memory_order_relaxed);
+                        success_elapsed_sum += req_elapsed;
+                        std::cout << "---request" << cur_request_idx << "--- stripe_id=" << stripe_id
+                                  << ", xue update success stripe_id=" << stripe_id
+                                  << " latency=" << req_elapsed << "s" << std::endl;
+                    }
+                    else
+                    {
+                        failure_count.fetch_add(1, std::memory_order_relaxed);
+                        std::cout << "---request" << cur_request_idx << "--- stripe_id=" << stripe_id
+                                  << ", xue update failed stripe_id=" << stripe_id
+                                  << " latency=" << req_elapsed << "s" << std::endl;
+                    }
+                });
         }
 
+        for (std::thread &worker : batch_workers)
+        {
+            worker.join();
+        }
+
+        const int final_success_count = success_count.load(std::memory_order_relaxed);
+        const int final_failure_count = failure_count.load(std::memory_order_relaxed);
         const double avg_success_elapsed =
-            success_count > 0 ? (success_elapsed_sum / static_cast<double>(success_count)) : 0.0;
+            final_success_count > 0
+                ? (success_elapsed_sum / static_cast<double>(final_success_count))
+                : 0.0;
         std::cout << "=== summary ===" << std::endl;
-        std::cout << "total_requests=" << request_idx << " success=" << success_count
-                  << " failures=" << failure_count
+        std::cout << "total_requests=" << request_idx << " success=" << final_success_count
+                  << " failures=" << final_failure_count
                   << " total_time=" << success_elapsed_sum << "s"
                   << " avg_time=" << avg_success_elapsed << "s" << std::endl;
     } 
