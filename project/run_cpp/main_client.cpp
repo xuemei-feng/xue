@@ -12,12 +12,20 @@
 #include <algorithm>
 #include <random>
 #include <atomic>
+#include <cstdlib>
+#include <condition_variable>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <set>
 #include <thread>
 #include "unilrc_encoder.h"
 
 namespace
 {
-    constexpr double kXueBatchRequestTimeoutSec = 15.0;
+    constexpr double kXueBatchRequestTimeoutSecSerial = 15.0;
+    constexpr double kXueBatchRequestTimeoutSecParallel = 120.0;
+    constexpr int kXueUpdateParallelDefault = 4;
 
     struct XueUpdateRunResult
     {
@@ -26,9 +34,73 @@ namespace
         double elapsed_sec = 0.0;
     };
 
+    struct XueBatchJob
+    {
+        int request_idx = 0;
+        int stripe_id = 0;
+        std::vector<std::pair<int, int>> logical_ranges;
+    };
+
+    struct XueStripeJobQueues
+    {
+        std::map<int, std::vector<XueBatchJob>> queues;
+        std::vector<int> stripe_order;
+    };
+
+    XueStripeJobQueues build_stripe_job_queues(const std::vector<XueBatchJob> &jobs)
+    {
+        XueStripeJobQueues plan;
+        std::set<int> seen;
+        for (const auto &job : jobs)
+        {
+            plan.queues[job.stripe_id].push_back(job);
+            if (seen.insert(job.stripe_id).second)
+            {
+                plan.stripe_order.push_back(job.stripe_id);
+            }
+        }
+        return plan;
+    }
+
+    int parse_xue_update_parallel_workers()
+    {
+        const char *env = std::getenv("XUE_UPDATE_PARALLEL");
+        if (env == nullptr || env[0] == '\0')
+        {
+            return kXueUpdateParallelDefault;
+        }
+        char *end = nullptr;
+        const long v = std::strtol(env, &end, 10);
+        if (end == env || v < 1)
+        {
+            std::cerr << "[XUE_BATCH] invalid XUE_UPDATE_PARALLEL=" << env
+                      << ", using default=" << kXueUpdateParallelDefault << std::endl;
+            return kXueUpdateParallelDefault;
+        }
+        return static_cast<int>(v);
+    }
+
+    double parse_xue_update_request_timeout_sec(int parallel_workers)
+    {
+        const char *env = std::getenv("XUE_UPDATE_REQUEST_TIMEOUT_SEC");
+        if (env != nullptr && env[0] != '\0')
+        {
+            char *end = nullptr;
+            const double v = std::strtod(env, &end);
+            if (end != env && v > 0.0)
+            {
+                return v;
+            }
+            std::cerr << "[XUE_BATCH] invalid XUE_UPDATE_REQUEST_TIMEOUT_SEC=" << env
+                      << ", using default" << std::endl;
+        }
+        return parallel_workers > 1 ? kXueBatchRequestTimeoutSecParallel
+                                    : kXueBatchRequestTimeoutSecSerial;
+    }
+
     XueUpdateRunResult run_xue_update_with_timeout(
         ECProject::Client &client, int stripe_id,
-        const std::vector<std::pair<int, int>> &logical_ranges)
+        const std::vector<std::pair<int, int>> &logical_ranges, double timeout_sec)
     {
         XueUpdateRunResult result;
         const auto req_t0 = std::chrono::high_resolution_clock::now();
@@ -41,7 +113,7 @@ namespace
 
         const auto deadline =
             req_t0 + std::chrono::duration_cast<std::chrono::high_resolution_clock::duration>(
-                         std::chrono::duration<double>(kXueBatchRequestTimeoutSec));
+                         std::chrono::duration<double>(timeout_sec));
 
         while (!req_done.load(std::memory_order_acquire))
         {
@@ -53,15 +125,189 @@ namespace
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
-        // 无论是否超时都 join，gRPC 0.5s deadline 保证不会永久阻塞。
         req_thread.join();
-        // 超时的请求直接标记为失败
         result.ok = ok && !result.timed_out;
 
         const auto req_t1 = std::chrono::high_resolution_clock::now();
         result.elapsed_sec =
             std::chrono::duration_cast<std::chrono::duration<double>>(req_t1 - req_t0).count();
         return result;
+    }
+
+    XueUpdateRunResult run_xue_update_timed(
+        ECProject::Client &client, int stripe_id,
+        const std::vector<std::pair<int, int>> &logical_ranges, double timeout_sec)
+    {
+        return run_xue_update_with_timeout(client, stripe_id, logical_ranges, timeout_sec);
+    }
+
+    bool parse_xue_batch_line(const std::string &line, int request_idx, XueBatchJob &job, std::string &err)
+    {
+        std::istringstream iss(line);
+        int range_cnt = 0;
+        if (!(iss >> job.stripe_id >> range_cnt))
+        {
+            err = "parse error (stripe_id/range_cnt)";
+            return false;
+        }
+        if (range_cnt <= 0)
+        {
+            err = "invalid range_cnt=" + std::to_string(range_cnt);
+            return false;
+        }
+        job.request_idx = request_idx;
+        job.logical_ranges.clear();
+        job.logical_ranges.reserve(static_cast<size_t>(range_cnt));
+        for (int i = 0; i < range_cnt; i++)
+        {
+            int logical_offset_start = 0;
+            int logical_offset_end = 0;
+            if (!(iss >> logical_offset_start >> logical_offset_end))
+            {
+                err = "missing range #" + std::to_string(i);
+                return false;
+            }
+            job.logical_ranges.emplace_back(logical_offset_start, logical_offset_end);
+        }
+        return true;
+    }
+
+    void run_xue_batch_jobs(
+        ECProject::Client &client, const XueStripeJobQueues &stripe_plan, int parallel_workers,
+        double request_timeout_sec, int &success_count, int &failure_count,
+        double &success_elapsed_sum, double &batch_wall_sec)
+    {
+        const auto batch_t0 = std::chrono::high_resolution_clock::now();
+        std::mutex log_mutex;
+
+        struct StripeBatchScheduler
+        {
+            std::map<int, std::vector<XueBatchJob>> queues;
+            std::vector<int> stripe_order;
+            size_t next_stripe_idx = 0;
+            std::set<int> active_stripes;
+            std::mutex mutex;
+            std::condition_variable cv;
+            int max_parallel = 1;
+
+            explicit StripeBatchScheduler(const XueStripeJobQueues &plan)
+                : queues(plan.queues), stripe_order(plan.stripe_order)
+            {
+            }
+
+            bool all_done() const
+            {
+                return next_stripe_idx >= stripe_order.size() && active_stripes.empty();
+            }
+
+            bool claim_stripe(int &stripe_id)
+            {
+                std::unique_lock<std::mutex> lk(mutex);
+                for (;;)
+                {
+                    if (all_done())
+                    {
+                        return false;
+                    }
+                    while (active_stripes.size() < static_cast<size_t>(max_parallel) &&
+                           next_stripe_idx < stripe_order.size())
+                    {
+                        const int candidate = stripe_order[next_stripe_idx++];
+                        if (queues[candidate].empty())
+                        {
+                            continue;
+                        }
+                        active_stripes.insert(candidate);
+                        stripe_id = candidate;
+                        return true;
+                    }
+                    cv.wait(lk);
+                }
+            }
+
+            bool pop_job(int stripe_id, XueBatchJob &job)
+            {
+                std::lock_guard<std::mutex> lk(mutex);
+                auto it = queues.find(stripe_id);
+                if (it == queues.end() || it->second.empty())
+                {
+                    return false;
+                }
+                job = std::move(it->second.front());
+                it->second.erase(it->second.begin());
+                return true;
+            }
+
+            void release_stripe(int stripe_id)
+            {
+                std::lock_guard<std::mutex> lk(mutex);
+                active_stripes.erase(stripe_id);
+                cv.notify_all();
+            }
+        };
+
+        StripeBatchScheduler scheduler(stripe_plan);
+        scheduler.max_parallel = parallel_workers;
+
+        auto record_result = [&](const XueBatchJob &job, const XueUpdateRunResult &run_result) {
+            std::lock_guard<std::mutex> lk(log_mutex);
+            if (run_result.ok)
+            {
+                success_count++;
+                success_elapsed_sum += run_result.elapsed_sec;
+                std::cout << "---request" << job.request_idx << "--- stripe_id=" << job.stripe_id
+                          << ", xue update success stripe_id=" << job.stripe_id
+                          << " latency=" << run_result.elapsed_sec << "s" << std::endl;
+            }
+            else
+            {
+                failure_count++;
+                std::cout << "---request" << job.request_idx << "--- stripe_id=" << job.stripe_id
+                          << ", xue update failed stripe_id=" << job.stripe_id
+                          << " latency=" << run_result.elapsed_sec << "s"
+                          << (run_result.timed_out ? " (timeout)" : "") << std::endl;
+            }
+        };
+
+        auto worker_loop = [&]() {
+            for (;;)
+            {
+                int stripe_id = -1;
+                if (!scheduler.claim_stripe(stripe_id))
+                {
+                    return;
+                }
+                for (;;)
+                {
+                    XueBatchJob job;
+                    if (!scheduler.pop_job(stripe_id, job))
+                    {
+                        break;
+                    }
+                    const XueUpdateRunResult run_result =
+                        run_xue_update_timed(client, job.stripe_id, job.logical_ranges,
+                                             request_timeout_sec);
+                    record_result(job, run_result);
+                }
+                scheduler.release_stripe(stripe_id);
+            }
+        };
+
+        std::vector<std::thread> workers;
+        workers.reserve(static_cast<size_t>(parallel_workers));
+        for (int i = 0; i < parallel_workers; ++i)
+        {
+            workers.emplace_back(worker_loop);
+        }
+        for (auto &t : workers)
+        {
+            t.join();
+        }
+
+        batch_wall_sec =
+            std::chrono::duration_cast<std::chrono::duration<double>>(
+                std::chrono::high_resolution_clock::now() - batch_t0)
+                .count();
     }
 } // namespace
 
@@ -138,6 +384,17 @@ int main(int argc, char **argv)
         }
         std::cout << "Reading xue update requests from: " << request_file_path << std::endl;
 
+        const int parallel_workers = parse_xue_update_parallel_workers();
+        const double request_timeout_sec = parse_xue_update_request_timeout_sec(parallel_workers);
+        std::cout << "[XUE_BATCH] parallel_workers=" << parallel_workers
+                  << " request_timeout_sec=" << request_timeout_sec << std::endl;
+        if (parallel_workers > 1)
+        {
+            std::cout << "[XUE_BATCH] mode=per-stripe serial queue + cross-stripe parallel "
+                         "(set XUE_UPDATE_PARALLEL=1 for global serial)"
+                      << std::endl;
+        }
+
         std::ifstream req_file(request_file_path);
         if (!req_file.is_open())
         {
@@ -145,94 +402,85 @@ int main(int argc, char **argv)
             return 1;
         }
 
+        std::vector<XueBatchJob> jobs;
+        int parse_failure_count = 0;
         int request_idx = 0;
-        int failure_count = 0;
-        int success_count = 0;
-        double success_elapsed_sum = 0.0;
         std::string line;
 
         while (std::getline(req_file, line))
         {
-            if (line.empty())
-            {
-                continue;
-            }
-            if (line[0] == '#')
+            if (line.empty() || line[0] == '#')
             {
                 continue;
             }
 
             request_idx++;
-            std::istringstream iss(line);
-            int stripe_id = 0;
-            int range_cnt = 0;
-            if (!(iss >> stripe_id >> range_cnt))
+            XueBatchJob job;
+            std::string err;
+            if (!parse_xue_batch_line(line, request_idx, job, err))
             {
-                std::cout << "[XUE_BATCH] Request #" << request_idx
-                          << " parse error (stripe_id/range_cnt): " << line << std::endl;
-                failure_count++;
+                std::cout << "[XUE_BATCH] Request #" << request_idx << " " << err << ": " << line
+                          << std::endl;
+                parse_failure_count++;
                 continue;
             }
-            if (range_cnt <= 0)
-            {
-                std::cout << "[XUE_BATCH] Request #" << request_idx
-                          << " invalid range_cnt=" << range_cnt << ", skipped" << std::endl;
-                failure_count++;
-                continue;
-            }
+            jobs.push_back(std::move(job));
+        }
 
-            std::vector<std::pair<int, int>> logical_ranges;
-            logical_ranges.reserve(static_cast<size_t>(range_cnt));
-            bool parse_ok = true;
-            for (int i = 0; i < range_cnt; i++)
+        const XueStripeJobQueues stripe_plan = build_stripe_job_queues(jobs);
+        if (!jobs.empty())
+        {
+            int dup_stripe_cnt = 0;
+            int queued_same_stripe_jobs = 0;
+            for (const auto &kv : stripe_plan.queues)
             {
-                int logical_offset_start = 0;
-                int logical_offset_end = 0;
-                if (!(iss >> logical_offset_start >> logical_offset_end))
+                if (kv.second.size() > 1)
                 {
-                    std::cout << "[XUE_BATCH] Request #" << request_idx
-                              << " missing range #" << i << ", skipped" << std::endl;
-                    parse_ok = false;
-                    break;
+                    dup_stripe_cnt++;
+                    queued_same_stripe_jobs += static_cast<int>(kv.second.size()) - 1;
                 }
-                logical_ranges.emplace_back(logical_offset_start, logical_offset_end);
             }
-            if (!parse_ok)
+            if (dup_stripe_cnt > 0)
             {
-                failure_count++;
-                continue;
-            }
-
-            // std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
-            //           << " range_cnt=" << range_cnt << " ..." << std::endl;
-            const XueUpdateRunResult run_result =
-                run_xue_update_with_timeout(client, stripe_id, logical_ranges);
-            const double req_elapsed = run_result.elapsed_sec;
-
-            if (run_result.ok)
-            {
-                success_count++;
-                success_elapsed_sum += req_elapsed;
-                std::cout << "---request" << request_idx << "--- stripe_id=" << stripe_id
-                          << ", xue update success stripe_id=" << stripe_id
-                          << " latency=" << req_elapsed << "s" << std::endl;
-            }
-            else
-            {
-                failure_count++;
-                std::cout << "---request" << request_idx << "--- stripe_id=" << stripe_id
-                          << ", xue update failed stripe_id=" << stripe_id
-                          << " latency=" << req_elapsed << "s" << std::endl;
+                std::cerr << "[XUE_BATCH] " << dup_stripe_cnt << " stripe(s) have multiple requests; "
+                          << queued_same_stripe_jobs << " extra job(s) will run serially per stripe"
+                          << std::endl;
             }
         }
+
+        if (jobs.empty())
+        {
+            std::cout << "[XUE_BATCH] no valid requests (parse_failures=" << parse_failure_count
+                      << ")" << std::endl;
+            return parse_failure_count > 0 ? 1 : 0;
+        }
+
+        const int effective_workers =
+            std::min(parallel_workers, static_cast<int>(stripe_plan.stripe_order.size()));
+        if (effective_workers < parallel_workers)
+        {
+            std::cout << "[XUE_BATCH] clamp parallel_workers " << parallel_workers << " -> "
+                      << effective_workers << " (unique_stripe_count="
+                      << stripe_plan.stripe_order.size() << ")" << std::endl;
+        }
+
+        int success_count = 0;
+        int failure_count = parse_failure_count;
+        double success_elapsed_sum = 0.0;
+        double batch_wall_sec = 0.0;
+        run_xue_batch_jobs(client, stripe_plan, effective_workers, request_timeout_sec,
+                           success_count, failure_count, success_elapsed_sum, batch_wall_sec);
 
         const double avg_success_elapsed =
             success_count > 0 ? (success_elapsed_sum / static_cast<double>(success_count)) : 0.0;
         std::cout << "=== summary ===" << std::endl;
-        std::cout << "total_requests=" << request_idx << " success=" << success_count
-                  << " failures=" << failure_count
-                  << " total_time=" << success_elapsed_sum << "s"
-                  << " avg_time=" << avg_success_elapsed << "s" << std::endl;
+        std::cout << "total_requests=" << request_idx << " parsed_jobs=" << jobs.size()
+                  << " unique_stripes=" << stripe_plan.stripe_order.size()
+                  << " parallel_workers=" << effective_workers
+                  << " success=" << success_count << " failures=" << failure_count
+                  << " sum_request_latency=" << success_elapsed_sum << "s"
+                  << " batch_wall=" << batch_wall_sec << "s"
+                  << " avg_request_latency=" << avg_success_elapsed << "s" << std::endl;
     } 
     else 
     {

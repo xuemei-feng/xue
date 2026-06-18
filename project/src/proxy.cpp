@@ -36,6 +36,53 @@ namespace
     return *slot;
   }
 
+  // 跨 stripe 机架端口互斥：同一 cluster 上同时只允许一路跨机架转发占用端口。
+  std::mutex &xue_cluster_port_mutex(int cluster_id)
+  {
+    static std::mutex map_mutex;
+    static std::map<int, std::unique_ptr<std::mutex>> mutexes;
+    std::lock_guard<std::mutex> lk(map_mutex);
+    std::unique_ptr<std::mutex> &slot = mutexes[cluster_id];
+    if (!slot)
+    {
+      slot = std::make_unique<std::mutex>();
+    }
+    return *slot;
+  }
+
+  struct XueClusterTransferPortGuard
+  {
+    std::unique_lock<std::mutex> lo_lock;
+    std::unique_lock<std::mutex> hi_lock;
+
+    XueClusterTransferPortGuard(int from_cluster, int to_cluster)
+    {
+      const int lo = std::min(from_cluster, to_cluster);
+      const int hi = std::max(from_cluster, to_cluster);
+      lo_lock = std::unique_lock<std::mutex>(xue_cluster_port_mutex(lo));
+      if (hi != lo)
+      {
+        hi_lock = std::unique_lock<std::mutex>(xue_cluster_port_mutex(hi));
+      }
+    }
+  };
+
+  int xue_proxy_grpc_deadline_ms(const char *env_name, int default_ms)
+  {
+    const char *env = std::getenv(env_name);
+    if (env == nullptr || env[0] == '\0')
+    {
+      return default_ms;
+    }
+    char *end = nullptr;
+    const long v = std::strtol(env, &end, 10);
+    if (end == env || v <= 0)
+    {
+      return default_ms;
+    }
+    return static_cast<int>(v);
+  }
+
   std::string proxy_xfer_timestamp()
   {
     const auto tp = std::chrono::system_clock::now();
@@ -737,7 +784,9 @@ namespace ECProject
       return;
     }
     grpc::ClientContext ctx;
-    ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
+    ctx.set_deadline(std::chrono::system_clock::now() +
+                     std::chrono::milliseconds(
+                         xue_proxy_grpc_deadline_ms("XUE_GRPC_PROXY_REPORT_DEADLINE_MS", 5000)));
     coordinator_proto::XueScheduleStepDone req;
     coordinator_proto::ReplyFromCoordinator rep;
     req.set_stripe_id(stripe_id);
@@ -766,7 +815,9 @@ namespace ECProject
       return;
     }
     grpc::ClientContext ctx;
-    ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
+    ctx.set_deadline(std::chrono::system_clock::now() +
+                     std::chrono::milliseconds(
+                         xue_proxy_grpc_deadline_ms("XUE_GRPC_PROXY_REPORT_DEADLINE_MS", 5000)));
     coordinator_proto::XueIngressReadyReport req;
     coordinator_proto::ReplyFromCoordinator rep;
     req.set_stripe_id(stripe_id);
@@ -947,8 +998,12 @@ namespace ECProject
       }
     }
 
+    const XueClusterTransferPortGuard cluster_port_guard(m_self_cluster_id, dest_cluster_id);
+
     grpc::ClientContext ctx;
-    ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
+    ctx.set_deadline(std::chrono::system_clock::now() +
+                     std::chrono::milliseconds(
+                         xue_proxy_grpc_deadline_ms("XUE_GRPC_PROXY_SCHEDULE_DEADLINE_MS", 30000)));
     proxy_proto::SetReply rep;
     grpc::Status st = stub->scheduleAppend2Datanode(&ctx, fwd, &rep);
     if (!st.ok())

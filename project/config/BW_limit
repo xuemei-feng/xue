@@ -22,14 +22,15 @@
 
 readonly BW_MATRIX_MB_PER_SEC_TO_TC_MBIT="${BW_MATRIX_MB_PER_SEC_TO_TC_MBIT:-8}"
 
-# Symmetric 6×6, row-major, units: MB/s (see construction above)
+# Symmetric 6×6, row-major, units: MB/s
+# Diagonal (same cluster): 1000 MB/s; off-diagonal (cross cluster): 125 MB/s
 readonly BW_MATRIX_MB_PER_SEC=(
-  43.62 4.21 4.69 5.98 4.69 5.37
-  4.21 51.33 5.51 3.23 5.24 4.96
-  4.69 5.51 39.68 5.52 7.41 5.53
-  5.98 3.23 5.52 32.54 4.19 5.19
-  4.69 5.24 7.41 4.19 46.82 4.47
-  5.37 4.96 5.53 5.19 4.47 35.87
+  1000 125 125 125 125 125
+  125 1000 125 125 125 125
+  125 125 1000 125 125 125
+  125 125 125 1000 125 125
+  125 125 125 125 1000 125
+  125 125 125 125 125 1000
 )
 
 _get_bw_matrix_index() {

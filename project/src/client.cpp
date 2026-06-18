@@ -7,6 +7,7 @@
 #include <chrono>
 #include <sstream>
 #include <cstring>
+#include <cstdlib>
 #include <map>
 #include <mutex>
 #include <sys/socket.h>
@@ -16,6 +17,29 @@ namespace ECProject
 {
   namespace
   {
+    int xue_grpc_deadline_ms(const char *env_name, int default_ms)
+    {
+      const char *env = std::getenv(env_name);
+      if (env == nullptr || env[0] == '\0')
+      {
+        return default_ms;
+      }
+      char *end = nullptr;
+      const long v = std::strtol(env, &end, 10);
+      if (end == env || v <= 0)
+      {
+        return default_ms;
+      }
+      return static_cast<int>(v);
+    }
+
+    std::chrono::system_clock::time_point xue_grpc_deadline_from_now_ms(int default_ms,
+                                                                        const char *env_name)
+    {
+      const int ms = xue_grpc_deadline_ms(env_name, default_ms);
+      return std::chrono::system_clock::now() + std::chrono::milliseconds(ms);
+    }
+
     std::string proxy_endpoint_key(const std::string &proxy_ip, int proxy_port)
     {
       return proxy_ip + ":" + std::to_string(proxy_port);
@@ -856,7 +880,8 @@ namespace ECProject
     coordinator_proto::XueStripeScheduleId wait_req;
     coordinator_proto::ReplyFromCoordinator wait_rep;
     wait_req.set_stripe_id(stripe_id);
-    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(10000));
+    wait_ctx.set_deadline(
+        xue_grpc_deadline_from_now_ms(120000, "XUE_GRPC_WAIT_DEADLINE_MS"));
     const grpc::Status wait_st =
         m_coordinator_ptr->waitXueAllCommitsReady(&wait_ctx, wait_req, &wait_rep);
     if (timing != nullptr)
@@ -948,7 +973,8 @@ namespace ECProject
     coordinator_proto::XueStripeScheduleId wait_req;
     coordinator_proto::ReplyFromCoordinator wait_rep;
     wait_req.set_stripe_id(stripe_id);
-    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
+    wait_ctx.set_deadline(
+        xue_grpc_deadline_from_now_ms(120000, "XUE_GRPC_WAIT_DEADLINE_MS"));
     const grpc::Status wait_st =
         m_coordinator_ptr->waitXueAllIngressReady(&wait_ctx, wait_req, &wait_rep);
     if (!wait_st.ok())
@@ -1657,7 +1683,8 @@ namespace ECProject
       range->set_logical_offset_end(r.second);
     }
 
-    get_proxy_ip_port.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
+    get_proxy_ip_port.set_deadline(
+        xue_grpc_deadline_from_now_ms(30000, "XUE_GRPC_UPLOAD_DEADLINE_MS"));
     const auto coord_t0 = std::chrono::high_resolution_clock::now();
     grpc::Status status = m_coordinator_ptr->uploadXueUpdate(&get_proxy_ip_port, request, &reply);
     timing.coordinator_uploadXueUpdate_s =

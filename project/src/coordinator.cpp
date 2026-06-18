@@ -1904,14 +1904,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     double estimate_bandwidth_between_clusters(int from_cluster, int to_cluster)
     {
       // 带宽矩阵（区域顺序）：TYO, MEL, SG, SEO, JAK, HK
-      // 仅录入上三角与对角线；下三角通过对称性查询。
+      // 对角线 1000 MB/s，非对角线 125 MB/s（对称）
       static const double bw_upper[6][6] = {
-          {43.62, 4.21, 4.69, 5.98, 4.69, 5.37},
-          {0.00, 51.33, 5.51, 3.23, 5.24, 4.96},
-          {0.00, 0.00, 39.68, 5.52, 7.41, 5.53},
-          {0.00, 0.00, 0.00, 32.54, 4.19, 5.19},
-          {0.00, 0.00, 0.00, 0.00, 46.82, 4.47},
-          {0.00, 0.00, 0.00, 0.00, 0.00, 35.87},
+          {1000.0, 125.0, 125.0, 125.0, 125.0, 125.0},
+          {0.00, 1000.0, 125.0, 125.0, 125.0, 125.0},
+          {0.00, 0.00, 1000.0, 125.0, 125.0, 125.0},
+          {0.00, 0.00, 0.00, 1000.0, 125.0, 125.0},
+          {0.00, 0.00, 0.00, 0.00, 1000.0, 125.0},
+          {0.00, 0.00, 0.00, 0.00, 0.00, 1000.0},
       };
 
       if (from_cluster < 0 || to_cluster < 0)
@@ -1921,7 +1921,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       if (from_cluster >= 6 || to_cluster >= 6)
       {
         // 当前矩阵只覆盖 6 个 cluster；超出范围时给一个保守默认值，避免崩溃。
-        return (from_cluster == to_cluster) ? 35.0 : 1.0;
+        return (from_cluster == to_cluster) ? 1000.0 : 125.0;
       }
 
       int i = std::min(from_cluster, to_cluster);
@@ -3542,7 +3542,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   {
     grpc::ClientContext cont;
     // 设置 500ms deadline，防止 proxy 无响应时永久阻塞 coordinator 线程
-    cont.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(500));
+    cont.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(10000));
     proxy_proto::SetReply set_reply;
     std::string chosen_proxy = m_cluster_table[plan.cluster_id()].proxy_ip + ":" + std::to_string(m_cluster_table[plan.cluster_id()].proxy_port);
     grpc::Status status = m_proxy_ptrs[chosen_proxy]->scheduleAppend2Datanode(&cont, plan, &set_reply);

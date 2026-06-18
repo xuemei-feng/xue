@@ -230,7 +230,7 @@ namespace ECProject
     void ensure_client_append_workers();
     void client_append_worker_loop();
 
-    static constexpr int kClientAppendWorkerCount = 4;
+    static constexpr int kClientAppendWorkerCount = 12;
     std::mutex m_client_accept_mutex;  // serializes acceptor.accept() across workers
     std::mutex m_client_append_queue_mutex;
     std::condition_variable m_client_append_queue_cv;
