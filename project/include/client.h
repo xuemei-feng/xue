@@ -29,9 +29,9 @@ namespace ECProject
                                                                                   acceptor(io_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(ClientIP.c_str()), m_clientPortForGet))
     {
       grpc::ChannelArguments args;
-      args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 300000);
-      args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 20000);
-      args.SetInt(GRPC_ARG_HTTP2_MIN_SENT_PING_INTERVAL_WITHOUT_DATA_MS, 300000);
+      constexpr int k_max = 128 * 1024 * 1024;
+      args.SetMaxReceiveMessageSize(k_max);
+      args.SetMaxSendMessageSize(k_max);
       auto channel = grpc::CreateCustomChannel(m_coordinatorIpPort, grpc::InsecureChannelCredentials(), args);
       m_coordinator_ptr = coordinator_proto::coordinatorService::NewStub(channel);
       m_clientID = ClientIP + ":" + std::to_string(ClientPort);
@@ -43,9 +43,9 @@ namespace ECProject
                                                                                                            acceptor(io_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(ClientIP.c_str()), m_clientPortForGet))
     {
       grpc::ChannelArguments args;
-      args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 300000);
-      args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 20000);
-      args.SetInt(GRPC_ARG_HTTP2_MIN_SENT_PING_INTERVAL_WITHOUT_DATA_MS, 300000);
+      constexpr int k_max = 128 * 1024 * 1024;
+      args.SetMaxReceiveMessageSize(k_max);
+      args.SetMaxSendMessageSize(k_max);
       auto channel = grpc::CreateCustomChannel(m_coordinatorIpPort, grpc::InsecureChannelCredentials(), args);
       m_coordinator_ptr = coordinator_proto::coordinatorService::NewStub(channel);
       m_clientID = ClientIP + ":" + std::to_string(ClientPort);

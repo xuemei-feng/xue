@@ -24,7 +24,7 @@
 namespace
 {
     // 最大并发更新数，可按需修改；也可通过命令行第 3 个参数覆盖
-    constexpr int kDefaultMaxConcurrentParixUpdates = 16;
+    constexpr int kDefaultMaxConcurrentParixUpdates = 4;
 
     struct ParixUpdateTask
     {
@@ -301,6 +301,8 @@ int main(int argc, char **argv)
         workers.reserve(static_cast<size_t>(max_concurrent_updates));
 
         std::thread heartbeat([&success_count, &fail_count, &task_cursor, &workers_done, total = tasks.size()]() {
+            int last_done = -1;
+            int stall_rounds = 0;
             while (!workers_done.load())
             {
                 std::this_thread::sleep_for(std::chrono::seconds(30));
@@ -309,8 +311,26 @@ int main(int argc, char **argv)
                     break;
                 }
                 const int done = success_count.load() + fail_count.load();
+                const int claimed = static_cast<int>(std::min(task_cursor.load(), total));
+                const int in_flight = claimed - done;
+                if (done == last_done)
+                {
+                    stall_rounds++;
+                }
+                else
+                {
+                    stall_rounds = 0;
+                    last_done = done;
+                }
                 safe_log("[heartbeat] done=", done, "/", total, " success=", success_count.load(),
-                         " failed=", fail_count.load(), " task_cursor=", task_cursor.load());
+                         " failed=", fail_count.load(), " in_flight=", in_flight,
+                         " task_cursor=", task_cursor.load());
+                if (stall_rounds >= 2)
+                {
+                    safe_log("[heartbeat] WARNING: no progress for ", (stall_rounds * 30),
+                             "s — all ", in_flight, " workers blocked. "
+                             "Use concurrency 4 (./main_client batch 4); check proxy journal flush / coordinator logs.");
+                }
             }
         });
 

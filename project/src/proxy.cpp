@@ -41,10 +41,6 @@ namespace ECProject
       constexpr int k_max = 128 * 1024 * 1024;
       args.SetMaxReceiveMessageSize(k_max);
       args.SetMaxSendMessageSize(k_max);
-      // gRPC keepalive: prevent connection drops under bandwidth throttling (e.g., tc/HTB 3 MB/s).
-      args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 300000);
-      args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 20000);
-      args.SetInt(GRPC_ARG_HTTP2_MIN_SENT_PING_INTERVAL_WITHOUT_DATA_MS, 300000);
       return args;
     }
     inline int64_t parix_wall_unix_ms_now()
@@ -2759,7 +2755,10 @@ namespace ECProject
     try
     {
       asio::ip::tcp::socket sock(io_context);
-      acceptor.accept(sock);
+      {
+        std::lock_guard<std::mutex> accept_lk(m_parix_tcp_accept_mu);
+        acceptor.accept(sock);
+      }
       const uint64_t payload_len = placement->range_length();
       std::vector<char> buf(static_cast<size_t>(payload_len));
       asio::error_code ec;

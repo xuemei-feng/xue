@@ -20,6 +20,9 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#if !defined(_WIN32)
+#include <sys/socket.h>
+#endif
 #include <vector>
 #include "unilrc_encoder.h"
 namespace ECProject
@@ -37,17 +40,34 @@ namespace ECProject
       constexpr int k_max = 128 * 1024 * 1024;
       args.SetMaxReceiveMessageSize(k_max);
       args.SetMaxSendMessageSize(k_max);
-      // 保守 keepalive：勿设 PERMIT_WITHOUT_CALLS=1 与 MAX_PINGS_WITHOUT_DATA=0，
-      // 否则长 batch 会触发服务端 GOAWAY(ENHANCE_YOUR_CALM, too_many_pings)。
-      args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 300000);
-      args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 20000);
-      args.SetInt(GRPC_ARG_HTTP2_MIN_SENT_PING_INTERVAL_WITHOUT_DATA_MS, 300000);
+      // 长 batch 不启用 client keepalive，避免 too_many_pings / GOAWAY。
       return args;
     }
 
+    class ParixChannelCache
+    {
+    public:
+      std::shared_ptr<grpc::Channel> get(const std::string &target)
+      {
+        std::lock_guard<std::mutex> lk(mu_);
+        auto &ch = channels_[target];
+        if (!ch)
+        {
+          ch = grpc::CreateCustomChannel(target, grpc::InsecureChannelCredentials(), parix_channel_args());
+        }
+        return ch;
+      }
+
+    private:
+      std::mutex mu_;
+      std::unordered_map<std::string, std::shared_ptr<grpc::Channel>> channels_;
+    };
+
+    ParixChannelCache g_parix_channel_cache;
+
     std::shared_ptr<grpc::Channel> parix_proxy_channel(const std::string &target)
     {
-      return grpc::CreateCustomChannel(target, grpc::InsecureChannelCredentials(), parix_channel_args());
+      return g_parix_channel_cache.get(target);
     }
 
     /** data proxy 只有一个 TCP acceptor；并发 parixScheduleDataUpdate 会导致 accept 错配并卡住。 */
@@ -99,6 +119,20 @@ namespace ECProject
     void parix_set_rpc_deadline(grpc::ClientContext &ctx)
     {
       ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(parix_rpc_timeout_sec()));
+    }
+
+    void parix_set_tcp_socket_timeouts(asio::ip::tcp::socket &s)
+    {
+#if defined(_WIN32)
+      (void)s;
+#else
+      struct timeval tv {};
+      tv.tv_sec = parix_rpc_timeout_sec();
+      tv.tv_usec = 0;
+      const int fd = s.native_handle();
+      setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+      setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+#endif
     }
 
     // Hot-path: default off. Export PARIX_TRACE=1 for hex dumps and verbose Parix client logs.
@@ -217,6 +251,7 @@ namespace ECProject
         asio::ip::tcp::socket s(ioc);
         asio::ip::tcp::resolver r(ioc);
         asio::connect(s, r.resolve({dn_ip, std::to_string(dn_grpc_port + ECProject::DATANODE_PORT_SHIFT)}));
+        parix_set_tcp_socket_timeouts(s);
         asio::error_code ec;
         size_t n = asio::read(s, asio::buffer(out, static_cast<size_t>(range_length)), ec);
         return !ec && n == static_cast<size_t>(range_length);
@@ -257,6 +292,7 @@ namespace ECProject
         asio::ip::tcp::socket s(ioc);
         asio::ip::tcp::resolver r(ioc);
         asio::connect(s, r.resolve({dn_ip, std::to_string(dn_grpc_port + ECProject::DATANODE_PORT_SHIFT)}));
+        parix_set_tcp_socket_timeouts(s);
         asio::error_code ec;
         asio::write(s, asio::buffer(data, static_cast<size_t>(range_length)), ec);
         return !ec;
@@ -1832,7 +1868,7 @@ namespace ECProject
       }
 
       const std::string dn_ep = seg_read.datanode_ip() + ":" + std::to_string(seg_read.datanode_port());
-      auto dn_channel = grpc::CreateCustomChannel(dn_ep, grpc::InsecureChannelCredentials(), parix_channel_args());
+      auto dn_channel = parix_proxy_channel(dn_ep);
       auto dn_stub = datanode_proto::datanodeService::NewStub(dn_channel);
 
       std::unordered_map<int, std::vector<char>> old_seg_by_idx;

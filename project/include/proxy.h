@@ -160,6 +160,7 @@ namespace ECProject
   private:
     bool parix_try_flush_journal_on_threshold(int stripe_id);
     std::mutex m_mutex;
+    std::mutex m_parix_tcp_accept_mu;
     std::condition_variable cv;
     bool init_coordinator();
     bool init_datanodes(std::string datanodeinfo_path);
@@ -196,6 +197,8 @@ namespace ECProject
       constexpr int k_grpc_max_msg = 128 * 1024 * 1024;
       builder.SetMaxSendMessageSize(k_grpc_max_msg);
       builder.SetMaxReceiveMessageSize(k_grpc_max_msg);
+      builder.SetSyncServerOption(grpc::ServerBuilder::SyncServerOption::MIN_POLLERS, 4);
+      builder.SetSyncServerOption(grpc::ServerBuilder::SyncServerOption::MAX_POLLERS, 32);
       std::cout << "proxy_ip_port:" << proxy_ip_port << std::endl;
       builder.AddListeningPort(proxy_ip_port, grpc::InsecureServerCredentials());
       builder.RegisterService(&m_proxyImpl_ptr);
