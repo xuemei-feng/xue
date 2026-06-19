@@ -168,15 +168,17 @@ int main(int argc, char **argv)
     double block_size = static_cast<double> (parameters[3]) / 1024 / 1024; // MB per fragment
     int n = k + r + z;
 
-    // 条带数量：默认 3；若提供批量更新文件则按文件中最大 stripe_id 扩展
+    // 条带数量：由 parameterConfiguration.xml 的 ClientStripeNum 控制
     const std::string batch_file_path = (argc >= 2) ? std::string(argv[1]) : std::string("update_requests.txt");
-    int stripe_num = 10;
+    int stripe_num = config->ClientStripeNum;
     const int max_stripe_from_file = max_stripe_id_in_batch_file(batch_file_path);
-    if (max_stripe_from_file >= 0)
+    if (max_stripe_from_file >= stripe_num)
     {
-        stripe_num = std::max(stripe_num, max_stripe_from_file + 1);
+        std::cout << "[WARN] batch file max stripe_id=" << max_stripe_from_file
+                  << " >= ClientStripeNum=" << stripe_num
+                  << "; updates for stripe_id>=" << stripe_num << " will fail (stripe not placed)." << std::endl;
     }
-    std::cout << "batch_file=" << batch_file_path << " stripe_num=" << stripe_num << std::endl;
+    std::cout << "batch_file=" << batch_file_path << " ClientStripeNum=" << stripe_num << std::endl;
     const double total_write_size_mb =
         static_cast<double>(stripe_num) * block_size * static_cast<double>(n);
 

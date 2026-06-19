@@ -42,6 +42,8 @@ namespace ECProject
     std::uint64_t PlacementRandomSeed = 0;
     /** Client wait for coordinator checkCommitAbort per RackCU append step (seconds). */
     double RackCuCommitWaitTimeoutSec = 30.0;
+    /** Number of stripes to place (SET) before batch update; stripe_id 0 .. ClientStripeNum-1. */
+    int ClientStripeNum = 100;
   };
 }
 
