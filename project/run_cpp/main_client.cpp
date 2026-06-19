@@ -158,9 +158,30 @@ int main(int argc, char **argv)
     double block_size = static_cast<double> (parameters[3]) / 1024 / 1024; //MB
     int n = k + r + z;
 
-    // 条带数量固定为 4；后续若需更多条带，改此常量即可。
-    const int stripe_num =1000;
-    std::cout << "Stripe count: " << stripe_num << " (fixed in main_client.cpp)" << std::endl;
+    // 条带放置数量由 parameterConfiguration.xml 的 ClientStripeNum 控制
+    const int stripe_num = config->ClientStripeNum;
+    if (argc > 1)
+    {
+        std::ifstream trace_scan(argv[1]);
+        int max_sid = -1;
+        std::string scan_line;
+        while (std::getline(trace_scan, scan_line))
+        {
+            if (scan_line.empty() || scan_line[0] == '#')
+                continue;
+            int sid = 0, rc = 0;
+            std::istringstream siss(scan_line);
+            if (siss >> sid >> rc)
+                max_sid = std::max(max_sid, sid);
+        }
+        if (max_sid >= stripe_num)
+        {
+            std::cout << "[WARN] update file max stripe_id=" << max_sid
+                      << " >= ClientStripeNum=" << stripe_num
+                      << "; updates for stripe_id>=" << stripe_num << " will fail." << std::endl;
+        }
+    }
+    std::cout << "ClientStripeNum=" << stripe_num << " (from parameterConfiguration.xml)" << std::endl;
 
     size_t total_write_size = 3000; // MB (used for throughput headline below)
     // std::cout << "Starting set stripe operation" << std::endl;

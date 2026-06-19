@@ -35,6 +35,8 @@ namespace ECProject
     int CoordinatorPort = 55555;
     std::string AppendMode = "UNILRC_MODE";
     std::string CodeType = "UniLRC";
+    /** SET 阶段放置的条带数；有效 stripe_id 为 0 .. ClientStripeNum-1 */
+    int ClientStripeNum = 100;
   };
 }
 
