@@ -408,8 +408,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   {
     // Random placement:
     // 1) 从条带全部块中随机顺序投放
-    // 2) 仅在 4 个随机 cluster 中放置（若总 cluster < 4，则使用全部）
-    // 3) 约束：同一 cluster 块数 <= r + l，l 为该 cluster 中“去除全局校验组后的跨 group 数”
+    // 2) 仅在 6 个 cluster 中放置（若总 cluster < 6，则使用全部；stripe_id 环形轮询选取）
+    // 3) 约束：同一 cluster 块数 <= r + 1（r 为全局校验块数）
     Block *blocks_info = new Block[stripe->n];
     assert(stripe->object_keys.size() == 1);
 
@@ -419,10 +419,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       throw std::runtime_error("ClusterNum must be positive for RandomLRC placement");
     }
 
-    const int target_cluster_num = std::min(4, cluster_num);
+    const int target_cluster_num = std::min(6, cluster_num);
     std::vector<int> selected_clusters;
     selected_clusters.reserve(target_cluster_num);
-    // 轮询选择紧邻 cluster：以 stripe_id 为起点，按环形连续取 4 个。
+    // 轮询选择紧邻 cluster：以 stripe_id 为起点，按环形连续取 6 个。
     const int start_cluster = stripe->stripe_id % cluster_num;
     for (int i = 0; i < target_cluster_num; ++i)
     {
@@ -482,7 +482,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       std::shuffle(block_order.begin(), block_order.end(), gen);
       std::fill(assigned_cluster.begin(), assigned_cluster.end(), -1);
       std::map<int, int> cluster_block_count;
-      std::map<int, std::set<int>> cluster_groups_excluding_global;
+      const int max_blocks_per_cluster = stripe->r + 1;
       bool ok = true;
 
       for (int block_idx : block_order)
@@ -490,25 +490,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         std::vector<int> candidate_clusters = selected_clusters;
         std::shuffle(candidate_clusters.begin(), candidate_clusters.end(), gen);
         bool assigned = false;
-        const int block_group = blocks_info[block_idx].map2group;
 
         for (int cid : candidate_clusters)
         {
-          int next_block_count = cluster_block_count[cid] + 1;
-          int next_group_count = static_cast<int>(cluster_groups_excluding_global[cid].size());
-          if (block_group != global_parity_group_id &&
-              cluster_groups_excluding_global[cid].find(block_group) == cluster_groups_excluding_global[cid].end())
-          {
-            next_group_count++;
-          }
-          if (next_block_count <= stripe->r + next_group_count)
+          const int next_block_count = cluster_block_count[cid] + 1;
+          if (next_block_count <= max_blocks_per_cluster)
           {
             assigned_cluster[block_idx] = cid;
             cluster_block_count[cid] = next_block_count;
-            if (block_group != global_parity_group_id)
-            {
-              cluster_groups_excluding_global[cid].insert(block_group);
-            }
             assigned = true;
             break;
           }
@@ -2921,6 +2910,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         ep->set_parity_block_key(pb->block_key);
         ep->set_parity_datanode_ip(m_node_table.at(pb->map2node).node_ip);
         ep->set_parity_datanode_port(m_node_table.at(pb->map2node).node_port);
+        ep->set_cluster_id(cid);
       };
 
       for (int rgi = 0; rgi < request->ranges_size(); ++rgi)
@@ -3183,6 +3173,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       ep->set_parity_block_key(pb->block_key);
       ep->set_parity_datanode_ip(m_node_table.at(pb->map2node).node_ip);
       ep->set_parity_datanode_port(m_node_table.at(pb->map2node).node_port);
+      ep->set_cluster_id(cid);
     };
     for (int pid = stripe.k; pid < stripe.n; ++pid)
     {

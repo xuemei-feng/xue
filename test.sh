@@ -1,6 +1,11 @@
 #!/bin/sh
-# 批量 Parix 更新请求文件（改这一行；相对 test.sh 目录或绝对路径）
-UPDATE_BATCH_FILE="/users/xue/xue/stripe-Ten/T-64KB-10/T00-result10000.txt"
+# 批量 Parix 更新请求文件（改 UPDATE_BATCH_FILE）
+UPDATE_BATCH_FILE="/users/xue/xue/T00-64KB-100-10"
+
+# 预写条带数（main_client 启动时 SET 的条带数量）：改 project/config/parameterConfiguration.xml 里的 ClientStripeNum
+# 有效 stripe_id 范围为 [0, ClientStripeNum)；batch 中 stripe_id >= ClientStripeNum 的更新会失败
+CONFIG_FILE="project/config/parameterConfiguration.xml"
+
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 cd "$SCRIPT_DIR" || exit 1
 
@@ -12,6 +17,18 @@ esac
 if [ ! -f "$UPDATE_BATCH_FILE" ]; then
   echo "ERROR: batch file not found: $UPDATE_BATCH_FILE" >&2
   exit 1
+fi
+
+if [ ! -f "$CONFIG_FILE" ]; then
+  echo "ERROR: config not found: $SCRIPT_DIR/$CONFIG_FILE" >&2
+  exit 1
+fi
+
+CLIENT_STRIPE_NUM=$(sed -n 's/.*<ClientStripeNum>\([0-9][0-9]*\)<\/ClientStripeNum>.*/\1/p' "$CONFIG_FILE" | head -1)
+if [ -z "$CLIENT_STRIPE_NUM" ]; then
+  echo "WARN: ClientStripeNum not set in $CONFIG_FILE (main_client uses default from config.h)" >&2
+else
+  echo "ClientStripeNum=$CLIENT_STRIPE_NUM  (edit $CONFIG_FILE to change pre-SET stripe count)"
 fi
 
 MAIN_CLIENT=./project/cmake/build/main_client

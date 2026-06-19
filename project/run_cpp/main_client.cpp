@@ -147,13 +147,16 @@ int main(int argc, char **argv)
     int n = k + r + z;
 
     const std::string batch_file_path = (argc >= 2) ? std::string(argv[1]) : std::string("try");
-    int stripe_num = config->ClientStripeNum;
+    const int stripe_num = config->ClientStripeNum;
     const int max_stripe_from_file = max_stripe_id_in_batch_file(batch_file_path);
-    if (max_stripe_from_file >= 0)
+    if (max_stripe_from_file >= stripe_num)
     {
-        stripe_num = std::max(stripe_num, max_stripe_from_file + 1);
+        std::cout << "[WARN] batch max stripe_id=" << max_stripe_from_file
+                  << " >= ClientStripeNum=" << stripe_num
+                  << "; updates for stripe_id>=" << stripe_num << " will fail unless stripes exist."
+                  << std::endl;
     }
-    std::cout << "batch_file=" << batch_file_path << " stripe_num=" << stripe_num << std::endl;
+    std::cout << "batch_file=" << batch_file_path << " ClientStripeNum=" << stripe_num << std::endl;
     const double total_write_size_mb =
         static_cast<double>(stripe_num) * block_size * static_cast<double>(n);
     std::cout << "Starting set stripe operation (" << stripe_num << " stripes)" << std::endl;

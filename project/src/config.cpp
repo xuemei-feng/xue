@@ -26,10 +26,16 @@ namespace ECProject
       assert(DatanodeNumPerCluster > n / z && "Error: DatanodeNumPerCluster must be greater than n / z");
       assert(ClusterNum > z && "Error: ClusterNum must be greater than z");
     }
-    if (CodeType == "AzureLRC" || CodeType == "RandomLRC")
+    if (CodeType == "AzureLRC")
     {
       assert(DatanodeNumPerCluster > k / z + 1 && "Error: DatanodeNumPerCluster must be greater than k / z + 1");
       assert(ClusterNum > z + 1 && "Error: ClusterNum must be greater than z + 1");
+    }
+    if (CodeType == "RandomLRC")
+    {
+      assert(DatanodeNumPerCluster > k / z + 1 && "Error: DatanodeNumPerCluster must be greater than k / z + 1");
+      assert(ClusterNum >= 6 && "Error: RandomLRC requires ClusterNum >= 6");
+      assert(n <= 6 * (r + 1) && "Error: RandomLRC requires n <= 6*(r+1) for per-cluster block count <= r+1");
     }
     if (CodeType == "OptimalLRC")
     {

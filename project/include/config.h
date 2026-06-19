@@ -37,7 +37,7 @@ namespace ECProject
     std::string AppendMode = "UNILRC_MODE";
     std::string CodeType = "UniLRC";
     /** main_client / bench: number of stripes to create via Client::set() (see parameterConfiguration.xml). */
-    int ClientStripeNum = 3;
+    int ClientStripeNum = 100;
     /**
      * Parix placement only (planParixFullStripe master data block in [0,k)).
      * Non-zero: mt19937(seed) — same seed and call order => reproducible master picks across runs.

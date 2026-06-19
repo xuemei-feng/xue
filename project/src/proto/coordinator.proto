@@ -202,6 +202,7 @@ message ParixParityEndpoint {
   string parity_block_key = 4;
   string parity_datanode_ip = 5;
   int32 parity_datanode_port = 6;
+  int32 cluster_id = 7;
 }
 
 message ParixDataBlockEndpoint {

@@ -21,6 +21,8 @@
     <z>2</z>  //是本地校验块数量
     <!-- 0 = non-deterministic placement RNG; non-zero = reproducible RandomLRC / encode Ran placement for same seed+stripe_id+topology -->
     <PlacementRandomSeed>17</PlacementRandomSeed>
+    <!-- main_client 预写 SET 条带数（stripe_id 0 .. ClientStripeNum-1）；与 batch 文件无关 -->
+    <ClientStripeNum>100</ClientStripeNum>
     <!-- <CodeType>UniformLRC</CodeType>
     <k>30</k>
     <r>6</r>
