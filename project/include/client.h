@@ -37,6 +37,17 @@ namespace ECProject
     double total_client_xue_s = 0;
   };
 
+  /** XUE batch 输出用分阶段耗时（秒），字段命名与 CoRD batch 对齐便于对比。 */
+  struct XueUpdateBatchTiming
+  {
+    double wall_sec = 0.0;
+    double plan_sec = 0.0;         // uploadXueUpdate（coordinator 规划/调度）
+    double payload_prep_sec = 0.0; // 本地 buffer、对齐 padding、TCP payload 打包
+    double upload_sec = 0.0;         // Client -> Proxy TCP 上传（并行时为 wave wall）
+    double xfer_begin_sec = 0.0;     // releaseXueScheduleWave（触发后续传输波次）
+    double xfer_wait_sec = 0.0;      // wait ingress / commit 等待跨 cluster 执行完成
+  };
+
   class Client
   {
   public:
@@ -93,7 +104,8 @@ namespace ECProject
     bool set();
     bool sub_set(int block_num);
     /** 同一条带内多个不连续逻辑区间 [start, end] */
-    bool xue_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges);
+    bool xue_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges,
+                    XueUpdateBatchTiming *out_timing = nullptr);
     std::shared_ptr<char[]> get_degraded_read_block(int stripe_id, int failed_block_id);
     std::shared_ptr<char[]> get_degraded_read_block_breakdown(int stripe_id, int failed_block_id, double &total_time, double &disk_io_time, double &network_time, double &encode_time);
     bool recovery_breakdown(int stripe_id, int failed_block_id, double &disk_read_time, double &network_time, double &decode_time, double &disk_write_time);

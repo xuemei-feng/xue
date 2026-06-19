@@ -24,12 +24,12 @@ readonly BW_MATRIX_MB_PER_SEC_TO_TC_MBIT="${BW_MATRIX_MB_PER_SEC_TO_TC_MBIT:-8}"
 
 # Symmetric 6×6, row-major, units: MB/s (see construction above)
 readonly BW_MATRIX_MB_PER_SEC=(
-  43.62 3 3 3 3 3
-  3 51.33 3 3 3 3
-  3 3 39.68 3 3 3
-  3 3 3 32.54 3 3
-  3 3 3 3 46.82 3
-  3 3 3 3 3 35.87
+  1000 125 125 125 125 125
+  125 1000 125 125 125 125
+  125 125 1000 125 125 125
+  125 125 125 1000 125 125
+  125 125 125 125 1000 125
+  125 125 125 125 125 1000
 )
 
 _get_bw_matrix_index() {

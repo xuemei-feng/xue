@@ -40,6 +40,38 @@ namespace ECProject
       return std::chrono::duration_cast<std::chrono::duration<double>>(t1 - t0).count();
     }
 
+
+    XueUpdateBatchTiming xue_batch_timing_from_summary(const XueClientTimingSummary &timing)
+    {
+      XueUpdateBatchTiming out;
+      out.wall_sec = timing.total_client_xue_s;
+      out.plan_sec = timing.coordinator_uploadXueUpdate_s;
+      out.payload_prep_sec = timing.prepare_parse_pack_encode_s;
+      out.upload_sec = timing.ingress_parallel_wave_tcp_wall_s > 0.0
+                           ? timing.ingress_parallel_wave_tcp_wall_s
+                           : timing.sum_tcp_to_proxy_s;
+      out.xfer_begin_sec = timing.sum_release_schedule_wave_s;
+      out.xfer_wait_sec =
+          timing.wait_all_ingress_ready_s + timing.sum_coordinator_checkCommitAbort_s;
+      return out;
+    }
+
+    void xue_fill_batch_timing(XueUpdateBatchTiming *out, const XueClientTimingSummary &timing,
+                               const std::chrono::high_resolution_clock::time_point &wall_t0)
+    {
+      if (out == nullptr)
+      {
+        return;
+      }
+      XueClientTimingSummary filled = timing;
+      if (filled.total_client_xue_s <= 0.0)
+      {
+        filled.total_client_xue_s =
+            chron_elapsed_s(wall_t0, std::chrono::high_resolution_clock::now());
+      }
+      *out = xue_batch_timing_from_summary(filled);
+    }
+
     bool append_key_uses_cluster_ingress(const std::string &key)
     {
       return key.find('c') != std::string::npos && key.find('#') != std::string::npos;
@@ -1606,13 +1638,16 @@ namespace ECProject
     //           << " total_client_xue_s=" << timing.total_client_xue_s << std::endl;
   }
 
-  bool Client::xue_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges)
+  bool Client::xue_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges,
+                          XueUpdateBatchTiming *out_timing)
   {
     if (logical_ranges.empty())
     {
       std::cout << "[XUE_UPDATE] Empty logical ranges." << std::endl;
       return false;
     }
+    const auto wall_t0 = std::chrono::high_resolution_clock::now();
+    XueClientTimingSummary timing;
     const int block_size = static_cast<int>(m_sys_config->BlockSize);
     const int unit_size = static_cast<int>(m_sys_config->UnitSize);
     const int k = m_sys_config->k;
@@ -1642,8 +1677,7 @@ namespace ECProject
     }
     zero_fill_xue_unit_padding_gaps(local_buffer.data(), logical_ranges, block_size, unit_size);
 
-    XueClientTimingSummary timing;
-    const auto total_t0 = std::chrono::high_resolution_clock::now();
+    const auto total_t0 = wall_t0;
 
     grpc::ClientContext get_proxy_ip_port;
     coordinator_proto::XueUpdateRequest request;
@@ -1665,6 +1699,7 @@ namespace ECProject
     if (!status.ok())
     {
       std::cout << "[XUE_UPDATE] upload failed: " << status.error_message() << std::endl;
+      xue_fill_batch_timing(out_timing, timing, wall_t0);
       return false;
     }
 
@@ -1687,6 +1722,7 @@ namespace ECProject
         {
           std::cout << "[XUE_UPDATE] failed to pack TCP payload for key=" << reply.append_keys(i)
                     << std::endl;
+          xue_fill_batch_timing(out_timing, timing, wall_t0);
           return false;
         }
         if (cluster_payload.size() !=
@@ -1695,6 +1731,7 @@ namespace ECProject
           std::cout << "[XUE_UPDATE] cluster payload size mismatch key=" << reply.append_keys(i)
                     << " packed=" << cluster_payload.size()
                     << " expected=" << reply.cluster_slice_sizes(i) << std::endl;
+          xue_fill_batch_timing(out_timing, timing, wall_t0);
           return false;
         }
         std::memcpy(tcp_pack_buffer.data() + off, cluster_payload.data(), cluster_payload.size());
@@ -1731,7 +1768,17 @@ namespace ECProject
     }
 
     timing.total_client_xue_s = chron_elapsed_s(total_t0, std::chrono::high_resolution_clock::now());
+    xue_fill_batch_timing(out_timing, timing, wall_t0);
     log_xue_client_timing_summary(stripe_id, reply.xue_xfer_plan_id(), timing);
+    if (out_timing != nullptr)
+    {
+      std::cout << "[XUE][Client " << m_clientID << "] round_wall_time_sec=" << out_timing->wall_sec
+                << " plan_sec=" << out_timing->plan_sec
+                << " payload_prep_sec=" << out_timing->payload_prep_sec
+                << " upload_sec=" << out_timing->upload_sec
+                << " xfer_begin_sec=" << out_timing->xfer_begin_sec
+                << " xfer_wait_sec=" << out_timing->xfer_wait_sec << std::endl;
+    }
 
     if (all_true && reply.xue_xfer_plan_id() > 0)
     {

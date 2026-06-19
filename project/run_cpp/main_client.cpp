@@ -24,6 +24,56 @@ namespace
         bool ok = false;
         bool timed_out = false;
         double elapsed_sec = 0.0;
+        ECProject::XueUpdateBatchTiming timing;
+    };
+
+    std::ostream &print_xue_timing_fields(std::ostream &os, const ECProject::XueUpdateBatchTiming &t)
+    {
+        os << std::fixed << std::setprecision(6)
+           << "wall_sec=" << t.wall_sec
+           << " plan_sec=" << t.plan_sec
+           << " payload_prep_sec=" << t.payload_prep_sec
+           << " upload_sec=" << t.upload_sec
+           << " xfer_begin_sec=" << t.xfer_begin_sec
+           << " xfer_wait_sec=" << t.xfer_wait_sec;
+        return os;
+    }
+
+    struct XueTimingTotals
+    {
+        double wall_sec = 0.0;
+        double plan_sec = 0.0;
+        double payload_prep_sec = 0.0;
+        double upload_sec = 0.0;
+        double xfer_begin_sec = 0.0;
+        double xfer_wait_sec = 0.0;
+
+        void add(const ECProject::XueUpdateBatchTiming &t)
+        {
+            wall_sec += t.wall_sec;
+            plan_sec += t.plan_sec;
+            payload_prep_sec += t.payload_prep_sec;
+            upload_sec += t.upload_sec;
+            xfer_begin_sec += t.xfer_begin_sec;
+            xfer_wait_sec += t.xfer_wait_sec;
+        }
+
+        ECProject::XueUpdateBatchTiming avg(int count) const
+        {
+            ECProject::XueUpdateBatchTiming out;
+            if (count <= 0)
+            {
+                return out;
+            }
+            const double n = static_cast<double>(count);
+            out.wall_sec = wall_sec / n;
+            out.plan_sec = plan_sec / n;
+            out.payload_prep_sec = payload_prep_sec / n;
+            out.upload_sec = upload_sec / n;
+            out.xfer_begin_sec = xfer_begin_sec / n;
+            out.xfer_wait_sec = xfer_wait_sec / n;
+            return out;
+        }
     };
 
     XueUpdateRunResult run_xue_update_with_timeout(
@@ -34,8 +84,9 @@ namespace
         const auto req_t0 = std::chrono::high_resolution_clock::now();
         std::atomic<bool> req_done{false};
         bool ok = false;
+        ECProject::XueUpdateBatchTiming timing;
         std::thread req_thread([&]() {
-            ok = client.xue_update(stripe_id, logical_ranges);
+            ok = client.xue_update(stripe_id, logical_ranges, &timing);
             req_done.store(true, std::memory_order_release);
         });
 
@@ -53,14 +104,17 @@ namespace
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
-        // 无论是否超时都 join，gRPC 0.5s deadline 保证不会永久阻塞。
         req_thread.join();
-        // 超时的请求直接标记为失败
         result.ok = ok && !result.timed_out;
 
         const auto req_t1 = std::chrono::high_resolution_clock::now();
         result.elapsed_sec =
             std::chrono::duration_cast<std::chrono::duration<double>>(req_t1 - req_t0).count();
+        result.timing = timing;
+        if (result.timing.wall_sec <= 0.0)
+        {
+            result.timing.wall_sec = result.elapsed_sec;
+        }
         return result;
     }
 } // namespace
@@ -148,7 +202,9 @@ int main(int argc, char **argv)
         int request_idx = 0;
         int failure_count = 0;
         int success_count = 0;
-        double success_elapsed_sum = 0.0;
+        XueTimingTotals timing_totals;
+        std::vector<ECProject::XueUpdateBatchTiming> per_success_timing;
+        per_success_timing.reserve(64);
         std::string line;
 
         while (std::getline(req_file, line))
@@ -207,32 +263,53 @@ int main(int argc, char **argv)
             //           << " range_cnt=" << range_cnt << " ..." << std::endl;
             const XueUpdateRunResult run_result =
                 run_xue_update_with_timeout(client, stripe_id, logical_ranges);
-            const double req_elapsed = run_result.elapsed_sec;
 
             if (run_result.ok)
             {
                 success_count++;
-                success_elapsed_sum += req_elapsed;
-                std::cout << "---request" << request_idx << "--- stripe_id=" << stripe_id
-                          << ", xue update success stripe_id=" << stripe_id
-                          << " latency=" << req_elapsed << "s" << std::endl;
+                timing_totals.add(run_result.timing);
+                per_success_timing.push_back(run_result.timing);
+                std::cout << "[XUE batch] request " << request_idx << " OK stripe_id=" << stripe_id
+                          << " ";
+                print_xue_timing_fields(std::cout, run_result.timing);
+                std::cout << std::endl;
             }
             else
             {
                 failure_count++;
-                std::cout << "---request" << request_idx << "--- stripe_id=" << stripe_id
-                          << ", xue update failed stripe_id=" << stripe_id
-                          << " latency=" << req_elapsed << "s" << std::endl;
+                std::cout << "[XUE batch] request " << request_idx << " FAILED stripe_id=" << stripe_id
+                          << " ";
+                print_xue_timing_fields(std::cout, run_result.timing);
+                if (run_result.timed_out)
+                {
+                    std::cout << " timed_out=1";
+                }
+                std::cout << std::endl;
             }
         }
 
-        const double avg_success_elapsed =
-            success_count > 0 ? (success_elapsed_sum / static_cast<double>(success_count)) : 0.0;
-        std::cout << "=== summary ===" << std::endl;
-        std::cout << "total_requests=" << request_idx << " success=" << success_count
-                  << " failures=" << failure_count
-                  << " total_time=" << success_elapsed_sum << "s"
-                  << " avg_time=" << avg_success_elapsed << "s" << std::endl;
+        std::cout << "=== XUE batch summary ===" << std::endl;
+        std::cout << "request_file=" << request_file_path << std::endl;
+        for (size_t i = 0; i < per_success_timing.size(); ++i)
+        {
+            std::cout << "  success[" << i << "] ";
+            print_xue_timing_fields(std::cout, per_success_timing[i]);
+            std::cout << std::endl;
+        }
+        std::cout << "success_count=" << success_count << std::endl;
+        std::cout << "total_failures=" << failure_count << std::endl;
+        std::cout << "batch_total ";
+        print_xue_timing_fields(std::cout, ECProject::XueUpdateBatchTiming{
+            timing_totals.wall_sec, timing_totals.plan_sec, timing_totals.payload_prep_sec,
+            timing_totals.upload_sec, timing_totals.xfer_begin_sec, timing_totals.xfer_wait_sec});
+        std::cout << std::endl;
+        if (success_count > 0)
+        {
+            const ECProject::XueUpdateBatchTiming avg_timing = timing_totals.avg(success_count);
+            std::cout << "batch_avg ";
+            print_xue_timing_fields(std::cout, avg_timing);
+            std::cout << std::endl;
+        }
     } 
     else 
     {
