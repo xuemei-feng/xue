@@ -843,7 +843,7 @@ namespace ECProject
       if (fd >= 0)
       {
         ssize_t w = ::pwrite(fd, payload.data(), range_length, range_offset);
-        ::fsync(fd);
+        // ::fsync(fd);  // 去掉逐 slice fsync，由 OS 页缓存后台刷盘
         ::close(fd);
         (void)w;
       }

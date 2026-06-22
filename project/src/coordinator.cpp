@@ -1745,62 +1745,66 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       clusters.insert(plan.steps(i).src_proxy_cluster_id());
       clusters.insert(plan.steps(i).dst_proxy_cluster_id());
     }
-  // Phase 1: register plan on every involved proxy before any execution starts.
-    for (int cid : clusters)
+  // Phase 1: 并行在所有 proxy 上注册 plan
     {
-      if (cid < 0)
+      std::vector<std::thread> threads;
+      for (int cid : clusters)
       {
-        continue;
+        if (cid < 0)
+          continue;
+        auto cit = m_cluster_table.find(cid);
+        if (cit == m_cluster_table.end())
+          continue;
+        const std::string pkey = cit->second.proxy_ip + ":" + std::to_string(cit->second.proxy_port);
+        auto pit = m_proxy_ptrs.find(pkey);
+        if (pit == m_proxy_ptrs.end() || !pit->second)
+        {
+          std::cout << "[CoRD-PLAN] no proxy stub for cluster " << cid << " (" << pkey << ")" << std::endl;
+          continue;
+        }
+        threads.emplace_back([stub = pit->second.get(), &plan, cid]() {
+          grpc::ClientContext ctx;
+          proxy_proto::SetReply rep;
+          grpc::Status st = stub->scheduleCordTransferPlan(&ctx, plan, &rep);
+          if (!st.ok() || !rep.ifcommit())
+          {
+            std::cout << "[CoRD-PLAN] scheduleCordTransferPlan failed cluster " << cid
+                      << " st=" << st.error_message() << std::endl;
+          }
+        });
       }
-      auto cit = m_cluster_table.find(cid);
-      if (cit == m_cluster_table.end())
-      {
-        continue;
-      }
-      const std::string pkey = cit->second.proxy_ip + ":" + std::to_string(cit->second.proxy_port);
-      auto pit = m_proxy_ptrs.find(pkey);
-      if (pit == m_proxy_ptrs.end() || !pit->second)
-      {
-        std::cout << "[CoRD-PLAN] no proxy stub for cluster " << cid << " (" << pkey << ")" << std::endl;
-        continue;
-      }
-      grpc::ClientContext ctx;
-      proxy_proto::SetReply rep;
-      grpc::Status st = pit->second->scheduleCordTransferPlan(&ctx, plan, &rep);
-      if (!st.ok() || !rep.ifcommit())
-      {
-        std::cout << "[CoRD-PLAN] scheduleCordTransferPlan failed cluster " << cid << " st=" << st.error_message()
-                  << std::endl;
-      }
+      for (auto &t : threads)
+        t.join();
     }
-  // Phase 2: start execution on all proxies (all plan_key registrations are visible).
-    proxy_proto::CordPlanKeyMsg start_msg;
-    start_msg.set_plan_key(plan.plan_key());
-    for (int cid : clusters)
+  // Phase 2: 并行在所有 proxy 上启动执行
     {
-      if (cid < 0)
+      proxy_proto::CordPlanKeyMsg start_msg;
+      start_msg.set_plan_key(plan.plan_key());
+      std::vector<std::thread> threads;
+      for (int cid : clusters)
       {
-        continue;
+        if (cid < 0)
+          continue;
+        auto cit = m_cluster_table.find(cid);
+        if (cit == m_cluster_table.end())
+          continue;
+        const std::string pkey = cit->second.proxy_ip + ":" + std::to_string(cit->second.proxy_port);
+        auto pit = m_proxy_ptrs.find(pkey);
+        if (pit == m_proxy_ptrs.end() || !pit->second)
+          continue;
+        threads.emplace_back([stub = pit->second.get(), &start_msg, cid]() {
+          grpc::ClientContext ctx;
+          proxy_proto::SetReply rep;
+          grpc::Status st = stub->cordPlanStartExecution(&ctx, start_msg, &rep);
+          if (!st.ok() || !rep.ifcommit())
+          {
+            std::cout << "[CoRD-PLAN] cordPlanStartExecution failed cluster " << cid
+                      << " st=" << st.error_message() << std::endl;
+          }
+        });
       }
-      auto cit = m_cluster_table.find(cid);
-      if (cit == m_cluster_table.end())
-      {
-        continue;
-      }
-      const std::string pkey = cit->second.proxy_ip + ":" + std::to_string(cit->second.proxy_port);
-      auto pit = m_proxy_ptrs.find(pkey);
-      if (pit == m_proxy_ptrs.end() || !pit->second)
-      {
-        continue;
-      }
-      grpc::ClientContext ctx;
-      proxy_proto::SetReply rep;
-      grpc::Status st = pit->second->cordPlanStartExecution(&ctx, start_msg, &rep);
-      if (!st.ok() || !rep.ifcommit())
-      {
-        std::cout << "[CoRD-PLAN] cordPlanStartExecution failed cluster " << cid << " st=" << st.error_message()
-                  << std::endl;
-      }
+      for (auto &t : threads)
+        t.join();
     }
   }
 
@@ -2179,7 +2183,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
     }
 
-    // --- CoRD uploadCordUpdate verbose debug ---
+    // --- CoRD uploadCordUpdate verbose debug (仅 IF_DEBUG 开启时输出) ---
+    if (IF_DEBUG)
+    {
     std::cout << "[CoRD] ===== uploadCordUpdate stripe_id=" << stripe_id
               << " k=" << k << " r=" << stripe->r << " z=" << stripe->z
               << " n=" << stripe->n << " block_size=" << block_size
@@ -2195,9 +2201,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       std::cout << "\n";
     }
+    }
 
     const auto groups = cord_partition_groups_algorithm1(block_intervals);
 
+    if (IF_DEBUG)
+    {
     std::cout << "[CoRD] Algorithm 1 partition (intersection closure; singletons = pairwise disjoint from all other "
                  "updated blocks): |U|=" << groups.size() << "\n";
     for (size_t gi = 0; gi < groups.size(); ++gi)
@@ -2211,6 +2220,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       std::cout << "]\n";
     }
+    }
 
     cord_alg2::Algorithm2Result alg2_result;
     {
@@ -2218,6 +2228,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       tp.enforce_one_send_one_recv_per_cluster = false; 
       alg2_result =
           cord_alg2::build_algorithm2(*stripe, block_intervals, groups, m_sys_config->ClusterNum, tp);
+      if (IF_DEBUG)
+      {
       std::cout << "[CoRD] Algorithm 2 train_route (|U|=" << groups.size() << ", links=" << alg2_result.train_route.size()
                 << "):\n";
       for (size_t i = 0; i < alg2_result.train_route.size(); ++i)
@@ -2244,6 +2256,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
         std::cout << "]  (concurrent transfers within this step)\n";
       }
+      }
       // 算法三已在 build_algorithm2 内与算法二融合（|N|≥3 成功时）；此处不再单独调用以免重复计算。
     }
 
@@ -2256,8 +2269,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                                               .count());
       cord_xfer_plan = cord_transfer_plan_from_algorithm2(stripe_id, cord_xfer_plan_key, alg2_result, stripe->k,
                                                             block_intervals);
-      std::cout << "[CoRD] CordTransferPlan: steps=" << cord_xfer_plan.steps_size()
-                << " schedule_steps=" << cord_xfer_plan.total_rounds() << "\n";
+      if (IF_DEBUG)
+        std::cout << "[CoRD] CordTransferPlan: steps=" << cord_xfer_plan.steps_size()
+                  << " schedule_steps=" << cord_xfer_plan.total_rounds() << "\n";
       enrich_cord_transfer_plan_delta_segs(block_intervals, stripe->k, &cord_xfer_plan);
       fill_group_xor_hints_from_alg2(alg2_result, block_intervals, &cord_xfer_plan);
       enrich_cord_transfer_plan_encoding(stripe, block_intervals, alg2_result, &cord_xfer_plan);
@@ -2316,7 +2330,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                                        sorted_clusters);
     reorder_cord_plan_steps_execution(&cord_xfer_plan);
 
-    if (cord_xfer_plan.steps_size() > 0) {
+    if (IF_DEBUG && cord_xfer_plan.steps_size() > 0) {
       std::cout << "[CoRD] CordTransferPlan final execution order (" << cord_xfer_plan.steps_size() << " steps):\n";
       for (int si = 0; si < cord_xfer_plan.steps_size(); ++si) {
         const auto &st = cord_xfer_plan.steps(si);
@@ -2331,9 +2345,16 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
     }
 
-    std::cout << "[CoRD] Delta store dispatch: " << sorted_clusters.size() << " clusters\n";
-    std::vector<std::string> cord_delta_append_keys;
-    cord_delta_append_keys.reserve(sorted_clusters.size());
+    if (IF_DEBUG)
+      std::cout << "[CoRD] Delta store dispatch: " << sorted_clusters.size() << " clusters\n";
+    // Phase 1: 构建所有 plan，清除 commit 表
+    struct CordDeltaPlanEntry {
+      proxy_proto::CordDataUpdatePlacement plan;
+      int cid;
+      uint64_t cluster_payload;
+    };
+    std::vector<CordDeltaPlanEntry> plan_entries;
+    plan_entries.reserve(sorted_clusters.size());
     for (const auto &plan_entry : sorted_clusters)
     {
       const int cid = plan_entry.first;
@@ -2372,15 +2393,32 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       m_object_commit_table.erase(plan.key());
       m_mutex.unlock();
 
-      std::thread t(&CoordinatorImpl::notify_proxies_cord_ready, this, plan);
-      t.join();
+      plan_entries.push_back({std::move(plan), cid, cluster_payload});
+    }
 
-      proxyIPPort->add_append_keys(plan.key());
-      proxyIPPort->add_proxyips(m_cluster_table[cid].proxy_ip);
-      proxyIPPort->add_proxyports(m_cluster_table[cid].proxy_port + ECProject::PROXY_PORT_SHIFT);
-      proxyIPPort->add_cluster_slice_sizes(cluster_payload);
-      proxyIPPort->add_group_ids(cid);
-      cord_delta_append_keys.push_back(plan.key());
+    // Phase 2: 并行通知所有 proxy 准备接收 delta 数据
+    {
+      std::vector<std::thread> notify_threads;
+      notify_threads.reserve(plan_entries.size());
+      for (auto &pe : plan_entries)
+      {
+        notify_threads.emplace_back(&CoordinatorImpl::notify_proxies_cord_ready, this, std::ref(pe.plan));
+      }
+      for (auto &t : notify_threads)
+        t.join();
+    }
+
+    // Phase 3: 串行填充 proxyIPPort（protobuf 非线程安全）
+    std::vector<std::string> cord_delta_append_keys;
+    cord_delta_append_keys.reserve(plan_entries.size());
+    for (const auto &pe : plan_entries)
+    {
+      proxyIPPort->add_append_keys(pe.plan.key());
+      proxyIPPort->add_proxyips(m_cluster_table[pe.cid].proxy_ip);
+      proxyIPPort->add_proxyports(m_cluster_table[pe.cid].proxy_port + ECProject::PROXY_PORT_SHIFT);
+      proxyIPPort->add_cluster_slice_sizes(pe.cluster_payload);
+      proxyIPPort->add_group_ids(pe.cid);
+      cord_delta_append_keys.push_back(pe.plan.key());
     }
     proxyIPPort->set_sum_append_size(sum_update_bytes);
     if (cord_xfer_plan.steps_size() > 0)
@@ -2400,19 +2438,22 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         m_cord_pending_plan_clusters[cord_xfer_plan_key].assign(plan_clusters.begin(), plan_clusters.end());
       }
       proxyIPPort->set_cord_transfer_plan_key(cord_xfer_plan_key);
-      std::cout << "[CoRD] CordTransferPlan registered: key=" << cord_xfer_plan_key
-                << " steps=" << cord_xfer_plan.steps_size()
-                << " rounds=" << cord_xfer_plan.total_rounds()
-                << " plan_clusters=" << plan_clusters.size() << "\n";
+      if (IF_DEBUG)
+        std::cout << "[CoRD] CordTransferPlan registered: key=" << cord_xfer_plan_key
+                  << " steps=" << cord_xfer_plan.steps_size()
+                  << " rounds=" << cord_xfer_plan.total_rounds()
+                  << " plan_clusters=" << plan_clusters.size() << "\n";
     }
     else
     {
       proxyIPPort->clear_cord_transfer_plan_key();
-      std::cout << "[CoRD] No cross-cluster transfer needed (0 plan steps)\n";
+      if (IF_DEBUG)
+        std::cout << "[CoRD] No cross-cluster transfer needed (0 plan steps)\n";
     }
-    std::cout << "[CoRD] ===== uploadCordUpdate done: stripe_id=" << stripe_id
-              << " sum_update_bytes=" << sum_update_bytes
-              << " clusters=" << sorted_clusters.size() << " =====\n";
+    if (IF_DEBUG)
+      std::cout << "[CoRD] ===== uploadCordUpdate done: stripe_id=" << stripe_id
+                << " sum_update_bytes=" << sum_update_bytes
+                << " clusters=" << sorted_clusters.size() << " =====\n";
     return grpc::Status::OK;
   }
 
@@ -2456,14 +2497,27 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     proxy_proto::CordPlanKeyMsg msg;
     msg.set_plan_key(pk);
-    bool span_have = false;
-    int64_t span_min_start_ms = 0;
-    int64_t span_max_end_ms = 0;
-    int joined_proxies = 0;
-    int timing_samples = 0;
-    double max_proxy_pure_xfer_sec = 0.;
-    for (int cid : clusters)
+
+    // 并行查询所有 proxy 的传输完成状态（延迟 Σ→max）
+    struct JoinResult
     {
+      int cid;
+      bool ok = false;
+      bool timing_present = false;
+      int64_t start_ms = 0;
+      int64_t end_ms = 0;
+      double pure_xfer_sec = 0.;
+      std::string err_msg;
+    };
+    std::mutex result_mu;
+    std::vector<JoinResult> results;
+    results.resize(clusters.size());
+    std::vector<std::thread> join_threads;
+    join_threads.reserve(clusters.size());
+
+    for (size_t ci = 0; ci < clusters.size(); ++ci)
+    {
+      const int cid = clusters[ci];
       if (cid < 0)
         continue;
       auto cit = m_cluster_table.find(cid);
@@ -2476,50 +2530,64 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         std::cout << "[CoRD-PLAN] cordPlanWaitTransferComplete: no stub cluster=" << cid << std::endl;
         return grpc::Status(grpc::StatusCode::INTERNAL, "proxy stub missing");
       }
-      grpc::ClientContext ctx;
-      proxy_proto::SetReply rep;
-      grpc::Status st = pit->second->cordPlanJoinExecution(&ctx, msg, &rep);
-      if (!st.ok() || !rep.ifcommit())
+      join_threads.emplace_back([ci, cid, &msg, stub = pit->second.get(), &results, &result_mu]() {
+        JoinResult &jr = results[ci];
+        jr.cid = cid;
+        grpc::ClientContext ctx;
+        proxy_proto::SetReply rep;
+        grpc::Status st = stub->cordPlanJoinExecution(&ctx, msg, &rep);
+        if (!st.ok() || !rep.ifcommit())
+        {
+          jr.ok = false;
+          jr.err_msg = st.error_message();
+          return;
+        }
+        jr.ok = true;
+        if (rep.cord_join_xfer_timing_present())
+        {
+          jr.timing_present = true;
+          jr.start_ms = rep.cord_join_pure_xfer_start_unix_ms();
+          jr.end_ms = rep.cord_join_pure_xfer_end_unix_ms();
+          jr.pure_xfer_sec = rep.cord_join_pure_xfer_sec();
+        }
+      });
+    }
+    for (auto &t : join_threads)
+      t.join();
+
+    // 聚合结果
+    int joined_proxies = 0;
+    int timing_samples = 0;
+    bool span_have = false;
+    int64_t span_min_start_ms = 0;
+    int64_t span_max_end_ms = 0;
+    double max_proxy_pure_xfer_sec = 0.;
+    for (const auto &jr : results)
+    {
+      if (!jr.ok)
       {
-        std::cout << "[CoRD-PLAN] cordPlanJoinExecution failed cluster=" << cid << " " << st.error_message()
-                  << std::endl;
+        std::cout << "[CoRD-PLAN] cordPlanJoinExecution failed cluster=" << jr.cid
+                  << " " << jr.err_msg << std::endl;
         return grpc::Status(grpc::StatusCode::INTERNAL, "cordPlanJoinExecution failed");
       }
       ++joined_proxies;
-      if (rep.cord_join_xfer_timing_present())
+      if (jr.timing_present)
       {
-        const int64_t sm = rep.cord_join_pure_xfer_start_unix_ms();
-        const int64_t em = rep.cord_join_pure_xfer_end_unix_ms();
-        const double proxy_wall_span_sec =
-            (em >= sm) ? static_cast<double>(em - sm) / 1000. : -1.;
-        // std::cout << "[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=" << pk << " cluster=" << cid
-        //           << " proxy_endpoint=" << pkey << " pure_xfer_sec=" << rep.cord_join_pure_xfer_sec()
-        //           << " wall_start_unix_ms=" << sm << " wall_end_unix_ms=" << em << " proxy_wall_span_sec="
-        //           << proxy_wall_span_sec << std::endl;
-        (void)proxy_wall_span_sec;
-        (void)pkey;
-        max_proxy_pure_xfer_sec = std::max(max_proxy_pure_xfer_sec, rep.cord_join_pure_xfer_sec());
+        max_proxy_pure_xfer_sec = std::max(max_proxy_pure_xfer_sec, jr.pure_xfer_sec);
         if (!span_have)
         {
-          span_min_start_ms = sm;
-          span_max_end_ms = em;
+          span_min_start_ms = jr.start_ms;
+          span_max_end_ms = jr.end_ms;
           span_have = true;
           timing_samples = 1;
         }
         else
         {
-          span_min_start_ms = std::min(span_min_start_ms, sm);
-          span_max_end_ms = std::max(span_max_end_ms, em);
+          span_min_start_ms = std::min(span_min_start_ms, jr.start_ms);
+          span_max_end_ms = std::max(span_max_end_ms, jr.end_ms);
           ++timing_samples;
         }
       }
-      // else
-      // {
-      //   std::cout << "[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=" << pk << " cluster=" << cid
-      //             << " proxy_endpoint=" << pkey << " timing=n/a (no cord_join_xfer_timing from proxy)"
-      //             << std::endl;
-      // }
-      (void)pkey;
     }
     {
       std::lock_guard<std::mutex> lk(m_cord_pending_mu);

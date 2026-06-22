@@ -5,6 +5,7 @@
 #include "toolbox.h"
 #include "lrc.h"
 #include <algorithm>
+#include <atomic>
 #include <thread>
 #include <cassert>
 #include <string>
@@ -13,6 +14,7 @@
 #include "unilrc_encoder.h"
 #include <chrono>
 #include <cstdint>
+#include <condition_variable>
 #include <unordered_map>
 #include <unordered_set>
 #include <map>
@@ -900,87 +902,31 @@ namespace ECProject
   static void cord_transfer_plan_execute_async(const proxy_proto::CordTransferPlan &plan, int self_cluster_id,
                                                ProxyImpl *proxy, const std::string &proxy_tag)
   {
-      // 打开日志文件: /tmp/cord_transfer_<plan_key>.log
-      const std::string log_path = "/tmp/cord_transfer_" + plan.plan_key() + ".log";
-      std::ofstream log_ofs(log_path, std::ios::out | std::ios::app);
-      const auto wall_now_ns = []() -> int64_t {
-        return std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count();
-      };
-      const auto wall_ts_ms_str = [&]() -> std::string {
-        return std::to_string(wall_now_ns() / 1000000LL);
-      };
-
-      const auto plan_log = [&](const std::string &msg) {
-        log_ofs << "[" << wall_ts_ms_str() << "][" << proxy_tag << "] " << msg << std::endl;
-      };
-
-      // 也输出到 stdout 方便实时观察
+      // 日志静默：不写文件，仅 IF_DEBUG 时输出到 stdout
+      const auto plan_log = [&](const std::string &) {};  // no-op
       const auto plan_log_both = [&](const std::string &msg) {
-        const std::string line = "[" + wall_ts_ms_str() + "][" + proxy_tag + "] " + msg;
-        log_ofs << line << std::endl;
-        std::cout << "[CoRD-XFER] " << line << std::endl;
+        if (IF_DEBUG) std::cout << "[CoRD-XFER][" << proxy_tag << "] " << msg << std::endl;
       };
 
-      plan_log_both("══════ CordTransferPlan EXECUTION START ══════");
-      plan_log_both("stripe_id=" + std::to_string(plan.stripe_id()) +
-                    " plan_key=" + plan.plan_key() +
-                    " total_rounds=" + std::to_string(plan.total_rounds()) +
-                    " steps=" + std::to_string(plan.steps_size()) +
-                    " self_cluster=c" + std::to_string(self_cluster_id) +
-                    " log_file=" + log_path);
+      if (IF_DEBUG)
+        plan_log_both("START stripe_id=" + std::to_string(plan.stripe_id()) + " plan_key=" + plan.plan_key());
       if (plan.steps_size() <= 0)
-      {
-        plan_log_both("plan has 0 steps, nothing to do");
-        log_ofs.close();
         return;
-      }
-
-      // 打印完整 plan 概览
-      {
-        std::ostringstream os;
-        os << "Plan overview: rounds=" << plan.total_rounds()
-           << " slot_unit=" << plan.slot_unit_bytes() << "B k=" << plan.k_datablock()
-           << " encode=" << (cord_uses_matrix_encode(plan) ? "matrix" : "xor");
-        plan_log(os.str());
-        for (int si = 0; si < plan.steps_size(); ++si) {
-          const auto &s = plan.steps(si);
-          std::ostringstream ss;
-          ss << "  step[" << si << "] slot=" << s.scheduled_slot()
-             << " c" << s.src_proxy_cluster_id() << "→c" << s.dst_proxy_cluster_id()
-             << " blk" << s.src_block_id() << "→blk" << s.dst_block_id()
-             << " chunk=[" << s.chunk_byte_offset() << "+" << s.chunk_byte_length() << "B]"
-             << " link=" << cord_transfer_link_kind_name(s.link_kind())
-             << " delta=" << cord_plan_delta_kind_name(s.delta_payload_kind())
-             << " grp=" << s.group_index();
-          if (s.has_mst_origin_data_block_id())
-            ss << " mst_origin=" << s.mst_origin_data_block_id();
-          if (s.parity_merge_data_block_ids_size() > 0) {
-            ss << " merge_src=[";
-            for (int mi = 0; mi < s.parity_merge_data_block_ids_size(); ++mi) {
-              if (mi > 0) ss << ",";
-              ss << s.parity_merge_data_block_ids(mi);
-            }
-            ss << "]";
-          }
-          plan_log(ss.str());
-        }
-      }
       cord_pure_xfer_peer_stub_preheat(plan, self_cluster_id, proxy);
       cord_pure_xfer_note_loop_start(plan.plan_key());
       const auto wall_t0 = std::chrono::steady_clock::now();
 
-      int executed_steps = 0;
-      int skipped_steps = 0;
-      int failed_steps = 0;
+      std::atomic<int> executed_steps{0};
+      std::atomic<int> skipped_steps{0};
+      std::atomic<int> failed_steps{0};
 
       const int k = plan.k_datablock();
-      for (int si = 0; si < plan.steps_size(); ++si)
+
+      // 单 step 执行 lambda（从原 for 循环体提取，continue→return）
+      auto execute_step = [&](int si)
       {
         const auto t_step0 = std::chrono::steady_clock::now();
         const proxy_proto::CordTransferStep &st = plan.steps(si);
-        if (st.src_proxy_cluster_id() != self_cluster_id)
-          continue;
 
         std::string dst_ip;
         int dst_port = 0;
@@ -988,7 +934,7 @@ namespace ECProject
         {
           plan_log("abort_step missing_cluster_endpoint dst_cluster_id=" +
                    std::to_string(st.dst_proxy_cluster_id()) + " step_index=" + std::to_string(st.step_index()));
-          continue;
+          return;
         }
         const std::string dst_channel = dst_ip + ":" + std::to_string(dst_port);
 
@@ -1000,7 +946,7 @@ namespace ECProject
                    cord_transfer_link_kind_name(st.link_kind()) + " payload=" +
                    cord_plan_delta_kind_name(st.delta_payload_kind()));
           skipped_steps++;
-          continue;
+          return;
         }
 
         // ---------- N>1：数据增量 -> 收集器 ----------
@@ -1014,7 +960,7 @@ namespace ECProject
             plan_log_both("FAIL STAR_DATA_TO_CENTER no_delta_blob step=" + std::to_string(st.step_index()) +
                          " cluster=c" + std::to_string(self_cluster_id));
             failed_steps++;
-            continue;
+            return;
           }
           uint64_t base_off = 0, blk_tot = 0;
           if (!cord_lookup_cluster_delta_layout(plan, self_cluster_id, st.src_block_id(), &base_off, &blk_tot))
@@ -1022,7 +968,7 @@ namespace ECProject
             plan_log_both("FAIL STAR_DATA_TO_CENTER no_cluster_delta_layout step=" + std::to_string(st.step_index()) +
                          " cluster=c" + std::to_string(self_cluster_id) + " data_blk=" + std::to_string(st.src_block_id()));
             failed_steps++;
-            continue;
+            return;
           }
           const uint64_t abs_off = base_off + st.chunk_byte_offset();
 
@@ -1036,7 +982,7 @@ namespace ECProject
                          " abs_off=" + std::to_string(abs_off) + " bytes=" + std::to_string(chunk_len) +
                          " datanode=" + dn_ip + ":" + std::to_string(dn_port));
             failed_steps++;
-            continue;
+            return;
           }
           const auto t_read1 = std::chrono::steady_clock::now();
           const double read_ms = std::chrono::duration<double, std::milli>(t_read1 - t_read0).count();
@@ -1077,7 +1023,7 @@ namespace ECProject
             if (!ok) failed_steps++;
             else executed_steps++;
           }
-          continue;
+          return;
         }
 
         // ---------- N>1：收集器扇出校验增量（矩阵编码 / 退化为 XOR 缓冲） ----------
@@ -1101,7 +1047,7 @@ namespace ECProject
               plan_log_both("FAIL PARITY_FANOUT cord_ensure_collector_parity_coded_failed step=" +
                            std::to_string(st.step_index()) + " collector_blk=" + std::to_string(st.src_block_id()));
               failed_steps++;
-              continue;
+              return;
             }
             const int row = st.dst_block_id() - plan.k_datablock();
             const auto &meta = plan.cord_encode_meta();
@@ -1110,7 +1056,7 @@ namespace ECProject
               plan_log_both("FAIL PARITY_FANOUT bad_row dst_blk=" + std::to_string(st.dst_block_id()) +
                            " row=" + std::to_string(row) + " step=" + std::to_string(st.step_index()));
               failed_steps++;
-              continue;
+              return;
             }
             const std::string pck =
                 cord_collector_parity_cache_key(plan.plan_key(), st.group_index(), st.src_block_id(), parity_ingest);
@@ -1124,7 +1070,7 @@ namespace ECProject
               plan_log_both("FAIL PARITY_FANOUT coded_cache_short row=" + std::to_string(row) +
                            " step=" + std::to_string(st.step_index()));
               failed_steps++;
-              continue;
+              return;
             }
             std::memcpy(buf.data(), pit->second[static_cast<size_t>(row)].data() + st.chunk_byte_offset(), chunk_len);
             filled = true;
@@ -1142,7 +1088,7 @@ namespace ECProject
                   plan_log_both("FAIL PARITY_FANOUT filtered_xor ingress_timeout collector_blk=" +
                                std::to_string(st.src_block_id()) + " step=" + std::to_string(st.step_index()));
                   failed_steps++;
-                  continue;
+                  return;
                 }
               }
               cord_filtered_xor_parity_chunk(plan, st.group_index(), st.src_block_id(),
@@ -1158,7 +1104,7 @@ namespace ECProject
                 plan_log_both("FAIL PARITY_FANOUT collector_xor_acc ingress_timeout collector_blk=" +
                              std::to_string(st.src_block_id()) + " step=" + std::to_string(st.step_index()));
                 failed_steps++;
-                continue;
+                return;
               }
               const uint64_t acc_off =
                   static_cast<uint64_t>(parity_payload_abs_lo) + static_cast<uint64_t>(st.chunk_byte_offset());
@@ -1171,7 +1117,7 @@ namespace ECProject
                 plan_log_both("FAIL PARITY_FANOUT collector_xor_acc_missing key=" + acc_key +
                              " step=" + std::to_string(st.step_index()));
                 failed_steps++;
-                continue;
+                return;
               }
               std::memcpy(buf.data(), it->second.data() + static_cast<size_t>(acc_off), chunk_len);
               parity_compute_src = "collector_xor_acc";
@@ -1184,7 +1130,7 @@ namespace ECProject
             plan_log_both("FAIL PARITY_FANOUT block_placement_missing dst_blk=" + std::to_string(st.dst_block_id()) +
                          " step=" + std::to_string(st.step_index()));
             failed_steps++;
-            continue;
+            return;
           }
           const auto t_compute1 = std::chrono::steady_clock::now();
           const double compute_ms = std::chrono::duration<double, std::milli>(t_compute1 - t_compute0).count();
@@ -1203,7 +1149,7 @@ namespace ECProject
                      + " dst_blk=" + std::to_string(st.dst_block_id())
                      + " compute_src=" + parity_compute_src + " compute=" + std::to_string(compute_ms) + "ms");
             skipped_steps++;
-            continue;
+            return;
           }
           const int32_t slice_off = slice_base + static_cast<int32_t>(nz.first);
           const int32_t send_len = static_cast<int32_t>(nz.second);
@@ -1247,7 +1193,7 @@ namespace ECProject
             if (!ok) failed_steps++;
             else executed_steps++;
           }
-          continue;
+          return;
         }
 
         // ---------- N=1：MST 上全程传输数据增量 ----------
@@ -1265,14 +1211,14 @@ namespace ECProject
               plan_log_both("FAIL MST_FORWARD no_delta_blob step=" + std::to_string(st.step_index()) +
                            " cluster=c" + std::to_string(self_cluster_id));
               failed_steps++;
-              continue;
+              return;
             }
             uint64_t base_off = 0, blk_tot = 0;
             if (!cord_lookup_cluster_delta_layout(plan, self_cluster_id, st.src_block_id(), &base_off, &blk_tot))
             {
               plan_log_both("FAIL MST_FORWARD no_delta_layout step=" + std::to_string(st.step_index()));
               failed_steps++;
-              continue;
+              return;
             }
             const auto t_read0 = std::chrono::steady_clock::now();
             const uint64_t abs_off = base_off + st.chunk_byte_offset();
@@ -1281,7 +1227,7 @@ namespace ECProject
             {
               plan_log_both("FAIL MST_FORWARD datanode_read_failed step=" + std::to_string(st.step_index()));
               failed_steps++;
-              continue;
+              return;
             }
             const auto t_read1 = std::chrono::steady_clock::now();
             read_ms = std::chrono::duration<double, std::milli>(t_read1 - t_read0).count();
@@ -1295,7 +1241,7 @@ namespace ECProject
               plan_log_both("FAIL MST_FORWARD relay_buffer_timeout step=" + std::to_string(st.step_index()) +
                            " off=" + std::to_string(relay_off) + " len=" + std::to_string(chunk_len));
               failed_steps++;
-              continue;
+              return;
             }
             std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
             auto it = g_cord_mst_stream.find(plan.plan_key());
@@ -1309,7 +1255,7 @@ namespace ECProject
             plan_log_both("FAIL MST_FORWARD block_placement_missing dst_blk=" + std::to_string(st.dst_block_id()) +
                          " step=" + std::to_string(st.step_index()));
             failed_steps++;
-            continue;
+            return;
           }
           const auto t_grpc0 = std::chrono::steady_clock::now();
           proxy_proto::CordPlanMstDataDeltaReq req;
@@ -1353,13 +1299,50 @@ namespace ECProject
             if (!ok) failed_steps++;
             else executed_steps++;
           }
-          continue;
+          return;
         }
 
         plan_log_both("SKIP unhandled_link step=" + std::to_string(st.step_index()) + " link=" +
                      cord_transfer_link_kind_name(st.link_kind()) + " payload=" +
                      cord_plan_delta_kind_name(st.delta_payload_kind()));
         skipped_steps++;
+      };
+
+      // 按 timeslot 分组此 proxy 的 step
+      std::map<uint32_t, std::vector<int>> slot_steps;
+      for (int si = 0; si < plan.steps_size(); ++si)
+      {
+        if (plan.steps(si).src_proxy_cluster_id() == self_cluster_id)
+          slot_steps[plan.steps(si).scheduled_slot()].push_back(si);
+      }
+
+      // 逐 timeslot 执行，同一 slot 内多线程并行
+      if (IF_DEBUG)
+      {
+        std::cout << "[CoRD-XFER][" << proxy_tag << "] my_slots=" << slot_steps.size()
+                  << " total_steps=" << plan.steps_size() << std::endl;
+      }
+      for (auto &kv : slot_steps)
+      {
+        auto &sis = kv.second;
+        // 诊断：输出 slot 分布到文件，方便查看
+        {
+          std::ofstream diag("/tmp/cord_slot_debug.log", std::ios::app);
+          diag << "[" << proxy_tag << "] plan=" << plan.plan_key()
+               << " slot=" << kv.first << " steps=" << sis.size()
+               << (sis.size() > 1 ? " PARALLEL" : "") << std::endl;
+        }
+        if (sis.size() == 1)
+        {
+          execute_step(sis[0]);
+        }
+        else
+        {
+          // 并行执行当前有稳定性问题（部分 stripe 的 CordTransferPlan 超时），
+          // 暂时回退为串行：同一 slot 的多步仍逐个执行
+          for (int si : sis)
+            execute_step(si);
+        }
       }
 
       const auto sender_loop_done = std::chrono::steady_clock::now();
@@ -1368,14 +1351,12 @@ namespace ECProject
       cord_xfer_cleanup_xfer_plan(plan.plan_key());
       const auto wall_t1 = std::chrono::steady_clock::now();
       const double wall_sec = std::chrono::duration<double>(wall_t1 - wall_t0).count();
-      plan_log_both("══════ CordTransferPlan EXECUTION DONE ══════");
-      plan_log_both("plan_key=" + plan.plan_key()
-                    + " wall_sec=" + std::to_string(wall_sec)
-                    + " executed=" + std::to_string(executed_steps)
-                    + " skipped=" + std::to_string(skipped_steps)
-                    + " failed=" + std::to_string(failed_steps)
-                    + " log_file=" + log_path);
-      log_ofs.close();
+      if (IF_DEBUG)
+        plan_log_both("DONE plan_key=" + plan.plan_key()
+                      + " wall_sec=" + std::to_string(wall_sec)
+                      + " executed=" + std::to_string(executed_steps.load())
+                      + " skipped=" + std::to_string(skipped_steps.load())
+                      + " failed=" + std::to_string(failed_steps.load()));
   }
 
   bool ProxyImpl::init_coordinator()
@@ -2099,10 +2080,6 @@ namespace ECProject
             std::cout << "[CoRD][Proxy] range read failed slice " << j << std::endl;
             return;
           }
-          // std::cout << "[CoRD-DATA][" << proxy_ip_port << "] data_blk=" << placement_copy->blockids(j)
-          //           << " key=" << placement_copy->blockkeys(j) << " off=" << placement_copy->offsets(j)
-          //           << " len=" << slen << " BEFORE_disk_hex=" << cord_dbg_hex_preview(oldbuf.data(), slen)
-          //           << " new_slice_hex=" << cord_dbg_hex_preview(slices[static_cast<size_t>(j)], slen) << std::endl;
           for (size_t u = 0; u < slen; ++u)
             delta_concat.push_back(static_cast<char>(oldbuf[u] ^ slices[static_cast<size_t>(j)][u]));
           if (!CordRangeWriteToDatanode(placement_copy->blockkeys(j), placement_copy->blockids(j),
@@ -2112,15 +2089,7 @@ namespace ECProject
             std::cout << "[CoRD][Proxy] range write failed slice " << j << std::endl;
             return;
           }
-          std::vector<char> verify_new(slen);
-          if (CordRangeReadFromDatanode(placement_copy->blockkeys(j), placement_copy->blockids(j),
-                                        static_cast<int>(placement_copy->offsets(j)), verify_new.data(), slen,
-                                        placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j)))
-          {
-            // std::cout << "[CoRD-DATA][" << proxy_ip_port << "] data_blk=" << placement_copy->blockids(j)
-            //           << " off=" << placement_copy->offsets(j) << " len=" << slen
-            //           << " AFTER_disk_hex=" << cord_dbg_hex_preview(verify_new.data(), slen) << std::endl;
-          }
+          // 验证读已移除
         }
         if (!CordDeltaBlobToDatanode(placement_copy->delta_blob_key(), delta_concat.data(), delta_concat.size(),
                                      placement_copy->delta_datanode_ip().c_str(),

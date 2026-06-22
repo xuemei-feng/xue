@@ -845,7 +845,13 @@ namespace ECProject
           std::cout << li << "(" << train_link_kind_name(L.kind)
                     << " c" << L.src_cluster << "→c" << L.dst_cluster << ")";
         }
-        std::cout << "] — these links may run concurrently in this step\n";
+        std::cout << "]";
+        // 诊断：每个源 cluster 分到几条链路
+        std::map<int,int> per_src;
+        for (int id : used) per_src[out.train_route[id].src_cluster]++;
+        std::cout << " | per_src=[";
+        for (auto &ps : per_src) std::cout << "c" << ps.first << ":" << ps.second << " ";
+        std::cout << "] (enforce=" << tp.enforce_one_send_one_recv_per_cluster << ")\n";
 
         TimeslotEntry te;
         te.timeslot = ts++;
