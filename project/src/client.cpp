@@ -524,12 +524,12 @@ namespace ECProject
     auto socket = std::make_shared<asio::ip::tcp::socket>(io_context);
     auto resolver = std::make_shared<asio::ip::tcp::resolver>(io_context);
 
-    std::cout << "[ASYNC_APPEND][RESOLVE] idx=" << index << " calling async_resolve..." << std::endl;
+    // std::cout << "[ASYNC_APPEND][RESOLVE] idx=" << index << " calling async_resolve..." << std::endl;
 
     resolver->async_resolve(proxy_ip, std::to_string(proxy_port),
       [this, socket, resolver, cluster_slice_data, append_key, cluster_slice_size, proxy_ip, proxy_port, index, if_commit_arr, pending_counter]
       (const asio::error_code &ec, asio::ip::tcp::resolver::results_type endpoints) {
-        std::cout << "[ASYNC_APPEND][RESOLVE_CB] idx=" << index << " ec=" << ec.message() << std::endl;
+        // std::cout << "[ASYNC_APPEND][RESOLVE_CB] idx=" << index << " ec=" << ec.message() << std::endl;
         if (ec)
         {
           std::cout << "[ASYNC_APPEND] resolve failed: " << ec.message() << std::endl;
@@ -537,12 +537,12 @@ namespace ECProject
           return;
         }
 
-        std::cout << "[ASYNC_APPEND][CONNECT] idx=" << index << " calling async_connect..." << std::endl;
+        // std::cout << "[ASYNC_APPEND][CONNECT] idx=" << index << " calling async_connect..." << std::endl;
 
         asio::async_connect(*socket, endpoints,
           [this, socket, cluster_slice_data, append_key, cluster_slice_size, proxy_ip, proxy_port, index, if_commit_arr, pending_counter]
           (const asio::error_code &ec, const asio::ip::tcp::endpoint &) {
-            std::cout << "[ASYNC_APPEND][CONNECT_CB] idx=" << index << " ec=" << ec.message() << std::endl;
+            // std::cout << "[ASYNC_APPEND][CONNECT_CB] idx=" << index << " ec=" << ec.message() << std::endl;
             if (ec)
             {
               std::cout << "[ASYNC_APPEND] connect failed: " << ec.message() << std::endl;
@@ -550,12 +550,12 @@ namespace ECProject
               return;
             }
 
-            std::cout << "[ASYNC_APPEND][WRITE] idx=" << index << " calling async_write size=" << cluster_slice_size << "B..." << std::endl;
+            // std::cout << "[ASYNC_APPEND][WRITE] idx=" << index << " calling async_write size=" << cluster_slice_size << "B..." << std::endl;
 
             asio::async_write(*socket, asio::buffer(cluster_slice_data, static_cast<size_t>(cluster_slice_size)),
               [this, socket, append_key, proxy_ip, proxy_port, index, if_commit_arr, pending_counter]
               (const asio::error_code &ec, std::size_t bytes) {
-                std::cout << "[ASYNC_APPEND][WRITE_CB] idx=" << index << " ec=" << ec.message() << " bytes=" << bytes << std::endl;
+                // std::cout << "[ASYNC_APPEND][WRITE_CB] idx=" << index << " ec=" << ec.message() << " bytes=" << bytes << std::endl;
                 asio::error_code ignore_ec;
                 socket->shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
                 socket->close(ignore_ec);

@@ -30,6 +30,81 @@ inline T ceil(T const &A, T const &B)
 };
 namespace ECProject
 {
+  // ===== Datanode TCP 连接池 =====
+  // 端点缓存 + 共享 io_context：避免 AppendToDatanode 热路径上的 DNS resolver 和 io_context 创建开销。
+  // 不做预连接（预连接会导致多个 gRPC handler 与 TCP 连接的配对竞态）。
+  struct DatanodeConnPool
+  {
+    struct EndpointCache
+    {
+      asio::ip::tcp::resolver::results_type endpoints;
+      std::chrono::steady_clock::time_point cached_at;
+    };
+
+    std::mutex mu;
+    std::map<std::string, EndpointCache> endpoint_cache;
+    asio::io_context pool_io_ctx;
+    std::unique_ptr<asio::io_context::work> pool_work;
+    std::unique_ptr<std::thread> pool_thread;
+
+    DatanodeConnPool()
+    {
+      pool_work = std::make_unique<asio::io_context::work>(pool_io_ctx);
+      pool_thread = std::make_unique<std::thread>([this]() { pool_io_ctx.run(); });
+    }
+
+    ~DatanodeConnPool()
+    {
+      pool_work.reset();
+      pool_io_ctx.stop();
+      if (pool_thread && pool_thread->joinable())
+        pool_thread->join();
+    }
+
+    static DatanodeConnPool &instance()
+    {
+      static DatanodeConnPool p;
+      return p;
+    }
+
+    // 获取端点缓存（避免每 block 创建 resolver + resolve，节省 ~0.05ms）
+    asio::ip::tcp::resolver::results_type get_endpoints(const std::string &ip, int data_port)
+    {
+      const std::string key = ip + ":" + std::to_string(data_port);
+      {
+        std::lock_guard<std::mutex> lk(mu);
+        auto it = endpoint_cache.find(key);
+        if (it != endpoint_cache.end())
+        {
+          if (std::chrono::steady_clock::now() - it->second.cached_at < std::chrono::seconds(60))
+            return it->second.endpoints;
+        }
+      }
+      asio::io_context tmp_io;
+      asio::ip::tcp::resolver resolver(tmp_io);
+      auto endpoints = resolver.resolve(ip, std::to_string(data_port));
+      {
+        std::lock_guard<std::mutex> lk(mu);
+        endpoint_cache[key] = {endpoints, std::chrono::steady_clock::now()};
+      }
+      return endpoints;
+    }
+
+    // 新建已连接 socket（使用共享 io_context + 缓存端点）
+    std::unique_ptr<asio::ip::tcp::socket> connect_new(const std::string &ip, int data_port)
+    {
+      auto sock = std::make_unique<asio::ip::tcp::socket>(pool_io_ctx);
+      asio::error_code ec;
+      asio::connect(*sock, get_endpoints(ip, data_port), ec);
+      if (ec)
+      {
+        std::cout << "[DatanodeConnPool] connect failed to " << ip << ":" << data_port << ": " << ec.message() << std::endl;
+        return nullptr;
+      }
+      return sock;
+    }
+  };
+
   static std::string cord_dbg_hex_preview(const void *data, size_t len, size_t max_show = 48)
   {
     if (!data || len == 0)
@@ -1444,24 +1519,29 @@ namespace ECProject
       });
 
       asio::error_code error;
-      asio::io_context io_context;
-      asio::ip::tcp::socket socket(io_context);
-      asio::ip::tcp::resolver resolver(io_context);
-      asio::error_code con_error;
-      asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}), con_error);
-      if (!con_error && IF_DEBUG)
+      const int data_port = port + ECProject::DATANODE_PORT_SHIFT;
+
+      // 使用连接池（端点缓存 + 共享 io_context，避免每 block 的 resolver 和 io_context 创建开销）
+      auto &pool = DatanodeConnPool::instance();
+      auto sock_ptr = pool.connect_new(ip, data_port);
+      if (!sock_ptr)
       {
-        std::cout << "Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " success! block_key: " << block_key << " block_id: " << block_id << " slice_size: " << slice_size << " slice_offset: " << slice_offset << " is_serialized: " << is_serialized << std::endl;
+        std::cout << "[AppendToDatanode] connect failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
+        notify_datanode_thread.join();
+        return false;
       }
-      else if (IF_DEBUG)
+      asio::ip::tcp::socket &socket = *sock_ptr;
+
+      if (IF_DEBUG)
       {
-        std::cout << "Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " failed! block_key: " << block_key << " block_id: " << block_id << " slice_size: " << slice_size << " slice_offset: " << slice_offset << " is_serialized: " << is_serialized << std::endl;
-        exit(-1);
+        std::cout << "[AppendToDatanode] connected to " << ip << ":" << data_port << " block_key: " << block_key << " block_id: " << block_id << std::endl;
       }
+
       asio::write(socket, asio::buffer(slice_buf, slice_size), error);
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
+
       notify_datanode_thread.join();
       if (IF_DEBUG)
       {
