@@ -442,23 +442,8 @@ namespace ECProject
     sock_data.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
     sock_data.close(ignore_ec);
 
-    if (cord_abort_if_timed_out())
-      return;
-    grpc::ClientContext check_commit;
-    cord_apply_grpc_deadline(check_commit);
-    coordinator_proto::AskIfSuccess request;
-    request.set_key(cord_key);
-    request.set_opp(CORD_UPDATE);
-    coordinator_proto::RepIfSuccess reply;
-    grpc::Status status = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply);
-    if (status.ok() && reply.ifcommit())
-    {
-      if_commit_arr[index] = true;
-    }
-    else
-    {
-      std::cout << "[CoRD] commit check failed key=" << cord_key << " proxy=" << proxy_ip << ":" << proxy_port << std::endl;
-    }
+    // checkCommitAbort 推迟到 cord_update_wait_xfer，先标记 TCP 发送成功
+    if_commit_arr[index] = true;
   }
 
   void Client::async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr)
@@ -1250,6 +1235,11 @@ namespace ECProject
                 << reply.proxyports(i) << " key=" << reply.append_keys(i) << std::endl;
     }
 
+    // 存储 append_keys 供 cord_update_wait_xfer 延迟提交
+    pending->cord_append_keys.clear();
+    for (int i = 0; i < reply.append_keys_size(); ++i)
+      pending->cord_append_keys.push_back(reply.append_keys(i));
+
     const auto upload_t0 = std::chrono::steady_clock::now();
     std::vector<char *> cluster_slices = m_toolbox->splitCharPointer(payload_send, &reply);
     const int slice_count = reply.append_keys_size();
@@ -1277,15 +1267,17 @@ namespace ECProject
     for (auto &t : upload_threads)
       t.join();
     pending->upload_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - upload_t0).count();
+    // 延迟提交：不在此处等 checkCommitAbort，由 cord_update_wait_xfer 统一处理
     if (cord_abort_if_timed_out())
     {
       cord_fill_timing(partial_timing, pending->wall_t0, pending->plan_sec, pending->payload_prep_sec,
                        pending->upload_sec, 0.0, 0.0);
       return false;
     }
-    if (!std::all_of(if_commit_arr.get(), if_commit_arr.get() + reply.append_keys_size(),
+    if (!std::all_of(if_commit_arr.get(), if_commit_arr.get() + slice_count,
                      [](bool v) { return v; }))
     {
+      // TCP 发送失败
       cord_fill_timing(partial_timing, pending->wall_t0, pending->plan_sec, pending->payload_prep_sec,
                        pending->upload_sec, 0.0, 0.0);
       return false;
@@ -1335,6 +1327,36 @@ namespace ECProject
     {
       ~CordDeadlineGuard() { g_cord_request_deadline = nullptr; }
     } cord_deadline_guard;
+
+    // 延迟提交：先等所有 cord_job 完成（checkCommitAbort），再等跨集群传输
+    if (!pending->cord_append_keys.empty())
+    {
+      std::cout << "[CoRD][Client " << m_clientID << "] deferred commit check: " << pending->cord_append_keys.size()
+                << " keys, stripe_id=" << pending->stripe_id << "\n";
+      for (const auto &key : pending->cord_append_keys)
+      {
+        if (cord_abort_if_timed_out())
+        {
+          cord_fill_timing(out_timing, pending->wall_t0, pending->plan_sec, pending->payload_prep_sec,
+                           pending->upload_sec, 0.0, xfer_wait_sec, xfer_pure_sec, xfer_grpc_sec);
+          return false;
+        }
+        grpc::ClientContext ctx_commit;
+        cord_apply_grpc_deadline(ctx_commit);
+        coordinator_proto::AskIfSuccess req;
+        req.set_key(key);
+        req.set_opp(CORD_UPDATE);
+        coordinator_proto::RepIfSuccess rep_commit;
+        grpc::Status st_commit = m_coordinator_ptr->checkCommitAbort(&ctx_commit, req, &rep_commit);
+        if (!st_commit.ok() || !rep_commit.ifcommit())
+        {
+          std::cout << "[CoRD] deferred commit failed key=" << key << std::endl;
+          cord_fill_timing(out_timing, pending->wall_t0, pending->plan_sec, pending->payload_prep_sec,
+                           pending->upload_sec, 0.0, xfer_wait_sec, xfer_pure_sec, xfer_grpc_sec);
+          return false;
+        }
+      }
+    }
 
     std::cout << "[CoRD][Client " << m_clientID << "] waiting for cross-cluster transfer (auto-start after upload): "
               << pending->transfer_plan_key << " stripe_id=" << pending->stripe_id << "\n";

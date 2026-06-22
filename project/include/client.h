@@ -42,6 +42,7 @@ namespace ECProject
     double plan_sec = 0.0;
     double payload_prep_sec = 0.0;
     double upload_sec = 0.0;
+    std::vector<std::string> cord_append_keys;  // 延迟 commit 用
   };
 
   class Client

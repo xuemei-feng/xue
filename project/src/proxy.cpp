@@ -107,6 +107,38 @@ namespace ECProject
     }
   };
 
+  // ===== CordJob 并发控制 =====
+  // 限制同时执行 datanode I/O 的 cord_job 数量，防止打爆 datanode
+  struct CordJobConcurrencyLimiter
+  {
+    std::mutex mu;
+    std::condition_variable cv;
+    int running = 0;
+    int max_concurrent = 1;  // 完全串行，与原始一致
+
+    static CordJobConcurrencyLimiter &instance()
+    {
+      static CordJobConcurrencyLimiter lim;
+      return lim;
+    }
+
+    void acquire()
+    {
+      std::unique_lock<std::mutex> lk(mu);
+      cv.wait(lk, [this] { return running < max_concurrent; });
+      running++;
+    }
+
+    void release()
+    {
+      {
+        std::lock_guard<std::mutex> lk(mu);
+        running--;
+      }
+      cv.notify_one();
+    }
+  };
+
   static std::string cord_dbg_hex_preview(const void *data, size_t len, size_t max_show = 48)
   {
     if (!data || len == 0)
@@ -1220,7 +1252,6 @@ namespace ECProject
               failed_steps++;
               return;
             }
-            const auto t_read0 = std::chrono::steady_clock::now();
             const uint64_t abs_off = base_off + st.chunk_byte_offset();
             if (!proxy->CordRangeReadFromDatanode(blob_key, 0, static_cast<int>(abs_off), buf.data(), chunk_len,
                                                   dn_ip.c_str(), dn_port))
@@ -1229,8 +1260,6 @@ namespace ECProject
               failed_steps++;
               return;
             }
-            const auto t_read1 = std::chrono::steady_clock::now();
-            read_ms = std::chrono::duration<double, std::milli>(t_read1 - t_read0).count();
             mst_buf_src = "dn_blob@" + dn_ip + ":" + std::to_string(dn_port);
           }
           else
@@ -2038,6 +2067,7 @@ namespace ECProject
 
     auto cord_job = [this, stripe_id, payload_size, slice_num, placement_copy]() mutable
     {
+      auto &limiter = CordJobConcurrencyLimiter::instance();
       try
       {
         asio::ip::tcp::socket socket_data(io_context);
@@ -2061,6 +2091,9 @@ namespace ECProject
         socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
         socket_data.close(ignore_ec);
 
+        // 并发控制：限制同时执行 datanode I/O 的 cord_job 数量
+        limiter.acquire();
+
         std::vector<size_t> sizes;
         for (int i = 0; i < slice_num; ++i)
           sizes.push_back(static_cast<size_t>(placement_copy->sizes(i)));
@@ -2078,6 +2111,7 @@ namespace ECProject
                                         placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j)))
           {
             std::cout << "[CoRD][Proxy] range read failed slice " << j << std::endl;
+            limiter.release();
             return;
           }
           for (size_t u = 0; u < slen; ++u)
@@ -2087,6 +2121,7 @@ namespace ECProject
                                         slen, placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j)))
           {
             std::cout << "[CoRD][Proxy] range write failed slice " << j << std::endl;
+            limiter.release();
             return;
           }
           // 验证读已移除
@@ -2096,6 +2131,7 @@ namespace ECProject
                                      placement_copy->delta_datanode_port()))
         {
           std::cout << "[CoRD][Proxy] delta blob store failed" << std::endl;
+          limiter.release();
           return;
         }
 
@@ -2109,10 +2145,12 @@ namespace ECProject
         grpc::Status st = m_coordinator_ptr->reportCommitAbort(&ctx, commit_abort_key, &result);
         if (!st.ok() && IF_DEBUG)
           std::cout << "[CoRD][Proxy] reportCommitAbort failed" << std::endl;
+        limiter.release();
       }
       catch (std::exception &e)
       {
         std::cout << "[CoRD][Proxy] exception: " << e.what() << std::endl;
+        limiter.release();
       }
     };
     std::thread th(cord_job);
