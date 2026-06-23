@@ -4,7 +4,9 @@ if [ -z "${BASH_VERSION:-}" ]; then
 fi
 set -euo pipefail
 
-# Remove tc/htb root from limit_bw_matrix.sh. BW_MATRIX_VERBOSE=1 prints tc qdisc after.
+# Remove tc/htb (egress root + ingress/IFB) from limit_bw_matrix.sh. BW_MATRIX_VERBOSE=1 prints tc qdisc after.
+
+IFB_DEV="ifb0"
 
 SKIP_BW_LIMIT_IPS=(
   "10.10.1.1"
@@ -76,10 +78,14 @@ main() {
   }
 
   tc qdisc del dev "$iface" root 2>/dev/null || true
-  echo "OK bw-matrix removed dev=${iface}"
+  tc qdisc del dev "$iface" ingress 2>/dev/null || true
+  tc qdisc del dev "$IFB_DEV" root 2>/dev/null || true
+  ip link del "$IFB_DEV" 2>/dev/null || true
+  echo "OK bw-matrix removed dev=${iface} ifb=${IFB_DEV}"
 
   if [[ "${BW_MATRIX_VERBOSE:-0}" == "1" ]] || [[ "${BW_MATRIX_VERBOSE:-0}" == "2" ]]; then
     tc qdisc show dev "$iface" 2>/dev/null || true
+    tc qdisc show dev "$IFB_DEV" 2>/dev/null || true
   fi
 }
 

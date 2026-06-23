@@ -25,6 +25,7 @@
 #include <limits>
 #include <iomanip>
 #include <sstream>
+#include <cstdlib>
 template <typename T>
 inline T ceil(T const &A, T const &B)
 {
@@ -107,6 +108,28 @@ namespace ECProject
     }
   };
 
+  static int parse_cord_job_max_concurrent()
+  {
+    const char *env = std::getenv("CORD_JOB_MAX_CONCURRENT");
+    if (env == nullptr || env[0] == '\0')
+      return 4;
+    char *end = nullptr;
+    long v = std::strtol(env, &end, 10);
+    if (end == env || v < 1)
+      return 4;
+    if (v > 64)
+      v = 64;
+    return static_cast<int>(v);
+  }
+
+  static bool parse_cord_slot_parallel()
+  {
+    const char *env = std::getenv("CORD_SLOT_PARALLEL");
+    if (env == nullptr || env[0] == '\0')
+      return true;
+    return !(env[0] == '0' && env[1] == '\0');
+  }
+
   // ===== CordJob 并发控制 =====
   // 限制同时执行 datanode I/O 的 cord_job 数量，防止打爆 datanode
   struct CordJobConcurrencyLimiter
@@ -114,7 +137,7 @@ namespace ECProject
     std::mutex mu;
     std::condition_variable cv;
     int running = 0;
-    int max_concurrent = 1;  // 完全串行，与原始一致
+    int max_concurrent = parse_cord_job_max_concurrent();
 
     static CordJobConcurrencyLimiter &instance()
     {
@@ -1365,12 +1388,19 @@ namespace ECProject
         {
           execute_step(sis[0]);
         }
-        else
+        else if (!parse_cord_slot_parallel())
         {
-          // 并行执行当前有稳定性问题（部分 stripe 的 CordTransferPlan 超时），
-          // 暂时回退为串行：同一 slot 的多步仍逐个执行
           for (int si : sis)
             execute_step(si);
+        }
+        else
+        {
+          std::vector<std::thread> workers;
+          workers.reserve(sis.size());
+          for (int si : sis)
+            workers.emplace_back([&execute_step, si]() { execute_step(si); });
+          for (auto &t : workers)
+            t.join();
         }
       }
 
@@ -1416,7 +1446,10 @@ namespace ECProject
     if (it != m_peer_proxy_stub_pool.end())
       return it->second->stub.get();
     auto ent = std::make_unique<PeerProxyGrpcEntry>();
-    ent->channel = grpc::CreateChannel(endpoint, grpc::InsecureChannelCredentials());
+    grpc::ChannelArguments args;
+    args.SetMaxSendMessageSize(kProxyGrpcMaxMessageBytes);
+    args.SetMaxReceiveMessageSize(kProxyGrpcMaxMessageBytes);
+    ent->channel = grpc::CreateCustomChannel(endpoint, grpc::InsecureChannelCredentials(), args);
     ent->stub = proxy_proto::proxyService::NewStub(ent->channel);
     proxy_proto::proxyService::Stub *s = ent->stub.get();
     m_peer_proxy_stub_pool.emplace(endpoint, std::move(ent));

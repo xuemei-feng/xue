@@ -22,6 +22,8 @@
 #define IF_DEBUG false
 namespace ECProject
 {
+  /** CoRD cross-cluster gRPC payload cap (default server/client limit is ~4MB). */
+  constexpr int kProxyGrpcMaxMessageBytes = 64 * 1024 * 1024;
   class ProxyImpl final
       : public proxy_proto::proxyService::Service,
         public std::enable_shared_from_this<ECProject::ProxyImpl>
@@ -223,6 +225,8 @@ namespace ECProject
       grpc::ServerBuilder builder;
       std::cout << "proxy_ip_port:" << proxy_ip_port << std::endl;
       builder.AddListeningPort(proxy_ip_port, grpc::InsecureServerCredentials());
+      builder.SetMaxSendMessageSize(kProxyGrpcMaxMessageBytes);
+      builder.SetMaxReceiveMessageSize(kProxyGrpcMaxMessageBytes);
       builder.RegisterService(&m_proxyImpl_ptr);
       std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
       server->Wait();
