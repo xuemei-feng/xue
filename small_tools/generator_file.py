@@ -20,7 +20,7 @@ if len(sys.argv) == 4:
     for i in range(file_num):
         generate_file(int(sys.argv[2]), sys.argv[3], i) 
 else:
-    print('Invalid arguments! Usage. $python generate_file.py file_num size unit(b/K/M)')
+    print('Invalid arguments! Usage. $python3 generate_file.py file_num size unit(b/K/M)')
 
 # 67108864 64MiB
 # 4194304 4MiB

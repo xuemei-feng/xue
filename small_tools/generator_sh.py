@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import netifaces
 import xml.etree.ElementTree as ET
@@ -12,18 +13,18 @@ cluster_id_start = 0
 iftest = False
 
 proxy_ip_list = [
-    ["10.10.1.3", 50405],
-    ["10.10.1.12", 50405],
-    ["10.10.1.21", 50405],
-    ["10.10.1.30", 50405],
-    ["10.10.1.39", 50405],
-    ["10.10.1.48", 50405],
+    ["172.16.2.33", 50405],
+    ["172.16.2.42", 50406],
+    ["172.16.2.51", 50407],
+    ["172.16.2.60", 50408],
+    ["172.16.2.69", 50409],
+    ["172.16.2.78", 50410],
 ]
-coordinator_ip = "10.10.1.2"
+coordinator_ip = "172.16.2.32"
 
 proxy_num = len(proxy_ip_list)
 
-IP_PREFIX = os.environ.get("UNILRC_IP_PREFIX", "10.10.1")
+IP_PREFIX = os.environ.get("UNILRC_IP_PREFIX") or ".".join(coordinator_ip.split(".")[:3])
 CLUSTER_XML = os.path.join(parent_path, "project", "config", "clusterInformation.xml")
 
 # cluster_informtion = {cluster_id: {'proxy': 'ip:port', 'datanode': [[ip, port], ...]}, ...}
@@ -36,12 +37,14 @@ def get_local_ip(interface_name):
 
 
 def get_interface_with_ip_prefix(prefix=IP_PREFIX):
-    """返回本机一个 10.10.1.* 地址；优先使用 LOCAL_IP（generate_run_proxy.sh 逐台传入）。"""
+    """返回本机角色 IP；优先 LOCAL_IP（generate_run_proxy.sh 逐台传入）。"""
     env_ip = os.environ.get("LOCAL_IP", "").strip()
     if env_ip in ("%h", "%n", "%%"):
         env_ip = ""
-    if env_ip and env_ip.startswith(prefix):
-        return env_ip
+    if env_ip:
+        octets = env_ip.split(".")
+        if len(octets) == 4 and all(o.isdigit() and 0 <= int(o) <= 255 for o in octets):
+            return env_ip
 
     interfaces = netifaces.interfaces()
     for interface in interfaces:
