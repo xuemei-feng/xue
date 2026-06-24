@@ -138,6 +138,15 @@ namespace ECProject
       return out;
     }
 
+    struct ParixBlockSliceWork
+    {
+      int plan_idx{};
+      int range_offset{};
+      int len{};
+      const char *new_payload{};
+      const std::vector<char> *old_payload{};
+    };
+
     bool parix_datanode_read_range_stub(datanode_proto::datanodeService::Stub *stub, const std::string &dn_ip, int dn_grpc_port,
                                         const std::string &block_key, int block_size, int range_offset, int range_length, char *out)
     {
@@ -1844,9 +1853,8 @@ namespace ECProject
       std::unordered_map<std::string, std::unique_ptr<proxy_proto::proxyService::Stub>> data_proxy_stubs;
       std::unordered_map<std::string, std::unique_ptr<proxy_proto::proxyService::Stub>> parity_stub_by_ep;
 
-      std::vector<ParixPendingSlice> pending_writes;
-      pending_writes.reserve(idxs.size());
-
+      std::vector<ParixBlockSliceWork> slice_work;
+      slice_work.reserve(idxs.size());
       for (int idx : idxs)
       {
         const coordinator_proto::ParixDataSegmentPlan &seg = plan.segments(idx);
@@ -1864,8 +1872,7 @@ namespace ECProject
           return false;
         }
         const char *payload_ptr = packed_new_bytes + static_cast<size_t>(buf_off);
-
-        std::vector<char> &old_seg = old_seg_by_idx.at(idx);
+        const std::vector<char> &old_seg = old_seg_by_idx.at(idx);
 
         if (parix_client_trace())
         {
@@ -1875,102 +1882,159 @@ namespace ECProject
         parix_log_slice_hex("BEFORE update (on block slice)", old_seg.data(), rlen);
         parix_log_slice_hex("UPDATE content (new payload)", payload_ptr, rlen);
 
+        slice_work.push_back(ParixBlockSliceWork{idx, static_cast<int>(seg.range_offset()), rlen, payload_ptr, &old_seg});
+      }
+      std::sort(slice_work.begin(), slice_work.end(),
+                [](const ParixBlockSliceWork &a, const ParixBlockSliceWork &b) { return a.range_offset < b.range_offset; });
+
+      std::vector<char> tcp_batch_buf;
+      uint64_t tcp_total = 0;
+      for (const ParixBlockSliceWork &sw : slice_work)
+      {
+        tcp_total += static_cast<uint64_t>(sw.len);
+      }
+      tcp_batch_buf.reserve(static_cast<size_t>(tcp_total));
+      for (ParixBlockSliceWork &sw : slice_work)
+      {
+        const size_t base = tcp_batch_buf.size();
+        tcp_batch_buf.insert(tcp_batch_buf.end(), sw.new_payload, sw.new_payload + sw.len);
+        sw.new_payload = tcp_batch_buf.data() + base;
+      }
+
+      proxy_proto::ParixDataUpdatePlacement placement;
+      fill_parix_placement_from_segment(seg_read, stripe_id, plan.batch_id(), &placement);
+      placement.clear_slices();
+      for (const ParixBlockSliceWork &sw : slice_work)
+      {
+        proxy_proto::ParixDataSlice *sl = placement.add_slices();
+        sl->set_range_offset(sw.range_offset);
+        sl->set_range_length(static_cast<uint64_t>(sw.len));
+      }
+      placement.set_range_offset(slice_work.front().range_offset);
+      placement.set_range_length(tcp_total);
+
+      if (parix_client_trace())
+      {
+        std::cout << "[Client][Parix] batched schedule data_proxy gRPC=" << seg_read.data_proxy_ip() << ":"
+                  << seg_read.data_proxy_grpc_port() << " tcp_payload_port=" << seg_read.data_proxy_tcp_shift_port()
+                  << " slices=" << slice_work.size() << " tcp_bytes=" << tcp_total
+                  << " (proxy will fan-out parixJournalAppend to parities)" << std::endl;
+      }
+
+      const std::string dp_ip = seg_read.data_proxy_ip();
+      const int dp_tcp = seg_read.data_proxy_tcp_shift_port();
+      std::thread tcp_thr([&tcp_batch_buf, dp_ip, dp_tcp]() {
+        try
+        {
+          asio::io_context ioc;
+          asio::ip::tcp::socket s(ioc);
+          asio::ip::tcp::resolver r(ioc);
+          asio::connect(s, r.resolve({dp_ip, std::to_string(dp_tcp)}));
+          asio::error_code ec;
+          asio::write(s, asio::buffer(tcp_batch_buf.data(), tcp_batch_buf.size()), ec);
+          asio::error_code ign;
+          s.shutdown(asio::ip::tcp::socket::shutdown_send, ign);
+          s.close(ign);
+        }
+        catch (const std::exception &e)
+        {
+          std::cerr << "[Client][Parix] tcp thread: " << e.what() << std::endl;
+        }
+      });
+
+      grpc::ClientContext sched_ctx;
+      proxy_proto::ParixScheduleDataUpdateReply sched_rep;
+      const std::string dpe = seg_read.data_proxy_ip() + ":" + std::to_string(seg_read.data_proxy_grpc_port());
+      auto ds_it = data_proxy_stubs.find(dpe);
+      if (ds_it == data_proxy_stubs.end())
+      {
+        ds_it = data_proxy_stubs.emplace(dpe, proxy_proto::proxyService::NewStub(parix_proxy_channel(dpe))).first;
+      }
+      grpc::Status sched_st = ds_it->second->parixScheduleDataUpdate(&sched_ctx, placement, &sched_rep);
+      tcp_thr.join();
+      if (!sched_st.ok() || !sched_rep.ifcommit())
+      {
+        std::cout << "[Client][Parix] parixScheduleDataUpdate failed" << std::endl;
+        return false;
+      }
+
+      std::map<std::pair<int, int>, const std::vector<char> *> old_by_range;
+      for (const ParixBlockSliceWork &sw : slice_work)
+      {
+        old_by_range[{sw.range_offset, sw.len}] = sw.old_payload;
+      }
+
+      for (int ai = 0; ai < sched_rep.journal_acks_size(); ++ai)
+      {
+        const proxy_proto::ParixJournalAckItem &ack = sched_rep.journal_acks(ai);
         if (parix_client_trace())
         {
-          std::cout << "[Client][Parix] call data_proxy gRPC=" << seg.data_proxy_ip() << ":" << seg.data_proxy_grpc_port()
-                    << " tcp_payload_port=" << seg.data_proxy_tcp_shift_port()
-                    << " (proxy will fan-out parixJournalAppend to parities)" << std::endl;
+          const char *ack_str = (ack.ack() == proxy_proto::PARIX_ACK_SUCCESS) ? "SUCCESS" : "NEED_D0";
+          std::cout << "[Client][Parix]   schedule reply: parity_proxy " << ack.parity_proxy_ip() << ":"
+                    << ack.parity_proxy_grpc_port() << " parity_block_id=" << ack.parity_block_id()
+                    << " range[" << ack.range_offset() << "," << (ack.range_offset() + static_cast<int>(ack.range_length()))
+                    << ") -> " << ack_str << std::endl;
         }
-
-        proxy_proto::ParixDataUpdatePlacement placement;
-        fill_parix_placement_from_segment(seg, stripe_id, plan.batch_id(), &placement);
-
-        const std::string dp_ip = seg.data_proxy_ip();
-        const int dp_tcp = seg.data_proxy_tcp_shift_port();
-        std::thread tcp_thr([payload_ptr, rlen, dp_ip, dp_tcp]() {
-          try
-          {
-            asio::io_context ioc;
-            asio::ip::tcp::socket s(ioc);
-            asio::ip::tcp::resolver r(ioc);
-            asio::connect(s, r.resolve({dp_ip, std::to_string(dp_tcp)}));
-            asio::error_code ec;
-            asio::write(s, asio::buffer(payload_ptr, static_cast<size_t>(rlen)), ec);
-            asio::error_code ign;
-            s.shutdown(asio::ip::tcp::socket::shutdown_send, ign);
-            s.close(ign);
-          }
-          catch (const std::exception &e)
-          {
-            std::cerr << "[Client][Parix] tcp thread: " << e.what() << std::endl;
-          }
-        });
-
-        grpc::ClientContext sched_ctx;
-        proxy_proto::ParixScheduleDataUpdateReply sched_rep;
-        const std::string dpe = seg.data_proxy_ip() + ":" + std::to_string(seg.data_proxy_grpc_port());
-        auto ds_it = data_proxy_stubs.find(dpe);
-        if (ds_it == data_proxy_stubs.end())
+        if (ack.ack() != proxy_proto::PARIX_ACK_NEED_D0)
         {
-          ds_it = data_proxy_stubs
-                      .emplace(dpe, proxy_proto::proxyService::NewStub(parix_proxy_channel(dpe)))
-                      .first;
+          continue;
         }
-        grpc::Status sched_st = ds_it->second->parixScheduleDataUpdate(&sched_ctx, placement, &sched_rep);
-        tcp_thr.join();
-        if (!sched_st.ok() || !sched_rep.ifcommit())
+        int ack_off = ack.range_offset();
+        int ack_len = static_cast<int>(ack.range_length());
+        if (ack_len <= 0 && slice_work.size() == 1)
         {
-          std::cout << "[Client][Parix] parixScheduleDataUpdate failed" << std::endl;
+          ack_off = slice_work.front().range_offset;
+          ack_len = slice_work.front().len;
+        }
+        const std::vector<char> *old_payload = nullptr;
+        const auto old_it = old_by_range.find({ack_off, ack_len});
+        if (old_it != old_by_range.end())
+        {
+          old_payload = old_it->second;
+        }
+        if (old_payload == nullptr || static_cast<int>(old_payload->size()) != ack_len)
+        {
+          std::cout << "[Client][Parix] parixSupplyD0 old payload lookup failed range[" << ack_off << "," << (ack_off + ack_len)
+                    << ")" << std::endl;
           return false;
         }
-
-        for (int ai = 0; ai < sched_rep.journal_acks_size(); ++ai)
+        grpc::ClientContext sup_ctx;
+        proxy_proto::ParixSupplyD0Request sreq;
+        sreq.set_stripe_id(stripe_id);
+        sreq.set_batch_id(plan.batch_id());
+        sreq.set_write_generation(seg_read.write_generation());
+        sreq.set_parity_block_id(ack.parity_block_id());
+        sreq.set_data_block_id(seg_read.block_id());
+        sreq.set_range_offset(ack_off);
+        sreq.set_range_length(static_cast<uint64_t>(ack_len));
+        sreq.set_old_payload(old_payload->data(), static_cast<size_t>(ack_len));
+        const std::string sup_ep = ack.parity_proxy_ip() + ":" + std::to_string(ack.parity_proxy_grpc_port());
+        auto pit = parity_stub_by_ep.find(sup_ep);
+        if (pit == parity_stub_by_ep.end())
         {
-          const proxy_proto::ParixJournalAckItem &ack = sched_rep.journal_acks(ai);
-          if (parix_client_trace())
-          {
-            const char *ack_str = (ack.ack() == proxy_proto::PARIX_ACK_SUCCESS) ? "SUCCESS" : "NEED_D0";
-            std::cout << "[Client][Parix]   schedule reply: parity_proxy " << ack.parity_proxy_ip() << ":"
-                      << ack.parity_proxy_grpc_port() << " parity_block_id=" << ack.parity_block_id() << " -> " << ack_str
-                      << std::endl;
-          }
-          if (ack.ack() != proxy_proto::PARIX_ACK_NEED_D0)
-          {
-            continue;
-          }
-          grpc::ClientContext sup_ctx;
-          proxy_proto::ParixSupplyD0Request sreq;
-          sreq.set_stripe_id(stripe_id);
-          sreq.set_batch_id(plan.batch_id());
-          sreq.set_write_generation(seg.write_generation());
-          sreq.set_parity_block_id(ack.parity_block_id());
-          sreq.set_data_block_id(seg.block_id());
-          sreq.set_range_offset(seg.range_offset());
-          sreq.set_range_length(static_cast<uint64_t>(rlen));
-          sreq.set_old_payload(old_seg.data(), static_cast<size_t>(rlen));
-          const std::string sup_ep = ack.parity_proxy_ip() + ":" + std::to_string(ack.parity_proxy_grpc_port());
-          auto pit = parity_stub_by_ep.find(sup_ep);
-          if (pit == parity_stub_by_ep.end())
-          {
-            auto sup_ch = parix_proxy_channel(sup_ep);
-            pit = parity_stub_by_ep.emplace(sup_ep, proxy_proto::proxyService::NewStub(sup_ch)).first;
-          }
-          proxy_proto::SetReply sup_rep;
-          grpc::Status sup_st = pit->second->parixSupplyD0(&sup_ctx, sreq, &sup_rep);
-          if (!sup_st.ok() || !sup_rep.ifcommit())
-          {
-            std::cout << "[Client][Parix] parixSupplyD0 failed parity_block_id=" << ack.parity_block_id() << std::endl;
-            return false;
-          }
-          if (parix_client_trace())
-          {
-            std::cout << "[Client][Parix]   parixSupplyD0 ok -> parity_proxy " << ack.parity_proxy_ip() << ":"
-                      << ack.parity_proxy_grpc_port() << " parity_block_id=" << ack.parity_block_id() << std::endl;
-          }
+          auto sup_ch = parix_proxy_channel(sup_ep);
+          pit = parity_stub_by_ep.emplace(sup_ep, proxy_proto::proxyService::NewStub(sup_ch)).first;
         }
+        proxy_proto::SetReply sup_rep;
+        grpc::Status sup_st = pit->second->parixSupplyD0(&sup_ctx, sreq, &sup_rep);
+        if (!sup_st.ok() || !sup_rep.ifcommit())
+        {
+          std::cout << "[Client][Parix] parixSupplyD0 failed parity_block_id=" << ack.parity_block_id() << std::endl;
+          return false;
+        }
+        if (parix_client_trace())
+        {
+          std::cout << "[Client][Parix]   parixSupplyD0 ok -> parity_proxy " << ack.parity_proxy_ip() << ":"
+                    << ack.parity_proxy_grpc_port() << " parity_block_id=" << ack.parity_block_id() << std::endl;
+        }
+      }
 
-        pending_writes.push_back(ParixPendingSlice{static_cast<int>(seg.range_offset()), rlen, payload_ptr});
-        parix_log_slice_hex("AFTER update (new bytes staged for writeback)", payload_ptr, rlen);
+      std::vector<ParixPendingSlice> pending_writes;
+      pending_writes.reserve(slice_work.size());
+      for (const ParixBlockSliceWork &sw : slice_work)
+      {
+        pending_writes.push_back(ParixPendingSlice{sw.range_offset, sw.len, sw.new_payload});
+        parix_log_slice_hex("AFTER update (new bytes staged for writeback)", sw.new_payload, sw.len);
       }
 
       const std::vector<ParixCoalescedDiskWrite> coalesced = parix_coalesce_disk_writes(std::move(pending_writes));

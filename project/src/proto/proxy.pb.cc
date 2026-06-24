@@ -410,9 +410,24 @@ struct ParixParityRpcTargetDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixParityRpcTargetDefaultTypeInternal _ParixParityRpcTarget_default_instance_;
+PROTOBUF_CONSTEXPR ParixDataSlice::ParixDataSlice(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.range_length_)*/uint64_t{0u}
+  , /*decltype(_impl_.range_offset_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParixDataSliceDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParixDataSliceDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParixDataSliceDefaultTypeInternal() {}
+  union {
+    ParixDataSlice _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParixDataSliceDefaultTypeInternal _ParixDataSlice_default_instance_;
 PROTOBUF_CONSTEXPR ParixDataUpdatePlacement::ParixDataUpdatePlacement(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.global_parities_)*/{}
+  , /*decltype(_impl_.slices_)*/{}
   , /*decltype(_impl_.key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.datanode_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
@@ -441,6 +456,8 @@ PROTOBUF_CONSTEXPR ParixJournalAckItem::ParixJournalAckItem(
   , /*decltype(_impl_.parity_proxy_grpc_port_)*/0
   , /*decltype(_impl_.parity_block_id_)*/0
   , /*decltype(_impl_.ack_)*/0
+  , /*decltype(_impl_.range_offset_)*/0
+  , /*decltype(_impl_.range_length_)*/uint64_t{0u}
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct ParixJournalAckItemDefaultTypeInternal {
   PROTOBUF_CONSTEXPR ParixJournalAckItemDefaultTypeInternal()
@@ -727,7 +744,7 @@ struct StripeAndBlockIDsDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StripeAndBlockIDsDefaultTypeInternal _StripeAndBlockIDs_default_instance_;
 }  // namespace proxy_proto
-static ::_pb::Metadata file_level_metadata_proxy_2eproto[38];
+static ::_pb::Metadata file_level_metadata_proxy_2eproto[39];
 static const ::_pb::EnumDescriptor* file_level_enum_descriptors_proxy_2eproto[1];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_proxy_2eproto = nullptr;
 
@@ -983,6 +1000,14 @@ const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityRpcTarget, _impl_.parity_datanode_port_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixParityRpcTarget, _impl_.cluster_id_),
   ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataSlice, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataSlice, _impl_.range_offset_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataSlice, _impl_.range_length_),
+  ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -1001,6 +1026,7 @@ const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.datanode_port_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.global_parities_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.local_parity_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixDataUpdatePlacement, _impl_.slices_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAckItem, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -1011,6 +1037,8 @@ const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAckItem, _impl_.parity_proxy_grpc_port_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAckItem, _impl_.parity_block_id_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAckItem, _impl_.ack_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAckItem, _impl_.range_offset_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixJournalAckItem, _impl_.range_length_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::ParixScheduleDataUpdateReply, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -1206,24 +1234,25 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 207, -1, -1, sizeof(::proxy_proto::MultipleRecoveryRequest)},
   { 218, -1, -1, sizeof(::proxy_proto::RecoveryReply)},
   { 237, -1, -1, sizeof(::proxy_proto::ParixParityRpcTarget)},
-  { 250, -1, -1, sizeof(::proxy_proto::ParixDataUpdatePlacement)},
-  { 269, -1, -1, sizeof(::proxy_proto::ParixJournalAckItem)},
-  { 279, -1, -1, sizeof(::proxy_proto::ParixScheduleDataUpdateReply)},
-  { 287, -1, -1, sizeof(::proxy_proto::ParixJournalAppendRequest)},
-  { 304, -1, -1, sizeof(::proxy_proto::ParixJournalAppendReply)},
-  { 311, -1, -1, sizeof(::proxy_proto::ParixJournalAppendBatchItem)},
-  { 321, -1, -1, sizeof(::proxy_proto::ParixJournalAppendBatchRequest)},
-  { 335, -1, -1, sizeof(::proxy_proto::ParixJournalAppendBatchAckItem)},
-  { 343, -1, -1, sizeof(::proxy_proto::ParixJournalAppendBatchReply)},
-  { 350, -1, -1, sizeof(::proxy_proto::ParixSupplyD0Request)},
-  { 364, -1, -1, sizeof(::proxy_proto::ParixReplayBatchRequest)},
-  { 372, -1, -1, sizeof(::proxy_proto::ParixBatchXferTimingReply)},
-  { 382, -1, -1, sizeof(::proxy_proto::ParixJournalInvalidationRange)},
-  { 391, -1, -1, sizeof(::proxy_proto::ParixParityFullOverwriteRequest)},
-  { 405, -1, -1, sizeof(::proxy_proto::AppendStripeDataPlacement)},
-  { 424, -1, -1, sizeof(::proxy_proto::SetReply)},
-  { 431, -1, -1, sizeof(::proxy_proto::GetReply)},
-  { 438, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
+  { 250, -1, -1, sizeof(::proxy_proto::ParixDataSlice)},
+  { 258, -1, -1, sizeof(::proxy_proto::ParixDataUpdatePlacement)},
+  { 278, -1, -1, sizeof(::proxy_proto::ParixJournalAckItem)},
+  { 290, -1, -1, sizeof(::proxy_proto::ParixScheduleDataUpdateReply)},
+  { 298, -1, -1, sizeof(::proxy_proto::ParixJournalAppendRequest)},
+  { 315, -1, -1, sizeof(::proxy_proto::ParixJournalAppendReply)},
+  { 322, -1, -1, sizeof(::proxy_proto::ParixJournalAppendBatchItem)},
+  { 332, -1, -1, sizeof(::proxy_proto::ParixJournalAppendBatchRequest)},
+  { 346, -1, -1, sizeof(::proxy_proto::ParixJournalAppendBatchAckItem)},
+  { 354, -1, -1, sizeof(::proxy_proto::ParixJournalAppendBatchReply)},
+  { 361, -1, -1, sizeof(::proxy_proto::ParixSupplyD0Request)},
+  { 375, -1, -1, sizeof(::proxy_proto::ParixReplayBatchRequest)},
+  { 383, -1, -1, sizeof(::proxy_proto::ParixBatchXferTimingReply)},
+  { 393, -1, -1, sizeof(::proxy_proto::ParixJournalInvalidationRange)},
+  { 402, -1, -1, sizeof(::proxy_proto::ParixParityFullOverwriteRequest)},
+  { 416, -1, -1, sizeof(::proxy_proto::AppendStripeDataPlacement)},
+  { 435, -1, -1, sizeof(::proxy_proto::SetReply)},
+  { 442, -1, -1, sizeof(::proxy_proto::GetReply)},
+  { 449, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -1247,6 +1276,7 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::proxy_proto::_MultipleRecoveryRequest_default_instance_._instance,
   &::proxy_proto::_RecoveryReply_default_instance_._instance,
   &::proxy_proto::_ParixParityRpcTarget_default_instance_._instance,
+  &::proxy_proto::_ParixDataSlice_default_instance_._instance,
   &::proxy_proto::_ParixDataUpdatePlacement_default_instance_._instance,
   &::proxy_proto::_ParixJournalAckItem_default_instance_._instance,
   &::proxy_proto::_ParixScheduleDataUpdateReply_default_instance_._instance,
@@ -1351,134 +1381,138 @@ const char descriptor_table_protodef_proxy_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "t\030\002 \001(\005\022\027\n\017parity_block_id\030\003 \001(\005\022\030\n\020pari"
   "ty_block_key\030\004 \001(\t\022\032\n\022parity_datanode_ip"
   "\030\005 \001(\t\022\034\n\024parity_datanode_port\030\006 \001(\005\022\022\n\n"
-  "cluster_id\030\007 \001(\005\"\354\002\n\030ParixDataUpdatePlac"
-  "ement\022\013\n\003key\030\001 \001(\t\022\021\n\tstripe_id\030\002 \001(\005\022\020\n"
-  "\010batch_id\030\003 \001(\004\022\030\n\020write_generation\030\004 \001("
-  "\004\022\022\n\ncluster_id\030\005 \001(\005\022\021\n\tblock_key\030\006 \001(\t"
-  "\022\020\n\010block_id\030\007 \001(\005\022\024\n\014range_offset\030\010 \001(\005"
-  "\022\024\n\014range_length\030\t \001(\004\022\023\n\013datanode_ip\030\n "
-  "\001(\t\022\025\n\rdatanode_port\030\013 \001(\005\022:\n\017global_par"
-  "ities\030\014 \003(\0132!.proxy_proto.ParixParityRpc"
-  "Target\0227\n\014local_parity\030\r \001(\0132!.proxy_pro"
-  "to.ParixParityRpcTarget\"\221\001\n\023ParixJournal"
-  "AckItem\022\027\n\017parity_proxy_ip\030\001 \001(\t\022\036\n\026pari"
-  "ty_proxy_grpc_port\030\002 \001(\005\022\027\n\017parity_block"
-  "_id\030\003 \001(\005\022(\n\003ack\030\004 \001(\0162\033.proxy_proto.Par"
-  "ixParityAck\"h\n\034ParixScheduleDataUpdateRe"
-  "ply\022\020\n\010ifcommit\030\001 \001(\010\0226\n\014journal_acks\030\002 "
-  "\003(\0132 .proxy_proto.ParixJournalAckItem\"\237\002"
-  "\n\031ParixJournalAppendRequest\022\021\n\tstripe_id"
-  "\030\001 \001(\005\022\020\n\010batch_id\030\002 \001(\004\022\030\n\020write_genera"
-  "tion\030\003 \001(\004\022\027\n\017parity_block_id\030\004 \001(\005\022\030\n\020p"
-  "arity_block_key\030\005 \001(\t\022\032\n\022parity_datanode"
-  "_ip\030\006 \001(\t\022\034\n\024parity_datanode_port\030\007 \001(\005\022"
-  "\025\n\rdata_block_id\030\010 \001(\005\022\024\n\014range_offset\030\t"
-  " \001(\005\022\024\n\014range_length\030\n \001(\004\022\023\n\013new_payloa"
-  "d\030\013 \001(\014\"C\n\027ParixJournalAppendReply\022(\n\003ac"
-  "k\030\001 \001(\0162\033.proxy_proto.ParixParityAck\"\212\001\n"
-  "\033ParixJournalAppendBatchItem\022\027\n\017parity_b"
-  "lock_id\030\001 \001(\005\022\030\n\020parity_block_key\030\002 \001(\t\022"
-  "\032\n\022parity_datanode_ip\030\003 \001(\t\022\034\n\024parity_da"
-  "tanode_port\030\004 \001(\005\"\362\001\n\036ParixJournalAppend"
-  "BatchRequest\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010batch"
-  "_id\030\002 \001(\004\022\030\n\020write_generation\030\003 \001(\004\022\025\n\rd"
-  "ata_block_id\030\004 \001(\005\022\024\n\014range_offset\030\005 \001(\005"
-  "\022\024\n\014range_length\030\006 \001(\004\022\023\n\013new_payload\030\007 "
-  "\001(\014\0229\n\007targets\030\010 \003(\0132(.proxy_proto.Parix"
-  "JournalAppendBatchItem\"c\n\036ParixJournalAp"
-  "pendBatchAckItem\022\027\n\017parity_block_id\030\001 \001("
-  "\005\022(\n\003ack\030\002 \001(\0162\033.proxy_proto.ParixParity"
-  "Ack\"Y\n\034ParixJournalAppendBatchReply\0229\n\004a"
-  "cks\030\001 \003(\0132+.proxy_proto.ParixJournalAppe"
-  "ndBatchAckItem\"\306\001\n\024ParixSupplyD0Request\022"
-  "\021\n\tstripe_id\030\001 \001(\005\022\020\n\010batch_id\030\002 \001(\004\022\030\n\020"
-  "write_generation\030\003 \001(\004\022\027\n\017parity_block_i"
-  "d\030\004 \001(\005\022\025\n\rdata_block_id\030\005 \001(\005\022\024\n\014range_"
-  "offset\030\006 \001(\005\022\024\n\014range_length\030\007 \001(\004\022\023\n\013ol"
-  "d_payload\030\010 \001(\014\">\n\027ParixReplayBatchReque"
-  "st\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010batch_id\030\002 \001(\004\""
-  "\215\001\n\031ParixBatchXferTimingReply\022\023\n\013had_sam"
-  "ples\030\001 \001(\010\022\033\n\023proxy_pure_xfer_sec\030\002 \001(\001\022"
-  "\037\n\027wall_span_start_unix_ms\030\003 \001(\003\022\035\n\025wall"
-  "_span_end_unix_ms\030\004 \001(\003\"b\n\035ParixJournalI"
-  "nvalidationRange\022\025\n\rdata_block_id\030\001 \001(\005\022"
-  "\024\n\014range_offset\030\002 \001(\005\022\024\n\014range_length\030\003 "
-  "\001(\004\"\227\002\n\037ParixParityFullOverwriteRequest\022"
-  "\021\n\tstripe_id\030\001 \001(\005\022\034\n\024new_write_generati"
-  "on\030\002 \001(\004\022\027\n\017parity_block_id\030\003 \001(\005\022\030\n\020par"
-  "ity_block_key\030\004 \001(\t\022\031\n\021full_parity_block"
-  "\030\005 \001(\014\022\023\n\013datanode_ip\030\006 \001(\t\022\025\n\rdatanode_"
-  "port\030\007 \001(\005\022I\n\025journal_invalidations\030\010 \003("
-  "\0132*.proxy_proto.ParixJournalInvalidation"
-  "Range\"\230\002\n\031AppendStripeDataPlacement\022\013\n\003k"
-  "ey\030\001 \001(\t\022\022\n\ncluster_id\030\002 \001(\005\022\021\n\tstripe_i"
-  "d\030\003 \001(\005\022\023\n\013append_size\030\004 \001(\004\022\022\n\ndatanode"
-  "ip\030\005 \003(\t\022\024\n\014datanodeport\030\006 \003(\005\022\021\n\tblockk"
-  "eys\030\007 \003(\t\022\020\n\010blockids\030\010 \003(\005\022\017\n\007offsets\030\t"
-  " \003(\004\022\r\n\005sizes\030\n \003(\004\022\027\n\017is_merge_parity\030\013"
-  " \001(\010\022\023\n\013append_mode\030\014 \001(\t\022\025\n\ris_serializ"
-  "ed\030\r \001(\010\"\034\n\010SetReply\022\020\n\010ifcommit\030\001 \001(\010\"\036"
-  "\n\010GetReply\022\022\n\ngetsuccess\030\001 \001(\010\"\261\001\n\021Strip"
-  "eAndBlockIDs\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010group"
-  "_id\030\002 \001(\005\022\020\n\010clientip\030\003 \001(\t\022\022\n\nclientpor"
-  "t\030\004 \001(\005\022\021\n\tblock_ids\030\005 \003(\005\022\022\n\nblock_keys"
-  "\030\006 \003(\t\022\023\n\013datanodeips\030\007 \003(\t\022\025\n\rdatanodep"
-  "orts\030\010 \003(\005*>\n\016ParixParityAck\022\025\n\021PARIX_AC"
-  "K_SUCCESS\020\000\022\025\n\021PARIX_ACK_NEED_D0\020\0012\362\016\n\014p"
-  "roxyService\022D\n\ncheckalive\022\032.proxy_proto."
-  "CheckaliveCMD\032\032.proxy_proto.RequestResul"
-  "t\022L\n\022encodeAndSetObject\022\037.proxy_proto.Ob"
-  "jectAndPlacement\032\025.proxy_proto.SetReply\022"
-  "L\n\022decodeAndGetObject\022\037.proxy_proto.Obje"
-  "ctAndPlacement\032\025.proxy_proto.GetReply\022P\n"
-  "\014degradedRead\022 .proxy_proto.DegradedRead"
-  "Request\032\036.proxy_proto.DegradedReadReply\022"
-  "S\n\023degradedRead2Client\022\034.proxy_proto.Rec"
-  "overyRequest\032\036.proxy_proto.DegradedReadR"
-  "eply\022Y\n\025degradedReadBreakdown\022 .proxy_pr"
-  "oto.DegradedReadRequest\032\036.proxy_proto.De"
-  "gradedReadReply\022\\\n\034degradedRead2ClientBr"
-  "eakdown\022\034.proxy_proto.RecoveryRequest\032\036."
-  "proxy_proto.DegradedReadReply\022X\n\035degrade"
-  "dReadWithBlockStripeID\022 .proxy_proto.Deg"
-  "radedReadRequest\032\025.proxy_proto.GetReply\022"
-  "V\n\017partialDecoding\022#.proxy_proto.Partial"
-  "DecodingRequest\032\036.proxy_proto.DegradedRe"
-  "adReply\022D\n\010recovery\022\034.proxy_proto.Recove"
-  "ryRequest\032\032.proxy_proto.RecoveryReply\022M\n"
-  "\021recoveryBreakdown\022\034.proxy_proto.Recover"
-  "yRequest\032\032.proxy_proto.RecoveryReply\022O\n\020"
-  "multipleRecovery\022$.proxy_proto.MultipleR"
-  "ecoveryRequest\032\025.proxy_proto.GetReply\022\?\n"
-  "\013deleteBlock\022\031.proxy_proto.NodeAndBlock\032"
-  "\025.proxy_proto.DelReply\022X\n\027scheduleAppend"
-  "2Datanode\022&.proxy_proto.AppendStripeData"
-  "Placement\032\025.proxy_proto.SetReply\022k\n\027pari"
-  "xScheduleDataUpdate\022%.proxy_proto.ParixD"
-  "ataUpdatePlacement\032).proxy_proto.ParixSc"
-  "heduleDataUpdateReply\022b\n\022parixJournalApp"
-  "end\022&.proxy_proto.ParixJournalAppendRequ"
-  "est\032$.proxy_proto.ParixJournalAppendRepl"
-  "y\022q\n\027parixJournalAppendBatch\022+.proxy_pro"
-  "to.ParixJournalAppendBatchRequest\032).prox"
-  "y_proto.ParixJournalAppendBatchReply\022I\n\r"
-  "parixSupplyD0\022!.proxy_proto.ParixSupplyD"
-  "0Request\032\025.proxy_proto.SetReply\022O\n\020parix"
-  "ReplayBatch\022$.proxy_proto.ParixReplayBat"
-  "chRequest\032\025.proxy_proto.SetReply\022h\n\030pari"
-  "xPullBatchXferTiming\022$.proxy_proto.Parix"
-  "ReplayBatchRequest\032&.proxy_proto.ParixBa"
-  "tchXferTimingReply\022_\n\030parixParityFullOve"
-  "rwrite\022,.proxy_proto.ParixParityFullOver"
-  "writeRequest\032\025.proxy_proto.SetReply\022B\n\tg"
-  "etBlocks\022\036.proxy_proto.StripeAndBlockIDs"
-  "\032\025.proxy_proto.GetReplyb\006proto3"
+  "cluster_id\030\007 \001(\005\"<\n\016ParixDataSlice\022\024\n\014ra"
+  "nge_offset\030\001 \001(\005\022\024\n\014range_length\030\002 \001(\004\"\231"
+  "\003\n\030ParixDataUpdatePlacement\022\013\n\003key\030\001 \001(\t"
+  "\022\021\n\tstripe_id\030\002 \001(\005\022\020\n\010batch_id\030\003 \001(\004\022\030\n"
+  "\020write_generation\030\004 \001(\004\022\022\n\ncluster_id\030\005 "
+  "\001(\005\022\021\n\tblock_key\030\006 \001(\t\022\020\n\010block_id\030\007 \001(\005"
+  "\022\024\n\014range_offset\030\010 \001(\005\022\024\n\014range_length\030\t"
+  " \001(\004\022\023\n\013datanode_ip\030\n \001(\t\022\025\n\rdatanode_po"
+  "rt\030\013 \001(\005\022:\n\017global_parities\030\014 \003(\0132!.prox"
+  "y_proto.ParixParityRpcTarget\0227\n\014local_pa"
+  "rity\030\r \001(\0132!.proxy_proto.ParixParityRpcT"
+  "arget\022+\n\006slices\030\016 \003(\0132\033.proxy_proto.Pari"
+  "xDataSlice\"\275\001\n\023ParixJournalAckItem\022\027\n\017pa"
+  "rity_proxy_ip\030\001 \001(\t\022\036\n\026parity_proxy_grpc"
+  "_port\030\002 \001(\005\022\027\n\017parity_block_id\030\003 \001(\005\022(\n\003"
+  "ack\030\004 \001(\0162\033.proxy_proto.ParixParityAck\022\024"
+  "\n\014range_offset\030\005 \001(\005\022\024\n\014range_length\030\006 \001"
+  "(\004\"h\n\034ParixScheduleDataUpdateReply\022\020\n\010if"
+  "commit\030\001 \001(\010\0226\n\014journal_acks\030\002 \003(\0132 .pro"
+  "xy_proto.ParixJournalAckItem\"\237\002\n\031ParixJo"
+  "urnalAppendRequest\022\021\n\tstripe_id\030\001 \001(\005\022\020\n"
+  "\010batch_id\030\002 \001(\004\022\030\n\020write_generation\030\003 \001("
+  "\004\022\027\n\017parity_block_id\030\004 \001(\005\022\030\n\020parity_blo"
+  "ck_key\030\005 \001(\t\022\032\n\022parity_datanode_ip\030\006 \001(\t"
+  "\022\034\n\024parity_datanode_port\030\007 \001(\005\022\025\n\rdata_b"
+  "lock_id\030\010 \001(\005\022\024\n\014range_offset\030\t \001(\005\022\024\n\014r"
+  "ange_length\030\n \001(\004\022\023\n\013new_payload\030\013 \001(\014\"C"
+  "\n\027ParixJournalAppendReply\022(\n\003ack\030\001 \001(\0162\033"
+  ".proxy_proto.ParixParityAck\"\212\001\n\033ParixJou"
+  "rnalAppendBatchItem\022\027\n\017parity_block_id\030\001"
+  " \001(\005\022\030\n\020parity_block_key\030\002 \001(\t\022\032\n\022parity"
+  "_datanode_ip\030\003 \001(\t\022\034\n\024parity_datanode_po"
+  "rt\030\004 \001(\005\"\362\001\n\036ParixJournalAppendBatchRequ"
+  "est\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010batch_id\030\002 \001(\004"
+  "\022\030\n\020write_generation\030\003 \001(\004\022\025\n\rdata_block"
+  "_id\030\004 \001(\005\022\024\n\014range_offset\030\005 \001(\005\022\024\n\014range"
+  "_length\030\006 \001(\004\022\023\n\013new_payload\030\007 \001(\014\0229\n\007ta"
+  "rgets\030\010 \003(\0132(.proxy_proto.ParixJournalAp"
+  "pendBatchItem\"c\n\036ParixJournalAppendBatch"
+  "AckItem\022\027\n\017parity_block_id\030\001 \001(\005\022(\n\003ack\030"
+  "\002 \001(\0162\033.proxy_proto.ParixParityAck\"Y\n\034Pa"
+  "rixJournalAppendBatchReply\0229\n\004acks\030\001 \003(\013"
+  "2+.proxy_proto.ParixJournalAppendBatchAc"
+  "kItem\"\306\001\n\024ParixSupplyD0Request\022\021\n\tstripe"
+  "_id\030\001 \001(\005\022\020\n\010batch_id\030\002 \001(\004\022\030\n\020write_gen"
+  "eration\030\003 \001(\004\022\027\n\017parity_block_id\030\004 \001(\005\022\025"
+  "\n\rdata_block_id\030\005 \001(\005\022\024\n\014range_offset\030\006 "
+  "\001(\005\022\024\n\014range_length\030\007 \001(\004\022\023\n\013old_payload"
+  "\030\010 \001(\014\">\n\027ParixReplayBatchRequest\022\021\n\tstr"
+  "ipe_id\030\001 \001(\005\022\020\n\010batch_id\030\002 \001(\004\"\215\001\n\031Parix"
+  "BatchXferTimingReply\022\023\n\013had_samples\030\001 \001("
+  "\010\022\033\n\023proxy_pure_xfer_sec\030\002 \001(\001\022\037\n\027wall_s"
+  "pan_start_unix_ms\030\003 \001(\003\022\035\n\025wall_span_end"
+  "_unix_ms\030\004 \001(\003\"b\n\035ParixJournalInvalidati"
+  "onRange\022\025\n\rdata_block_id\030\001 \001(\005\022\024\n\014range_"
+  "offset\030\002 \001(\005\022\024\n\014range_length\030\003 \001(\004\"\227\002\n\037P"
+  "arixParityFullOverwriteRequest\022\021\n\tstripe"
+  "_id\030\001 \001(\005\022\034\n\024new_write_generation\030\002 \001(\004\022"
+  "\027\n\017parity_block_id\030\003 \001(\005\022\030\n\020parity_block"
+  "_key\030\004 \001(\t\022\031\n\021full_parity_block\030\005 \001(\014\022\023\n"
+  "\013datanode_ip\030\006 \001(\t\022\025\n\rdatanode_port\030\007 \001("
+  "\005\022I\n\025journal_invalidations\030\010 \003(\0132*.proxy"
+  "_proto.ParixJournalInvalidationRange\"\230\002\n"
+  "\031AppendStripeDataPlacement\022\013\n\003key\030\001 \001(\t\022"
+  "\022\n\ncluster_id\030\002 \001(\005\022\021\n\tstripe_id\030\003 \001(\005\022\023"
+  "\n\013append_size\030\004 \001(\004\022\022\n\ndatanodeip\030\005 \003(\t\022"
+  "\024\n\014datanodeport\030\006 \003(\005\022\021\n\tblockkeys\030\007 \003(\t"
+  "\022\020\n\010blockids\030\010 \003(\005\022\017\n\007offsets\030\t \003(\004\022\r\n\005s"
+  "izes\030\n \003(\004\022\027\n\017is_merge_parity\030\013 \001(\010\022\023\n\013a"
+  "ppend_mode\030\014 \001(\t\022\025\n\ris_serialized\030\r \001(\010\""
+  "\034\n\010SetReply\022\020\n\010ifcommit\030\001 \001(\010\"\036\n\010GetRepl"
+  "y\022\022\n\ngetsuccess\030\001 \001(\010\"\261\001\n\021StripeAndBlock"
+  "IDs\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010group_id\030\002 \001(\005"
+  "\022\020\n\010clientip\030\003 \001(\t\022\022\n\nclientport\030\004 \001(\005\022\021"
+  "\n\tblock_ids\030\005 \003(\005\022\022\n\nblock_keys\030\006 \003(\t\022\023\n"
+  "\013datanodeips\030\007 \003(\t\022\025\n\rdatanodeports\030\010 \003("
+  "\005*>\n\016ParixParityAck\022\025\n\021PARIX_ACK_SUCCESS"
+  "\020\000\022\025\n\021PARIX_ACK_NEED_D0\020\0012\362\016\n\014proxyServi"
+  "ce\022D\n\ncheckalive\022\032.proxy_proto.Checkaliv"
+  "eCMD\032\032.proxy_proto.RequestResult\022L\n\022enco"
+  "deAndSetObject\022\037.proxy_proto.ObjectAndPl"
+  "acement\032\025.proxy_proto.SetReply\022L\n\022decode"
+  "AndGetObject\022\037.proxy_proto.ObjectAndPlac"
+  "ement\032\025.proxy_proto.GetReply\022P\n\014degraded"
+  "Read\022 .proxy_proto.DegradedReadRequest\032\036"
+  ".proxy_proto.DegradedReadReply\022S\n\023degrad"
+  "edRead2Client\022\034.proxy_proto.RecoveryRequ"
+  "est\032\036.proxy_proto.DegradedReadReply\022Y\n\025d"
+  "egradedReadBreakdown\022 .proxy_proto.Degra"
+  "dedReadRequest\032\036.proxy_proto.DegradedRea"
+  "dReply\022\\\n\034degradedRead2ClientBreakdown\022\034"
+  ".proxy_proto.RecoveryRequest\032\036.proxy_pro"
+  "to.DegradedReadReply\022X\n\035degradedReadWith"
+  "BlockStripeID\022 .proxy_proto.DegradedRead"
+  "Request\032\025.proxy_proto.GetReply\022V\n\017partia"
+  "lDecoding\022#.proxy_proto.PartialDecodingR"
+  "equest\032\036.proxy_proto.DegradedReadReply\022D"
+  "\n\010recovery\022\034.proxy_proto.RecoveryRequest"
+  "\032\032.proxy_proto.RecoveryReply\022M\n\021recovery"
+  "Breakdown\022\034.proxy_proto.RecoveryRequest\032"
+  "\032.proxy_proto.RecoveryReply\022O\n\020multipleR"
+  "ecovery\022$.proxy_proto.MultipleRecoveryRe"
+  "quest\032\025.proxy_proto.GetReply\022\?\n\013deleteBl"
+  "ock\022\031.proxy_proto.NodeAndBlock\032\025.proxy_p"
+  "roto.DelReply\022X\n\027scheduleAppend2Datanode"
+  "\022&.proxy_proto.AppendStripeDataPlacement"
+  "\032\025.proxy_proto.SetReply\022k\n\027parixSchedule"
+  "DataUpdate\022%.proxy_proto.ParixDataUpdate"
+  "Placement\032).proxy_proto.ParixScheduleDat"
+  "aUpdateReply\022b\n\022parixJournalAppend\022&.pro"
+  "xy_proto.ParixJournalAppendRequest\032$.pro"
+  "xy_proto.ParixJournalAppendReply\022q\n\027pari"
+  "xJournalAppendBatch\022+.proxy_proto.ParixJ"
+  "ournalAppendBatchRequest\032).proxy_proto.P"
+  "arixJournalAppendBatchReply\022I\n\rparixSupp"
+  "lyD0\022!.proxy_proto.ParixSupplyD0Request\032"
+  "\025.proxy_proto.SetReply\022O\n\020parixReplayBat"
+  "ch\022$.proxy_proto.ParixReplayBatchRequest"
+  "\032\025.proxy_proto.SetReply\022h\n\030parixPullBatc"
+  "hXferTiming\022$.proxy_proto.ParixReplayBat"
+  "chRequest\032&.proxy_proto.ParixBatchXferTi"
+  "mingReply\022_\n\030parixParityFullOverwrite\022,."
+  "proxy_proto.ParixParityFullOverwriteRequ"
+  "est\032\025.proxy_proto.SetReply\022B\n\tgetBlocks\022"
+  "\036.proxy_proto.StripeAndBlockIDs\032\025.proxy_"
+  "proto.GetReplyb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_proxy_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_proxy_2eproto = {
-    false, false, 8191, descriptor_table_protodef_proxy_2eproto,
+    false, false, 8342, descriptor_table_protodef_proxy_2eproto,
     "proxy.proto",
-    &descriptor_table_proxy_2eproto_once, nullptr, 0, 38,
+    &descriptor_table_proxy_2eproto_once, nullptr, 0, 39,
     schemas, file_default_instances, TableStruct_proxy_2eproto::offsets,
     file_level_metadata_proxy_2eproto, file_level_enum_descriptors_proxy_2eproto,
     file_level_service_descriptors_proxy_2eproto,
@@ -9218,6 +9252,217 @@ void ParixParityRpcTarget::InternalSwap(ParixParityRpcTarget* other) {
 
 // ===================================================================
 
+class ParixDataSlice::_Internal {
+ public:
+};
+
+ParixDataSlice::ParixDataSlice(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.ParixDataSlice)
+}
+ParixDataSlice::ParixDataSlice(const ParixDataSlice& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParixDataSlice* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.range_length_){}
+    , decltype(_impl_.range_offset_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.range_length_, &from._impl_.range_length_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.range_offset_) -
+    reinterpret_cast<char*>(&_impl_.range_length_)) + sizeof(_impl_.range_offset_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixDataSlice)
+}
+
+inline void ParixDataSlice::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.range_length_){uint64_t{0u}}
+    , decltype(_impl_.range_offset_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+ParixDataSlice::~ParixDataSlice() {
+  // @@protoc_insertion_point(destructor:proxy_proto.ParixDataSlice)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParixDataSlice::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void ParixDataSlice::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParixDataSlice::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.ParixDataSlice)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&_impl_.range_length_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.range_offset_) -
+      reinterpret_cast<char*>(&_impl_.range_length_)) + sizeof(_impl_.range_offset_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParixDataSlice::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 range_offset = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.range_offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 range_length = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.range_length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParixDataSlice::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.ParixDataSlice)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 range_offset = 1;
+  if (this->_internal_range_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_range_offset(), target);
+  }
+
+  // uint64 range_length = 2;
+  if (this->_internal_range_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(2, this->_internal_range_length(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.ParixDataSlice)
+  return target;
+}
+
+size_t ParixDataSlice::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.ParixDataSlice)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // uint64 range_length = 2;
+  if (this->_internal_range_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_range_length());
+  }
+
+  // int32 range_offset = 1;
+  if (this->_internal_range_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_offset());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParixDataSlice::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParixDataSlice::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParixDataSlice::GetClassData() const { return &_class_data_; }
+
+
+void ParixDataSlice::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParixDataSlice*>(&to_msg);
+  auto& from = static_cast<const ParixDataSlice&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.ParixDataSlice)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_range_length() != 0) {
+    _this->_internal_set_range_length(from._internal_range_length());
+  }
+  if (from._internal_range_offset() != 0) {
+    _this->_internal_set_range_offset(from._internal_range_offset());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParixDataSlice::CopyFrom(const ParixDataSlice& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.ParixDataSlice)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParixDataSlice::IsInitialized() const {
+  return true;
+}
+
+void ParixDataSlice::InternalSwap(ParixDataSlice* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParixDataSlice, _impl_.range_offset_)
+      + sizeof(ParixDataSlice::_impl_.range_offset_)
+      - PROTOBUF_FIELD_OFFSET(ParixDataSlice, _impl_.range_length_)>(
+          reinterpret_cast<char*>(&_impl_.range_length_),
+          reinterpret_cast<char*>(&other->_impl_.range_length_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParixDataSlice::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[20]);
+}
+
+// ===================================================================
+
 class ParixDataUpdatePlacement::_Internal {
  public:
   static const ::proxy_proto::ParixParityRpcTarget& local_parity(const ParixDataUpdatePlacement* msg);
@@ -9238,6 +9483,7 @@ ParixDataUpdatePlacement::ParixDataUpdatePlacement(const ParixDataUpdatePlacemen
   ParixDataUpdatePlacement* const _this = this; (void)_this;
   new (&_impl_) Impl_{
       decltype(_impl_.global_parities_){from._impl_.global_parities_}
+    , decltype(_impl_.slices_){from._impl_.slices_}
     , decltype(_impl_.key_){}
     , decltype(_impl_.block_key_){}
     , decltype(_impl_.datanode_ip_){}
@@ -9292,6 +9538,7 @@ inline void ParixDataUpdatePlacement::SharedCtor(
   (void)is_message_owned;
   new (&_impl_) Impl_{
       decltype(_impl_.global_parities_){arena}
+    , decltype(_impl_.slices_){arena}
     , decltype(_impl_.key_){}
     , decltype(_impl_.block_key_){}
     , decltype(_impl_.datanode_ip_){}
@@ -9332,6 +9579,7 @@ ParixDataUpdatePlacement::~ParixDataUpdatePlacement() {
 inline void ParixDataUpdatePlacement::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.global_parities_.~RepeatedPtrField();
+  _impl_.slices_.~RepeatedPtrField();
   _impl_.key_.Destroy();
   _impl_.block_key_.Destroy();
   _impl_.datanode_ip_.Destroy();
@@ -9349,6 +9597,7 @@ void ParixDataUpdatePlacement::Clear() {
   (void) cached_has_bits;
 
   _impl_.global_parities_.Clear();
+  _impl_.slices_.Clear();
   _impl_.key_.ClearToEmpty();
   _impl_.block_key_.ClearToEmpty();
   _impl_.datanode_ip_.ClearToEmpty();
@@ -9483,6 +9732,19 @@ const char* ParixDataUpdatePlacement::_InternalParse(const char* ptr, ::_pbi::Pa
         } else
           goto handle_unusual;
         continue;
+      // repeated .proxy_proto.ParixDataSlice slices = 14;
+      case 14:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 114)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_slices(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<114>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
       default:
         goto handle_unusual;
     }  // switch
@@ -9605,6 +9867,14 @@ uint8_t* ParixDataUpdatePlacement::_InternalSerialize(
         _Internal::local_parity(this).GetCachedSize(), target, stream);
   }
 
+  // repeated .proxy_proto.ParixDataSlice slices = 14;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_slices_size()); i < n; i++) {
+    const auto& repfield = this->_internal_slices(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(14, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -9624,6 +9894,13 @@ size_t ParixDataUpdatePlacement::ByteSizeLong() const {
   // repeated .proxy_proto.ParixParityRpcTarget global_parities = 12;
   total_size += 1UL * this->_internal_global_parities_size();
   for (const auto& msg : this->_impl_.global_parities_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // repeated .proxy_proto.ParixDataSlice slices = 14;
+  total_size += 1UL * this->_internal_slices_size();
+  for (const auto& msg : this->_impl_.slices_) {
     total_size +=
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
   }
@@ -9715,6 +9992,7 @@ void ParixDataUpdatePlacement::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_ms
   (void) cached_has_bits;
 
   _this->_impl_.global_parities_.MergeFrom(from._impl_.global_parities_);
+  _this->_impl_.slices_.MergeFrom(from._impl_.slices_);
   if (!from._internal_key().empty()) {
     _this->_internal_set_key(from._internal_key());
   }
@@ -9772,6 +10050,7 @@ void ParixDataUpdatePlacement::InternalSwap(ParixDataUpdatePlacement* other) {
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   _impl_.global_parities_.InternalSwap(&other->_impl_.global_parities_);
+  _impl_.slices_.InternalSwap(&other->_impl_.slices_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.key_, lhs_arena,
       &other->_impl_.key_, rhs_arena
@@ -9795,7 +10074,7 @@ void ParixDataUpdatePlacement::InternalSwap(ParixDataUpdatePlacement* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixDataUpdatePlacement::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[20]);
+      file_level_metadata_proxy_2eproto[21]);
 }
 
 // ===================================================================
@@ -9818,6 +10097,8 @@ ParixJournalAckItem::ParixJournalAckItem(const ParixJournalAckItem& from)
     , decltype(_impl_.parity_proxy_grpc_port_){}
     , decltype(_impl_.parity_block_id_){}
     , decltype(_impl_.ack_){}
+    , decltype(_impl_.range_offset_){}
+    , decltype(_impl_.range_length_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -9830,8 +10111,8 @@ ParixJournalAckItem::ParixJournalAckItem(const ParixJournalAckItem& from)
       _this->GetArenaForAllocation());
   }
   ::memcpy(&_impl_.parity_proxy_grpc_port_, &from._impl_.parity_proxy_grpc_port_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.ack_) -
-    reinterpret_cast<char*>(&_impl_.parity_proxy_grpc_port_)) + sizeof(_impl_.ack_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.range_length_) -
+    reinterpret_cast<char*>(&_impl_.parity_proxy_grpc_port_)) + sizeof(_impl_.range_length_));
   // @@protoc_insertion_point(copy_constructor:proxy_proto.ParixJournalAckItem)
 }
 
@@ -9844,6 +10125,8 @@ inline void ParixJournalAckItem::SharedCtor(
     , decltype(_impl_.parity_proxy_grpc_port_){0}
     , decltype(_impl_.parity_block_id_){0}
     , decltype(_impl_.ack_){0}
+    , decltype(_impl_.range_offset_){0}
+    , decltype(_impl_.range_length_){uint64_t{0u}}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.parity_proxy_ip_.InitDefault();
@@ -9878,8 +10161,8 @@ void ParixJournalAckItem::Clear() {
 
   _impl_.parity_proxy_ip_.ClearToEmpty();
   ::memset(&_impl_.parity_proxy_grpc_port_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.ack_) -
-      reinterpret_cast<char*>(&_impl_.parity_proxy_grpc_port_)) + sizeof(_impl_.ack_));
+      reinterpret_cast<char*>(&_impl_.range_length_) -
+      reinterpret_cast<char*>(&_impl_.parity_proxy_grpc_port_)) + sizeof(_impl_.range_length_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -9921,6 +10204,22 @@ const char* ParixJournalAckItem::_InternalParse(const char* ptr, ::_pbi::ParseCo
           uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
           _internal_set_ack(static_cast<::proxy_proto::ParixParityAck>(val));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_offset = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          _impl_.range_offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 range_length = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
+          _impl_.range_length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
@@ -9982,6 +10281,18 @@ uint8_t* ParixJournalAckItem::_InternalSerialize(
       4, this->_internal_ack(), target);
   }
 
+  // int32 range_offset = 5;
+  if (this->_internal_range_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_range_offset(), target);
+  }
+
+  // uint64 range_length = 6;
+  if (this->_internal_range_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(6, this->_internal_range_length(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -10021,6 +10332,16 @@ size_t ParixJournalAckItem::ByteSizeLong() const {
       ::_pbi::WireFormatLite::EnumSize(this->_internal_ack());
   }
 
+  // int32 range_offset = 5;
+  if (this->_internal_range_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_offset());
+  }
+
+  // uint64 range_length = 6;
+  if (this->_internal_range_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_range_length());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -10051,6 +10372,12 @@ void ParixJournalAckItem::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, co
   if (from._internal_ack() != 0) {
     _this->_internal_set_ack(from._internal_ack());
   }
+  if (from._internal_range_offset() != 0) {
+    _this->_internal_set_range_offset(from._internal_range_offset());
+  }
+  if (from._internal_range_length() != 0) {
+    _this->_internal_set_range_length(from._internal_range_length());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -10075,8 +10402,8 @@ void ParixJournalAckItem::InternalSwap(ParixJournalAckItem* other) {
       &other->_impl_.parity_proxy_ip_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(ParixJournalAckItem, _impl_.ack_)
-      + sizeof(ParixJournalAckItem::_impl_.ack_)
+      PROTOBUF_FIELD_OFFSET(ParixJournalAckItem, _impl_.range_length_)
+      + sizeof(ParixJournalAckItem::_impl_.range_length_)
       - PROTOBUF_FIELD_OFFSET(ParixJournalAckItem, _impl_.parity_proxy_grpc_port_)>(
           reinterpret_cast<char*>(&_impl_.parity_proxy_grpc_port_),
           reinterpret_cast<char*>(&other->_impl_.parity_proxy_grpc_port_));
@@ -10085,7 +10412,7 @@ void ParixJournalAckItem::InternalSwap(ParixJournalAckItem* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalAckItem::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[21]);
+      file_level_metadata_proxy_2eproto[22]);
 }
 
 // ===================================================================
@@ -10297,7 +10624,7 @@ void ParixScheduleDataUpdateReply::InternalSwap(ParixScheduleDataUpdateReply* ot
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixScheduleDataUpdateReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[22]);
+      file_level_metadata_proxy_2eproto[23]);
 }
 
 // ===================================================================
@@ -10799,7 +11126,7 @@ void ParixJournalAppendRequest::InternalSwap(ParixJournalAppendRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalAppendRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[23]);
+      file_level_metadata_proxy_2eproto[24]);
 }
 
 // ===================================================================
@@ -10980,7 +11307,7 @@ void ParixJournalAppendReply::InternalSwap(ParixJournalAppendReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalAppendReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[24]);
+      file_level_metadata_proxy_2eproto[25]);
 }
 
 // ===================================================================
@@ -11293,7 +11620,7 @@ void ParixJournalAppendBatchItem::InternalSwap(ParixJournalAppendBatchItem* othe
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalAppendBatchItem::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[25]);
+      file_level_metadata_proxy_2eproto[26]);
 }
 
 // ===================================================================
@@ -11681,7 +12008,7 @@ void ParixJournalAppendBatchRequest::InternalSwap(ParixJournalAppendBatchRequest
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalAppendBatchRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[26]);
+      file_level_metadata_proxy_2eproto[27]);
 }
 
 // ===================================================================
@@ -11895,7 +12222,7 @@ void ParixJournalAppendBatchAckItem::InternalSwap(ParixJournalAppendBatchAckItem
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalAppendBatchAckItem::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[27]);
+      file_level_metadata_proxy_2eproto[28]);
 }
 
 // ===================================================================
@@ -12080,7 +12407,7 @@ void ParixJournalAppendBatchReply::InternalSwap(ParixJournalAppendBatchReply* ot
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalAppendBatchReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[28]);
+      file_level_metadata_proxy_2eproto[29]);
 }
 
 // ===================================================================
@@ -12458,7 +12785,7 @@ void ParixSupplyD0Request::InternalSwap(ParixSupplyD0Request* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixSupplyD0Request::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[29]);
+      file_level_metadata_proxy_2eproto[30]);
 }
 
 // ===================================================================
@@ -12669,7 +12996,7 @@ void ParixReplayBatchRequest::InternalSwap(ParixReplayBatchRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixReplayBatchRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[30]);
+      file_level_metadata_proxy_2eproto[31]);
 }
 
 // ===================================================================
@@ -12940,7 +13267,7 @@ void ParixBatchXferTimingReply::InternalSwap(ParixBatchXferTimingReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixBatchXferTimingReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[31]);
+      file_level_metadata_proxy_2eproto[32]);
 }
 
 // ===================================================================
@@ -13175,7 +13502,7 @@ void ParixJournalInvalidationRange::InternalSwap(ParixJournalInvalidationRange* 
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixJournalInvalidationRange::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[32]);
+      file_level_metadata_proxy_2eproto[33]);
 }
 
 // ===================================================================
@@ -13615,7 +13942,7 @@ void ParixParityFullOverwriteRequest::InternalSwap(ParixParityFullOverwriteReque
 ::PROTOBUF_NAMESPACE_ID::Metadata ParixParityFullOverwriteRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[33]);
+      file_level_metadata_proxy_2eproto[34]);
 }
 
 // ===================================================================
@@ -14246,7 +14573,7 @@ void AppendStripeDataPlacement::InternalSwap(AppendStripeDataPlacement* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata AppendStripeDataPlacement::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[34]);
+      file_level_metadata_proxy_2eproto[35]);
 }
 
 // ===================================================================
@@ -14424,7 +14751,7 @@ void SetReply::InternalSwap(SetReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SetReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[35]);
+      file_level_metadata_proxy_2eproto[36]);
 }
 
 // ===================================================================
@@ -14602,7 +14929,7 @@ void GetReply::InternalSwap(GetReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata GetReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[36]);
+      file_level_metadata_proxy_2eproto[37]);
 }
 
 // ===================================================================
@@ -15051,7 +15378,7 @@ void StripeAndBlockIDs::InternalSwap(StripeAndBlockIDs* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata StripeAndBlockIDs::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[37]);
+      file_level_metadata_proxy_2eproto[38]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -15136,6 +15463,10 @@ Arena::CreateMaybeMessage< ::proxy_proto::RecoveryReply >(Arena* arena) {
 template<> PROTOBUF_NOINLINE ::proxy_proto::ParixParityRpcTarget*
 Arena::CreateMaybeMessage< ::proxy_proto::ParixParityRpcTarget >(Arena* arena) {
   return Arena::CreateMessageInternal< ::proxy_proto::ParixParityRpcTarget >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::ParixDataSlice*
+Arena::CreateMaybeMessage< ::proxy_proto::ParixDataSlice >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::ParixDataSlice >(arena);
 }
 template<> PROTOBUF_NOINLINE ::proxy_proto::ParixDataUpdatePlacement*
 Arena::CreateMaybeMessage< ::proxy_proto::ParixDataUpdatePlacement >(Arena* arena) {

@@ -79,6 +79,9 @@ extern ObjectAndPlacementDefaultTypeInternal _ObjectAndPlacement_default_instanc
 class ParixBatchXferTimingReply;
 struct ParixBatchXferTimingReplyDefaultTypeInternal;
 extern ParixBatchXferTimingReplyDefaultTypeInternal _ParixBatchXferTimingReply_default_instance_;
+class ParixDataSlice;
+struct ParixDataSliceDefaultTypeInternal;
+extern ParixDataSliceDefaultTypeInternal _ParixDataSlice_default_instance_;
 class ParixDataUpdatePlacement;
 struct ParixDataUpdatePlacementDefaultTypeInternal;
 extern ParixDataUpdatePlacementDefaultTypeInternal _ParixDataUpdatePlacement_default_instance_;
@@ -173,6 +176,7 @@ template<> ::proxy_proto::MultipleRecoveryRequest* Arena::CreateMaybeMessage<::p
 template<> ::proxy_proto::NodeAndBlock* Arena::CreateMaybeMessage<::proxy_proto::NodeAndBlock>(Arena*);
 template<> ::proxy_proto::ObjectAndPlacement* Arena::CreateMaybeMessage<::proxy_proto::ObjectAndPlacement>(Arena*);
 template<> ::proxy_proto::ParixBatchXferTimingReply* Arena::CreateMaybeMessage<::proxy_proto::ParixBatchXferTimingReply>(Arena*);
+template<> ::proxy_proto::ParixDataSlice* Arena::CreateMaybeMessage<::proxy_proto::ParixDataSlice>(Arena*);
 template<> ::proxy_proto::ParixDataUpdatePlacement* Arena::CreateMaybeMessage<::proxy_proto::ParixDataUpdatePlacement>(Arena*);
 template<> ::proxy_proto::ParixJournalAckItem* Arena::CreateMaybeMessage<::proxy_proto::ParixJournalAckItem>(Arena*);
 template<> ::proxy_proto::ParixJournalAppendBatchAckItem* Arena::CreateMaybeMessage<::proxy_proto::ParixJournalAppendBatchAckItem>(Arena*);
@@ -5075,6 +5079,165 @@ class ParixParityRpcTarget final :
 };
 // -------------------------------------------------------------------
 
+class ParixDataSlice final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixDataSlice) */ {
+ public:
+  inline ParixDataSlice() : ParixDataSlice(nullptr) {}
+  ~ParixDataSlice() override;
+  explicit PROTOBUF_CONSTEXPR ParixDataSlice(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParixDataSlice(const ParixDataSlice& from);
+  ParixDataSlice(ParixDataSlice&& from) noexcept
+    : ParixDataSlice() {
+    *this = ::std::move(from);
+  }
+
+  inline ParixDataSlice& operator=(const ParixDataSlice& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParixDataSlice& operator=(ParixDataSlice&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParixDataSlice& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParixDataSlice* internal_default_instance() {
+    return reinterpret_cast<const ParixDataSlice*>(
+               &_ParixDataSlice_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    20;
+
+  friend void swap(ParixDataSlice& a, ParixDataSlice& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParixDataSlice* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParixDataSlice* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParixDataSlice* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParixDataSlice>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParixDataSlice& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParixDataSlice& from) {
+    ParixDataSlice::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParixDataSlice* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.ParixDataSlice";
+  }
+  protected:
+  explicit ParixDataSlice(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kRangeLengthFieldNumber = 2,
+    kRangeOffsetFieldNumber = 1,
+  };
+  // uint64 range_length = 2;
+  void clear_range_length();
+  uint64_t range_length() const;
+  void set_range_length(uint64_t value);
+  private:
+  uint64_t _internal_range_length() const;
+  void _internal_set_range_length(uint64_t value);
+  public:
+
+  // int32 range_offset = 1;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.ParixDataSlice)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    uint64_t range_length_;
+    int32_t range_offset_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
 class ParixDataUpdatePlacement final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.ParixDataUpdatePlacement) */ {
  public:
@@ -5123,7 +5286,7 @@ class ParixDataUpdatePlacement final :
                &_ParixDataUpdatePlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    21;
 
   friend void swap(ParixDataUpdatePlacement& a, ParixDataUpdatePlacement& b) {
     a.Swap(&b);
@@ -5197,6 +5360,7 @@ class ParixDataUpdatePlacement final :
 
   enum : int {
     kGlobalParitiesFieldNumber = 12,
+    kSlicesFieldNumber = 14,
     kKeyFieldNumber = 1,
     kBlockKeyFieldNumber = 6,
     kDatanodeIpFieldNumber = 10,
@@ -5227,6 +5391,24 @@ class ParixDataUpdatePlacement final :
   ::proxy_proto::ParixParityRpcTarget* add_global_parities();
   const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixParityRpcTarget >&
       global_parities() const;
+
+  // repeated .proxy_proto.ParixDataSlice slices = 14;
+  int slices_size() const;
+  private:
+  int _internal_slices_size() const;
+  public:
+  void clear_slices();
+  ::proxy_proto::ParixDataSlice* mutable_slices(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixDataSlice >*
+      mutable_slices();
+  private:
+  const ::proxy_proto::ParixDataSlice& _internal_slices(int index) const;
+  ::proxy_proto::ParixDataSlice* _internal_add_slices();
+  public:
+  const ::proxy_proto::ParixDataSlice& slices(int index) const;
+  ::proxy_proto::ParixDataSlice* add_slices();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixDataSlice >&
+      slices() const;
 
   // string key = 1;
   void clear_key();
@@ -5369,6 +5551,7 @@ class ParixDataUpdatePlacement final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixParityRpcTarget > global_parities_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixDataSlice > slices_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr block_key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr datanode_ip_;
@@ -5436,7 +5619,7 @@ class ParixJournalAckItem final :
                &_ParixJournalAckItem_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    22;
 
   friend void swap(ParixJournalAckItem& a, ParixJournalAckItem& b) {
     a.Swap(&b);
@@ -5513,6 +5696,8 @@ class ParixJournalAckItem final :
     kParityProxyGrpcPortFieldNumber = 2,
     kParityBlockIdFieldNumber = 3,
     kAckFieldNumber = 4,
+    kRangeOffsetFieldNumber = 5,
+    kRangeLengthFieldNumber = 6,
   };
   // string parity_proxy_ip = 1;
   void clear_parity_proxy_ip();
@@ -5555,6 +5740,24 @@ class ParixJournalAckItem final :
   void _internal_set_ack(::proxy_proto::ParixParityAck value);
   public:
 
+  // int32 range_offset = 5;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // uint64 range_length = 6;
+  void clear_range_length();
+  uint64_t range_length() const;
+  void set_range_length(uint64_t value);
+  private:
+  uint64_t _internal_range_length() const;
+  void _internal_set_range_length(uint64_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:proxy_proto.ParixJournalAckItem)
  private:
   class _Internal;
@@ -5567,6 +5770,8 @@ class ParixJournalAckItem final :
     int32_t parity_proxy_grpc_port_;
     int32_t parity_block_id_;
     int ack_;
+    int32_t range_offset_;
+    uint64_t range_length_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -5622,7 +5827,7 @@ class ParixScheduleDataUpdateReply final :
                &_ParixScheduleDataUpdateReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    23;
 
   friend void swap(ParixScheduleDataUpdateReply& a, ParixScheduleDataUpdateReply& b) {
     a.Swap(&b);
@@ -5790,7 +5995,7 @@ class ParixJournalAppendRequest final :
                &_ParixJournalAppendRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    24;
 
   friend void swap(ParixJournalAppendRequest& a, ParixJournalAppendRequest& b) {
     a.Swap(&b);
@@ -6063,7 +6268,7 @@ class ParixJournalAppendReply final :
                &_ParixJournalAppendReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    24;
+    25;
 
   friend void swap(ParixJournalAppendReply& a, ParixJournalAppendReply& b) {
     a.Swap(&b);
@@ -6211,7 +6416,7 @@ class ParixJournalAppendBatchItem final :
                &_ParixJournalAppendBatchItem_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    25;
+    26;
 
   friend void swap(ParixJournalAppendBatchItem& a, ParixJournalAppendBatchItem& b) {
     a.Swap(&b);
@@ -6402,7 +6607,7 @@ class ParixJournalAppendBatchRequest final :
                &_ParixJournalAppendBatchRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    26;
+    27;
 
   friend void swap(ParixJournalAppendBatchRequest& a, ParixJournalAppendBatchRequest& b) {
     a.Swap(&b);
@@ -6641,7 +6846,7 @@ class ParixJournalAppendBatchAckItem final :
                &_ParixJournalAppendBatchAckItem_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    27;
+    28;
 
   friend void swap(ParixJournalAppendBatchAckItem& a, ParixJournalAppendBatchAckItem& b) {
     a.Swap(&b);
@@ -6800,7 +7005,7 @@ class ParixJournalAppendBatchReply final :
                &_ParixJournalAppendBatchReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    28;
+    29;
 
   friend void swap(ParixJournalAppendBatchReply& a, ParixJournalAppendBatchReply& b) {
     a.Swap(&b);
@@ -6957,7 +7162,7 @@ class ParixSupplyD0Request final :
                &_ParixSupplyD0Request_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    29;
+    30;
 
   friend void swap(ParixSupplyD0Request& a, ParixSupplyD0Request& b) {
     a.Swap(&b);
@@ -7187,7 +7392,7 @@ class ParixReplayBatchRequest final :
                &_ParixReplayBatchRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    30;
+    31;
 
   friend void swap(ParixReplayBatchRequest& a, ParixReplayBatchRequest& b) {
     a.Swap(&b);
@@ -7346,7 +7551,7 @@ class ParixBatchXferTimingReply final :
                &_ParixBatchXferTimingReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    31;
+    32;
 
   friend void swap(ParixBatchXferTimingReply& a, ParixBatchXferTimingReply& b) {
     a.Swap(&b);
@@ -7527,7 +7732,7 @@ class ParixJournalInvalidationRange final :
                &_ParixJournalInvalidationRange_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    32;
+    33;
 
   friend void swap(ParixJournalInvalidationRange& a, ParixJournalInvalidationRange& b) {
     a.Swap(&b);
@@ -7697,7 +7902,7 @@ class ParixParityFullOverwriteRequest final :
                &_ParixParityFullOverwriteRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    33;
+    34;
 
   friend void swap(ParixParityFullOverwriteRequest& a, ParixParityFullOverwriteRequest& b) {
     a.Swap(&b);
@@ -7946,7 +8151,7 @@ class AppendStripeDataPlacement final :
                &_AppendStripeDataPlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    34;
+    35;
 
   friend void swap(AppendStripeDataPlacement& a, AppendStripeDataPlacement& b) {
     a.Swap(&b);
@@ -8322,7 +8527,7 @@ class SetReply final :
                &_SetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    35;
+    36;
 
   friend void swap(SetReply& a, SetReply& b) {
     a.Swap(&b);
@@ -8470,7 +8675,7 @@ class GetReply final :
                &_GetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    36;
+    37;
 
   friend void swap(GetReply& a, GetReply& b) {
     a.Swap(&b);
@@ -8618,7 +8823,7 @@ class StripeAndBlockIDs final :
                &_StripeAndBlockIDs_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    37;
+    38;
 
   friend void swap(StripeAndBlockIDs& a, StripeAndBlockIDs& b) {
     a.Swap(&b);
@@ -13743,6 +13948,50 @@ inline void ParixParityRpcTarget::set_cluster_id(int32_t value) {
 
 // -------------------------------------------------------------------
 
+// ParixDataSlice
+
+// int32 range_offset = 1;
+inline void ParixDataSlice::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t ParixDataSlice::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t ParixDataSlice::range_offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataSlice.range_offset)
+  return _internal_range_offset();
+}
+inline void ParixDataSlice::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void ParixDataSlice::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixDataSlice.range_offset)
+}
+
+// uint64 range_length = 2;
+inline void ParixDataSlice::clear_range_length() {
+  _impl_.range_length_ = uint64_t{0u};
+}
+inline uint64_t ParixDataSlice::_internal_range_length() const {
+  return _impl_.range_length_;
+}
+inline uint64_t ParixDataSlice::range_length() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataSlice.range_length)
+  return _internal_range_length();
+}
+inline void ParixDataSlice::_internal_set_range_length(uint64_t value) {
+  
+  _impl_.range_length_ = value;
+}
+inline void ParixDataSlice::set_range_length(uint64_t value) {
+  _internal_set_range_length(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixDataSlice.range_length)
+}
+
+// -------------------------------------------------------------------
+
 // ParixDataUpdatePlacement
 
 // string key = 1;
@@ -14185,6 +14434,46 @@ inline void ParixDataUpdatePlacement::set_allocated_local_parity(::proxy_proto::
   // @@protoc_insertion_point(field_set_allocated:proxy_proto.ParixDataUpdatePlacement.local_parity)
 }
 
+// repeated .proxy_proto.ParixDataSlice slices = 14;
+inline int ParixDataUpdatePlacement::_internal_slices_size() const {
+  return _impl_.slices_.size();
+}
+inline int ParixDataUpdatePlacement::slices_size() const {
+  return _internal_slices_size();
+}
+inline void ParixDataUpdatePlacement::clear_slices() {
+  _impl_.slices_.Clear();
+}
+inline ::proxy_proto::ParixDataSlice* ParixDataUpdatePlacement::mutable_slices(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.ParixDataUpdatePlacement.slices)
+  return _impl_.slices_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixDataSlice >*
+ParixDataUpdatePlacement::mutable_slices() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.ParixDataUpdatePlacement.slices)
+  return &_impl_.slices_;
+}
+inline const ::proxy_proto::ParixDataSlice& ParixDataUpdatePlacement::_internal_slices(int index) const {
+  return _impl_.slices_.Get(index);
+}
+inline const ::proxy_proto::ParixDataSlice& ParixDataUpdatePlacement::slices(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixDataUpdatePlacement.slices)
+  return _internal_slices(index);
+}
+inline ::proxy_proto::ParixDataSlice* ParixDataUpdatePlacement::_internal_add_slices() {
+  return _impl_.slices_.Add();
+}
+inline ::proxy_proto::ParixDataSlice* ParixDataUpdatePlacement::add_slices() {
+  ::proxy_proto::ParixDataSlice* _add = _internal_add_slices();
+  // @@protoc_insertion_point(field_add:proxy_proto.ParixDataUpdatePlacement.slices)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::ParixDataSlice >&
+ParixDataUpdatePlacement::slices() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.ParixDataUpdatePlacement.slices)
+  return _impl_.slices_;
+}
+
 // -------------------------------------------------------------------
 
 // ParixJournalAckItem
@@ -14297,6 +14586,46 @@ inline void ParixJournalAckItem::_internal_set_ack(::proxy_proto::ParixParityAck
 inline void ParixJournalAckItem::set_ack(::proxy_proto::ParixParityAck value) {
   _internal_set_ack(value);
   // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAckItem.ack)
+}
+
+// int32 range_offset = 5;
+inline void ParixJournalAckItem::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t ParixJournalAckItem::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t ParixJournalAckItem::range_offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAckItem.range_offset)
+  return _internal_range_offset();
+}
+inline void ParixJournalAckItem::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void ParixJournalAckItem::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAckItem.range_offset)
+}
+
+// uint64 range_length = 6;
+inline void ParixJournalAckItem::clear_range_length() {
+  _impl_.range_length_ = uint64_t{0u};
+}
+inline uint64_t ParixJournalAckItem::_internal_range_length() const {
+  return _impl_.range_length_;
+}
+inline uint64_t ParixJournalAckItem::range_length() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixJournalAckItem.range_length)
+  return _internal_range_length();
+}
+inline void ParixJournalAckItem::_internal_set_range_length(uint64_t value) {
+  
+  _impl_.range_length_ = value;
+}
+inline void ParixJournalAckItem::set_range_length(uint64_t value) {
+  _internal_set_range_length(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixJournalAckItem.range_length)
 }
 
 // -------------------------------------------------------------------
@@ -16758,6 +17087,8 @@ StripeAndBlockIDs::mutable_datanodeports() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

@@ -2774,12 +2774,47 @@ namespace ECProject
         return grpc::Status::OK;
       }
 
+      struct ParixScheduleSlice
+      {
+        int range_offset{};
+        uint64_t range_length{};
+        const char *payload{};
+      };
+      std::vector<ParixScheduleSlice> schedule_slices;
+      if (placement->slices_size() > 0)
+      {
+        schedule_slices.reserve(static_cast<size_t>(placement->slices_size()));
+        size_t payload_off = 0;
+        for (int si = 0; si < placement->slices_size(); ++si)
+        {
+          const auto &sl = placement->slices(si);
+          const uint64_t slen = sl.range_length();
+          if (slen == 0 || payload_off + slen > buf.size())
+          {
+            std::cerr << "[Parix] invalid batched slice metadata\n";
+            return grpc::Status::OK;
+          }
+          schedule_slices.push_back(
+              ParixScheduleSlice{sl.range_offset(), slen, buf.data() + payload_off});
+          payload_off += static_cast<size_t>(slen);
+        }
+        if (payload_off != buf.size())
+        {
+          std::cerr << "[Parix] batched slice payload size mismatch\n";
+          return grpc::Status::OK;
+        }
+      }
+      else
+      {
+        schedule_slices.push_back(
+            ParixScheduleSlice{placement->range_offset(), placement->range_length(), buf.data()});
+      }
+
       {
         const int show = static_cast<int>(payload_len > 16 ? 16 : payload_len);
         std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixScheduleDataUpdate: accepted TCP payload len=" << payload_len
                   << " stripe=" << placement->stripe_id() << " batch=" << placement->batch_id() << " data_block_id=" << placement->block_id()
-                  << " range[" << placement->range_offset() << "," << (placement->range_offset() + static_cast<int>(payload_len)) << ") key="
-                  << placement->block_key() << " first_" << show << "_bytes:";
+                  << " slices=" << schedule_slices.size() << " key=" << placement->block_key() << " first_" << show << "_bytes:";
         for (int i = 0; i < show; ++i)
         {
           std::cout << ' ' << std::hex << std::setfill('0') << std::setw(2)
@@ -2788,7 +2823,8 @@ namespace ECProject
         std::cout << std::dec << std::endl;
       }
 
-      auto call_append = [&](const proxy_proto::ParixParityRpcTarget &t, proxy_proto::ParixJournalAckItem *out_item) -> bool {
+      auto call_append = [&](const proxy_proto::ParixParityRpcTarget &t, int range_offset, uint64_t range_length,
+                               const char *new_payload, proxy_proto::ParixJournalAckItem *out_item) -> bool {
         if (t.proxy_ip().empty())
         {
           return true;
@@ -2803,9 +2839,9 @@ namespace ECProject
         req.set_parity_datanode_ip(t.parity_datanode_ip());
         req.set_parity_datanode_port(t.parity_datanode_port());
         req.set_data_block_id(placement->block_id());
-        req.set_range_offset(placement->range_offset());
-        req.set_range_length(placement->range_length());
-        req.set_new_payload(buf.data(), buf.size());
+        req.set_range_offset(range_offset);
+        req.set_range_length(range_length);
+        req.set_new_payload(new_payload, static_cast<size_t>(range_length));
         proxy_proto::ParixJournalAppendReply rep;
         const std::string addr = t.proxy_ip() + ":" + std::to_string(t.proxy_grpc_port());
         auto channel =
@@ -2819,28 +2855,31 @@ namespace ECProject
         }
         const char *rname = (rep.ack() == proxy_proto::PARIX_ACK_SUCCESS) ? "SUCCESS" : "NEED_D0";
         std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] fan-out parixJournalAppend -> " << addr << " parity_block_id=" << t.parity_block_id()
-                  << " -> " << rname << std::endl;
+                  << " range[" << range_offset << "," << (range_offset + static_cast<int>(range_length)) << ") -> " << rname << std::endl;
         if (out_item)
         {
           out_item->set_parity_proxy_ip(t.proxy_ip());
           out_item->set_parity_proxy_grpc_port(t.proxy_grpc_port());
           out_item->set_parity_block_id(t.parity_block_id());
           out_item->set_ack(rep.ack());
+          out_item->set_range_offset(range_offset);
+          out_item->set_range_length(range_length);
         }
         return true;
       };
 
-      auto call_append_batch = [&](const std::string &addr,
-                                   const std::vector<const proxy_proto::ParixParityRpcTarget *> &group) -> bool {
+      auto call_append_batch = [&](const std::string &addr, const std::vector<const proxy_proto::ParixParityRpcTarget *> &group,
+                                   int range_offset, uint64_t range_length, const char *new_payload,
+                                   std::vector<proxy_proto::ParixJournalAckItem> *out_acks) -> bool {
         grpc::ClientContext ctx;
         proxy_proto::ParixJournalAppendBatchRequest breq;
         breq.set_stripe_id(placement->stripe_id());
         breq.set_batch_id(placement->batch_id());
         breq.set_write_generation(placement->write_generation());
         breq.set_data_block_id(placement->block_id());
-        breq.set_range_offset(placement->range_offset());
-        breq.set_range_length(placement->range_length());
-        breq.set_new_payload(buf.data(), buf.size());
+        breq.set_range_offset(range_offset);
+        breq.set_range_length(range_length);
+        breq.set_new_payload(new_payload, static_cast<size_t>(range_length));
         for (const proxy_proto::ParixParityRpcTarget *tp : group)
         {
           proxy_proto::ParixJournalAppendBatchItem *bi = breq.add_targets();
@@ -2865,7 +2904,8 @@ namespace ECProject
           return false;
         }
         std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] fan-out parixJournalAppendBatch -> " << addr << " targets=" << group.size()
-                  << std::endl;
+                  << " range[" << range_offset << "," << (range_offset + static_cast<int>(range_length)) << ")" << std::endl;
+        out_acks->reserve(out_acks->size() + group.size());
         for (int i = 0; i < static_cast<int>(group.size()); ++i)
         {
           const proxy_proto::ParixParityRpcTarget *tp = group[static_cast<size_t>(i)];
@@ -2878,62 +2918,113 @@ namespace ECProject
           const char *rname = (a.ack() == proxy_proto::PARIX_ACK_SUCCESS) ? "SUCCESS" : "NEED_D0";
           std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "]   batch item parity_block_id=" << tp->parity_block_id() << " -> " << rname
                     << std::endl;
-          proxy_proto::ParixJournalAckItem *item = response->add_journal_acks();
-          item->set_parity_proxy_ip(tp->proxy_ip());
-          item->set_parity_proxy_grpc_port(tp->proxy_grpc_port());
-          item->set_parity_block_id(tp->parity_block_id());
-          item->set_ack(a.ack());
+          proxy_proto::ParixJournalAckItem item;
+          item.set_parity_proxy_ip(tp->proxy_ip());
+          item.set_parity_proxy_grpc_port(tp->proxy_grpc_port());
+          item.set_parity_block_id(tp->parity_block_id());
+          item.set_ack(a.ack());
+          item.set_range_offset(range_offset);
+          item.set_range_length(range_length);
+          out_acks->push_back(std::move(item));
         }
         return true;
       };
 
-      std::vector<const proxy_proto::ParixParityRpcTarget *> parity_targets;
-      parity_targets.reserve(static_cast<size_t>(placement->global_parities_size() + 1));
-      for (int i = 0; i < placement->global_parities_size(); ++i)
+      struct ParixFanoutWorkResult
       {
-        const auto &t = placement->global_parities(i);
-        if (!t.proxy_ip().empty())
-        {
-          parity_targets.push_back(&t);
-        }
-      }
-      if (!placement->local_parity().proxy_ip().empty())
-      {
-        parity_targets.push_back(&placement->local_parity());
-      }
+        bool ok = true;
+        std::vector<proxy_proto::ParixJournalAckItem> journal_acks;
+      };
 
-      std::map<std::string, std::vector<const proxy_proto::ParixParityRpcTarget *>> by_endpoint;
-      for (const proxy_proto::ParixParityRpcTarget *tp : parity_targets)
-      {
-        by_endpoint[tp->proxy_ip() + ":" + std::to_string(tp->proxy_grpc_port())].push_back(tp);
-      }
+      auto fanout_slice = [&](const ParixScheduleSlice &slice, std::vector<proxy_proto::ParixJournalAckItem> *out_acks) -> bool {
+        std::vector<const proxy_proto::ParixParityRpcTarget *> parity_targets;
+        parity_targets.reserve(static_cast<size_t>(placement->global_parities_size() + 1));
+        for (int i = 0; i < placement->global_parities_size(); ++i)
+        {
+          const auto &t = placement->global_parities(i);
+          if (!t.proxy_ip().empty())
+          {
+            parity_targets.push_back(&t);
+          }
+        }
+        if (!placement->local_parity().proxy_ip().empty())
+        {
+          parity_targets.push_back(&placement->local_parity());
+        }
+
+        std::map<std::string, std::vector<const proxy_proto::ParixParityRpcTarget *>> by_endpoint;
+        for (const proxy_proto::ParixParityRpcTarget *tp : parity_targets)
+        {
+          by_endpoint[tp->proxy_ip() + ":" + std::to_string(tp->proxy_grpc_port())].push_back(tp);
+        }
+
+        std::vector<std::pair<std::string, std::vector<const proxy_proto::ParixParityRpcTarget *>>> endpoint_groups;
+        endpoint_groups.reserve(by_endpoint.size());
+        for (const auto &kv : by_endpoint)
+        {
+          endpoint_groups.emplace_back(kv.first, kv.second);
+        }
+
+        std::vector<ParixFanoutWorkResult> fanout_results(endpoint_groups.size());
+        std::vector<std::thread> fanout_threads;
+        fanout_threads.reserve(endpoint_groups.size());
+        for (size_t ei = 0; ei < endpoint_groups.size(); ++ei)
+        {
+          fanout_threads.emplace_back([&, ei]() {
+            const std::string &addr = endpoint_groups[ei].first;
+            const std::vector<const proxy_proto::ParixParityRpcTarget *> &group = endpoint_groups[ei].second;
+            ParixFanoutWorkResult &out = fanout_results[ei];
+            if (group.empty())
+            {
+              return;
+            }
+            if (group.size() == 1)
+            {
+              proxy_proto::ParixJournalAckItem item;
+              out.ok = call_append(*group.front(), slice.range_offset, slice.range_length, slice.payload, &item);
+              if (out.ok)
+              {
+                out.journal_acks.push_back(std::move(item));
+              }
+              return;
+            }
+            out.ok = call_append_batch(addr, group, slice.range_offset, slice.range_length, slice.payload, &out.journal_acks);
+          });
+        }
+        for (std::thread &th : fanout_threads)
+        {
+          th.join();
+        }
+
+        bool slice_ok = true;
+        for (const ParixFanoutWorkResult &fr : fanout_results)
+        {
+          if (!fr.ok)
+          {
+            slice_ok = false;
+          }
+          for (const proxy_proto::ParixJournalAckItem &item : fr.journal_acks)
+          {
+            out_acks->push_back(item);
+          }
+        }
+        return slice_ok;
+      };
 
       const auto xfer_t0 = std::chrono::steady_clock::now();
       const int64_t xfer_w0 = parix_wall_unix_ms_now();
 
       bool ok = true;
-      for (const auto &kv : by_endpoint)
+      for (const ParixScheduleSlice &slice : schedule_slices)
       {
-        const std::string &addr = kv.first;
-        const std::vector<const proxy_proto::ParixParityRpcTarget *> &group = kv.second;
-        if (group.empty())
+        std::vector<proxy_proto::ParixJournalAckItem> slice_acks;
+        if (!fanout_slice(slice, &slice_acks))
         {
-          continue;
+          ok = false;
         }
-        if (group.size() == 1)
+        for (const proxy_proto::ParixJournalAckItem &item : slice_acks)
         {
-          proxy_proto::ParixJournalAckItem *item = response->add_journal_acks();
-          if (!call_append(*group.front(), item))
-          {
-            ok = false;
-          }
-        }
-        else
-        {
-          if (!call_append_batch(addr, group))
-          {
-            ok = false;
-          }
+          *response->add_journal_acks() = item;
         }
       }
       response->set_ifcommit(ok);

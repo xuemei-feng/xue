@@ -258,6 +258,12 @@ message ParixParityRpcTarget {
   int32 cluster_id = 7;
 }
 
+// One in-block slice within a batched ParixDataUpdatePlacement (TCP payloads concatenated in order).
+message ParixDataSlice {
+  int32 range_offset = 1;
+  uint64 range_length = 2;
+}
+
 message ParixDataUpdatePlacement {
   string key = 1;
   int32 stripe_id = 2;
@@ -272,6 +278,8 @@ message ParixDataUpdatePlacement {
   int32 datanode_port = 11;
   repeated ParixParityRpcTarget global_parities = 12;
   ParixParityRpcTarget local_parity = 13;
+  // When non-empty, range_length is total TCP payload size; each slice payload is sent back-to-back.
+  repeated ParixDataSlice slices = 14;
 }
 
 message ParixJournalAckItem {
@@ -279,6 +287,8 @@ message ParixJournalAckItem {
   int32 parity_proxy_grpc_port = 2;
   int32 parity_block_id = 3;
   ParixParityAck ack = 4;
+  int32 range_offset = 5;
+  uint64 range_length = 6;
 }
 
 message ParixScheduleDataUpdateReply {
