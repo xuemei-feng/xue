@@ -28,1035 +28,1035 @@ Line format: stripe_id range_count start0 end0 [start1 end1 ...]  (# and empty l
 Each range is logical half-open [start, end) in [0, k*BlockSize).
 --- request #1 (file line 3) stripe_id=0 ranges=11 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=0
-[batch line 3] parix update success stripe_id=0 latency=0.0648103 s
+[batch line 3] parix update success stripe_id=0 latency=0.0666544 s
 --- request #2 (file line 4) stripe_id=4 ranges=142 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=4
-[batch line 4] parix update success stripe_id=4 latency=0.0651933 s
+[batch line 4] parix update success stripe_id=4 latency=0.061357 s
 --- request #3 (file line 5) stripe_id=8 ranges=205 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=8
-[batch line 5] parix update success stripe_id=8 latency=0.0842089 s
+[batch line 5] parix update success stripe_id=8 latency=0.0573897 s
 --- request #4 (file line 6) stripe_id=12 ranges=165 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=12
-[batch line 6] parix update success stripe_id=12 latency=0.0577865 s
+[batch line 6] parix update success stripe_id=12 latency=0.0566785 s
 --- request #5 (file line 7) stripe_id=16 ranges=31 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=16
-[batch line 7] parix update success stripe_id=16 latency=0.0559502 s
+[batch line 7] parix update success stripe_id=16 latency=0.0566186 s
 --- request #6 (file line 8) stripe_id=20 ranges=130 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=20
-[batch line 8] parix update success stripe_id=20 latency=0.0567489 s
+[batch line 8] parix update success stripe_id=20 latency=0.055514 s
 --- request #7 (file line 9) stripe_id=24 ranges=131 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=24
-[batch line 9] parix update success stripe_id=24 latency=0.0589294 s
+[batch line 9] parix update success stripe_id=24 latency=0.0552688 s
 --- request #8 (file line 10) stripe_id=28 ranges=183 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=28
-[batch line 10] parix update success stripe_id=28 latency=0.0581658 s
+[batch line 10] parix update success stripe_id=28 latency=0.0566205 s
 --- request #9 (file line 11) stripe_id=32 ranges=147 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=32
-[batch line 11] parix update success stripe_id=32 latency=0.0847471 s
+[batch line 11] parix update success stripe_id=32 latency=0.056229 s
 --- request #10 (file line 12) stripe_id=36 ranges=28 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=36
-[batch line 12] parix update success stripe_id=36 latency=0.0710308 s
+[batch line 12] parix update success stripe_id=36 latency=0.0555251 s
 [client0] progress success=10 failed=0
 --- request #11 (file line 13) stripe_id=40 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=40
-[batch line 13] parix update success stripe_id=40 latency=0.0567644 s
+[batch line 13] parix update success stripe_id=40 latency=0.0580168 s
 --- request #12 (file line 14) stripe_id=44 ranges=132 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=44
-[batch line 14] parix update success stripe_id=44 latency=0.0584365 s
+[batch line 14] parix update success stripe_id=44 latency=0.0668153 s
 --- request #13 (file line 15) stripe_id=48 ranges=68 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=48
-[batch line 15] parix update success stripe_id=48 latency=0.0746879 s
+[batch line 15] parix update success stripe_id=48 latency=0.0576643 s
 --- request #14 (file line 16) stripe_id=52 ranges=16 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=52
-[batch line 16] parix update success stripe_id=52 latency=0.0572399 s
+[batch line 16] parix update success stripe_id=52 latency=0.0564783 s
 --- request #15 (file line 17) stripe_id=56 ranges=44 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=56
-[batch line 17] parix update success stripe_id=56 latency=0.0653772 s
+[batch line 17] parix update success stripe_id=56 latency=0.0557913 s
 --- request #16 (file line 18) stripe_id=60 ranges=124 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=60
-[batch line 18] parix update success stripe_id=60 latency=0.0575618 s
+[batch line 18] parix update success stripe_id=60 latency=0.0565817 s
 --- request #17 (file line 19) stripe_id=64 ranges=102 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=64
-[batch line 19] parix update success stripe_id=64 latency=0.0767106 s
+[batch line 19] parix update success stripe_id=64 latency=0.0566215 s
 --- request #18 (file line 20) stripe_id=68 ranges=152 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=68
-[batch line 20] parix update success stripe_id=68 latency=0.055408 s
+[batch line 20] parix update success stripe_id=68 latency=0.0563027 s
 --- request #19 (file line 21) stripe_id=72 ranges=20 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=72
-[batch line 21] parix update success stripe_id=72 latency=0.0556719 s
+[batch line 21] parix update success stripe_id=72 latency=0.0562996 s
 --- request #20 (file line 22) stripe_id=76 ranges=54 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=76
-[batch line 22] parix update success stripe_id=76 latency=0.0583009 s
+[batch line 22] parix update success stripe_id=76 latency=0.0554743 s
 [client0] progress success=20 failed=0
 --- request #21 (file line 23) stripe_id=80 ranges=92 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=80
-[batch line 23] parix update success stripe_id=80 latency=0.0573434 s
+[batch line 23] parix update success stripe_id=80 latency=0.0565401 s
 --- request #22 (file line 24) stripe_id=84 ranges=63 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=84
-[batch line 24] parix update success stripe_id=84 latency=0.0562756 s
+[batch line 24] parix update success stripe_id=84 latency=0.0558776 s
 --- request #23 (file line 25) stripe_id=88 ranges=79 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=88
-[batch line 25] parix update success stripe_id=88 latency=0.0564654 s
+[batch line 25] parix update success stripe_id=88 latency=0.0569117 s
 --- request #24 (file line 26) stripe_id=92 ranges=68 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=92
-[batch line 26] parix update success stripe_id=92 latency=0.0560043 s
+[batch line 26] parix update success stripe_id=92 latency=0.057068 s
 --- request #25 (file line 27) stripe_id=96 ranges=86 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=96
-[batch line 27] parix update success stripe_id=96 latency=0.0574416 s
+[batch line 27] parix update success stripe_id=96 latency=0.057417 s
 --- request #26 (file line 28) stripe_id=100 ranges=14 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=100
-[batch line 28] parix update success stripe_id=100 latency=0.0576219 s
+[batch line 28] parix update success stripe_id=100 latency=0.0555628 s
 --- request #27 (file line 29) stripe_id=104 ranges=77 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=104
-[batch line 29] parix update success stripe_id=104 latency=0.0634509 s
+[batch line 29] parix update success stripe_id=104 latency=0.0561233 s
 --- request #28 (file line 30) stripe_id=108 ranges=48 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=108
-[batch line 30] parix update success stripe_id=108 latency=0.0571401 s
+[batch line 30] parix update success stripe_id=108 latency=0.0558401 s
 --- request #29 (file line 31) stripe_id=112 ranges=12 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=112
-[batch line 31] parix update success stripe_id=112 latency=0.0681051 s
+[batch line 31] parix update success stripe_id=112 latency=0.056603 s
 --- request #30 (file line 32) stripe_id=116 ranges=11 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=116
-[batch line 32] parix update success stripe_id=116 latency=0.0565346 s
+[batch line 32] parix update success stripe_id=116 latency=0.0556808 s
 [client0] progress success=30 failed=0
 --- request #31 (file line 33) stripe_id=120 ranges=11 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=120
-[batch line 33] parix update success stripe_id=120 latency=0.0559383 s
+[batch line 33] parix update success stripe_id=120 latency=0.0576513 s
 --- request #32 (file line 34) stripe_id=124 ranges=106 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=124
-[batch line 34] parix update success stripe_id=124 latency=0.0553448 s
+[batch line 34] parix update success stripe_id=124 latency=0.0562023 s
 --- request #33 (file line 35) stripe_id=128 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=128
-[batch line 35] parix update success stripe_id=128 latency=0.0563481 s
+[batch line 35] parix update success stripe_id=128 latency=0.0555559 s
 --- request #34 (file line 36) stripe_id=132 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=132
-[batch line 36] parix update success stripe_id=132 latency=0.0559147 s
+[batch line 36] parix update success stripe_id=132 latency=0.0555004 s
 --- request #35 (file line 37) stripe_id=136 ranges=82 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=136
-[batch line 37] parix update success stripe_id=136 latency=0.057344 s
+[batch line 37] parix update success stripe_id=136 latency=0.056425 s
 --- request #36 (file line 38) stripe_id=140 ranges=132 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=140
-[batch line 38] parix update success stripe_id=140 latency=0.0566071 s
+[batch line 38] parix update success stripe_id=140 latency=0.0562708 s
 --- request #37 (file line 39) stripe_id=144 ranges=76 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=144
-[batch line 39] parix update success stripe_id=144 latency=0.0566852 s
+[batch line 39] parix update success stripe_id=144 latency=0.0560354 s
 --- request #38 (file line 40) stripe_id=148 ranges=91 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=148
-[batch line 40] parix update success stripe_id=148 latency=0.0560047 s
+[batch line 40] parix update success stripe_id=148 latency=0.0561261 s
 --- request #39 (file line 41) stripe_id=152 ranges=77 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=152
-[batch line 41] parix update success stripe_id=152 latency=0.0559924 s
+[batch line 41] parix update success stripe_id=152 latency=0.0573629 s
 --- request #40 (file line 42) stripe_id=156 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=156
-[batch line 42] parix update success stripe_id=156 latency=0.0555014 s
+[batch line 42] parix update success stripe_id=156 latency=0.0680303 s
 [client0] progress success=40 failed=0
 --- request #41 (file line 43) stripe_id=160 ranges=77 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=160
-[batch line 43] parix update success stripe_id=160 latency=0.0556224 s
+[batch line 43] parix update success stripe_id=160 latency=0.0557203 s
 --- request #42 (file line 44) stripe_id=164 ranges=85 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=164
-[batch line 44] parix update success stripe_id=164 latency=0.0562181 s
+[batch line 44] parix update success stripe_id=164 latency=0.0569313 s
 --- request #43 (file line 45) stripe_id=168 ranges=50 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=168
-[batch line 45] parix update success stripe_id=168 latency=0.0600601 s
+[batch line 45] parix update success stripe_id=168 latency=0.0654827 s
 --- request #44 (file line 46) stripe_id=172 ranges=92 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=172
-[batch line 46] parix update success stripe_id=172 latency=0.0570625 s
+[batch line 46] parix update success stripe_id=172 latency=0.0654488 s
 --- request #45 (file line 47) stripe_id=176 ranges=13 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=176
-[batch line 47] parix update success stripe_id=176 latency=0.0563812 s
+[batch line 47] parix update success stripe_id=176 latency=0.055684 s
 --- request #46 (file line 48) stripe_id=180 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=180
-[batch line 48] parix update success stripe_id=180 latency=0.078051 s
+[batch line 48] parix update success stripe_id=180 latency=0.0567574 s
 --- request #47 (file line 49) stripe_id=184 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=184
-[batch line 49] parix update success stripe_id=184 latency=0.0559545 s
+[batch line 49] parix update success stripe_id=184 latency=0.0558053 s
 --- request #48 (file line 50) stripe_id=188 ranges=49 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=188
-[batch line 50] parix update success stripe_id=188 latency=0.0570299 s
+[batch line 50] parix update success stripe_id=188 latency=0.0557939 s
 --- request #49 (file line 51) stripe_id=192 ranges=54 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=192
-[batch line 51] parix update success stripe_id=192 latency=0.0571157 s
+[batch line 51] parix update success stripe_id=192 latency=0.056603 s
 --- request #50 (file line 52) stripe_id=196 ranges=58 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=196
-[batch line 52] parix update success stripe_id=196 latency=0.0564736 s
+[batch line 52] parix update success stripe_id=196 latency=0.0567014 s
 [client0] progress success=50 failed=0
 --- request #51 (file line 53) stripe_id=200 ranges=66 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=200
-[batch line 53] parix update success stripe_id=200 latency=0.0575305 s
+[batch line 53] parix update success stripe_id=200 latency=0.0559293 s
 --- request #52 (file line 54) stripe_id=204 ranges=191 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=204
-[batch line 54] parix update success stripe_id=204 latency=0.0562177 s
+[batch line 54] parix update success stripe_id=204 latency=0.0554661 s
 --- request #53 (file line 55) stripe_id=208 ranges=101 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=208
-[batch line 55] parix update success stripe_id=208 latency=0.0562141 s
+[batch line 55] parix update success stripe_id=208 latency=0.0560519 s
 --- request #54 (file line 56) stripe_id=212 ranges=51 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=212
-[batch line 56] parix update success stripe_id=212 latency=0.0583298 s
+[batch line 56] parix update success stripe_id=212 latency=0.0590121 s
 --- request #55 (file line 57) stripe_id=216 ranges=87 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=216
-[batch line 57] parix update success stripe_id=216 latency=0.0569535 s
+[batch line 57] parix update success stripe_id=216 latency=0.0563045 s
 --- request #56 (file line 58) stripe_id=220 ranges=72 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=220
-[batch line 58] parix update success stripe_id=220 latency=0.0559571 s
+[batch line 58] parix update success stripe_id=220 latency=0.0569699 s
 --- request #57 (file line 59) stripe_id=224 ranges=63 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=224
-[batch line 59] parix update success stripe_id=224 latency=0.0577314 s
+[batch line 59] parix update success stripe_id=224 latency=0.0709751 s
 --- request #58 (file line 60) stripe_id=228 ranges=47 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=228
-[batch line 60] parix update success stripe_id=228 latency=0.0564775 s
+[batch line 60] parix update success stripe_id=228 latency=0.0577853 s
 --- request #59 (file line 61) stripe_id=232 ranges=114 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=232
-[batch line 61] parix update success stripe_id=232 latency=0.0566293 s
+[batch line 61] parix update success stripe_id=232 latency=0.0561791 s
 --- request #60 (file line 62) stripe_id=236 ranges=89 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=236
-[batch line 62] parix update success stripe_id=236 latency=0.0564932 s
+[batch line 62] parix update success stripe_id=236 latency=0.0560675 s
 [client0] progress success=60 failed=0
 --- request #61 (file line 63) stripe_id=240 ranges=63 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=240
-[batch line 63] parix update success stripe_id=240 latency=0.0575248 s
+[batch line 63] parix update success stripe_id=240 latency=0.0566366 s
 --- request #62 (file line 64) stripe_id=244 ranges=94 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=244
-[batch line 64] parix update success stripe_id=244 latency=0.0574142 s
+[batch line 64] parix update success stripe_id=244 latency=0.0740401 s
 --- request #63 (file line 65) stripe_id=248 ranges=102 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=248
-[batch line 65] parix update success stripe_id=248 latency=0.0571936 s
+[batch line 65] parix update success stripe_id=248 latency=0.0567712 s
 --- request #64 (file line 66) stripe_id=252 ranges=37 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=252
-[batch line 66] parix update success stripe_id=252 latency=0.0567543 s
+[batch line 66] parix update success stripe_id=252 latency=0.0573486 s
 --- request #65 (file line 67) stripe_id=256 ranges=96 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=256
-[batch line 67] parix update success stripe_id=256 latency=0.0561148 s
+[batch line 67] parix update success stripe_id=256 latency=0.0577669 s
 --- request #66 (file line 68) stripe_id=260 ranges=114 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=260
-[batch line 68] parix update success stripe_id=260 latency=0.0572141 s
+[batch line 68] parix update success stripe_id=260 latency=0.0570521 s
 --- request #67 (file line 69) stripe_id=264 ranges=101 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=264
-[batch line 69] parix update success stripe_id=264 latency=0.0732973 s
+[batch line 69] parix update success stripe_id=264 latency=0.0570065 s
 --- request #68 (file line 70) stripe_id=268 ranges=69 ---
 [client0][172.16.2.31:77777][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
 [client0][172.16.2.31:77777][Parix] partial update committed batch_id=1
-[batch line 70] parix update success stripe_id=268 latency=0.430456 s
+[batch line 70] parix update success stripe_id=268 latency=0.4332 s
 --- request #69 (file line 71) stripe_id=272 ranges=77 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=272
-[batch line 71] parix update success stripe_id=272 latency=0.0819546 s
+[batch line 71] parix update success stripe_id=272 latency=0.0750768 s
 --- request #70 (file line 72) stripe_id=276 ranges=103 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=276
-[batch line 72] parix update success stripe_id=276 latency=0.0670435 s
+[batch line 72] parix update success stripe_id=276 latency=0.0574942 s
 [client0] progress success=70 failed=0
 --- request #71 (file line 73) stripe_id=280 ranges=98 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=280
-[batch line 73] parix update success stripe_id=280 latency=0.0553848 s
+[batch line 73] parix update success stripe_id=280 latency=0.0779436 s
 --- request #72 (file line 74) stripe_id=284 ranges=30 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=284
-[batch line 74] parix update success stripe_id=284 latency=0.0576186 s
+[batch line 74] parix update success stripe_id=284 latency=0.062837 s
 --- request #73 (file line 75) stripe_id=288 ranges=33 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=288
-[batch line 75] parix update success stripe_id=288 latency=0.0554274 s
+[batch line 75] parix update success stripe_id=288 latency=0.0718943 s
 --- request #74 (file line 76) stripe_id=292 ranges=82 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=292
-[batch line 76] parix update success stripe_id=292 latency=0.0569266 s
+[batch line 76] parix update success stripe_id=292 latency=0.0567059 s
 --- request #75 (file line 77) stripe_id=296 ranges=66 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=296
-[batch line 77] parix update success stripe_id=296 latency=0.0556412 s
+[batch line 77] parix update success stripe_id=296 latency=0.0561153 s
 --- request #76 (file line 78) stripe_id=300 ranges=81 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=300
-[batch line 78] parix update success stripe_id=300 latency=0.0554522 s
+[batch line 78] parix update success stripe_id=300 latency=0.0570687 s
 --- request #77 (file line 79) stripe_id=304 ranges=27 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=304
-[batch line 79] parix update success stripe_id=304 latency=0.0573784 s
+[batch line 79] parix update success stripe_id=304 latency=0.0564678 s
 --- request #78 (file line 80) stripe_id=308 ranges=92 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=308
-[batch line 80] parix update success stripe_id=308 latency=0.0572451 s
+[batch line 80] parix update success stripe_id=308 latency=0.0569941 s
 --- request #79 (file line 81) stripe_id=312 ranges=79 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=312
-[batch line 81] parix update success stripe_id=312 latency=0.0557625 s
+[batch line 81] parix update success stripe_id=312 latency=0.0559975 s
 --- request #80 (file line 82) stripe_id=316 ranges=88 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=316
-[batch line 82] parix update success stripe_id=316 latency=0.0560741 s
+[batch line 82] parix update success stripe_id=316 latency=0.0568388 s
 [client0] progress success=80 failed=0
 --- request #81 (file line 83) stripe_id=320 ranges=119 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=320
-[batch line 83] parix update success stripe_id=320 latency=0.0564191 s
+[batch line 83] parix update success stripe_id=320 latency=0.0566257 s
 --- request #82 (file line 84) stripe_id=324 ranges=127 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=324
-[batch line 84] parix update success stripe_id=324 latency=0.0559416 s
+[batch line 84] parix update success stripe_id=324 latency=0.0566728 s
 --- request #83 (file line 85) stripe_id=328 ranges=34 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=328
-[batch line 85] parix update success stripe_id=328 latency=0.0560468 s
+[batch line 85] parix update success stripe_id=328 latency=0.0568468 s
 --- request #84 (file line 86) stripe_id=332 ranges=80 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=332
-[batch line 86] parix update success stripe_id=332 latency=0.0558507 s
+[batch line 86] parix update success stripe_id=332 latency=0.0559124 s
 --- request #85 (file line 87) stripe_id=336 ranges=114 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=336
-[batch line 87] parix update success stripe_id=336 latency=0.0557641 s
+[batch line 87] parix update success stripe_id=336 latency=0.056161 s
 --- request #86 (file line 88) stripe_id=340 ranges=81 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=340
-[batch line 88] parix update success stripe_id=340 latency=0.0579516 s
+[batch line 88] parix update success stripe_id=340 latency=0.0565174 s
 --- request #87 (file line 89) stripe_id=344 ranges=32 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=344
-[batch line 89] parix update success stripe_id=344 latency=0.056827 s
+[batch line 89] parix update success stripe_id=344 latency=0.0568379 s
 --- request #88 (file line 90) stripe_id=348 ranges=32 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=348
-[batch line 90] parix update success stripe_id=348 latency=0.0569652 s
+[batch line 90] parix update success stripe_id=348 latency=0.0562518 s
 --- request #89 (file line 91) stripe_id=352 ranges=116 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=352
-[batch line 91] parix update success stripe_id=352 latency=0.0567379 s
+[batch line 91] parix update success stripe_id=352 latency=0.0561384 s
 --- request #90 (file line 92) stripe_id=356 ranges=17 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=356
-[batch line 92] parix update success stripe_id=356 latency=0.0559657 s
+[batch line 92] parix update success stripe_id=356 latency=0.0574688 s
 [client0] progress success=90 failed=0
 --- request #91 (file line 93) stripe_id=360 ranges=107 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=360
-[batch line 93] parix update success stripe_id=360 latency=0.0569875 s
+[batch line 93] parix update success stripe_id=360 latency=0.0576029 s
 --- request #92 (file line 94) stripe_id=364 ranges=76 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=364
-[batch line 94] parix update success stripe_id=364 latency=0.0566354 s
+[batch line 94] parix update success stripe_id=364 latency=0.0562667 s
 --- request #93 (file line 95) stripe_id=368 ranges=64 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=368
-[batch line 95] parix update success stripe_id=368 latency=0.0571298 s
+[batch line 95] parix update success stripe_id=368 latency=0.0567598 s
 --- request #94 (file line 96) stripe_id=372 ranges=140 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=372
-[batch line 96] parix update success stripe_id=372 latency=0.0565745 s
+[batch line 96] parix update success stripe_id=372 latency=0.0564642 s
 --- request #95 (file line 97) stripe_id=376 ranges=71 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=376
-[batch line 97] parix update success stripe_id=376 latency=0.0565151 s
+[batch line 97] parix update success stripe_id=376 latency=0.056769 s
 --- request #96 (file line 98) stripe_id=380 ranges=29 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=380
-[batch line 98] parix update success stripe_id=380 latency=0.0561462 s
+[batch line 98] parix update success stripe_id=380 latency=0.0598807 s
 --- request #97 (file line 99) stripe_id=384 ranges=76 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=384
-[batch line 99] parix update success stripe_id=384 latency=0.05672 s
+[batch line 99] parix update success stripe_id=384 latency=0.0625523 s
 --- request #98 (file line 100) stripe_id=388 ranges=64 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=388
-[batch line 100] parix update success stripe_id=388 latency=0.0574948 s
+[batch line 100] parix update success stripe_id=388 latency=0.0564621 s
 --- request #99 (file line 101) stripe_id=392 ranges=14 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=392
-[batch line 101] parix update success stripe_id=392 latency=0.0560358 s
+[batch line 101] parix update success stripe_id=392 latency=0.0564806 s
 --- request #100 (file line 102) stripe_id=396 ranges=31 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=396
-[batch line 102] parix update success stripe_id=396 latency=0.0570352 s
+[batch line 102] parix update success stripe_id=396 latency=0.0563709 s
 [client0] progress success=100 failed=0
 --- request #101 (file line 103) stripe_id=400 ranges=12 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=400
-[batch line 103] parix update success stripe_id=400 latency=0.056194 s
+[batch line 103] parix update success stripe_id=400 latency=0.0707039 s
 --- request #102 (file line 104) stripe_id=404 ranges=65 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=404
-[batch line 104] parix update success stripe_id=404 latency=0.0566035 s
+[batch line 104] parix update success stripe_id=404 latency=0.0574961 s
 --- request #103 (file line 105) stripe_id=408 ranges=88 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=408
-[batch line 105] parix update success stripe_id=408 latency=0.055763 s
+[batch line 105] parix update success stripe_id=408 latency=0.0581977 s
 --- request #104 (file line 106) stripe_id=412 ranges=93 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=412
-[batch line 106] parix update success stripe_id=412 latency=0.0559108 s
+[batch line 106] parix update success stripe_id=412 latency=0.0578073 s
 --- request #105 (file line 107) stripe_id=416 ranges=83 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=416
-[batch line 107] parix update success stripe_id=416 latency=0.0558897 s
+[batch line 107] parix update success stripe_id=416 latency=0.0571963 s
 --- request #106 (file line 108) stripe_id=420 ranges=15 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=420
-[batch line 108] parix update success stripe_id=420 latency=0.0562883 s
+[batch line 108] parix update success stripe_id=420 latency=0.0566176 s
 --- request #107 (file line 109) stripe_id=424 ranges=96 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=424
-[batch line 109] parix update success stripe_id=424 latency=0.0563132 s
+[batch line 109] parix update success stripe_id=424 latency=0.0568966 s
 --- request #108 (file line 110) stripe_id=428 ranges=17 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=428
-[batch line 110] parix update success stripe_id=428 latency=0.0560612 s
+[batch line 110] parix update success stripe_id=428 latency=0.0756558 s
 --- request #109 (file line 111) stripe_id=432 ranges=12 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=432
-[batch line 111] parix update success stripe_id=432 latency=0.0601324 s
+[batch line 111] parix update success stripe_id=432 latency=0.059035 s
 --- request #110 (file line 112) stripe_id=436 ranges=54 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=436
-[batch line 112] parix update success stripe_id=436 latency=0.0562098 s
+[batch line 112] parix update success stripe_id=436 latency=0.0573085 s
 [client0] progress success=110 failed=0
 --- request #111 (file line 113) stripe_id=440 ranges=70 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=440
-[batch line 113] parix update success stripe_id=440 latency=0.0563607 s
+[batch line 113] parix update success stripe_id=440 latency=0.0740349 s
 --- request #112 (file line 114) stripe_id=444 ranges=69 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=444
-[batch line 114] parix update success stripe_id=444 latency=0.0561669 s
+[batch line 114] parix update success stripe_id=444 latency=0.0574411 s
 --- request #113 (file line 115) stripe_id=448 ranges=61 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=448
-[batch line 115] parix update success stripe_id=448 latency=0.0554465 s
+[batch line 115] parix update success stripe_id=448 latency=0.0561891 s
 --- request #114 (file line 116) stripe_id=452 ranges=76 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=452
-[batch line 116] parix update success stripe_id=452 latency=0.0559202 s
+[batch line 116] parix update success stripe_id=452 latency=0.0573104 s
 --- request #115 (file line 117) stripe_id=456 ranges=19 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=456
-[batch line 117] parix update success stripe_id=456 latency=0.0567087 s
+[batch line 117] parix update success stripe_id=456 latency=0.0576915 s
 --- request #116 (file line 118) stripe_id=460 ranges=53 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=460
-[batch line 118] parix update success stripe_id=460 latency=0.0573298 s
+[batch line 118] parix update success stripe_id=460 latency=0.0567573 s
 --- request #117 (file line 119) stripe_id=464 ranges=116 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=464
-[batch line 119] parix update success stripe_id=464 latency=0.0555903 s
+[batch line 119] parix update success stripe_id=464 latency=0.0561377 s
 --- request #118 (file line 120) stripe_id=468 ranges=53 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=468
-[batch line 120] parix update success stripe_id=468 latency=0.0570995 s
+[batch line 120] parix update success stripe_id=468 latency=0.0551391 s
 --- request #119 (file line 121) stripe_id=472 ranges=124 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=472
-[batch line 121] parix update success stripe_id=472 latency=0.0569907 s
+[batch line 121] parix update success stripe_id=472 latency=0.0565341 s
 --- request #120 (file line 122) stripe_id=476 ranges=70 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=476
-[batch line 122] parix update success stripe_id=476 latency=0.0578397 s
+[batch line 122] parix update success stripe_id=476 latency=0.0559216 s
 [client0] progress success=120 failed=0
 --- request #121 (file line 123) stripe_id=480 ranges=43 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=480
-[batch line 123] parix update success stripe_id=480 latency=0.0579069 s
+[batch line 123] parix update success stripe_id=480 latency=0.0575462 s
 --- request #122 (file line 124) stripe_id=484 ranges=122 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=484
-[batch line 124] parix update success stripe_id=484 latency=0.0569819 s
+[batch line 124] parix update success stripe_id=484 latency=0.055747 s
 --- request #123 (file line 125) stripe_id=488 ranges=54 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=488
-[batch line 125] parix update success stripe_id=488 latency=0.0559674 s
+[batch line 125] parix update success stripe_id=488 latency=0.055756 s
 --- request #124 (file line 126) stripe_id=492 ranges=67 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=492
-[batch line 126] parix update success stripe_id=492 latency=0.0562835 s
+[batch line 126] parix update success stripe_id=492 latency=0.0576189 s
 --- request #125 (file line 127) stripe_id=496 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=496
-[batch line 127] parix update success stripe_id=496 latency=0.0578589 s
+[batch line 127] parix update success stripe_id=496 latency=0.0569272 s
 --- request #126 (file line 128) stripe_id=500 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=500
-[batch line 128] parix update success stripe_id=500 latency=0.0679277 s
+[batch line 128] parix update success stripe_id=500 latency=0.056736 s
 --- request #127 (file line 129) stripe_id=504 ranges=38 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=504
-[batch line 129] parix update success stripe_id=504 latency=0.0566287 s
+[batch line 129] parix update success stripe_id=504 latency=0.0566448 s
 --- request #128 (file line 130) stripe_id=508 ranges=73 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=508
-[batch line 130] parix update success stripe_id=508 latency=0.0560175 s
+[batch line 130] parix update success stripe_id=508 latency=0.0555455 s
 --- request #129 (file line 131) stripe_id=512 ranges=48 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=512
-[batch line 131] parix update success stripe_id=512 latency=0.05549 s
+[batch line 131] parix update success stripe_id=512 latency=0.0571263 s
 --- request #130 (file line 132) stripe_id=516 ranges=76 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=516
-[batch line 132] parix update success stripe_id=516 latency=0.0581587 s
+[batch line 132] parix update success stripe_id=516 latency=0.0558349 s
 [client0] progress success=130 failed=0
 --- request #131 (file line 133) stripe_id=520 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=520
-[batch line 133] parix update success stripe_id=520 latency=0.0578633 s
+[batch line 133] parix update success stripe_id=520 latency=0.0557567 s
 --- request #132 (file line 134) stripe_id=524 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=524
-[batch line 134] parix update success stripe_id=524 latency=0.0575274 s
+[batch line 134] parix update success stripe_id=524 latency=0.0556358 s
 --- request #133 (file line 135) stripe_id=528 ranges=53 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=528
-[batch line 135] parix update success stripe_id=528 latency=0.0570292 s
+[batch line 135] parix update success stripe_id=528 latency=0.0581892 s
 --- request #134 (file line 136) stripe_id=532 ranges=71 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=532
-[batch line 136] parix update success stripe_id=532 latency=0.0608139 s
+[batch line 136] parix update success stripe_id=532 latency=0.056603 s
 --- request #135 (file line 137) stripe_id=536 ranges=70 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=536
-[batch line 137] parix update success stripe_id=536 latency=0.0607208 s
+[batch line 137] parix update success stripe_id=536 latency=0.0565115 s
 --- request #136 (file line 138) stripe_id=540 ranges=56 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=540
-[batch line 138] parix update success stripe_id=540 latency=0.0562391 s
+[batch line 138] parix update success stripe_id=540 latency=0.0563398 s
 --- request #137 (file line 139) stripe_id=544 ranges=57 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=544
-[batch line 139] parix update success stripe_id=544 latency=0.0582107 s
+[batch line 139] parix update success stripe_id=544 latency=0.0558458 s
 --- request #138 (file line 140) stripe_id=548 ranges=47 ---
 [client0][172.16.2.31:77777][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
 [client0][172.16.2.31:77777][Parix] partial update committed batch_id=4
-[batch line 140] parix update success stripe_id=548 latency=0.296204 s
+[batch line 140] parix update success stripe_id=548 latency=0.30287 s
 --- request #139 (file line 141) stripe_id=552 ranges=34 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=552
-[batch line 141] parix update success stripe_id=552 latency=0.0571386 s
+[batch line 141] parix update success stripe_id=552 latency=0.0568912 s
 --- request #140 (file line 142) stripe_id=556 ranges=43 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=556
-[batch line 142] parix update success stripe_id=556 latency=0.056959 s
+[batch line 142] parix update success stripe_id=556 latency=0.058204 s
 [client0] progress success=140 failed=0
 --- request #141 (file line 143) stripe_id=560 ranges=33 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=560
-[batch line 143] parix update success stripe_id=560 latency=0.0570043 s
+[batch line 143] parix update success stripe_id=560 latency=0.073048 s
 --- request #142 (file line 144) stripe_id=564 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=564
-[batch line 144] parix update success stripe_id=564 latency=0.0575317 s
+[batch line 144] parix update success stripe_id=564 latency=0.0599969 s
 --- request #143 (file line 145) stripe_id=568 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=568
-[batch line 145] parix update success stripe_id=568 latency=0.0837145 s
+[batch line 145] parix update success stripe_id=568 latency=0.0565709 s
 --- request #144 (file line 146) stripe_id=572 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=572
-[batch line 146] parix update success stripe_id=572 latency=0.0565623 s
+[batch line 146] parix update success stripe_id=572 latency=0.0563048 s
 --- request #145 (file line 147) stripe_id=576 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=576
-[batch line 147] parix update success stripe_id=576 latency=0.0573289 s
+[batch line 147] parix update success stripe_id=576 latency=0.0575696 s
 --- request #146 (file line 148) stripe_id=580 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=580
-[batch line 148] parix update success stripe_id=580 latency=0.0554198 s
+[batch line 148] parix update success stripe_id=580 latency=0.0569609 s
 --- request #147 (file line 149) stripe_id=584 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=584
-[batch line 149] parix update success stripe_id=584 latency=0.0554123 s
+[batch line 149] parix update success stripe_id=584 latency=0.0569015 s
 --- request #148 (file line 150) stripe_id=588 ranges=27 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=588
-[batch line 150] parix update success stripe_id=588 latency=0.0567805 s
+[batch line 150] parix update success stripe_id=588 latency=0.0601382 s
 --- request #149 (file line 151) stripe_id=592 ranges=82 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=592
-[batch line 151] parix update success stripe_id=592 latency=0.0567578 s
+[batch line 151] parix update success stripe_id=592 latency=0.0560735 s
 --- request #150 (file line 152) stripe_id=596 ranges=59 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=596
-[batch line 152] parix update success stripe_id=596 latency=0.0571442 s
+[batch line 152] parix update success stripe_id=596 latency=0.0561162 s
 [client0] progress success=150 failed=0
 --- request #151 (file line 153) stripe_id=600 ranges=35 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=600
-[batch line 153] parix update success stripe_id=600 latency=0.0568112 s
+[batch line 153] parix update success stripe_id=600 latency=0.0571133 s
 --- request #152 (file line 154) stripe_id=604 ranges=32 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=604
-[batch line 154] parix update success stripe_id=604 latency=0.056209 s
+[batch line 154] parix update success stripe_id=604 latency=0.0557877 s
 --- request #153 (file line 155) stripe_id=608 ranges=66 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=608
-[batch line 155] parix update success stripe_id=608 latency=0.0562585 s
+[batch line 155] parix update success stripe_id=608 latency=0.0567424 s
 --- request #154 (file line 156) stripe_id=612 ranges=62 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=612
-[batch line 156] parix update success stripe_id=612 latency=0.0559993 s
+[batch line 156] parix update success stripe_id=612 latency=0.0558547 s
 --- request #155 (file line 157) stripe_id=616 ranges=129 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=616
-[batch line 157] parix update success stripe_id=616 latency=0.0562104 s
+[batch line 157] parix update success stripe_id=616 latency=0.0565709 s
 --- request #156 (file line 158) stripe_id=620 ranges=102 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=620
-[batch line 158] parix update success stripe_id=620 latency=0.0560382 s
+[batch line 158] parix update success stripe_id=620 latency=0.0568848 s
 --- request #157 (file line 159) stripe_id=624 ranges=44 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=624
-[batch line 159] parix update success stripe_id=624 latency=0.0562283 s
+[batch line 159] parix update success stripe_id=624 latency=0.0567008 s
 --- request #158 (file line 160) stripe_id=628 ranges=89 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=628
-[batch line 160] parix update success stripe_id=628 latency=0.0558256 s
+[batch line 160] parix update success stripe_id=628 latency=0.0562066 s
 --- request #159 (file line 161) stripe_id=632 ranges=93 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=632
-[batch line 161] parix update success stripe_id=632 latency=0.0560883 s
+[batch line 161] parix update success stripe_id=632 latency=0.0559265 s
 --- request #160 (file line 162) stripe_id=636 ranges=59 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=636
-[batch line 162] parix update success stripe_id=636 latency=0.0555837 s
+[batch line 162] parix update success stripe_id=636 latency=0.0571324 s
 [client0] progress success=160 failed=0
 --- request #161 (file line 163) stripe_id=640 ranges=97 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=640
-[batch line 163] parix update success stripe_id=640 latency=0.0577529 s
+[batch line 163] parix update success stripe_id=640 latency=0.0554864 s
 --- request #162 (file line 164) stripe_id=644 ranges=90 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=644
-[batch line 164] parix update success stripe_id=644 latency=0.0566304 s
+[batch line 164] parix update success stripe_id=644 latency=0.0568747 s
 --- request #163 (file line 165) stripe_id=648 ranges=79 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=648
-[batch line 165] parix update success stripe_id=648 latency=0.0564484 s
+[batch line 165] parix update success stripe_id=648 latency=0.0552775 s
 --- request #164 (file line 166) stripe_id=652 ranges=127 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=652
-[batch line 166] parix update success stripe_id=652 latency=0.0571576 s
+[batch line 166] parix update success stripe_id=652 latency=0.055679 s
 --- request #165 (file line 167) stripe_id=656 ranges=139 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=656
-[batch line 167] parix update success stripe_id=656 latency=0.0563328 s
+[batch line 167] parix update success stripe_id=656 latency=0.0563504 s
 --- request #166 (file line 168) stripe_id=660 ranges=12 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=660
-[batch line 168] parix update success stripe_id=660 latency=0.0553898 s
+[batch line 168] parix update success stripe_id=660 latency=0.0631838 s
 --- request #167 (file line 169) stripe_id=664 ranges=68 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=664
-[batch line 169] parix update success stripe_id=664 latency=0.0564713 s
+[batch line 169] parix update success stripe_id=664 latency=0.063011 s
 --- request #168 (file line 170) stripe_id=668 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=668
-[batch line 170] parix update success stripe_id=668 latency=0.0562031 s
+[batch line 170] parix update success stripe_id=668 latency=0.056383 s
 --- request #169 (file line 171) stripe_id=672 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=672
-[batch line 171] parix update success stripe_id=672 latency=0.0567265 s
+[batch line 171] parix update success stripe_id=672 latency=0.0567288 s
 --- request #170 (file line 172) stripe_id=676 ranges=63 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=676
-[batch line 172] parix update success stripe_id=676 latency=0.0567027 s
+[batch line 172] parix update success stripe_id=676 latency=0.0560714 s
 [client0] progress success=170 failed=0
 --- request #171 (file line 173) stripe_id=680 ranges=84 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=680
-[batch line 173] parix update success stripe_id=680 latency=0.0555559 s
+[batch line 173] parix update success stripe_id=680 latency=0.0556856 s
 --- request #172 (file line 174) stripe_id=684 ranges=51 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=684
-[batch line 174] parix update success stripe_id=684 latency=0.0580901 s
+[batch line 174] parix update success stripe_id=684 latency=0.0560754 s
 --- request #173 (file line 175) stripe_id=688 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=688
-[batch line 175] parix update success stripe_id=688 latency=0.0561558 s
+[batch line 175] parix update success stripe_id=688 latency=0.0562509 s
 --- request #174 (file line 176) stripe_id=692 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=692
-[batch line 176] parix update success stripe_id=692 latency=0.0570765 s
+[batch line 176] parix update success stripe_id=692 latency=0.0567549 s
 --- request #175 (file line 177) stripe_id=696 ranges=46 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=696
-[batch line 177] parix update success stripe_id=696 latency=0.0555424 s
+[batch line 177] parix update success stripe_id=696 latency=0.0559013 s
 --- request #176 (file line 178) stripe_id=700 ranges=61 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=700
-[batch line 178] parix update success stripe_id=700 latency=0.0566142 s
+[batch line 178] parix update success stripe_id=700 latency=0.0567738 s
 --- request #177 (file line 179) stripe_id=704 ranges=53 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=704
-[batch line 179] parix update success stripe_id=704 latency=0.0576547 s
+[batch line 179] parix update success stripe_id=704 latency=0.0578855 s
 --- request #178 (file line 180) stripe_id=708 ranges=79 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=708
-[batch line 180] parix update success stripe_id=708 latency=0.0708605 s
+[batch line 180] parix update success stripe_id=708 latency=0.0572143 s
 --- request #179 (file line 181) stripe_id=712 ranges=90 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=712
-[batch line 181] parix update success stripe_id=712 latency=0.0580368 s
+[batch line 181] parix update success stripe_id=712 latency=0.0589803 s
 --- request #180 (file line 182) stripe_id=716 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=716
-[batch line 182] parix update success stripe_id=716 latency=0.0572937 s
+[batch line 182] parix update success stripe_id=716 latency=0.0562366 s
 [client0] progress success=180 failed=0
 --- request #181 (file line 183) stripe_id=720 ranges=43 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=720
-[batch line 183] parix update success stripe_id=720 latency=0.05723 s
+[batch line 183] parix update success stripe_id=720 latency=0.0567393 s
 --- request #182 (file line 184) stripe_id=724 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=724
-[batch line 184] parix update success stripe_id=724 latency=0.0595574 s
+[batch line 184] parix update success stripe_id=724 latency=0.0658974 s
 --- request #183 (file line 185) stripe_id=728 ranges=38 ---
 [client0][172.16.2.31:77777][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
 [client0][172.16.2.31:77777][Parix] partial update committed batch_id=7
-[batch line 185] parix update success stripe_id=728 latency=0.341423 s
+[batch line 185] parix update success stripe_id=728 latency=0.374083 s
 --- request #184 (file line 186) stripe_id=732 ranges=68 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=732
-[batch line 186] parix update success stripe_id=732 latency=0.05705 s
+[batch line 186] parix update success stripe_id=732 latency=0.0563244 s
 --- request #185 (file line 187) stripe_id=736 ranges=38 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=736
-[batch line 187] parix update success stripe_id=736 latency=0.0563025 s
+[batch line 187] parix update success stripe_id=736 latency=0.0575921 s
 --- request #186 (file line 188) stripe_id=740 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=740
-[batch line 188] parix update success stripe_id=740 latency=0.0571964 s
+[batch line 188] parix update success stripe_id=740 latency=0.0578343 s
 --- request #187 (file line 189) stripe_id=744 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=744
-[batch line 189] parix update success stripe_id=744 latency=0.0558089 s
+[batch line 189] parix update success stripe_id=744 latency=0.0566649 s
 --- request #188 (file line 190) stripe_id=748 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=748
-[batch line 190] parix update success stripe_id=748 latency=0.0564236 s
+[batch line 190] parix update success stripe_id=748 latency=0.0574507 s
 --- request #189 (file line 191) stripe_id=752 ranges=10 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=752
-[batch line 191] parix update success stripe_id=752 latency=0.056129 s
+[batch line 191] parix update success stripe_id=752 latency=0.0589145 s
 --- request #190 (file line 192) stripe_id=756 ranges=12 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=756
-[batch line 192] parix update success stripe_id=756 latency=0.0578381 s
+[batch line 192] parix update success stripe_id=756 latency=0.0722751 s
 [client0] progress success=190 failed=0
 --- request #191 (file line 193) stripe_id=760 ranges=15 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=760
-[batch line 193] parix update success stripe_id=760 latency=0.0688114 s
+[batch line 193] parix update success stripe_id=760 latency=0.0560451 s
 --- request #192 (file line 194) stripe_id=764 ranges=22 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=764
-[batch line 194] parix update success stripe_id=764 latency=0.0564321 s
+[batch line 194] parix update success stripe_id=764 latency=0.0563483 s
 --- request #193 (file line 195) stripe_id=768 ranges=37 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=768
-[batch line 195] parix update success stripe_id=768 latency=0.0565336 s
+[batch line 195] parix update success stripe_id=768 latency=0.0582328 s
 --- request #194 (file line 196) stripe_id=772 ranges=19 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=772
-[batch line 196] parix update success stripe_id=772 latency=0.0690569 s
+[batch line 196] parix update success stripe_id=772 latency=0.0565288 s
 --- request #195 (file line 197) stripe_id=776 ranges=21 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=776
-[batch line 197] parix update success stripe_id=776 latency=0.0574524 s
+[batch line 197] parix update success stripe_id=776 latency=0.0552377 s
 --- request #196 (file line 198) stripe_id=780 ranges=75 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=780
-[batch line 198] parix update success stripe_id=780 latency=0.055342 s
+[batch line 198] parix update success stripe_id=780 latency=0.0560258 s
 --- request #197 (file line 199) stripe_id=784 ranges=43 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=784
-[batch line 199] parix update success stripe_id=784 latency=0.0558738 s
+[batch line 199] parix update success stripe_id=784 latency=0.0559184 s
 --- request #198 (file line 200) stripe_id=788 ranges=74 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=788
-[batch line 200] parix update success stripe_id=788 latency=0.0568109 s
+[batch line 200] parix update success stripe_id=788 latency=0.058183 s
 --- request #199 (file line 201) stripe_id=792 ranges=47 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=792
-[batch line 201] parix update success stripe_id=792 latency=0.0589227 s
+[batch line 201] parix update success stripe_id=792 latency=0.0568797 s
 --- request #200 (file line 202) stripe_id=796 ranges=157 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=796
-[batch line 202] parix update success stripe_id=796 latency=0.0569828 s
+[batch line 202] parix update success stripe_id=796 latency=0.0560616 s
 [client0] progress success=200 failed=0
 --- request #201 (file line 203) stripe_id=800 ranges=71 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=800
-[batch line 203] parix update success stripe_id=800 latency=0.0576152 s
+[batch line 203] parix update success stripe_id=800 latency=0.0570732 s
 --- request #202 (file line 204) stripe_id=804 ranges=48 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=804
-[batch line 204] parix update success stripe_id=804 latency=0.0565035 s
+[batch line 204] parix update success stripe_id=804 latency=0.057387 s
 --- request #203 (file line 205) stripe_id=808 ranges=81 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=808
-[batch line 205] parix update success stripe_id=808 latency=0.0563314 s
+[batch line 205] parix update success stripe_id=808 latency=0.0559495 s
 --- request #204 (file line 206) stripe_id=812 ranges=58 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=812
-[batch line 206] parix update success stripe_id=812 latency=0.056134 s
+[batch line 206] parix update success stripe_id=812 latency=0.0568086 s
 --- request #205 (file line 207) stripe_id=816 ranges=29 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=816
-[batch line 207] parix update success stripe_id=816 latency=0.057964 s
+[batch line 207] parix update success stripe_id=816 latency=0.0572992 s
 --- request #206 (file line 208) stripe_id=820 ranges=12 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=820
-[batch line 208] parix update success stripe_id=820 latency=0.0751131 s
+[batch line 208] parix update success stripe_id=820 latency=0.0564012 s
 --- request #207 (file line 209) stripe_id=824 ranges=49 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=824
-[batch line 209] parix update success stripe_id=824 latency=0.0583497 s
+[batch line 209] parix update success stripe_id=824 latency=0.0614227 s
 --- request #208 (file line 210) stripe_id=828 ranges=82 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=828
-[batch line 210] parix update success stripe_id=828 latency=0.0586615 s
+[batch line 210] parix update success stripe_id=828 latency=0.0587989 s
 --- request #209 (file line 211) stripe_id=832 ranges=55 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=832
-[batch line 211] parix update success stripe_id=832 latency=0.0604433 s
+[batch line 211] parix update success stripe_id=832 latency=0.0569016 s
 --- request #210 (file line 212) stripe_id=836 ranges=58 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=836
-[batch line 212] parix update success stripe_id=836 latency=0.0704446 s
+[batch line 212] parix update success stripe_id=836 latency=0.0569727 s
 [client0] progress success=210 failed=0
 --- request #211 (file line 213) stripe_id=840 ranges=69 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=840
-[batch line 213] parix update success stripe_id=840 latency=0.0697564 s
+[batch line 213] parix update success stripe_id=840 latency=0.0562534 s
 --- request #212 (file line 214) stripe_id=844 ranges=36 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=844
-[batch line 214] parix update success stripe_id=844 latency=0.0567742 s
+[batch line 214] parix update success stripe_id=844 latency=0.0573285 s
 --- request #213 (file line 215) stripe_id=848 ranges=24 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=848
-[batch line 215] parix update success stripe_id=848 latency=0.0691188 s
+[batch line 215] parix update success stripe_id=848 latency=0.0579032 s
 --- request #214 (file line 216) stripe_id=852 ranges=23 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=852
-[batch line 216] parix update success stripe_id=852 latency=0.0609829 s
+[batch line 216] parix update success stripe_id=852 latency=0.0582029 s
 --- request #215 (file line 217) stripe_id=856 ranges=28 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=856
-[batch line 217] parix update success stripe_id=856 latency=0.0571298 s
+[batch line 217] parix update success stripe_id=856 latency=0.0558285 s
 --- request #216 (file line 218) stripe_id=860 ranges=53 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=860
-[batch line 218] parix update success stripe_id=860 latency=0.0559695 s
+[batch line 218] parix update success stripe_id=860 latency=0.0561342 s
 --- request #217 (file line 219) stripe_id=864 ranges=34 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=864
-[batch line 219] parix update success stripe_id=864 latency=0.0567024 s
+[batch line 219] parix update success stripe_id=864 latency=0.0576849 s
 --- request #218 (file line 220) stripe_id=868 ranges=54 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=868
-[batch line 220] parix update success stripe_id=868 latency=0.0571701 s
+[batch line 220] parix update success stripe_id=868 latency=0.0567515 s
 --- request #219 (file line 221) stripe_id=872 ranges=42 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=872
-[batch line 221] parix update success stripe_id=872 latency=0.0565346 s
+[batch line 221] parix update success stripe_id=872 latency=0.0575336 s
 --- request #220 (file line 222) stripe_id=876 ranges=47 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=876
-[batch line 222] parix update success stripe_id=876 latency=0.0567716 s
+[batch line 222] parix update success stripe_id=876 latency=0.0562076 s
 [client0] progress success=220 failed=0
 --- request #221 (file line 223) stripe_id=880 ranges=67 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=880
-[batch line 223] parix update success stripe_id=880 latency=0.056108 s
+[batch line 223] parix update success stripe_id=880 latency=0.0553995 s
 --- request #222 (file line 224) stripe_id=884 ranges=49 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=884
-[batch line 224] parix update success stripe_id=884 latency=0.0560397 s
+[batch line 224] parix update success stripe_id=884 latency=0.0566806 s
 --- request #223 (file line 225) stripe_id=888 ranges=12 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=888
-[batch line 225] parix update success stripe_id=888 latency=0.0574182 s
+[batch line 225] parix update success stripe_id=888 latency=0.056816 s
 --- request #224 (file line 226) stripe_id=892 ranges=57 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=892
-[batch line 226] parix update success stripe_id=892 latency=0.0576428 s
+[batch line 226] parix update success stripe_id=892 latency=0.0564918 s
 --- request #225 (file line 227) stripe_id=896 ranges=52 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=896
-[batch line 227] parix update success stripe_id=896 latency=0.0568076 s
+[batch line 227] parix update success stripe_id=896 latency=0.075237 s
 --- request #226 (file line 228) stripe_id=900 ranges=40 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=900
-[batch line 228] parix update success stripe_id=900 latency=0.0558207 s
+[batch line 228] parix update success stripe_id=900 latency=0.0566254 s
 --- request #227 (file line 229) stripe_id=904 ranges=97 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=904
-[batch line 229] parix update success stripe_id=904 latency=0.0577356 s
+[batch line 229] parix update success stripe_id=904 latency=0.0583577 s
 --- request #228 (file line 230) stripe_id=908 ranges=75 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=908
-[batch line 230] parix update success stripe_id=908 latency=0.0566891 s
+[batch line 230] parix update success stripe_id=908 latency=0.056464 s
 --- request #229 (file line 231) stripe_id=912 ranges=66 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=912
-[batch line 231] parix update success stripe_id=912 latency=0.0573619 s
+[batch line 231] parix update success stripe_id=912 latency=0.058148 s
 --- request #230 (file line 232) stripe_id=916 ranges=58 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=916
-[batch line 232] parix update success stripe_id=916 latency=0.0561798 s
+[batch line 232] parix update success stripe_id=916 latency=0.0579261 s
 [client0] progress success=230 failed=0
 --- request #231 (file line 233) stripe_id=920 ranges=47 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=920
-[batch line 233] parix update success stripe_id=920 latency=0.0572348 s
+[batch line 233] parix update success stripe_id=920 latency=0.0596605 s
 --- request #232 (file line 234) stripe_id=924 ranges=63 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=924
-[batch line 234] parix update success stripe_id=924 latency=0.056605 s
+[batch line 234] parix update success stripe_id=924 latency=0.0656209 s
 --- request #233 (file line 235) stripe_id=928 ranges=122 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=928
-[batch line 235] parix update success stripe_id=928 latency=0.0576728 s
+[batch line 235] parix update success stripe_id=928 latency=0.0570689 s
 --- request #234 (file line 236) stripe_id=932 ranges=41 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=932
-[batch line 236] parix update success stripe_id=932 latency=0.0630466 s
+[batch line 236] parix update success stripe_id=932 latency=0.0570867 s
 --- request #235 (file line 237) stripe_id=936 ranges=148 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=936
-[batch line 237] parix update success stripe_id=936 latency=0.0571563 s
+[batch line 237] parix update success stripe_id=936 latency=0.0565258 s
 --- request #236 (file line 238) stripe_id=940 ranges=50 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=940
-[batch line 238] parix update success stripe_id=940 latency=0.0565996 s
+[batch line 238] parix update success stripe_id=940 latency=0.0567267 s
 --- request #237 (file line 239) stripe_id=944 ranges=37 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=944
-[batch line 239] parix update success stripe_id=944 latency=0.0572425 s
+[batch line 239] parix update success stripe_id=944 latency=0.0555091 s
 --- request #238 (file line 240) stripe_id=948 ranges=59 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=948
-[batch line 240] parix update success stripe_id=948 latency=0.0571867 s
+[batch line 240] parix update success stripe_id=948 latency=0.0559191 s
 --- request #239 (file line 241) stripe_id=952 ranges=14 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=952
-[batch line 241] parix update success stripe_id=952 latency=0.0670131 s
+[batch line 241] parix update success stripe_id=952 latency=0.0558849 s
 --- request #240 (file line 242) stripe_id=956 ranges=15 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=956
-[batch line 242] parix update success stripe_id=956 latency=0.0572093 s
+[batch line 242] parix update success stripe_id=956 latency=0.055745 s
 [client0] progress success=240 failed=0
 --- request #241 (file line 243) stripe_id=960 ranges=39 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=960
-[batch line 243] parix update success stripe_id=960 latency=0.0567086 s
+[batch line 243] parix update success stripe_id=960 latency=0.056461 s
 --- request #242 (file line 244) stripe_id=964 ranges=20 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=964
-[batch line 244] parix update success stripe_id=964 latency=0.0690998 s
+[batch line 244] parix update success stripe_id=964 latency=0.0561874 s
 --- request #243 (file line 245) stripe_id=968 ranges=67 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=968
-[batch line 245] parix update success stripe_id=968 latency=0.0596625 s
+[batch line 245] parix update success stripe_id=968 latency=0.0588381 s
 --- request #244 (file line 246) stripe_id=972 ranges=35 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=972
-[batch line 246] parix update success stripe_id=972 latency=0.0618982 s
+[batch line 246] parix update success stripe_id=972 latency=0.0853861 s
 --- request #245 (file line 247) stripe_id=976 ranges=72 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=976
-[batch line 247] parix update success stripe_id=976 latency=0.0684631 s
+[batch line 247] parix update success stripe_id=976 latency=0.0608559 s
 --- request #246 (file line 248) stripe_id=980 ranges=66 ---
 [client0][172.16.2.31:77777][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
 [client0][172.16.2.31:77777][Parix] partial update committed batch_id=21
-[batch line 248] parix update success stripe_id=980 latency=0.384948 s
+[batch line 248] parix update success stripe_id=980 latency=0.400339 s
 --- request #247 (file line 249) stripe_id=984 ranges=17 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=984
-[batch line 249] parix update success stripe_id=984 latency=0.0569123 s
+[batch line 249] parix update success stripe_id=984 latency=0.0583403 s
 --- request #248 (file line 250) stripe_id=988 ranges=21 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=988
-[batch line 250] parix update success stripe_id=988 latency=0.0566996 s
+[batch line 250] parix update success stripe_id=988 latency=0.056183 s
 --- request #249 (file line 251) stripe_id=992 ranges=56 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=992
-[batch line 251] parix update success stripe_id=992 latency=0.0570755 s
+[batch line 251] parix update success stripe_id=992 latency=0.0566205 s
 --- request #250 (file line 252) stripe_id=996 ranges=72 ---
 [client0][172.16.2.31:77777][Parix] full stripe rewrite done stripe_id=996
-[batch line 252] parix update success stripe_id=996 latency=0.0577045 s
+[batch line 252] parix update success stripe_id=996 latency=0.0558311 s
 [client0] progress success=250 failed=0
 === Parix batch summary ===
 total_requests=250 success=250 failed=0
-success_req[1] line=3 stripe_id=0 latency_s=0.0648103
-success_req[2] line=4 stripe_id=4 latency_s=0.0651933
-success_req[3] line=5 stripe_id=8 latency_s=0.0842089
-success_req[4] line=6 stripe_id=12 latency_s=0.0577865
-success_req[5] line=7 stripe_id=16 latency_s=0.0559502
-success_req[6] line=8 stripe_id=20 latency_s=0.0567489
-success_req[7] line=9 stripe_id=24 latency_s=0.0589294
-success_req[8] line=10 stripe_id=28 latency_s=0.0581658
-success_req[9] line=11 stripe_id=32 latency_s=0.0847471
-success_req[10] line=12 stripe_id=36 latency_s=0.0710308
-success_req[11] line=13 stripe_id=40 latency_s=0.0567644
-success_req[12] line=14 stripe_id=44 latency_s=0.0584365
-success_req[13] line=15 stripe_id=48 latency_s=0.0746879
-success_req[14] line=16 stripe_id=52 latency_s=0.0572399
-success_req[15] line=17 stripe_id=56 latency_s=0.0653772
-success_req[16] line=18 stripe_id=60 latency_s=0.0575618
-success_req[17] line=19 stripe_id=64 latency_s=0.0767106
-success_req[18] line=20 stripe_id=68 latency_s=0.055408
-success_req[19] line=21 stripe_id=72 latency_s=0.0556719
-success_req[20] line=22 stripe_id=76 latency_s=0.0583009
-success_req[21] line=23 stripe_id=80 latency_s=0.0573434
-success_req[22] line=24 stripe_id=84 latency_s=0.0562756
-success_req[23] line=25 stripe_id=88 latency_s=0.0564654
-success_req[24] line=26 stripe_id=92 latency_s=0.0560043
-success_req[25] line=27 stripe_id=96 latency_s=0.0574416
-success_req[26] line=28 stripe_id=100 latency_s=0.0576219
-success_req[27] line=29 stripe_id=104 latency_s=0.0634509
-success_req[28] line=30 stripe_id=108 latency_s=0.0571401
-success_req[29] line=31 stripe_id=112 latency_s=0.0681051
-success_req[30] line=32 stripe_id=116 latency_s=0.0565346
-success_req[31] line=33 stripe_id=120 latency_s=0.0559383
-success_req[32] line=34 stripe_id=124 latency_s=0.0553448
-success_req[33] line=35 stripe_id=128 latency_s=0.0563481
-success_req[34] line=36 stripe_id=132 latency_s=0.0559147
-success_req[35] line=37 stripe_id=136 latency_s=0.057344
-success_req[36] line=38 stripe_id=140 latency_s=0.0566071
-success_req[37] line=39 stripe_id=144 latency_s=0.0566852
-success_req[38] line=40 stripe_id=148 latency_s=0.0560047
-success_req[39] line=41 stripe_id=152 latency_s=0.0559924
-success_req[40] line=42 stripe_id=156 latency_s=0.0555014
-success_req[41] line=43 stripe_id=160 latency_s=0.0556224
-success_req[42] line=44 stripe_id=164 latency_s=0.0562181
-success_req[43] line=45 stripe_id=168 latency_s=0.0600601
-success_req[44] line=46 stripe_id=172 latency_s=0.0570625
-success_req[45] line=47 stripe_id=176 latency_s=0.0563812
-success_req[46] line=48 stripe_id=180 latency_s=0.078051
-success_req[47] line=49 stripe_id=184 latency_s=0.0559545
-success_req[48] line=50 stripe_id=188 latency_s=0.0570299
-success_req[49] line=51 stripe_id=192 latency_s=0.0571157
-success_req[50] line=52 stripe_id=196 latency_s=0.0564736
-success_req[51] line=53 stripe_id=200 latency_s=0.0575305
-success_req[52] line=54 stripe_id=204 latency_s=0.0562177
-success_req[53] line=55 stripe_id=208 latency_s=0.0562141
-success_req[54] line=56 stripe_id=212 latency_s=0.0583298
-success_req[55] line=57 stripe_id=216 latency_s=0.0569535
-success_req[56] line=58 stripe_id=220 latency_s=0.0559571
-success_req[57] line=59 stripe_id=224 latency_s=0.0577314
-success_req[58] line=60 stripe_id=228 latency_s=0.0564775
-success_req[59] line=61 stripe_id=232 latency_s=0.0566293
-success_req[60] line=62 stripe_id=236 latency_s=0.0564932
-success_req[61] line=63 stripe_id=240 latency_s=0.0575248
-success_req[62] line=64 stripe_id=244 latency_s=0.0574142
-success_req[63] line=65 stripe_id=248 latency_s=0.0571936
-success_req[64] line=66 stripe_id=252 latency_s=0.0567543
-success_req[65] line=67 stripe_id=256 latency_s=0.0561148
-success_req[66] line=68 stripe_id=260 latency_s=0.0572141
-success_req[67] line=69 stripe_id=264 latency_s=0.0732973
-success_req[68] line=70 stripe_id=268 latency_s=0.430456
-success_req[69] line=71 stripe_id=272 latency_s=0.0819546
-success_req[70] line=72 stripe_id=276 latency_s=0.0670435
-success_req[71] line=73 stripe_id=280 latency_s=0.0553848
-success_req[72] line=74 stripe_id=284 latency_s=0.0576186
-success_req[73] line=75 stripe_id=288 latency_s=0.0554274
-success_req[74] line=76 stripe_id=292 latency_s=0.0569266
-success_req[75] line=77 stripe_id=296 latency_s=0.0556412
-success_req[76] line=78 stripe_id=300 latency_s=0.0554522
-success_req[77] line=79 stripe_id=304 latency_s=0.0573784
-success_req[78] line=80 stripe_id=308 latency_s=0.0572451
-success_req[79] line=81 stripe_id=312 latency_s=0.0557625
-success_req[80] line=82 stripe_id=316 latency_s=0.0560741
-success_req[81] line=83 stripe_id=320 latency_s=0.0564191
-success_req[82] line=84 stripe_id=324 latency_s=0.0559416
-success_req[83] line=85 stripe_id=328 latency_s=0.0560468
-success_req[84] line=86 stripe_id=332 latency_s=0.0558507
-success_req[85] line=87 stripe_id=336 latency_s=0.0557641
-success_req[86] line=88 stripe_id=340 latency_s=0.0579516
-success_req[87] line=89 stripe_id=344 latency_s=0.056827
-success_req[88] line=90 stripe_id=348 latency_s=0.0569652
-success_req[89] line=91 stripe_id=352 latency_s=0.0567379
-success_req[90] line=92 stripe_id=356 latency_s=0.0559657
-success_req[91] line=93 stripe_id=360 latency_s=0.0569875
-success_req[92] line=94 stripe_id=364 latency_s=0.0566354
-success_req[93] line=95 stripe_id=368 latency_s=0.0571298
-success_req[94] line=96 stripe_id=372 latency_s=0.0565745
-success_req[95] line=97 stripe_id=376 latency_s=0.0565151
-success_req[96] line=98 stripe_id=380 latency_s=0.0561462
-success_req[97] line=99 stripe_id=384 latency_s=0.05672
-success_req[98] line=100 stripe_id=388 latency_s=0.0574948
-success_req[99] line=101 stripe_id=392 latency_s=0.0560358
-success_req[100] line=102 stripe_id=396 latency_s=0.0570352
-success_req[101] line=103 stripe_id=400 latency_s=0.056194
-success_req[102] line=104 stripe_id=404 latency_s=0.0566035
-success_req[103] line=105 stripe_id=408 latency_s=0.055763
-success_req[104] line=106 stripe_id=412 latency_s=0.0559108
-success_req[105] line=107 stripe_id=416 latency_s=0.0558897
-success_req[106] line=108 stripe_id=420 latency_s=0.0562883
-success_req[107] line=109 stripe_id=424 latency_s=0.0563132
-success_req[108] line=110 stripe_id=428 latency_s=0.0560612
-success_req[109] line=111 stripe_id=432 latency_s=0.0601324
-success_req[110] line=112 stripe_id=436 latency_s=0.0562098
-success_req[111] line=113 stripe_id=440 latency_s=0.0563607
-success_req[112] line=114 stripe_id=444 latency_s=0.0561669
-success_req[113] line=115 stripe_id=448 latency_s=0.0554465
-success_req[114] line=116 stripe_id=452 latency_s=0.0559202
-success_req[115] line=117 stripe_id=456 latency_s=0.0567087
-success_req[116] line=118 stripe_id=460 latency_s=0.0573298
-success_req[117] line=119 stripe_id=464 latency_s=0.0555903
-success_req[118] line=120 stripe_id=468 latency_s=0.0570995
-success_req[119] line=121 stripe_id=472 latency_s=0.0569907
-success_req[120] line=122 stripe_id=476 latency_s=0.0578397
-success_req[121] line=123 stripe_id=480 latency_s=0.0579069
-success_req[122] line=124 stripe_id=484 latency_s=0.0569819
-success_req[123] line=125 stripe_id=488 latency_s=0.0559674
-success_req[124] line=126 stripe_id=492 latency_s=0.0562835
-success_req[125] line=127 stripe_id=496 latency_s=0.0578589
-success_req[126] line=128 stripe_id=500 latency_s=0.0679277
-success_req[127] line=129 stripe_id=504 latency_s=0.0566287
-success_req[128] line=130 stripe_id=508 latency_s=0.0560175
-success_req[129] line=131 stripe_id=512 latency_s=0.05549
-success_req[130] line=132 stripe_id=516 latency_s=0.0581587
-success_req[131] line=133 stripe_id=520 latency_s=0.0578633
-success_req[132] line=134 stripe_id=524 latency_s=0.0575274
-success_req[133] line=135 stripe_id=528 latency_s=0.0570292
-success_req[134] line=136 stripe_id=532 latency_s=0.0608139
-success_req[135] line=137 stripe_id=536 latency_s=0.0607208
-success_req[136] line=138 stripe_id=540 latency_s=0.0562391
-success_req[137] line=139 stripe_id=544 latency_s=0.0582107
-success_req[138] line=140 stripe_id=548 latency_s=0.296204
-success_req[139] line=141 stripe_id=552 latency_s=0.0571386
-success_req[140] line=142 stripe_id=556 latency_s=0.056959
-success_req[141] line=143 stripe_id=560 latency_s=0.0570043
-success_req[142] line=144 stripe_id=564 latency_s=0.0575317
-success_req[143] line=145 stripe_id=568 latency_s=0.0837145
-success_req[144] line=146 stripe_id=572 latency_s=0.0565623
-success_req[145] line=147 stripe_id=576 latency_s=0.0573289
-success_req[146] line=148 stripe_id=580 latency_s=0.0554198
-success_req[147] line=149 stripe_id=584 latency_s=0.0554123
-success_req[148] line=150 stripe_id=588 latency_s=0.0567805
-success_req[149] line=151 stripe_id=592 latency_s=0.0567578
-success_req[150] line=152 stripe_id=596 latency_s=0.0571442
-success_req[151] line=153 stripe_id=600 latency_s=0.0568112
-success_req[152] line=154 stripe_id=604 latency_s=0.056209
-success_req[153] line=155 stripe_id=608 latency_s=0.0562585
-success_req[154] line=156 stripe_id=612 latency_s=0.0559993
-success_req[155] line=157 stripe_id=616 latency_s=0.0562104
-success_req[156] line=158 stripe_id=620 latency_s=0.0560382
-success_req[157] line=159 stripe_id=624 latency_s=0.0562283
-success_req[158] line=160 stripe_id=628 latency_s=0.0558256
-success_req[159] line=161 stripe_id=632 latency_s=0.0560883
-success_req[160] line=162 stripe_id=636 latency_s=0.0555837
-success_req[161] line=163 stripe_id=640 latency_s=0.0577529
-success_req[162] line=164 stripe_id=644 latency_s=0.0566304
-success_req[163] line=165 stripe_id=648 latency_s=0.0564484
-success_req[164] line=166 stripe_id=652 latency_s=0.0571576
-success_req[165] line=167 stripe_id=656 latency_s=0.0563328
-success_req[166] line=168 stripe_id=660 latency_s=0.0553898
-success_req[167] line=169 stripe_id=664 latency_s=0.0564713
-success_req[168] line=170 stripe_id=668 latency_s=0.0562031
-success_req[169] line=171 stripe_id=672 latency_s=0.0567265
-success_req[170] line=172 stripe_id=676 latency_s=0.0567027
-success_req[171] line=173 stripe_id=680 latency_s=0.0555559
-success_req[172] line=174 stripe_id=684 latency_s=0.0580901
-success_req[173] line=175 stripe_id=688 latency_s=0.0561558
-success_req[174] line=176 stripe_id=692 latency_s=0.0570765
-success_req[175] line=177 stripe_id=696 latency_s=0.0555424
-success_req[176] line=178 stripe_id=700 latency_s=0.0566142
-success_req[177] line=179 stripe_id=704 latency_s=0.0576547
-success_req[178] line=180 stripe_id=708 latency_s=0.0708605
-success_req[179] line=181 stripe_id=712 latency_s=0.0580368
-success_req[180] line=182 stripe_id=716 latency_s=0.0572937
-success_req[181] line=183 stripe_id=720 latency_s=0.05723
-success_req[182] line=184 stripe_id=724 latency_s=0.0595574
-success_req[183] line=185 stripe_id=728 latency_s=0.341423
-success_req[184] line=186 stripe_id=732 latency_s=0.05705
-success_req[185] line=187 stripe_id=736 latency_s=0.0563025
-success_req[186] line=188 stripe_id=740 latency_s=0.0571964
-success_req[187] line=189 stripe_id=744 latency_s=0.0558089
-success_req[188] line=190 stripe_id=748 latency_s=0.0564236
-success_req[189] line=191 stripe_id=752 latency_s=0.056129
-success_req[190] line=192 stripe_id=756 latency_s=0.0578381
-success_req[191] line=193 stripe_id=760 latency_s=0.0688114
-success_req[192] line=194 stripe_id=764 latency_s=0.0564321
-success_req[193] line=195 stripe_id=768 latency_s=0.0565336
-success_req[194] line=196 stripe_id=772 latency_s=0.0690569
-success_req[195] line=197 stripe_id=776 latency_s=0.0574524
-success_req[196] line=198 stripe_id=780 latency_s=0.055342
-success_req[197] line=199 stripe_id=784 latency_s=0.0558738
-success_req[198] line=200 stripe_id=788 latency_s=0.0568109
-success_req[199] line=201 stripe_id=792 latency_s=0.0589227
-success_req[200] line=202 stripe_id=796 latency_s=0.0569828
-success_req[201] line=203 stripe_id=800 latency_s=0.0576152
-success_req[202] line=204 stripe_id=804 latency_s=0.0565035
-success_req[203] line=205 stripe_id=808 latency_s=0.0563314
-success_req[204] line=206 stripe_id=812 latency_s=0.056134
-success_req[205] line=207 stripe_id=816 latency_s=0.057964
-success_req[206] line=208 stripe_id=820 latency_s=0.0751131
-success_req[207] line=209 stripe_id=824 latency_s=0.0583497
-success_req[208] line=210 stripe_id=828 latency_s=0.0586615
-success_req[209] line=211 stripe_id=832 latency_s=0.0604433
-success_req[210] line=212 stripe_id=836 latency_s=0.0704446
-success_req[211] line=213 stripe_id=840 latency_s=0.0697564
-success_req[212] line=214 stripe_id=844 latency_s=0.0567742
-success_req[213] line=215 stripe_id=848 latency_s=0.0691188
-success_req[214] line=216 stripe_id=852 latency_s=0.0609829
-success_req[215] line=217 stripe_id=856 latency_s=0.0571298
-success_req[216] line=218 stripe_id=860 latency_s=0.0559695
-success_req[217] line=219 stripe_id=864 latency_s=0.0567024
-success_req[218] line=220 stripe_id=868 latency_s=0.0571701
-success_req[219] line=221 stripe_id=872 latency_s=0.0565346
-success_req[220] line=222 stripe_id=876 latency_s=0.0567716
-success_req[221] line=223 stripe_id=880 latency_s=0.056108
-success_req[222] line=224 stripe_id=884 latency_s=0.0560397
-success_req[223] line=225 stripe_id=888 latency_s=0.0574182
-success_req[224] line=226 stripe_id=892 latency_s=0.0576428
-success_req[225] line=227 stripe_id=896 latency_s=0.0568076
-success_req[226] line=228 stripe_id=900 latency_s=0.0558207
-success_req[227] line=229 stripe_id=904 latency_s=0.0577356
-success_req[228] line=230 stripe_id=908 latency_s=0.0566891
-success_req[229] line=231 stripe_id=912 latency_s=0.0573619
-success_req[230] line=232 stripe_id=916 latency_s=0.0561798
-success_req[231] line=233 stripe_id=920 latency_s=0.0572348
-success_req[232] line=234 stripe_id=924 latency_s=0.056605
-success_req[233] line=235 stripe_id=928 latency_s=0.0576728
-success_req[234] line=236 stripe_id=932 latency_s=0.0630466
-success_req[235] line=237 stripe_id=936 latency_s=0.0571563
-success_req[236] line=238 stripe_id=940 latency_s=0.0565996
-success_req[237] line=239 stripe_id=944 latency_s=0.0572425
-success_req[238] line=240 stripe_id=948 latency_s=0.0571867
-success_req[239] line=241 stripe_id=952 latency_s=0.0670131
-success_req[240] line=242 stripe_id=956 latency_s=0.0572093
-success_req[241] line=243 stripe_id=960 latency_s=0.0567086
-success_req[242] line=244 stripe_id=964 latency_s=0.0690998
-success_req[243] line=245 stripe_id=968 latency_s=0.0596625
-success_req[244] line=246 stripe_id=972 latency_s=0.0618982
-success_req[245] line=247 stripe_id=976 latency_s=0.0684631
-success_req[246] line=248 stripe_id=980 latency_s=0.384948
-success_req[247] line=249 stripe_id=984 latency_s=0.0569123
-success_req[248] line=250 stripe_id=988 latency_s=0.0566996
-success_req[249] line=251 stripe_id=992 latency_s=0.0570755
-success_req[250] line=252 stripe_id=996 latency_s=0.0577045
-total_time=15.8379 s (failures excluded)
-avg_time=0.0633514 s (failures excluded)
+success_req[1] line=3 stripe_id=0 latency_s=0.0666544
+success_req[2] line=4 stripe_id=4 latency_s=0.061357
+success_req[3] line=5 stripe_id=8 latency_s=0.0573897
+success_req[4] line=6 stripe_id=12 latency_s=0.0566785
+success_req[5] line=7 stripe_id=16 latency_s=0.0566186
+success_req[6] line=8 stripe_id=20 latency_s=0.055514
+success_req[7] line=9 stripe_id=24 latency_s=0.0552688
+success_req[8] line=10 stripe_id=28 latency_s=0.0566205
+success_req[9] line=11 stripe_id=32 latency_s=0.056229
+success_req[10] line=12 stripe_id=36 latency_s=0.0555251
+success_req[11] line=13 stripe_id=40 latency_s=0.0580168
+success_req[12] line=14 stripe_id=44 latency_s=0.0668153
+success_req[13] line=15 stripe_id=48 latency_s=0.0576643
+success_req[14] line=16 stripe_id=52 latency_s=0.0564783
+success_req[15] line=17 stripe_id=56 latency_s=0.0557913
+success_req[16] line=18 stripe_id=60 latency_s=0.0565817
+success_req[17] line=19 stripe_id=64 latency_s=0.0566215
+success_req[18] line=20 stripe_id=68 latency_s=0.0563027
+success_req[19] line=21 stripe_id=72 latency_s=0.0562996
+success_req[20] line=22 stripe_id=76 latency_s=0.0554743
+success_req[21] line=23 stripe_id=80 latency_s=0.0565401
+success_req[22] line=24 stripe_id=84 latency_s=0.0558776
+success_req[23] line=25 stripe_id=88 latency_s=0.0569117
+success_req[24] line=26 stripe_id=92 latency_s=0.057068
+success_req[25] line=27 stripe_id=96 latency_s=0.057417
+success_req[26] line=28 stripe_id=100 latency_s=0.0555628
+success_req[27] line=29 stripe_id=104 latency_s=0.0561233
+success_req[28] line=30 stripe_id=108 latency_s=0.0558401
+success_req[29] line=31 stripe_id=112 latency_s=0.056603
+success_req[30] line=32 stripe_id=116 latency_s=0.0556808
+success_req[31] line=33 stripe_id=120 latency_s=0.0576513
+success_req[32] line=34 stripe_id=124 latency_s=0.0562023
+success_req[33] line=35 stripe_id=128 latency_s=0.0555559
+success_req[34] line=36 stripe_id=132 latency_s=0.0555004
+success_req[35] line=37 stripe_id=136 latency_s=0.056425
+success_req[36] line=38 stripe_id=140 latency_s=0.0562708
+success_req[37] line=39 stripe_id=144 latency_s=0.0560354
+success_req[38] line=40 stripe_id=148 latency_s=0.0561261
+success_req[39] line=41 stripe_id=152 latency_s=0.0573629
+success_req[40] line=42 stripe_id=156 latency_s=0.0680303
+success_req[41] line=43 stripe_id=160 latency_s=0.0557203
+success_req[42] line=44 stripe_id=164 latency_s=0.0569313
+success_req[43] line=45 stripe_id=168 latency_s=0.0654827
+success_req[44] line=46 stripe_id=172 latency_s=0.0654488
+success_req[45] line=47 stripe_id=176 latency_s=0.055684
+success_req[46] line=48 stripe_id=180 latency_s=0.0567574
+success_req[47] line=49 stripe_id=184 latency_s=0.0558053
+success_req[48] line=50 stripe_id=188 latency_s=0.0557939
+success_req[49] line=51 stripe_id=192 latency_s=0.056603
+success_req[50] line=52 stripe_id=196 latency_s=0.0567014
+success_req[51] line=53 stripe_id=200 latency_s=0.0559293
+success_req[52] line=54 stripe_id=204 latency_s=0.0554661
+success_req[53] line=55 stripe_id=208 latency_s=0.0560519
+success_req[54] line=56 stripe_id=212 latency_s=0.0590121
+success_req[55] line=57 stripe_id=216 latency_s=0.0563045
+success_req[56] line=58 stripe_id=220 latency_s=0.0569699
+success_req[57] line=59 stripe_id=224 latency_s=0.0709751
+success_req[58] line=60 stripe_id=228 latency_s=0.0577853
+success_req[59] line=61 stripe_id=232 latency_s=0.0561791
+success_req[60] line=62 stripe_id=236 latency_s=0.0560675
+success_req[61] line=63 stripe_id=240 latency_s=0.0566366
+success_req[62] line=64 stripe_id=244 latency_s=0.0740401
+success_req[63] line=65 stripe_id=248 latency_s=0.0567712
+success_req[64] line=66 stripe_id=252 latency_s=0.0573486
+success_req[65] line=67 stripe_id=256 latency_s=0.0577669
+success_req[66] line=68 stripe_id=260 latency_s=0.0570521
+success_req[67] line=69 stripe_id=264 latency_s=0.0570065
+success_req[68] line=70 stripe_id=268 latency_s=0.4332
+success_req[69] line=71 stripe_id=272 latency_s=0.0750768
+success_req[70] line=72 stripe_id=276 latency_s=0.0574942
+success_req[71] line=73 stripe_id=280 latency_s=0.0779436
+success_req[72] line=74 stripe_id=284 latency_s=0.062837
+success_req[73] line=75 stripe_id=288 latency_s=0.0718943
+success_req[74] line=76 stripe_id=292 latency_s=0.0567059
+success_req[75] line=77 stripe_id=296 latency_s=0.0561153
+success_req[76] line=78 stripe_id=300 latency_s=0.0570687
+success_req[77] line=79 stripe_id=304 latency_s=0.0564678
+success_req[78] line=80 stripe_id=308 latency_s=0.0569941
+success_req[79] line=81 stripe_id=312 latency_s=0.0559975
+success_req[80] line=82 stripe_id=316 latency_s=0.0568388
+success_req[81] line=83 stripe_id=320 latency_s=0.0566257
+success_req[82] line=84 stripe_id=324 latency_s=0.0566728
+success_req[83] line=85 stripe_id=328 latency_s=0.0568468
+success_req[84] line=86 stripe_id=332 latency_s=0.0559124
+success_req[85] line=87 stripe_id=336 latency_s=0.056161
+success_req[86] line=88 stripe_id=340 latency_s=0.0565174
+success_req[87] line=89 stripe_id=344 latency_s=0.0568379
+success_req[88] line=90 stripe_id=348 latency_s=0.0562518
+success_req[89] line=91 stripe_id=352 latency_s=0.0561384
+success_req[90] line=92 stripe_id=356 latency_s=0.0574688
+success_req[91] line=93 stripe_id=360 latency_s=0.0576029
+success_req[92] line=94 stripe_id=364 latency_s=0.0562667
+success_req[93] line=95 stripe_id=368 latency_s=0.0567598
+success_req[94] line=96 stripe_id=372 latency_s=0.0564642
+success_req[95] line=97 stripe_id=376 latency_s=0.056769
+success_req[96] line=98 stripe_id=380 latency_s=0.0598807
+success_req[97] line=99 stripe_id=384 latency_s=0.0625523
+success_req[98] line=100 stripe_id=388 latency_s=0.0564621
+success_req[99] line=101 stripe_id=392 latency_s=0.0564806
+success_req[100] line=102 stripe_id=396 latency_s=0.0563709
+success_req[101] line=103 stripe_id=400 latency_s=0.0707039
+success_req[102] line=104 stripe_id=404 latency_s=0.0574961
+success_req[103] line=105 stripe_id=408 latency_s=0.0581977
+success_req[104] line=106 stripe_id=412 latency_s=0.0578073
+success_req[105] line=107 stripe_id=416 latency_s=0.0571963
+success_req[106] line=108 stripe_id=420 latency_s=0.0566176
+success_req[107] line=109 stripe_id=424 latency_s=0.0568966
+success_req[108] line=110 stripe_id=428 latency_s=0.0756558
+success_req[109] line=111 stripe_id=432 latency_s=0.059035
+success_req[110] line=112 stripe_id=436 latency_s=0.0573085
+success_req[111] line=113 stripe_id=440 latency_s=0.0740349
+success_req[112] line=114 stripe_id=444 latency_s=0.0574411
+success_req[113] line=115 stripe_id=448 latency_s=0.0561891
+success_req[114] line=116 stripe_id=452 latency_s=0.0573104
+success_req[115] line=117 stripe_id=456 latency_s=0.0576915
+success_req[116] line=118 stripe_id=460 latency_s=0.0567573
+success_req[117] line=119 stripe_id=464 latency_s=0.0561377
+success_req[118] line=120 stripe_id=468 latency_s=0.0551391
+success_req[119] line=121 stripe_id=472 latency_s=0.0565341
+success_req[120] line=122 stripe_id=476 latency_s=0.0559216
+success_req[121] line=123 stripe_id=480 latency_s=0.0575462
+success_req[122] line=124 stripe_id=484 latency_s=0.055747
+success_req[123] line=125 stripe_id=488 latency_s=0.055756
+success_req[124] line=126 stripe_id=492 latency_s=0.0576189
+success_req[125] line=127 stripe_id=496 latency_s=0.0569272
+success_req[126] line=128 stripe_id=500 latency_s=0.056736
+success_req[127] line=129 stripe_id=504 latency_s=0.0566448
+success_req[128] line=130 stripe_id=508 latency_s=0.0555455
+success_req[129] line=131 stripe_id=512 latency_s=0.0571263
+success_req[130] line=132 stripe_id=516 latency_s=0.0558349
+success_req[131] line=133 stripe_id=520 latency_s=0.0557567
+success_req[132] line=134 stripe_id=524 latency_s=0.0556358
+success_req[133] line=135 stripe_id=528 latency_s=0.0581892
+success_req[134] line=136 stripe_id=532 latency_s=0.056603
+success_req[135] line=137 stripe_id=536 latency_s=0.0565115
+success_req[136] line=138 stripe_id=540 latency_s=0.0563398
+success_req[137] line=139 stripe_id=544 latency_s=0.0558458
+success_req[138] line=140 stripe_id=548 latency_s=0.30287
+success_req[139] line=141 stripe_id=552 latency_s=0.0568912
+success_req[140] line=142 stripe_id=556 latency_s=0.058204
+success_req[141] line=143 stripe_id=560 latency_s=0.073048
+success_req[142] line=144 stripe_id=564 latency_s=0.0599969
+success_req[143] line=145 stripe_id=568 latency_s=0.0565709
+success_req[144] line=146 stripe_id=572 latency_s=0.0563048
+success_req[145] line=147 stripe_id=576 latency_s=0.0575696
+success_req[146] line=148 stripe_id=580 latency_s=0.0569609
+success_req[147] line=149 stripe_id=584 latency_s=0.0569015
+success_req[148] line=150 stripe_id=588 latency_s=0.0601382
+success_req[149] line=151 stripe_id=592 latency_s=0.0560735
+success_req[150] line=152 stripe_id=596 latency_s=0.0561162
+success_req[151] line=153 stripe_id=600 latency_s=0.0571133
+success_req[152] line=154 stripe_id=604 latency_s=0.0557877
+success_req[153] line=155 stripe_id=608 latency_s=0.0567424
+success_req[154] line=156 stripe_id=612 latency_s=0.0558547
+success_req[155] line=157 stripe_id=616 latency_s=0.0565709
+success_req[156] line=158 stripe_id=620 latency_s=0.0568848
+success_req[157] line=159 stripe_id=624 latency_s=0.0567008
+success_req[158] line=160 stripe_id=628 latency_s=0.0562066
+success_req[159] line=161 stripe_id=632 latency_s=0.0559265
+success_req[160] line=162 stripe_id=636 latency_s=0.0571324
+success_req[161] line=163 stripe_id=640 latency_s=0.0554864
+success_req[162] line=164 stripe_id=644 latency_s=0.0568747
+success_req[163] line=165 stripe_id=648 latency_s=0.0552775
+success_req[164] line=166 stripe_id=652 latency_s=0.055679
+success_req[165] line=167 stripe_id=656 latency_s=0.0563504
+success_req[166] line=168 stripe_id=660 latency_s=0.0631838
+success_req[167] line=169 stripe_id=664 latency_s=0.063011
+success_req[168] line=170 stripe_id=668 latency_s=0.056383
+success_req[169] line=171 stripe_id=672 latency_s=0.0567288
+success_req[170] line=172 stripe_id=676 latency_s=0.0560714
+success_req[171] line=173 stripe_id=680 latency_s=0.0556856
+success_req[172] line=174 stripe_id=684 latency_s=0.0560754
+success_req[173] line=175 stripe_id=688 latency_s=0.0562509
+success_req[174] line=176 stripe_id=692 latency_s=0.0567549
+success_req[175] line=177 stripe_id=696 latency_s=0.0559013
+success_req[176] line=178 stripe_id=700 latency_s=0.0567738
+success_req[177] line=179 stripe_id=704 latency_s=0.0578855
+success_req[178] line=180 stripe_id=708 latency_s=0.0572143
+success_req[179] line=181 stripe_id=712 latency_s=0.0589803
+success_req[180] line=182 stripe_id=716 latency_s=0.0562366
+success_req[181] line=183 stripe_id=720 latency_s=0.0567393
+success_req[182] line=184 stripe_id=724 latency_s=0.0658974
+success_req[183] line=185 stripe_id=728 latency_s=0.374083
+success_req[184] line=186 stripe_id=732 latency_s=0.0563244
+success_req[185] line=187 stripe_id=736 latency_s=0.0575921
+success_req[186] line=188 stripe_id=740 latency_s=0.0578343
+success_req[187] line=189 stripe_id=744 latency_s=0.0566649
+success_req[188] line=190 stripe_id=748 latency_s=0.0574507
+success_req[189] line=191 stripe_id=752 latency_s=0.0589145
+success_req[190] line=192 stripe_id=756 latency_s=0.0722751
+success_req[191] line=193 stripe_id=760 latency_s=0.0560451
+success_req[192] line=194 stripe_id=764 latency_s=0.0563483
+success_req[193] line=195 stripe_id=768 latency_s=0.0582328
+success_req[194] line=196 stripe_id=772 latency_s=0.0565288
+success_req[195] line=197 stripe_id=776 latency_s=0.0552377
+success_req[196] line=198 stripe_id=780 latency_s=0.0560258
+success_req[197] line=199 stripe_id=784 latency_s=0.0559184
+success_req[198] line=200 stripe_id=788 latency_s=0.058183
+success_req[199] line=201 stripe_id=792 latency_s=0.0568797
+success_req[200] line=202 stripe_id=796 latency_s=0.0560616
+success_req[201] line=203 stripe_id=800 latency_s=0.0570732
+success_req[202] line=204 stripe_id=804 latency_s=0.057387
+success_req[203] line=205 stripe_id=808 latency_s=0.0559495
+success_req[204] line=206 stripe_id=812 latency_s=0.0568086
+success_req[205] line=207 stripe_id=816 latency_s=0.0572992
+success_req[206] line=208 stripe_id=820 latency_s=0.0564012
+success_req[207] line=209 stripe_id=824 latency_s=0.0614227
+success_req[208] line=210 stripe_id=828 latency_s=0.0587989
+success_req[209] line=211 stripe_id=832 latency_s=0.0569016
+success_req[210] line=212 stripe_id=836 latency_s=0.0569727
+success_req[211] line=213 stripe_id=840 latency_s=0.0562534
+success_req[212] line=214 stripe_id=844 latency_s=0.0573285
+success_req[213] line=215 stripe_id=848 latency_s=0.0579032
+success_req[214] line=216 stripe_id=852 latency_s=0.0582029
+success_req[215] line=217 stripe_id=856 latency_s=0.0558285
+success_req[216] line=218 stripe_id=860 latency_s=0.0561342
+success_req[217] line=219 stripe_id=864 latency_s=0.0576849
+success_req[218] line=220 stripe_id=868 latency_s=0.0567515
+success_req[219] line=221 stripe_id=872 latency_s=0.0575336
+success_req[220] line=222 stripe_id=876 latency_s=0.0562076
+success_req[221] line=223 stripe_id=880 latency_s=0.0553995
+success_req[222] line=224 stripe_id=884 latency_s=0.0566806
+success_req[223] line=225 stripe_id=888 latency_s=0.056816
+success_req[224] line=226 stripe_id=892 latency_s=0.0564918
+success_req[225] line=227 stripe_id=896 latency_s=0.075237
+success_req[226] line=228 stripe_id=900 latency_s=0.0566254
+success_req[227] line=229 stripe_id=904 latency_s=0.0583577
+success_req[228] line=230 stripe_id=908 latency_s=0.056464
+success_req[229] line=231 stripe_id=912 latency_s=0.058148
+success_req[230] line=232 stripe_id=916 latency_s=0.0579261
+success_req[231] line=233 stripe_id=920 latency_s=0.0596605
+success_req[232] line=234 stripe_id=924 latency_s=0.0656209
+success_req[233] line=235 stripe_id=928 latency_s=0.0570689
+success_req[234] line=236 stripe_id=932 latency_s=0.0570867
+success_req[235] line=237 stripe_id=936 latency_s=0.0565258
+success_req[236] line=238 stripe_id=940 latency_s=0.0567267
+success_req[237] line=239 stripe_id=944 latency_s=0.0555091
+success_req[238] line=240 stripe_id=948 latency_s=0.0559191
+success_req[239] line=241 stripe_id=952 latency_s=0.0558849
+success_req[240] line=242 stripe_id=956 latency_s=0.055745
+success_req[241] line=243 stripe_id=960 latency_s=0.056461
+success_req[242] line=244 stripe_id=964 latency_s=0.0561874
+success_req[243] line=245 stripe_id=968 latency_s=0.0588381
+success_req[244] line=246 stripe_id=972 latency_s=0.0853861
+success_req[245] line=247 stripe_id=976 latency_s=0.0608559
+success_req[246] line=248 stripe_id=980 latency_s=0.400339
+success_req[247] line=249 stripe_id=984 latency_s=0.0583403
+success_req[248] line=250 stripe_id=988 latency_s=0.056183
+success_req[249] line=251 stripe_id=992 latency_s=0.0566205
+success_req[250] line=252 stripe_id=996 latency_s=0.0558311
+total_time=15.7855 s (failures excluded)
+avg_time=0.0631419 s (failures excluded)
 成功请求数: 250, 失败请求数: 0

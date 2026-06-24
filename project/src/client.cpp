@@ -164,6 +164,7 @@ namespace ECProject
         return false;
       }
       grpc::ClientContext ctx;
+      ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(30));
       datanode_proto::GetInfo req;
       req.set_block_key(block_key);
       req.set_block_size(block_size);
@@ -201,6 +202,7 @@ namespace ECProject
         return false;
       }
       grpc::ClientContext ctx;
+      ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(30));
       datanode_proto::SetInfo req;
       req.set_block_key(block_key);
       req.set_block_size(block_size);
@@ -1816,6 +1818,7 @@ namespace ECProject
     for (int plan_attempt = 0; plan_attempt < kPlanRetries; ++plan_attempt)
     {
       grpc::ClientContext pctx_local;
+      pctx_local.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(60));
       pst = m_coordinator_ptr->planParixPartial(&pctx_local, preq, &plan);
       if (pst.ok()) break;
       std::cerr << parix_tag() << "planParixPartial failed (attempt " << (plan_attempt + 1) << "/" << kPlanRetries
@@ -2017,6 +2020,7 @@ namespace ECProject
       for (int sched_attempt = 0; sched_attempt < kSchedRetries; ++sched_attempt)
       {
         grpc::ClientContext sched_ctx;
+        sched_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(30));
         sched_st = ds_it->second->parixScheduleDataUpdate(&sched_ctx, placement, &sched_rep);
         if (sched_st.ok() && sched_rep.ifcommit()) break;
         std::cerr << parix_tag() << "parixScheduleDataUpdate failed (attempt " << (sched_attempt + 1) << "/" << kSchedRetries
@@ -2083,6 +2087,7 @@ namespace ECProject
         for (int sup_attempt = 0; sup_attempt < kSupRetries; ++sup_attempt)
         {
           grpc::ClientContext sup_ctx;
+          sup_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(30));
           proxy_proto::ParixSupplyD0Request sreq;
           sreq.set_stripe_id(stripe_id);
           sreq.set_batch_id(plan.batch_id());
@@ -2145,6 +2150,7 @@ namespace ECProject
     for (int commit_attempt = 0; commit_attempt < kCommitRetries; ++commit_attempt)
     {
       grpc::ClientContext cctx;
+      cctx.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(60));
       coordinator_proto::ParixCommitBatchRequest creq;
       creq.set_stripe_id(stripe_id);
       creq.set_batch_id(plan.batch_id());
@@ -2216,6 +2222,7 @@ namespace ECProject
     }
 
     grpc::ClientContext fctx;
+    fctx.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(60));
     coordinator_proto::ParixFullStripePlanRequest freq;
     freq.set_stripe_id(stripe_id);
     coordinator_proto::ParixFullStripePlanReply fplan;
@@ -2253,6 +2260,7 @@ namespace ECProject
         jr->set_range_length(inv.range_length());
       }
       grpc::ClientContext po_ctx;
+      po_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(30));
       auto pch = parix_proxy_channel(ep.proxy_ip() + ":" + std::to_string(ep.proxy_grpc_port()));
       std::unique_ptr<proxy_proto::proxyService::Stub> pstub = proxy_proto::proxyService::NewStub(pch);
       proxy_proto::SetReply prepl;
