@@ -158,6 +158,12 @@ namespace ECProject
       double *disk_io_start_time, double *disk_io_end_time, double *network_start_time, double *network_end_time, double *grpc_notify_time, double *grpc_start_time);
 
   private:
+    bool parix_read_range_from_datanode(const std::string &block_key, int block_size, int range_offset, int range_length,
+                                        const char *ip, int port, char *out);
+    bool parix_write_range_to_datanode(const std::string &block_key, int block_size, int range_offset, int range_length,
+                                       const char *data, const char *ip, int port);
+    bool parix_supply_d0_remotely(const proxy_proto::ParixSupplyD0Request &request, const std::string &parity_proxy_ip,
+                                    int parity_proxy_grpc_port);
     bool parix_try_flush_journal_on_threshold(int stripe_id);
     std::mutex m_mutex;
     std::condition_variable cv;
