@@ -3,7 +3,7 @@
 # 一台机器一个角色：%h = 该节点的 role IP，进程只绑定该 URI。
 set -e
 
-ROOT_DIR="/users/xue/xue"
+ROOT_DIR="/root/xue"
 LOCAL_IP="${1:-${LOCAL_IP:-}}"
 MODE="${2:-detach}"
 CLUSTER_XML="${ROOT_DIR}/project/config/clusterInformation.xml"

@@ -4973,6 +4973,7 @@ class ParixParityRpcTarget final :
     kProxyGrpcPortFieldNumber = 2,
     kParityBlockIdFieldNumber = 3,
     kParityDatanodePortFieldNumber = 6,
+    kClusterIdFieldNumber = 7,
   };
   // string proxy_ip = 1;
   void clear_proxy_ip();
@@ -5043,6 +5044,15 @@ class ParixParityRpcTarget final :
   void _internal_set_parity_datanode_port(int32_t value);
   public:
 
+  // int32 cluster_id = 7;
+  void clear_cluster_id();
+  int32_t cluster_id() const;
+  void set_cluster_id(int32_t value);
+  private:
+  int32_t _internal_cluster_id() const;
+  void _internal_set_cluster_id(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:proxy_proto.ParixParityRpcTarget)
  private:
   class _Internal;
@@ -5057,6 +5067,7 @@ class ParixParityRpcTarget final :
     int32_t proxy_grpc_port_;
     int32_t parity_block_id_;
     int32_t parity_datanode_port_;
+    int32_t cluster_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -13708,6 +13719,26 @@ inline void ParixParityRpcTarget::_internal_set_parity_datanode_port(int32_t val
 inline void ParixParityRpcTarget::set_parity_datanode_port(int32_t value) {
   _internal_set_parity_datanode_port(value);
   // @@protoc_insertion_point(field_set:proxy_proto.ParixParityRpcTarget.parity_datanode_port)
+}
+
+// int32 cluster_id = 7;
+inline void ParixParityRpcTarget::clear_cluster_id() {
+  _impl_.cluster_id_ = 0;
+}
+inline int32_t ParixParityRpcTarget::_internal_cluster_id() const {
+  return _impl_.cluster_id_;
+}
+inline int32_t ParixParityRpcTarget::cluster_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.ParixParityRpcTarget.cluster_id)
+  return _internal_cluster_id();
+}
+inline void ParixParityRpcTarget::_internal_set_cluster_id(int32_t value) {
+  
+  _impl_.cluster_id_ = value;
+}
+inline void ParixParityRpcTarget::set_cluster_id(int32_t value) {
+  _internal_set_cluster_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.ParixParityRpcTarget.cluster_id)
 }
 
 // -------------------------------------------------------------------

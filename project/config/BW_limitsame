@@ -2,8 +2,8 @@
 # Bandwidth matrix for limit_bw_matrix.sh / limit_all_bw_matrix.sh
 #
 # Units: MB/s (megabytes per second), TABLE II — "Bandwidth measurements in Asia regions".
-# Region index matches CLUSTER_IPS in limit_bw_matrix.sh (proxy IP per cluster):
-#   0=TYO(.3)  1=MEL(.12)  2=SG(.21)  3=SEO(.30)  4=JAK(.39)  5=HK(.48)
+# Region index matches CLUSTER_IPS in limit_bw_matrix.sh:
+#   0=TYO  1=MEL  2=SG  3=SEO  4=JAK  5=HK
 #
 # Construction (for tc symmetric egress matrix):
 #   - Diagonal [i,i]: intra-region MB/s from TABLE II.
@@ -23,13 +23,14 @@
 readonly BW_MATRIX_MB_PER_SEC_TO_TC_MBIT="${BW_MATRIX_MB_PER_SEC_TO_TC_MBIT:-8}"
 
 # Symmetric 6×6, row-major, units: MB/s (see construction above)
+
 readonly BW_MATRIX_MB_PER_SEC=(
-  1000 125 125 125 125 125
-  125 1000 125 125 125 125
-  125 125 1000 125 125 125
-  125 125 125 1000 125 125
-  125 125 125 125 1000 125
-  125 125 125 125 125 1000
+  43.62 125 125 125 125 125
+  125 51.33 125 125 125 125
+  125 125 39.68 125 125 125
+  125 125 125 32.54 125 125
+  125 125 125 125 46.82 125
+  125 125 125 125 125 35.87
 )
 
 _get_bw_matrix_index() {

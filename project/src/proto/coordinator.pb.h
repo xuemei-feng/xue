@@ -4249,6 +4249,7 @@ class ParixParityEndpoint final :
     kProxyGrpcPortFieldNumber = 2,
     kParityBlockIdFieldNumber = 3,
     kParityDatanodePortFieldNumber = 6,
+    kClusterIdFieldNumber = 7,
   };
   // string proxy_ip = 1;
   void clear_proxy_ip();
@@ -4319,6 +4320,15 @@ class ParixParityEndpoint final :
   void _internal_set_parity_datanode_port(int32_t value);
   public:
 
+  // int32 cluster_id = 7;
+  void clear_cluster_id();
+  int32_t cluster_id() const;
+  void set_cluster_id(int32_t value);
+  private:
+  int32_t _internal_cluster_id() const;
+  void _internal_set_cluster_id(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:coordinator_proto.ParixParityEndpoint)
  private:
   class _Internal;
@@ -4333,6 +4343,7 @@ class ParixParityEndpoint final :
     int32_t proxy_grpc_port_;
     int32_t parity_block_id_;
     int32_t parity_datanode_port_;
+    int32_t cluster_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -8061,6 +8072,26 @@ inline void ParixParityEndpoint::_internal_set_parity_datanode_port(int32_t valu
 inline void ParixParityEndpoint::set_parity_datanode_port(int32_t value) {
   _internal_set_parity_datanode_port(value);
   // @@protoc_insertion_point(field_set:coordinator_proto.ParixParityEndpoint.parity_datanode_port)
+}
+
+// int32 cluster_id = 7;
+inline void ParixParityEndpoint::clear_cluster_id() {
+  _impl_.cluster_id_ = 0;
+}
+inline int32_t ParixParityEndpoint::_internal_cluster_id() const {
+  return _impl_.cluster_id_;
+}
+inline int32_t ParixParityEndpoint::cluster_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.ParixParityEndpoint.cluster_id)
+  return _internal_cluster_id();
+}
+inline void ParixParityEndpoint::_internal_set_cluster_id(int32_t value) {
+  
+  _impl_.cluster_id_ = value;
+}
+inline void ParixParityEndpoint::set_cluster_id(int32_t value) {
+  _internal_set_cluster_id(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.ParixParityEndpoint.cluster_id)
 }
 
 // -------------------------------------------------------------------

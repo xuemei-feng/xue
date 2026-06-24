@@ -1,18 +1,27 @@
 #!/bin/bash
+set -euo pipefail
 
 USER="root"
-
-REPO_ROOT="/users/xue/xue"
-REMOTE_COMMAND="cd $REPO_ROOT && sh run_coordinator.sh"
-
+REPO_ROOT="/root/xue"
+PARAM_XML="${REPO_ROOT}/project/config/parameterConfiguration.xml"
+REMOTE_COMMAND="cd ${REPO_ROOT} && sh run_coordinator.sh"
 PARALLEL=5
 
-echo "Running command on all nodes..."
-pdsh -R ssh -w 10.10.1.2 -l $USER -f $PARALLEL "$REMOTE_COMMAND"
+COORDINATOR_IP="${COORDINATOR_IP:-}"
+if [[ -z "${COORDINATOR_IP}" ]]; then
+  COORDINATOR_IP="$(sed -n 's:.*<CoordinatorIP>\([^<]*\)</CoordinatorIP>.*:\1:p' "${PARAM_XML}" | head -1)"
+fi
 
-if [ $? -eq 0 ]; then
-	echo "Command executed successfully on all nodes."
-	echo "Coordinator log file: /tmp/run_coordinator.log"
+if [[ -z "${COORDINATOR_IP}" ]]; then
+  echo "Error: CoordinatorIP not found in ${PARAM_XML}" >&2
+  exit 1
+fi
+
+echo "Starting coordinator on ${COORDINATOR_IP} ..."
+if pdsh -R ssh -w "${COORDINATOR_IP}" -l "${USER}" -f "${PARALLEL}" "${REMOTE_COMMAND}"; then
+  echo "Command executed successfully on all nodes."
+  echo "Coordinator log file: /tmp/run_coordinator.log"
 else
-	echo "Failed to execute command on some nodes."
+  echo "Failed to execute command on some nodes." >&2
+  exit 1
 fi
