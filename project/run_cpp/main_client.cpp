@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include <chrono>
+#include <thread>
 #include <algorithm>
 #include <numeric>
 #include <random>
@@ -31,6 +32,9 @@ namespace
         bool skip_set = false;
         bool set_only = false;
         bool auto_y = false;
+        int delay_ms = 0;            // inter-request delay (0 = none); add jitter to desync clients
+        double max_rps = 0.0;        // max requests per second (0 = unlimited); token-bucket rate limiter
+        bool adaptive_slow = true;   // automatically slow down on consecutive failures
     };
 
     void print_usage(const char *prog)
@@ -42,9 +46,12 @@ namespace
                   << "  --port PORT       client TCP port, must be unique per process (default 77777)\n"
                   << "  --config PATH     parameterConfiguration.xml (default: ../config/ from binary)\n"
                   << "  --tag NAME        log prefix for multi-client runs\n"
-                  << "  --skip-set        skip initial SET stripes (use after one client initialized)\n"
-                  << "  --set-only        only run SET stripes then exit (no batch update)\n"
-                  << "  --auto-y          skip 'Start update?' prompt\n"
+                  << "  --skip-set          skip initial SET stripes (use after one client initialized)\n"
+                  << "  --set-only          only run SET stripes then exit (no batch update)\n"
+                  << "  --auto-y            skip 'Start update?' prompt\n"
+                  << "  --delay-ms N        inter-request delay in ms (0=none); prevents overload\n"
+                  << "  --max-rps N         max requests per second (0=unlimited); token-bucket limiter\n"
+                  << "  --no-adaptive-slow  disable automatic slowdown on consecutive failures\n"
                   << std::endl;
     }
 
@@ -85,6 +92,18 @@ namespace
             else if (arg == "--auto-y")
             {
                 out->auto_y = true;
+            }
+            else if (arg == "--delay-ms" && i + 1 < argc)
+            {
+                out->delay_ms = std::stoi(argv[++i]);
+            }
+            else if (arg == "--max-rps" && i + 1 < argc)
+            {
+                out->max_rps = std::stod(argv[++i]);
+            }
+            else if (arg == "--no-adaptive-slow")
+            {
+                out->adaptive_slow = false;
             }
             else if (arg == "--help" || arg == "-h")
             {
@@ -364,6 +383,7 @@ int main(int argc, char **argv)
         int req_index = 0;
         int fail_count = 0;
         int success_count = 0;
+        int consecutive_fails = 0;
         struct BatchSuccessRecord
         {
             int req_index = 0;
@@ -372,6 +392,19 @@ int main(int argc, char **argv)
             double latency_s = 0.0;
         };
         std::vector<BatchSuccessRecord> success_records;
+
+        // Pacing: random jitter to desynchronize concurrent clients
+        std::mt19937 pacing_rng(std::random_device{}());
+        auto pacing_jitter_ms = [&pacing_rng](int base_ms) -> int {
+            if (base_ms <= 0) return 0;
+            std::uniform_int_distribution<int> jitter(-base_ms / 5, base_ms / 5); // ±20%
+            int t = base_ms + jitter(pacing_rng);
+            return t < 0 ? 0 : t;
+        };
+
+        // Token-bucket rate limiter (--max-rps)
+        double token_bucket = run_opt.max_rps > 0.0 ? std::min(2.0, run_opt.max_rps * 0.2) : 0.0;
+        auto token_bucket_last = std::chrono::high_resolution_clock::now();
 
         std::string line;
         while (std::getline(batch_file, line))
@@ -407,18 +440,57 @@ int main(int argc, char **argv)
                           << " s (excluded from total and average time)" << std::endl;
                 std::cout.flush();
                 fail_count++;
-                continue;
+                consecutive_fails++;
             }
-
-            success_count++;
-            success_records.push_back(BatchSuccessRecord{req_index, line_no, stripe_id, req_s});
-            std::cout << "[batch line " << line_no << "] parix update success stripe_id=" << stripe_id
-                      << " latency=" << req_s << " s" << std::endl;
-            if (success_count % 10 == 0)
+            else
             {
-                log_client_line(run_opt, "progress success=" + std::to_string(success_count) + " failed=" + std::to_string(fail_count));
+                success_count++;
+                consecutive_fails = 0;
+                success_records.push_back(BatchSuccessRecord{req_index, line_no, stripe_id, req_s});
+                std::cout << "[batch line " << line_no << "] parix update success stripe_id=" << stripe_id
+                          << " latency=" << req_s << " s" << std::endl;
+                if (success_count % 10 == 0)
+                {
+                    log_client_line(run_opt, "progress success=" + std::to_string(success_count) + " failed=" + std::to_string(fail_count));
+                }
             }
             std::cout.flush();
+
+            // Inter-request pacing: prevent overwhelming the coordinator/proxies
+            int delay = run_opt.delay_ms;
+            if (run_opt.adaptive_slow && consecutive_fails >= 3)
+            {
+                // Exponential backoff on consecutive failures: 100ms * 2^(fails-3), capped at 10s
+                int extra = 100 * (1 << std::min(consecutive_fails - 3, 7));
+                if (extra > 10000) extra = 10000;
+                delay = std::max(delay, extra);
+            }
+
+            // Token-bucket: enforce hard rate limit if --max-rps is set
+            if (run_opt.max_rps > 0.0)
+            {
+                auto now = std::chrono::high_resolution_clock::now();
+                double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - token_bucket_last).count();
+                token_bucket_last = now;
+                // Refill: tokens added at max_rps rate, capped at small burst
+                const double burst = std::min(2.0, run_opt.max_rps * 0.2);
+                token_bucket = std::min(burst, token_bucket + elapsed * run_opt.max_rps);
+                token_bucket -= 1.0;  // consume one token for this request
+                if (token_bucket < 0.0)
+                {
+                    // Need to wait: sleep to bring bucket back to 0
+                    double wait_s = -token_bucket / run_opt.max_rps;
+                    int wait_ms = static_cast<int>(wait_s * 1000.0) + 1;
+                    delay = std::max(delay, wait_ms);
+                    token_bucket = 0.0;
+                }
+            }
+
+            int jittered = pacing_jitter_ms(delay);
+            if (jittered > 0)
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(jittered));
+            }
         }
 
         double sum_success_latency_s = 0.0;
