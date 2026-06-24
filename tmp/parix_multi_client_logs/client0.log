@@ -29,46 +29,50 @@ Each range is logical half-open [start, end) in [0, k*BlockSize).
 --- request #1 (file line 3) stripe_id=0 ranges=5 ---
 [Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
 [Client][Parix] partial update committed batch_id=3
-[batch line 3] parix update success stripe_id=0 latency=0.202434 s
+[batch line 3] parix update success stripe_id=0 latency=0.198452 s
 --- request #2 (file line 4) stripe_id=4 ranges=6 ---
 [Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=6
-[batch line 4] parix update success stripe_id=4 latency=0.21278 s
+[Client][Parix] partial update committed batch_id=7
+[batch line 4] parix update success stripe_id=4 latency=0.200067 s
 --- request #3 (file line 5) stripe_id=8 ranges=5 ---
 [Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=8
-[batch line 5] parix update success stripe_id=8 latency=0.201062 s
+[Client][Parix] partial update committed batch_id=11
+[batch line 5] parix update success stripe_id=8 latency=0.211036 s
 --- request #4 (file line 6) stripe_id=12 ranges=5 ---
 [Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=10
-[batch line 6] parix update success stripe_id=12 latency=0.130741 s
+[Client][Parix] partial update committed batch_id=15
+[batch line 6] parix update success stripe_id=12 latency=0.159377 s
 --- request #5 (file line 7) stripe_id=16 ranges=4 ---
 [Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=11
-[batch line 7] parix update success stripe_id=16 latency=0.153196 s
+[Client][Parix] partial update committed batch_id=20
+[batch line 7] parix update success stripe_id=16 latency=0.141213 s
 --- request #6 (file line 8) stripe_id=20 ranges=5 ---
 [Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=13
-[batch line 8] parix update success stripe_id=20 latency=0.159332 s
+[Client][Parix] partial update committed batch_id=24
+[batch line 8] parix update success stripe_id=20 latency=0.180809 s
 --- request #7 (file line 9) stripe_id=24 ranges=5 ---
 [Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=15
-[batch line 9] parix update success stripe_id=24 latency=0.193134 s
+[Client][Parix] partial update committed batch_id=28
+[batch line 9] parix update success stripe_id=24 latency=0.181881 s
 --- request #8 (file line 10) stripe_id=28 ranges=5 ---
 [Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=18
-[batch line 10] parix update success stripe_id=28 latency=0.140549 s
+[Client][Parix] partial update committed batch_id=33
+[batch line 10] parix update success stripe_id=28 latency=0.162647 s
 --- request #9 (file line 11) stripe_id=32 ranges=6 ---
 [Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=20
-[batch line 11] parix update success stripe_id=32 latency=0.19235 s
+[Client][Parix] partial update committed batch_id=37
+[batch line 11] parix update success stripe_id=32 latency=0.190211 s
 --- request #10 (file line 12) stripe_id=36 ranges=5 ---
 [Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=22
-[batch line 12] parix update success stripe_id=36 latency=0.184674 s
+[Client][Parix] partial update committed batch_id=41
+[batch line 12] parix update success stripe_id=36 latency=0.167979 s
 [client0] progress success=10 failed=0
 --- request #11 (file line 13) stripe_id=40 ranges=4 ---
 [Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=24
-[batch line 13] parix update success stripe_id=40 latency=0.145884 s
+[Client][Parix] partial update committed batch_id=45
+[batch line 13] parix update success stripe_id=40 latency=0.138934 s
 --- request #12 (file line 14) stripe_id=44 ranges=4 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=48
+[batch line 14] parix update success stripe_id=44 latency=0.116919 s
+--- request #13 (file line 15) stripe_id=48 ranges=7 ---

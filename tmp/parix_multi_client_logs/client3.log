@@ -27,3 +27,1017 @@ Parix batch update from file: /root/xue/tmp/parix_batch_split_3.log
 Line format: stripe_id range_count start0 end0 [start1 end1 ...]  (# and empty lines skipped)
 Each range is logical half-open [start, end) in [0, k*BlockSize).
 --- request #1 (file line 3) stripe_id=3 ranges=7 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=4
+[batch line 3] parix update success stripe_id=3 latency=0.255737 s
+--- request #2 (file line 4) stripe_id=7 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=8
+[batch line 4] parix update success stripe_id=7 latency=0.22498 s
+--- request #3 (file line 5) stripe_id=11 ranges=4 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=12
+[batch line 5] parix update success stripe_id=11 latency=0.167235 s
+--- request #4 (file line 6) stripe_id=15 ranges=3 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=16
+[batch line 6] parix update success stripe_id=15 latency=0.0765095 s
+--- request #5 (file line 7) stripe_id=19 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=18
+[batch line 7] parix update success stripe_id=19 latency=0.149711 s
+--- request #6 (file line 8) stripe_id=23 ranges=4 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=22
+[batch line 8] parix update success stripe_id=23 latency=0.149666 s
+--- request #7 (file line 9) stripe_id=27 ranges=4 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=26
+[batch line 9] parix update success stripe_id=27 latency=0.12563 s
+--- request #8 (file line 10) stripe_id=31 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=30
+[batch line 10] parix update success stripe_id=31 latency=0.183975 s
+--- request #9 (file line 11) stripe_id=35 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=34
+[batch line 11] parix update success stripe_id=35 latency=0.146443 s
+--- request #10 (file line 12) stripe_id=39 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=39
+[batch line 12] parix update success stripe_id=39 latency=0.192604 s
+[client3] progress success=10 failed=0
+--- request #11 (file line 13) stripe_id=43 ranges=6 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=43
+[batch line 13] parix update success stripe_id=43 latency=0.212078 s
+--- request #12 (file line 14) stripe_id=47 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=47
+[batch line 14] parix update success stripe_id=47 latency=0.211941 s
+--- request #13 (file line 15) stripe_id=51 ranges=6 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=52
+[batch line 15] parix update success stripe_id=51 latency=0.20159 s
+--- request #14 (file line 16) stripe_id=55 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=55
+[batch line 16] parix update success stripe_id=55 latency=0.163851 s
+--- request #15 (file line 17) stripe_id=59 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=57
+[batch line 17] parix update success stripe_id=59 latency=0.183589 s
+--- request #16 (file line 18) stripe_id=63 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=59
+[batch line 18] parix update success stripe_id=63 latency=0.153805 s
+--- request #17 (file line 19) stripe_id=67 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=61
+[batch line 19] parix update success stripe_id=67 latency=0.182173 s
+--- request #18 (file line 20) stripe_id=71 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 20] parix update failed, skip. latency=0.242021 s (excluded from total and average time)
+--- request #19 (file line 21) stripe_id=75 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 21] parix update failed, skip. latency=0.0208436 s (excluded from total and average time)
+--- request #20 (file line 22) stripe_id=79 ranges=3 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=66 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=66 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=66 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=66 block=7
+[batch line 22] parix update failed, skip. latency=0.143554 s (excluded from total and average time)
+--- request #21 (file line 23) stripe_id=83 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 23] parix update failed, skip. latency=0.0754991 s (excluded from total and average time)
+--- request #22 (file line 24) stripe_id=87 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 24] parix update failed, skip. latency=0.0285453 s (excluded from total and average time)
+--- request #23 (file line 25) stripe_id=91 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=70
+[batch line 25] parix update success stripe_id=91 latency=0.170728 s
+--- request #24 (file line 26) stripe_id=95 ranges=4 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=73
+[batch line 26] parix update success stripe_id=95 latency=0.13098 s
+--- request #25 (file line 27) stripe_id=99 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=76 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=76 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=76 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=76 block=3
+[batch line 27] parix update failed, skip. latency=0.140571 s (excluded from total and average time)
+--- request #26 (file line 28) stripe_id=103 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=78 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=78 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=78 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=78 block=0
+[batch line 28] parix update failed, skip. latency=0.117171 s (excluded from total and average time)
+--- request #27 (file line 29) stripe_id=107 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=79 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=79 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=79 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=79 block=5
+[batch line 29] parix update failed, skip. latency=0.14779 s (excluded from total and average time)
+--- request #28 (file line 30) stripe_id=111 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=81 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=81 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=81 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=81 block=9
+[batch line 30] parix update failed, skip. latency=0.195894 s (excluded from total and average time)
+--- request #29 (file line 31) stripe_id=115 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 31] parix update failed, skip. latency=0.0272581 s (excluded from total and average time)
+--- request #30 (file line 32) stripe_id=119 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=86 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=86 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=86 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=86 block=2
+[batch line 32] parix update failed, skip. latency=0.177679 s (excluded from total and average time)
+--- request #31 (file line 33) stripe_id=123 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 33] parix update failed, skip. latency=0.0222932 s (excluded from total and average time)
+--- request #32 (file line 34) stripe_id=127 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 34] parix update failed, skip. latency=0.0280965 s (excluded from total and average time)
+--- request #33 (file line 35) stripe_id=131 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 35] parix update failed, skip. latency=0.0238809 s (excluded from total and average time)
+--- request #34 (file line 36) stripe_id=135 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=91
+[batch line 36] parix update success stripe_id=135 latency=0.166446 s
+[client3] progress success=20 failed=14
+--- request #35 (file line 37) stripe_id=139 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=94 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=94 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=94 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=94 block=1
+[batch line 37] parix update failed, skip. latency=0.114234 s (excluded from total and average time)
+--- request #36 (file line 38) stripe_id=143 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=97 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=97 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=97 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=97 block=1
+[batch line 38] parix update failed, skip. latency=0.140709 s (excluded from total and average time)
+--- request #37 (file line 39) stripe_id=147 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 39] parix update failed, skip. latency=0.0261825 s (excluded from total and average time)
+--- request #38 (file line 40) stripe_id=151 ranges=3 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=102
+[batch line 40] parix update success stripe_id=151 latency=0.11898 s
+--- request #39 (file line 41) stripe_id=155 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 41] parix update failed, skip. latency=0.0257088 s (excluded from total and average time)
+--- request #40 (file line 42) stripe_id=159 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 42] parix update failed, skip. latency=0.0284377 s (excluded from total and average time)
+--- request #41 (file line 43) stripe_id=163 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=107
+[batch line 43] parix update success stripe_id=163 latency=0.15931 s
+--- request #42 (file line 44) stripe_id=167 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=110
+[batch line 44] parix update success stripe_id=167 latency=0.174756 s
+--- request #43 (file line 45) stripe_id=171 ranges=7 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=111 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=111 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=111 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=111 block=2
+[batch line 45] parix update failed, skip. latency=0.143532 s (excluded from total and average time)
+--- request #44 (file line 46) stripe_id=175 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=113
+[batch line 46] parix update success stripe_id=175 latency=0.150166 s
+--- request #45 (file line 47) stripe_id=179 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=116 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=116 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=116 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=116 block=5
+[batch line 47] parix update failed, skip. latency=0.149675 s (excluded from total and average time)
+--- request #46 (file line 48) stripe_id=183 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 48] parix update failed, skip. latency=0.0802436 s (excluded from total and average time)
+--- request #47 (file line 49) stripe_id=187 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 49] parix update failed, skip. latency=0.0265976 s (excluded from total and average time)
+--- request #48 (file line 50) stripe_id=191 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 50] parix update failed, skip. latency=0.020827 s (excluded from total and average time)
+--- request #49 (file line 51) stripe_id=195 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=122 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=122 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=122 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=122 block=4
+[batch line 51] parix update failed, skip. latency=0.117942 s (excluded from total and average time)
+--- request #50 (file line 52) stripe_id=199 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 52] parix update failed, skip. latency=0.0249111 s (excluded from total and average time)
+--- request #51 (file line 53) stripe_id=203 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=125 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=125 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=125 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=125 block=0
+[batch line 53] parix update failed, skip. latency=0.111325 s (excluded from total and average time)
+--- request #52 (file line 54) stripe_id=207 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 54] parix update failed, skip. latency=0.0220113 s (excluded from total and average time)
+--- request #53 (file line 55) stripe_id=211 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 55] parix update failed, skip. latency=0.0268037 s (excluded from total and average time)
+--- request #54 (file line 56) stripe_id=215 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=130 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=130 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=130 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=130 block=5
+[batch line 56] parix update failed, skip. latency=0.153692 s (excluded from total and average time)
+--- request #55 (file line 57) stripe_id=219 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 57] parix update failed, skip. latency=0.0682225 s (excluded from total and average time)
+--- request #56 (file line 58) stripe_id=223 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=133 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=133 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=133 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=133 block=1
+[batch line 58] parix update failed, skip. latency=0.116935 s (excluded from total and average time)
+--- request #57 (file line 59) stripe_id=227 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=135 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=135 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=135 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=135 block=3
+[batch line 59] parix update failed, skip. latency=0.237171 s (excluded from total and average time)
+--- request #58 (file line 60) stripe_id=231 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 60] parix update failed, skip. latency=0.0220565 s (excluded from total and average time)
+--- request #59 (file line 61) stripe_id=235 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 61] parix update failed, skip. latency=0.0268064 s (excluded from total and average time)
+--- request #60 (file line 62) stripe_id=239 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 62] parix update failed, skip. latency=0.0219234 s (excluded from total and average time)
+--- request #61 (file line 63) stripe_id=243 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 63] parix update failed, skip. latency=0.0266844 s (excluded from total and average time)
+--- request #62 (file line 64) stripe_id=247 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=144 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=144 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=144 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=144 block=6
+[batch line 64] parix update failed, skip. latency=0.190428 s (excluded from total and average time)
+--- request #63 (file line 65) stripe_id=251 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=146 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=146 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=146 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=146 block=2
+[batch line 65] parix update failed, skip. latency=0.145976 s (excluded from total and average time)
+--- request #64 (file line 66) stripe_id=255 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 66] parix update failed, skip. latency=0.0185687 s (excluded from total and average time)
+--- request #65 (file line 67) stripe_id=259 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 67] parix update failed, skip. latency=0.0174676 s (excluded from total and average time)
+--- request #66 (file line 68) stripe_id=263 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=150 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=150 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=150 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=150 block=3
+[batch line 68] parix update failed, skip. latency=0.14002 s (excluded from total and average time)
+--- request #67 (file line 69) stripe_id=267 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 69] parix update failed, skip. latency=0.0226057 s (excluded from total and average time)
+--- request #68 (file line 70) stripe_id=271 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=153 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=153 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=153 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=153 block=0
+[batch line 70] parix update failed, skip. latency=0.116938 s (excluded from total and average time)
+--- request #69 (file line 71) stripe_id=275 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 71] parix update failed, skip. latency=0.0294579 s (excluded from total and average time)
+--- request #70 (file line 72) stripe_id=279 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 72] parix update failed, skip. latency=0.0216791 s (excluded from total and average time)
+--- request #71 (file line 73) stripe_id=283 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=158 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=158 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=158 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=158 block=1
+[batch line 73] parix update failed, skip. latency=0.140898 s (excluded from total and average time)
+--- request #72 (file line 74) stripe_id=287 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 74] parix update failed, skip. latency=0.0199229 s (excluded from total and average time)
+--- request #73 (file line 75) stripe_id=291 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=164 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=164 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=164 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=164 block=1
+[batch line 75] parix update failed, skip. latency=0.113269 s (excluded from total and average time)
+--- request #74 (file line 76) stripe_id=295 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 76] parix update failed, skip. latency=0.0246599 s (excluded from total and average time)
+--- request #75 (file line 77) stripe_id=299 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=168
+[batch line 77] parix update success stripe_id=299 latency=0.162971 s
+--- request #76 (file line 78) stripe_id=303 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 78] parix update failed, skip. latency=0.0219293 s (excluded from total and average time)
+--- request #77 (file line 79) stripe_id=307 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 79] parix update failed, skip. latency=0.0193851 s (excluded from total and average time)
+--- request #78 (file line 80) stripe_id=311 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=174 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=174 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=174 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=174 block=1
+[batch line 80] parix update failed, skip. latency=0.115866 s (excluded from total and average time)
+--- request #79 (file line 81) stripe_id=315 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=176 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=176 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=176 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=176 block=0
+[batch line 81] parix update failed, skip. latency=0.114569 s (excluded from total and average time)
+--- request #80 (file line 82) stripe_id=319 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=179 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=179 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=179 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=179 block=3
+[batch line 82] parix update failed, skip. latency=0.142505 s (excluded from total and average time)
+--- request #81 (file line 83) stripe_id=323 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=182 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=182 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=182 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=182 block=3
+[batch line 83] parix update failed, skip. latency=0.17206 s (excluded from total and average time)
+--- request #82 (file line 84) stripe_id=327 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 84] parix update failed, skip. latency=0.0205141 s (excluded from total and average time)
+--- request #83 (file line 85) stripe_id=331 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=186 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=186 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=186 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=186 block=3
+[batch line 85] parix update failed, skip. latency=0.117728 s (excluded from total and average time)
+--- request #84 (file line 86) stripe_id=335 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 86] parix update failed, skip. latency=0.0327806 s (excluded from total and average time)
+--- request #85 (file line 87) stripe_id=339 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=189 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=189 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=189 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=189 block=7
+[batch line 87] parix update failed, skip. latency=0.181696 s (excluded from total and average time)
+--- request #86 (file line 88) stripe_id=343 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 88] parix update failed, skip. latency=0.0299743 s (excluded from total and average time)
+--- request #87 (file line 89) stripe_id=347 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=193 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=193 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=193 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=193 block=6
+[batch line 89] parix update failed, skip. latency=0.138606 s (excluded from total and average time)
+--- request #88 (file line 90) stripe_id=351 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 90] parix update failed, skip. latency=0.0299416 s (excluded from total and average time)
+--- request #89 (file line 91) stripe_id=355 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 91] parix update failed, skip. latency=0.0193207 s (excluded from total and average time)
+--- request #90 (file line 92) stripe_id=359 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 92] parix update failed, skip. latency=0.0236029 s (excluded from total and average time)
+--- request #91 (file line 93) stripe_id=363 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 93] parix update failed, skip. latency=0.0253883 s (excluded from total and average time)
+--- request #92 (file line 94) stripe_id=367 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=199 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=199 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=199 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=199 block=0
+[batch line 94] parix update failed, skip. latency=0.1188 s (excluded from total and average time)
+--- request #93 (file line 95) stripe_id=371 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=201 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=201 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=201 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=201 block=0
+[batch line 95] parix update failed, skip. latency=0.115549 s (excluded from total and average time)
+--- request #94 (file line 96) stripe_id=375 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=204 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=204 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=204 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=204 block=4
+[batch line 96] parix update failed, skip. latency=0.163708 s (excluded from total and average time)
+--- request #95 (file line 97) stripe_id=379 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=206 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=206 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=206 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=206 block=2
+[batch line 97] parix update failed, skip. latency=0.11798 s (excluded from total and average time)
+--- request #96 (file line 98) stripe_id=383 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=208 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=208 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=208 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=208 block=3
+[batch line 98] parix update failed, skip. latency=0.147994 s (excluded from total and average time)
+--- request #97 (file line 99) stripe_id=387 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=210 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=210 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=210 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=210 block=2
+[batch line 99] parix update failed, skip. latency=0.147239 s (excluded from total and average time)
+--- request #98 (file line 100) stripe_id=391 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 100] parix update failed, skip. latency=0.0201966 s (excluded from total and average time)
+--- request #99 (file line 101) stripe_id=395 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=214 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=214 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=214 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=214 block=1
+[batch line 101] parix update failed, skip. latency=0.113878 s (excluded from total and average time)
+--- request #100 (file line 102) stripe_id=399 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 102] parix update failed, skip. latency=0.0160062 s (excluded from total and average time)
+--- request #101 (file line 103) stripe_id=403 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=218 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=218 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=218 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=218 block=2
+[batch line 103] parix update failed, skip. latency=0.116071 s (excluded from total and average time)
+--- request #102 (file line 104) stripe_id=407 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 104] parix update failed, skip. latency=0.0270853 s (excluded from total and average time)
+--- request #103 (file line 105) stripe_id=411 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 105] parix update failed, skip. latency=0.0259592 s (excluded from total and average time)
+--- request #104 (file line 106) stripe_id=415 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 106] parix update failed, skip. latency=0.0198437 s (excluded from total and average time)
+--- request #105 (file line 107) stripe_id=419 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=224 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=224 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=224 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=224 block=1
+[batch line 107] parix update failed, skip. latency=0.113451 s (excluded from total and average time)
+--- request #106 (file line 108) stripe_id=423 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 108] parix update failed, skip. latency=0.0226809 s (excluded from total and average time)
+--- request #107 (file line 109) stripe_id=427 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 109] parix update failed, skip. latency=0.0234351 s (excluded from total and average time)
+--- request #108 (file line 110) stripe_id=431 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 110] parix update failed, skip. latency=0.0227406 s (excluded from total and average time)
+--- request #109 (file line 111) stripe_id=435 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=230 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=230 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=230 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=230 block=0
+[batch line 111] parix update failed, skip. latency=0.114798 s (excluded from total and average time)
+--- request #110 (file line 112) stripe_id=439 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 112] parix update failed, skip. latency=0.0213604 s (excluded from total and average time)
+--- request #111 (file line 113) stripe_id=443 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 113] parix update failed, skip. latency=0.0268087 s (excluded from total and average time)
+--- request #112 (file line 114) stripe_id=447 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 114] parix update failed, skip. latency=0.0188764 s (excluded from total and average time)
+--- request #113 (file line 115) stripe_id=451 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 115] parix update failed, skip. latency=0.0224496 s (excluded from total and average time)
+--- request #114 (file line 116) stripe_id=455 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=239 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=239 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=239 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=239 block=2
+[batch line 116] parix update failed, skip. latency=0.116478 s (excluded from total and average time)
+--- request #115 (file line 117) stripe_id=459 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=241 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=241 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=241 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=241 block=0
+[batch line 117] parix update failed, skip. latency=0.115755 s (excluded from total and average time)
+--- request #116 (file line 118) stripe_id=463 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 118] parix update failed, skip. latency=0.0276169 s (excluded from total and average time)
+--- request #117 (file line 119) stripe_id=467 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=244 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=244 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=244 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=244 block=3
+[batch line 119] parix update failed, skip. latency=0.129499 s (excluded from total and average time)
+--- request #118 (file line 120) stripe_id=471 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 120] parix update failed, skip. latency=0.0578516 s (excluded from total and average time)
+--- request #119 (file line 121) stripe_id=475 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 121] parix update failed, skip. latency=0.0285007 s (excluded from total and average time)
+--- request #120 (file line 122) stripe_id=479 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=248 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=248 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=248 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=248 block=2
+[batch line 122] parix update failed, skip. latency=0.113523 s (excluded from total and average time)
+--- request #121 (file line 123) stripe_id=483 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=249 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=249 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=249 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=249 block=4
+[batch line 123] parix update failed, skip. latency=0.135221 s (excluded from total and average time)
+--- request #122 (file line 124) stripe_id=487 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 124] parix update failed, skip. latency=0.021309 s (excluded from total and average time)
+--- request #123 (file line 125) stripe_id=491 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=254 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=254 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=254 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=254 block=3
+[batch line 125] parix update failed, skip. latency=0.11368 s (excluded from total and average time)
+--- request #124 (file line 126) stripe_id=495 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=258 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=258 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=258 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=258 block=8
+[batch line 126] parix update failed, skip. latency=0.250683 s (excluded from total and average time)
+--- request #125 (file line 127) stripe_id=499 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=262 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=262 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=262 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=262 block=4
+[batch line 127] parix update failed, skip. latency=0.114462 s (excluded from total and average time)
+--- request #126 (file line 128) stripe_id=503 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=266 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=266 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=266 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=266 block=5
+[batch line 128] parix update failed, skip. latency=0.172073 s (excluded from total and average time)
+--- request #127 (file line 129) stripe_id=507 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=269 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=269 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=269 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=269 block=2
+[batch line 129] parix update failed, skip. latency=0.113116 s (excluded from total and average time)
+--- request #128 (file line 130) stripe_id=511 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=273 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=273 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=273 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=273 block=0
+[batch line 130] parix update failed, skip. latency=0.117587 s (excluded from total and average time)
+--- request #129 (file line 131) stripe_id=515 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 131] parix update failed, skip. latency=0.0180654 s (excluded from total and average time)
+--- request #130 (file line 132) stripe_id=519 ranges=3 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=279 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=279 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=279 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=279 block=6
+[batch line 132] parix update failed, skip. latency=0.170007 s (excluded from total and average time)
+--- request #131 (file line 133) stripe_id=523 ranges=3 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 133] parix update failed, skip. latency=0.0249245 s (excluded from total and average time)
+--- request #132 (file line 134) stripe_id=527 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 134] parix update failed, skip. latency=0.0174475 s (excluded from total and average time)
+--- request #133 (file line 135) stripe_id=531 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=287 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=287 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=287 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=287 block=6
+[batch line 135] parix update failed, skip. latency=0.189175 s (excluded from total and average time)
+--- request #134 (file line 136) stripe_id=535 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=289 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=289 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=289 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=289 block=3
+[batch line 136] parix update failed, skip. latency=0.112836 s (excluded from total and average time)
+--- request #135 (file line 137) stripe_id=539 ranges=7 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=292 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=292 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=292 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=292 block=0
+[batch line 137] parix update failed, skip. latency=0.118649 s (excluded from total and average time)
+--- request #136 (file line 138) stripe_id=543 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 138] parix update failed, skip. latency=0.0230098 s (excluded from total and average time)
+--- request #137 (file line 139) stripe_id=547 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 139] parix update failed, skip. latency=0.0316906 s (excluded from total and average time)
+--- request #138 (file line 140) stripe_id=551 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 140] parix update failed, skip. latency=0.0304589 s (excluded from total and average time)
+--- request #139 (file line 141) stripe_id=555 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=299 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=299 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=299 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=299 block=5
+[batch line 141] parix update failed, skip. latency=0.186794 s (excluded from total and average time)
+--- request #140 (file line 142) stripe_id=559 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=301 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=301 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=301 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=301 block=0
+[batch line 142] parix update failed, skip. latency=0.115437 s (excluded from total and average time)
+--- request #141 (file line 143) stripe_id=563 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=303 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=303 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=303 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=303 block=2
+[batch line 143] parix update failed, skip. latency=0.113917 s (excluded from total and average time)
+--- request #142 (file line 144) stripe_id=567 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=307 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=307 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=307 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=307 block=3
+[batch line 144] parix update failed, skip. latency=0.175303 s (excluded from total and average time)
+--- request #143 (file line 145) stripe_id=571 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 145] parix update failed, skip. latency=0.0203068 s (excluded from total and average time)
+--- request #144 (file line 146) stripe_id=575 ranges=7 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 146] parix update failed, skip. latency=0.0182898 s (excluded from total and average time)
+--- request #145 (file line 147) stripe_id=579 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 147] parix update failed, skip. latency=0.0168804 s (excluded from total and average time)
+--- request #146 (file line 148) stripe_id=583 ranges=7 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 148] parix update failed, skip. latency=1.02201 s (excluded from total and average time)
+--- request #147 (file line 149) stripe_id=587 ranges=7 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=317 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=317 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=317 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=317 block=2
+[batch line 149] parix update failed, skip. latency=0.138514 s (excluded from total and average time)
+--- request #148 (file line 150) stripe_id=591 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 150] parix update failed, skip. latency=0.029957 s (excluded from total and average time)
+--- request #149 (file line 151) stripe_id=595 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 151] parix update failed, skip. latency=0.0263134 s (excluded from total and average time)
+--- request #150 (file line 152) stripe_id=599 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 152] parix update failed, skip. latency=0.0234403 s (excluded from total and average time)
+--- request #151 (file line 153) stripe_id=603 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 153] parix update failed, skip. latency=1.90647 s (excluded from total and average time)
+--- request #152 (file line 154) stripe_id=607 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=330 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=330 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=330 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=330 block=0
+[batch line 154] parix update failed, skip. latency=0.118441 s (excluded from total and average time)
+--- request #153 (file line 155) stripe_id=611 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 155] parix update failed, skip. latency=0.0256604 s (excluded from total and average time)
+--- request #154 (file line 156) stripe_id=615 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 156] parix update failed, skip. latency=0.0166553 s (excluded from total and average time)
+--- request #155 (file line 157) stripe_id=619 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 157] parix update failed, skip. latency=3.3056 s (excluded from total and average time)
+--- request #156 (file line 158) stripe_id=623 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 158] parix update failed, skip. latency=0.0215937 s (excluded from total and average time)
+--- request #157 (file line 159) stripe_id=627 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 159] parix update failed, skip. latency=0.0217803 s (excluded from total and average time)
+--- request #158 (file line 160) stripe_id=631 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=352 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=352 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=352 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=352 block=3
+[batch line 160] parix update failed, skip. latency=0.139528 s (excluded from total and average time)
+--- request #159 (file line 161) stripe_id=635 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=356 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=356 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=356 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=356 block=2
+[batch line 161] parix update failed, skip. latency=0.114102 s (excluded from total and average time)
+--- request #160 (file line 162) stripe_id=639 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=358 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=358 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=358 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=358 block=0
+[batch line 162] parix update failed, skip. latency=0.115408 s (excluded from total and average time)
+--- request #161 (file line 163) stripe_id=643 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=360 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=360 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=360 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=360 block=3
+[batch line 163] parix update failed, skip. latency=0.142755 s (excluded from total and average time)
+--- request #162 (file line 164) stripe_id=647 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=364 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=364 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=364 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=364 block=3
+[batch line 164] parix update failed, skip. latency=0.117029 s (excluded from total and average time)
+--- request #163 (file line 165) stripe_id=651 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 165] parix update failed, skip. latency=0.025301 s (excluded from total and average time)
+--- request #164 (file line 166) stripe_id=655 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=366 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=366 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=366 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=366 block=8
+[batch line 166] parix update failed, skip. latency=0.195487 s (excluded from total and average time)
+--- request #165 (file line 167) stripe_id=659 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 167] parix update failed, skip. latency=0.0263389 s (excluded from total and average time)
+--- request #166 (file line 168) stripe_id=663 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=368 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=368 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=368 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=368 block=9
+[batch line 168] parix update failed, skip. latency=0.171999 s (excluded from total and average time)
+--- request #167 (file line 169) stripe_id=667 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 169] parix update failed, skip. latency=0.0195178 s (excluded from total and average time)
+--- request #168 (file line 170) stripe_id=671 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=370 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=370 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=370 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=370 block=5
+[batch line 170] parix update failed, skip. latency=0.273487 s (excluded from total and average time)
+--- request #169 (file line 171) stripe_id=675 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 171] parix update failed, skip. latency=0.0191189 s (excluded from total and average time)
+--- request #170 (file line 172) stripe_id=679 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=372 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=372 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=372 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=372 block=1
+[batch line 172] parix update failed, skip. latency=0.116299 s (excluded from total and average time)
+--- request #171 (file line 173) stripe_id=683 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=373 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=373 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=373 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=373 block=3
+[batch line 173] parix update failed, skip. latency=0.118816 s (excluded from total and average time)
+--- request #172 (file line 174) stripe_id=687 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=374 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=374 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=374 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=374 block=1
+[batch line 174] parix update failed, skip. latency=0.114347 s (excluded from total and average time)
+--- request #173 (file line 175) stripe_id=691 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 175] parix update failed, skip. latency=0.0236359 s (excluded from total and average time)
+--- request #174 (file line 176) stripe_id=695 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 176] parix update failed, skip. latency=0.0217751 s (excluded from total and average time)
+--- request #175 (file line 177) stripe_id=699 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 177] parix update failed, skip. latency=0.999687 s (excluded from total and average time)
+--- request #176 (file line 178) stripe_id=703 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=378 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=378 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=378 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=378 block=6
+[batch line 178] parix update failed, skip. latency=0.173469 s (excluded from total and average time)
+--- request #177 (file line 179) stripe_id=707 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 179] parix update failed, skip. latency=0.0276254 s (excluded from total and average time)
+--- request #178 (file line 180) stripe_id=711 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 180] parix update failed, skip. latency=0.019539 s (excluded from total and average time)
+--- request #179 (file line 181) stripe_id=715 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 181] parix update failed, skip. latency=0.0160245 s (excluded from total and average time)
+--- request #180 (file line 182) stripe_id=719 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 182] parix update failed, skip. latency=1.39689 s (excluded from total and average time)
+--- request #181 (file line 183) stripe_id=723 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=383 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=383 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=383 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=383 block=3
+[batch line 183] parix update failed, skip. latency=0.137024 s (excluded from total and average time)
+--- request #182 (file line 184) stripe_id=727 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 184] parix update failed, skip. latency=2.36471 s (excluded from total and average time)
+--- request #183 (file line 185) stripe_id=731 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=385 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=385 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=385 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=385 block=0
+[batch line 185] parix update failed, skip. latency=0.116517 s (excluded from total and average time)
+--- request #184 (file line 186) stripe_id=735 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=386 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=386 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=386 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=386 block=0
+[batch line 186] parix update failed, skip. latency=0.115629 s (excluded from total and average time)
+--- request #185 (file line 187) stripe_id=739 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 187] parix update failed, skip. latency=0.0237388 s (excluded from total and average time)
+--- request #186 (file line 188) stripe_id=743 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=390 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=390 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=390 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=390 block=5
+[batch line 188] parix update failed, skip. latency=0.163463 s (excluded from total and average time)
+--- request #187 (file line 189) stripe_id=747 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=391 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=391 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=391 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=391 block=1
+[batch line 189] parix update failed, skip. latency=0.117551 s (excluded from total and average time)
+--- request #188 (file line 190) stripe_id=751 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=392 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=392 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=392 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=392 block=0
+[batch line 190] parix update failed, skip. latency=0.116086 s (excluded from total and average time)
+--- request #189 (file line 191) stripe_id=755 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=393 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=393 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=393 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=393 block=1
+[batch line 191] parix update failed, skip. latency=0.116855 s (excluded from total and average time)
+--- request #190 (file line 192) stripe_id=759 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=394 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=394 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=394 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=394 block=2
+[batch line 192] parix update failed, skip. latency=0.133743 s (excluded from total and average time)
+--- request #191 (file line 193) stripe_id=763 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 193] parix update failed, skip. latency=0.0155751 s (excluded from total and average time)
+--- request #192 (file line 194) stripe_id=767 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 194] parix update failed, skip. latency=0.024511 s (excluded from total and average time)
+--- request #193 (file line 195) stripe_id=771 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 195] parix update failed, skip. latency=2.88712 s (excluded from total and average time)
+--- request #194 (file line 196) stripe_id=775 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 196] parix update failed, skip. latency=0.0286664 s (excluded from total and average time)
+--- request #195 (file line 197) stripe_id=779 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=399 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=399 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=399 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=399 block=3
+[batch line 197] parix update failed, skip. latency=0.136939 s (excluded from total and average time)
+--- request #196 (file line 198) stripe_id=783 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 198] parix update failed, skip. latency=5.71038 s (excluded from total and average time)
+--- request #197 (file line 199) stripe_id=787 ranges=7 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=401 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=401 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=401 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=401 block=0
+[batch line 199] parix update failed, skip. latency=0.121811 s (excluded from total and average time)
+--- request #198 (file line 200) stripe_id=791 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=402 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=402 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=402 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=402 block=1
+[batch line 200] parix update failed, skip. latency=0.114909 s (excluded from total and average time)
+--- request #199 (file line 201) stripe_id=795 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 201] parix update failed, skip. latency=0.0294271 s (excluded from total and average time)
+--- request #200 (file line 202) stripe_id=799 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 202] parix update failed, skip. latency=0.0307849 s (excluded from total and average time)
+--- request #201 (file line 203) stripe_id=803 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 203] parix update failed, skip. latency=10.4265 s (excluded from total and average time)
+--- request #202 (file line 204) stripe_id=807 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=415 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=415 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=415 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=415 block=0
+[batch line 204] parix update failed, skip. latency=0.115605 s (excluded from total and average time)
+--- request #203 (file line 205) stripe_id=811 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=418 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=418 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=418 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=418 block=0
+[batch line 205] parix update failed, skip. latency=0.116001 s (excluded from total and average time)
+--- request #204 (file line 206) stripe_id=815 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 206] parix update failed, skip. latency=0.0209432 s (excluded from total and average time)
+--- request #205 (file line 207) stripe_id=819 ranges=7 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=421 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=421 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=421 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=421 block=6
+[batch line 207] parix update failed, skip. latency=0.238984 s (excluded from total and average time)
+--- request #206 (file line 208) stripe_id=823 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 208] parix update failed, skip. latency=0.0197066 s (excluded from total and average time)
+--- request #207 (file line 209) stripe_id=827 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 209] parix update failed, skip. latency=0.0276313 s (excluded from total and average time)
+--- request #208 (file line 210) stripe_id=831 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 210] parix update failed, skip. latency=0.0698013 s (excluded from total and average time)
+--- request #209 (file line 211) stripe_id=835 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=427 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=427 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=427 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=427 block=1
+[batch line 211] parix update failed, skip. latency=0.116191 s (excluded from total and average time)
+--- request #210 (file line 212) stripe_id=839 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=428 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=428 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=428 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=428 block=0
+[batch line 212] parix update failed, skip. latency=0.114297 s (excluded from total and average time)
+--- request #211 (file line 213) stripe_id=843 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=429 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=429 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=429 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=429 block=0
+[batch line 213] parix update failed, skip. latency=0.115131 s (excluded from total and average time)
+--- request #212 (file line 214) stripe_id=847 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 214] parix update failed, skip. latency=0.02399 s (excluded from total and average time)
+--- request #213 (file line 215) stripe_id=851 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=431 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=431 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=431 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=431 block=0
+[batch line 215] parix update failed, skip. latency=0.116079 s (excluded from total and average time)
+--- request #214 (file line 216) stripe_id=855 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=432 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=432 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=432 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=432 block=0
+[batch line 216] parix update failed, skip. latency=0.114672 s (excluded from total and average time)
+--- request #215 (file line 217) stripe_id=859 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=433 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=433 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=433 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=433 block=3
+[batch line 217] parix update failed, skip. latency=0.118776 s (excluded from total and average time)
+--- request #216 (file line 218) stripe_id=863 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=434 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=434 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=434 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=434 block=2
+[batch line 218] parix update failed, skip. latency=0.116423 s (excluded from total and average time)
+--- request #217 (file line 219) stripe_id=867 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=435 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=435 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=435 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=435 block=0
+[batch line 219] parix update failed, skip. latency=0.113431 s (excluded from total and average time)
+--- request #218 (file line 220) stripe_id=871 ranges=4 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 220] parix update failed, skip. latency=0.0223447 s (excluded from total and average time)
+--- request #219 (file line 221) stripe_id=875 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 221] parix update failed, skip. latency=3.67569 s (excluded from total and average time)
+--- request #220 (file line 222) stripe_id=879 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=439 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=439 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=439 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=439 block=7
+[batch line 222] parix update failed, skip. latency=0.246877 s (excluded from total and average time)
+--- request #221 (file line 223) stripe_id=883 ranges=6 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=440 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=440 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=440 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=440 block=1
+[batch line 223] parix update failed, skip. latency=0.134995 s (excluded from total and average time)
+--- request #222 (file line 224) stripe_id=887 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 224] parix update failed, skip. latency=8.23874 s (excluded from total and average time)
+--- request #223 (file line 225) stripe_id=891 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=442 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=442 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=442 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=442 block=7
+[batch line 225] parix update failed, skip. latency=0.248998 s (excluded from total and average time)
+--- request #224 (file line 226) stripe_id=895 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=443 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=443 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=443 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=443 block=1
+[batch line 226] parix update failed, skip. latency=0.115614 s (excluded from total and average time)
+--- request #225 (file line 227) stripe_id=899 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 227] parix update failed, skip. latency=18.0154 s (excluded from total and average time)
+--- request #226 (file line 228) stripe_id=903 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 228] parix update failed, skip. latency=0.0240891 s (excluded from total and average time)
+--- request #227 (file line 229) stripe_id=907 ranges=4 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=456 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=456 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=456 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=456 block=1
+[batch line 229] parix update failed, skip. latency=0.110967 s (excluded from total and average time)
+--- request #228 (file line 230) stripe_id=911 ranges=6 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 230] parix update failed, skip. latency=18.397 s (excluded from total and average time)
+--- request #229 (file line 231) stripe_id=915 ranges=5 ---
+[Client][Parix] parixScheduleDataUpdate failed
+[batch line 231] parix update failed, skip. latency=21.0634 s (excluded from total and average time)
+--- request #230 (file line 232) stripe_id=919 ranges=5 ---
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=468 attempt=1/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=468 attempt=2/3 err=connect: Connection refused
+[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=468 attempt=3/3 err=connect: Connection refused
+[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=468 block=9
+[batch line 232] parix update failed, skip. latency=0.23579 s (excluded from total and average time)
+--- request #231 (file line 233) stripe_id=923 ranges=5 ---
