@@ -2954,7 +2954,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           seg->set_cluster_id(db->map2cluster);
           seg->set_data_proxy_ip(m_cluster_table.at(db->map2cluster).proxy_ip);
           seg->set_data_proxy_grpc_port(m_cluster_table.at(db->map2cluster).proxy_port);
-          seg->set_data_proxy_tcp_shift_port(m_cluster_table.at(db->map2cluster).proxy_port + ECProject::PROXY_PORT_SHIFT);
+          seg->set_data_proxy_tcp_shift_port(ECProject::parix_schedule_tcp_port(m_cluster_table.at(db->map2cluster).proxy_port));
           seg->set_block_key(db->block_key);
           seg->set_block_id(bid);
           seg->set_range_offset(ro);

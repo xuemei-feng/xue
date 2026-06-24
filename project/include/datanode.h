@@ -103,6 +103,9 @@ namespace ECProject
             grpc::EnableDefaultHealthCheckService(true);
             grpc::reflection::InitProtoReflectionServerBuilderPlugin();
             grpc::ServerBuilder builder;
+            builder.SetSyncServerOption(grpc::ServerBuilder::SyncServerOption::NUM_CQS, 8);
+            builder.SetSyncServerOption(grpc::ServerBuilder::SyncServerOption::MIN_POLLERS, 8);
+            builder.SetSyncServerOption(grpc::ServerBuilder::SyncServerOption::MAX_POLLERS, 48);
             std::cout << "datanode_ip_port:" << datanode_ip_port << std::endl;
             builder.AddListeningPort(datanode_ip_port, grpc::InsecureServerCredentials());
             builder.RegisterService(&m_datanodeImpl_ptr);

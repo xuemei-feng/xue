@@ -7,7 +7,14 @@
 namespace ECProject
 {
   const int DATANODE_PORT_SHIFT = 500;
-  const int PROXY_PORT_SHIFT = 100; 
+  const int PROXY_PORT_SHIFT = 100;
+  /** Parix schedule payload TCP uses a dedicated port (append/set keep PROXY_PORT_SHIFT only). */
+  const int PARIX_SCHEDULE_TCP_PORT_OFFSET = 1;
+
+  inline int parix_schedule_tcp_port(int proxy_grpc_port)
+  {
+    return proxy_grpc_port + PROXY_PORT_SHIFT + PARIX_SCHEDULE_TCP_PORT_OFFSET;
+  }
 
   class Config
   {

@@ -1,0 +1,74 @@
+config_path: /root/xue/project/config/parameterConfiguration.xml (cwd=/root/xue)
+Configuration Parameters:
+  AlignedSize: 4096 bytes
+  UnitSize: 8192 bytes
+  BlockSize: 1048576 bytes
+  alpha: 2
+  z: 2
+  n: 14
+  k: 10
+  r: 2
+  (n, k, r, z): (14, 10, 2, 2)
+  DatanodeNumPerCluster: 8 nodes/cluster
+  ClusterNum: 6 clusters
+  CoordinatorIP: 172.16.2.32
+  CoordinatorPort: 55555
+  AppendMode: UNILRC_MODE
+  CodeType: RandomLRC
+  ClientStripeNum: 1000
+  ParixPlacementSeed: 12345 (0 = non-deterministic master pick per call)
+[client0] client_id=172.16.2.31:77777
+[client0] coordinator=172.16.2.32:55555
+Hello Client ID: 172.16.2.31:77777
+[client0] batch_file=/root/xue/tmp/parix_batch_split_0.log ClientStripeNum=1000
+[client0] skip-set: assuming stripes already initialized
+[client0] auto-y: starting batch update
+Parix batch update from file: /root/xue/tmp/parix_batch_split_0.log
+Line format: stripe_id range_count start0 end0 [start1 end1 ...]  (# and empty lines skipped)
+Each range is logical half-open [start, end) in [0, k*BlockSize).
+--- request #1 (file line 3) stripe_id=0 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=3
+[batch line 3] parix update success stripe_id=0 latency=0.202434 s
+--- request #2 (file line 4) stripe_id=4 ranges=6 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=6
+[batch line 4] parix update success stripe_id=4 latency=0.21278 s
+--- request #3 (file line 5) stripe_id=8 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=8
+[batch line 5] parix update success stripe_id=8 latency=0.201062 s
+--- request #4 (file line 6) stripe_id=12 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=10
+[batch line 6] parix update success stripe_id=12 latency=0.130741 s
+--- request #5 (file line 7) stripe_id=16 ranges=4 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=11
+[batch line 7] parix update success stripe_id=16 latency=0.153196 s
+--- request #6 (file line 8) stripe_id=20 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=13
+[batch line 8] parix update success stripe_id=20 latency=0.159332 s
+--- request #7 (file line 9) stripe_id=24 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=15
+[batch line 9] parix update success stripe_id=24 latency=0.193134 s
+--- request #8 (file line 10) stripe_id=28 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=18
+[batch line 10] parix update success stripe_id=28 latency=0.140549 s
+--- request #9 (file line 11) stripe_id=32 ranges=6 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=20
+[batch line 11] parix update success stripe_id=32 latency=0.19235 s
+--- request #10 (file line 12) stripe_id=36 ranges=5 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=22
+[batch line 12] parix update success stripe_id=36 latency=0.184674 s
+[client0] progress success=10 failed=0
+--- request #11 (file line 13) stripe_id=40 ranges=4 ---
+[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[Client][Parix] partial update committed batch_id=24
+[batch line 13] parix update success stripe_id=40 latency=0.145884 s
+--- request #12 (file line 14) stripe_id=44 ranges=4 ---

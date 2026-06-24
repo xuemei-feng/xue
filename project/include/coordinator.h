@@ -282,6 +282,9 @@ namespace ECProject
       grpc::EnableDefaultHealthCheckService(true);
       grpc::reflection::InitProtoReflectionServerBuilderPlugin();
       grpc::ServerBuilder builder;
+      builder.SetSyncServerOption(grpc::ServerBuilder::SyncServerOption::NUM_CQS, 8);
+      builder.SetSyncServerOption(grpc::ServerBuilder::SyncServerOption::MIN_POLLERS, 8);
+      builder.SetSyncServerOption(grpc::ServerBuilder::SyncServerOption::MAX_POLLERS, 48);
       std::string server_address(m_coordinator_ip_port);
       builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
       builder.RegisterService(&m_coordinatorImpl);

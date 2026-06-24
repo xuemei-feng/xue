@@ -14,8 +14,14 @@
 #include <semaphore.h>
 #include <config.h>
 #include <parix_journal.h>
+#include <parix_tcp.h>
 #include <toolbox.h>
 #include <queue>
+#include <atomic>
+#include <condition_variable>
+#include <map>
+#include <memory>
+#include <utility>
 // #define IF_DEBUG true
 #define IF_DEBUG false
 namespace ECProject
@@ -32,9 +38,13 @@ namespace ECProject
       init_datanodes(config_path);
       m_ip = proxy_ip_port.substr(0, proxy_ip_port.find(':'));
       m_port = std::stoi(proxy_ip_port.substr(proxy_ip_port.find(':') + 1, proxy_ip_port.size()));
+      parix_schedule_tcp_service_init();
       std::cout << "Cluster id:" << m_self_cluster_id << std::endl;
     }
-    ~ProxyImpl() {};
+    ~ProxyImpl()
+    {
+      parix_schedule_tcp_service_stop();
+    };
     grpc::Status checkalive(
         grpc::ServerContext *context,
         const proxy_proto::CheckaliveCMD *request,
@@ -158,13 +168,25 @@ namespace ECProject
       double *disk_io_start_time, double *disk_io_end_time, double *network_start_time, double *network_end_time, double *grpc_notify_time, double *grpc_start_time);
 
   private:
-    bool parix_read_range_from_datanode(const std::string &block_key, int block_size, int range_offset, int range_length,
-                                        const char *ip, int port, char *out);
-    bool parix_write_range_to_datanode(const std::string &block_key, int block_size, int range_offset, int range_length,
-                                       const char *data, const char *ip, int port);
-    bool parix_supply_d0_remotely(const proxy_proto::ParixSupplyD0Request &request, const std::string &parity_proxy_ip,
-                                    int parity_proxy_grpc_port);
+    struct ParixScheduleTcpPayload
+    {
+      std::vector<char> data;
+    };
+
     bool parix_try_flush_journal_on_threshold(int stripe_id);
+    void parix_schedule_tcp_service_init();
+    void parix_schedule_tcp_service_stop();
+    void parix_schedule_tcp_accept_loop();
+    void parix_schedule_tcp_read_and_queue(asio::ip::tcp::socket sock);
+    bool parix_take_schedule_tcp_payload(uint64_t batch_id, uint32_t data_block_id, uint64_t expect_len,
+                                         std::vector<char> *out_buf);
+
+    std::unique_ptr<asio::ip::tcp::acceptor> m_parix_schedule_acceptor;
+    std::thread m_parix_schedule_tcp_thread;
+    std::atomic<bool> m_parix_schedule_tcp_stop{false};
+    std::mutex m_parix_schedule_tcp_mu;
+    std::condition_variable m_parix_schedule_tcp_cv;
+    std::map<std::pair<uint64_t, uint32_t>, ParixScheduleTcpPayload> m_parix_schedule_tcp_ready;
     std::mutex m_mutex;
     std::condition_variable cv;
     bool init_coordinator();
@@ -202,6 +224,9 @@ namespace ECProject
       constexpr int k_grpc_max_msg = 128 * 1024 * 1024;
       builder.SetMaxSendMessageSize(k_grpc_max_msg);
       builder.SetMaxReceiveMessageSize(k_grpc_max_msg);
+      builder.SetSyncServerOption(grpc::ServerBuilder::SyncServerOption::NUM_CQS, 16);
+      builder.SetSyncServerOption(grpc::ServerBuilder::SyncServerOption::MIN_POLLERS, 16);
+      builder.SetSyncServerOption(grpc::ServerBuilder::SyncServerOption::MAX_POLLERS, 64);
       std::cout << "proxy_ip_port:" << proxy_ip_port << std::endl;
       builder.AddListeningPort(proxy_ip_port, grpc::InsecureServerCredentials());
       builder.RegisterService(&m_proxyImpl_ptr);

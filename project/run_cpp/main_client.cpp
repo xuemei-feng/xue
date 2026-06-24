@@ -13,10 +13,151 @@
 #include <numeric>
 #include <random>
 #include <vector>
+#include <string>
+#include <cstring>
+#include <climits>
+#include <libgen.h>
 #include "unilrc_encoder.h"
 
 namespace
 {
+    struct ClientRunOptions
+    {
+        std::string batch_file = "try";
+        std::string config_path;
+        std::string client_ip = "172.16.2.31";
+        int client_port = 77777;
+        std::string client_tag;
+        bool skip_set = false;
+        bool set_only = false;
+        bool auto_y = false;
+    };
+
+    void print_usage(const char *prog)
+    {
+        std::cout << "Usage: " << prog
+                  << " [batch_file] [options]\n"
+                  << "Options:\n"
+                  << "  --ip IP           client bind/connect IP (default 172.16.2.31)\n"
+                  << "  --port PORT       client TCP port, must be unique per process (default 77777)\n"
+                  << "  --config PATH     parameterConfiguration.xml (default: ../config/ from binary)\n"
+                  << "  --tag NAME        log prefix for multi-client runs\n"
+                  << "  --skip-set        skip initial SET stripes (use after one client initialized)\n"
+                  << "  --set-only        only run SET stripes then exit (no batch update)\n"
+                  << "  --auto-y          skip 'Start update?' prompt\n"
+                  << std::endl;
+    }
+
+    bool parse_client_run_options(int argc, char **argv, ClientRunOptions *out)
+    {
+        if (out == nullptr)
+        {
+            return false;
+        }
+        std::vector<std::string> positional;
+        for (int i = 1; i < argc; ++i)
+        {
+            const std::string arg = argv[i];
+            if (arg == "--ip" && i + 1 < argc)
+            {
+                out->client_ip = argv[++i];
+            }
+            else if (arg == "--port" && i + 1 < argc)
+            {
+                out->client_port = std::stoi(argv[++i]);
+            }
+            else if (arg == "--config" && i + 1 < argc)
+            {
+                out->config_path = argv[++i];
+            }
+            else if (arg == "--tag" && i + 1 < argc)
+            {
+                out->client_tag = argv[++i];
+            }
+            else if (arg == "--skip-set")
+            {
+                out->skip_set = true;
+            }
+            else if (arg == "--set-only")
+            {
+                out->set_only = true;
+            }
+            else if (arg == "--auto-y")
+            {
+                out->auto_y = true;
+            }
+            else if (arg == "--help" || arg == "-h")
+            {
+                print_usage(argv[0]);
+                return false;
+            }
+            else if (!arg.empty() && arg[0] == '-')
+            {
+                std::cout << "Unknown option: " << arg << std::endl;
+                print_usage(argv[0]);
+                return false;
+            }
+            else
+            {
+                positional.push_back(arg);
+            }
+        }
+        if (!positional.empty())
+        {
+            out->batch_file = positional[0];
+        }
+        return true;
+    }
+
+    void log_client_line(const ClientRunOptions &opt, const std::string &msg)
+    {
+        if (!opt.client_tag.empty())
+        {
+            std::cout << "[" << opt.client_tag << "] ";
+        }
+        std::cout << msg << std::endl;
+    }
+
+    std::string default_sys_config_path(const char *argv0)
+    {
+        char exe_buf[PATH_MAX];
+        const ssize_t exe_len = readlink("/proc/self/exe", exe_buf, sizeof(exe_buf) - 1);
+        if (exe_len > 0)
+        {
+            exe_buf[exe_len] = '\0';
+            std::string exe_path(exe_buf);
+            const size_t slash = exe_path.rfind('/');
+            if (slash != std::string::npos)
+            {
+                return exe_path.substr(0, slash) + "/../config/parameterConfiguration.xml";
+            }
+        }
+
+        if (argv0 != nullptr && argv0[0] != '\0')
+        {
+            char argv_buf[PATH_MAX];
+            std::snprintf(argv_buf, sizeof(argv_buf), "%s", argv0);
+            char *dir = dirname(argv_buf);
+            if (dir != nullptr && dir[0] != '\0')
+            {
+                return std::string(dir) + "/../config/parameterConfiguration.xml";
+            }
+        }
+
+        char cwd_buf[256];
+        if (getcwd(cwd_buf, sizeof(cwd_buf)) != nullptr)
+        {
+            return std::string(cwd_buf) + "/../config/parameterConfiguration.xml";
+        }
+        return "project/config/parameterConfiguration.xml";
+    }
+
+    bool coordinator_hello_ok(ECProject::Client &client)
+    {
+        const std::string reply = client.sayHelloToCoordinatorByGrpc("Client ping");
+        return reply != "RPC failed";
+    }
+
     bool parse_update_request_line(const std::string &line, int &stripe_id, std::vector<std::pair<int, int>> &ranges)
     {
         std::istringstream iss(line);
@@ -109,17 +250,30 @@ namespace
 
 int main(int argc, char **argv)
 {
+    ClientRunOptions run_opt;
+    if (!parse_client_run_options(argc, argv, &run_opt))
+    {
+        return 1;
+    }
+
     char buff[256];
     getcwd(buff, 256);
-    std::string cwf = std::string(argv[0]);
-    std::string sys_config_path = std::string(buff) + cwf.substr(1, cwf.rfind('/') - 1) + "/../../config/parameterConfiguration.xml";
-    //std::string sys_config_path = "/home/GuanTian/lql/UniLRC/project/config/parameterConfiguration.xml";
-    std::cout << "Current working directory: " << sys_config_path << std::endl;
+    const std::string sys_config_path =
+        run_opt.config_path.empty() ? default_sys_config_path(argv[0]) : run_opt.config_path;
+    std::cout << "config_path: " << sys_config_path << " (cwd=" << buff << ")" << std::endl;
 
     const ECProject::Config *config = ECProject::Config::getInstance(sys_config_path);
-    std::string client_ip = "172.16.2.31";
-    int client_port = 77777;
+    const std::string client_ip = run_opt.client_ip;
+    const int client_port = run_opt.client_port;
     ECProject::Client client(client_ip, client_port, config->CoordinatorIP + ":" + std::to_string(config->CoordinatorPort), sys_config_path);
+    log_client_line(run_opt, "client_id=" + client_ip + ":" + std::to_string(client_port));
+    log_client_line(run_opt, "coordinator=" + config->CoordinatorIP + ":" + std::to_string(config->CoordinatorPort));
+    if (!coordinator_hello_ok(client))
+    {
+        std::cerr << "[FATAL] cannot reach coordinator at " << config->CoordinatorIP << ":" << config->CoordinatorPort
+                  << " (start run_coordinator first?)" << std::endl;
+        return 1;
+    }
     std::cout << client.sayHelloToCoordinatorByGrpc("Client ID: " + client_ip + ":" + std::to_string(client_port)) << std::endl;
 
     std::vector<int> parameters = client.get_parameters();
@@ -146,32 +300,53 @@ int main(int argc, char **argv)
     double block_size = static_cast<double> (parameters[3]) / 1024 / 1024; //MB
     int n = k + r + z;
 
-    const std::string batch_file_path = (argc >= 2) ? std::string(argv[1]) : std::string("try");
+    const std::string batch_file_path = run_opt.batch_file;
     const int stripe_num = config->ClientStripeNum;
     const int max_stripe_from_file = max_stripe_id_in_batch_file(batch_file_path);
-    if (max_stripe_from_file >= stripe_num)
+    if (!run_opt.set_only && max_stripe_from_file >= stripe_num)
     {
         std::cout << "[WARN] batch max stripe_id=" << max_stripe_from_file
                   << " >= ClientStripeNum=" << stripe_num
                   << "; updates for stripe_id>=" << stripe_num << " will fail unless stripes exist."
                   << std::endl;
     }
-    std::cout << "batch_file=" << batch_file_path << " ClientStripeNum=" << stripe_num << std::endl;
+    log_client_line(run_opt, "batch_file=" + batch_file_path + " ClientStripeNum=" + std::to_string(stripe_num));
     const double total_write_size_mb =
         static_cast<double>(stripe_num) * block_size * static_cast<double>(n);
-    std::cout << "Starting set stripe operation (" << stripe_num << " stripes)" << std::endl;
-    std::chrono::high_resolution_clock::time_point set_start = std::chrono::high_resolution_clock::now();
-    for(int i = 0; i < stripe_num; i++){
-        client.set();
+    if (!run_opt.skip_set)
+    {
+        log_client_line(run_opt, "Starting set stripe operation (" + std::to_string(stripe_num) + " stripes)");
+        std::chrono::high_resolution_clock::time_point set_start = std::chrono::high_resolution_clock::now();
+        for(int i = 0; i < stripe_num; i++){
+            client.set();
+        }
+        std::chrono::high_resolution_clock::time_point set_end = std::chrono::high_resolution_clock::now();
+        log_client_line(run_opt, "Set stripe operation finished");
+        std::cout << "Conducting experiments, please wait..." << std::endl;
+        std::chrono::duration<double> set_time = std::chrono::duration_cast<std::chrono::duration<double>>(set_end - set_start);
+        std::cout << "write throughput: " << (total_write_size_mb / set_time.count()) << "MB/s" << std::endl;
     }
-    std::chrono::high_resolution_clock::time_point set_end = std::chrono::high_resolution_clock::now();
-    std::cout << "Set stripe operation finished" << std::endl;
-    std::cout << "Conducting experiments, please wait..." << std::endl;
-    std::chrono::duration<double> set_time = std::chrono::duration_cast<std::chrono::duration<double>>(set_end - set_start);
-    std::cout << "write throughput: " << (total_write_size_mb / set_time.count()) << "MB/s" << std::endl;
-    char input;
-    std::cout << "Start update? (type 'y' to proceed): " << std::endl;
-    std::cin >> input;
+    else
+    {
+        log_client_line(run_opt, "skip-set: assuming stripes already initialized");
+    }
+
+    if (run_opt.set_only)
+    {
+        log_client_line(run_opt, "set-only: exit without batch update");
+        return 0;
+    }
+
+    char input = run_opt.auto_y ? 'y' : '\0';
+    if (!run_opt.auto_y)
+    {
+        std::cout << "Start update? (type 'y' to proceed): " << std::endl;
+        std::cin >> input;
+    }
+    else
+    {
+        log_client_line(run_opt, "auto-y: starting batch update");
+    }
     if (input == 'y') 
     {
         std::ifstream batch_file(batch_file_path);
@@ -219,6 +394,7 @@ int main(int argc, char **argv)
             req_index++;
             std::cout << "--- request #" << req_index << " (file line " << line_no << ") stripe_id=" << stripe_id
                       << " ranges=" << ranges.size() << " ---" << std::endl;
+            std::cout.flush();
 
             const auto req_start = std::chrono::high_resolution_clock::now();
             const bool ok = run_parix_update_for_ranges(client, stripe_id, ranges);
@@ -229,6 +405,7 @@ int main(int argc, char **argv)
             {
                 std::cout << "[batch line " << line_no << "] parix update failed, skip. latency=" << req_s
                           << " s (excluded from total and average time)" << std::endl;
+                std::cout.flush();
                 fail_count++;
                 continue;
             }
@@ -237,6 +414,11 @@ int main(int argc, char **argv)
             success_records.push_back(BatchSuccessRecord{req_index, line_no, stripe_id, req_s});
             std::cout << "[batch line " << line_no << "] parix update success stripe_id=" << stripe_id
                       << " latency=" << req_s << " s" << std::endl;
+            if (success_count % 10 == 0)
+            {
+                log_client_line(run_opt, "progress success=" + std::to_string(success_count) + " failed=" + std::to_string(fail_count));
+            }
+            std::cout.flush();
         }
 
         double sum_success_latency_s = 0.0;
@@ -258,7 +440,11 @@ int main(int argc, char **argv)
         std::cout << "total_time=" << sum_success_latency_s << " s (failures excluded)" << std::endl;
         std::cout << "avg_time=" << avg_success_latency_s << " s (failures excluded)" << std::endl;
         std::cout << "成功请求数: " << success_count << ", 失败请求数: " << fail_count << std::endl;
-    } 
+        if (req_index > 0 && success_count == 0)
+        {
+            return 1;
+        }
+    }
     else 
     {
         std::cout << "Update cancelled." << std::endl;

@@ -1,0 +1,29 @@
+config_path: /root/xue/project/config/parameterConfiguration.xml (cwd=/root/xue)
+Configuration Parameters:
+  AlignedSize: 4096 bytes
+  UnitSize: 8192 bytes
+  BlockSize: 1048576 bytes
+  alpha: 2
+  z: 2
+  n: 14
+  k: 10
+  r: 2
+  (n, k, r, z): (14, 10, 2, 2)
+  DatanodeNumPerCluster: 8 nodes/cluster
+  ClusterNum: 6 clusters
+  CoordinatorIP: 172.16.2.32
+  CoordinatorPort: 55555
+  AppendMode: UNILRC_MODE
+  CodeType: RandomLRC
+  ClientStripeNum: 1000
+  ParixPlacementSeed: 12345 (0 = non-deterministic master pick per call)
+[client3] client_id=172.16.2.31:77780
+[client3] coordinator=172.16.2.32:55555
+Hello Client ID: 172.16.2.31:77780
+[client3] batch_file=/root/xue/tmp/parix_batch_split_3.log ClientStripeNum=1000
+[client3] skip-set: assuming stripes already initialized
+[client3] auto-y: starting batch update
+Parix batch update from file: /root/xue/tmp/parix_batch_split_3.log
+Line format: stripe_id range_count start0 end0 [start1 end1 ...]  (# and empty lines skipped)
+Each range is logical half-open [start, end) in [0, k*BlockSize).
+--- request #1 (file line 3) stripe_id=3 ranges=7 ---
