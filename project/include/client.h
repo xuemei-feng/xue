@@ -23,10 +23,11 @@ namespace ECProject
   class Client
   {
   public:
-    Client(std::string ClientIP, int ClientPort, std::string CoordinatorIpPort) : m_coordinatorIpPort(CoordinatorIpPort),
-                                                                                  m_clientIPForGet(ClientIP),
-                                                                                  m_clientPortForGet(ClientPort),
-                                                                                  acceptor(io_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(ClientIP.c_str()), m_clientPortForGet))
+    Client(std::string ClientIP, int ClientPort, std::string CoordinatorIpPort, std::string client_tag = "") : m_coordinatorIpPort(CoordinatorIpPort),
+                                                                                                                m_clientIPForGet(ClientIP),
+                                                                                                                m_clientPortForGet(ClientPort),
+                                                                                                                m_client_tag(client_tag.empty() ? (ClientIP + ":" + std::to_string(ClientPort)) : client_tag),
+                                                                                                                acceptor(io_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(ClientIP.c_str()), m_clientPortForGet))
     {
       grpc::ChannelArguments args;
       // Avoid ENHANCE_YOUR_CALM / too_many_pings when several main_client processes run in parallel.
@@ -38,10 +39,11 @@ namespace ECProject
       m_clientID = ClientIP + ":" + std::to_string(ClientPort);
     }
 
-    Client(std::string ClientIP, int ClientPort, std::string CoordinatorIpPort, std::string config_path) : m_coordinatorIpPort(CoordinatorIpPort),
-                                                                                                           m_clientIPForGet(ClientIP),
-                                                                                                           m_clientPortForGet(ClientPort),
-                                                                                                           acceptor(io_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(ClientIP.c_str()), m_clientPortForGet))
+    Client(std::string ClientIP, int ClientPort, std::string CoordinatorIpPort, std::string config_path, std::string client_tag = "") : m_coordinatorIpPort(CoordinatorIpPort),
+                                                                                                                                          m_clientIPForGet(ClientIP),
+                                                                                                                                          m_clientPortForGet(ClientPort),
+                                                                                                                                          m_client_tag(client_tag.empty() ? (ClientIP + ":" + std::to_string(ClientPort)) : client_tag),
+                                                                                                                                          acceptor(io_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(ClientIP.c_str()), m_clientPortForGet))
     {
       grpc::ChannelArguments args;
       // Avoid ENHANCE_YOUR_CALM / too_many_pings when several main_client processes run in parallel.
@@ -133,6 +135,14 @@ namespace ECProject
     std::string m_clientIPForGet;
     int m_clientPortForGet;
     std::string m_clientID;
+    std::string m_client_tag;
+
+    /// Format: "[tag][ip:port][Parix] " for consistent parix client logging
+    static std::string parix_tag_prefix(const std::string &tag, const std::string &client_id)
+    {
+      return "[" + tag + "][" + client_id + "][Parix] ";
+    }
+    std::string parix_tag() const { return parix_tag_prefix(m_client_tag, m_clientID); }
     asio::io_context io_context;
     asio::ip::tcp::acceptor acceptor;
 

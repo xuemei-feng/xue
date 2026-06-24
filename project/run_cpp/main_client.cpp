@@ -265,7 +265,7 @@ int main(int argc, char **argv)
     const ECProject::Config *config = ECProject::Config::getInstance(sys_config_path);
     const std::string client_ip = run_opt.client_ip;
     const int client_port = run_opt.client_port;
-    ECProject::Client client(client_ip, client_port, config->CoordinatorIP + ":" + std::to_string(config->CoordinatorPort), sys_config_path);
+    ECProject::Client client(client_ip, client_port, config->CoordinatorIP + ":" + std::to_string(config->CoordinatorPort), sys_config_path, run_opt.client_tag);
     log_client_line(run_opt, "client_id=" + client_ip + ":" + std::to_string(client_port));
     log_client_line(run_opt, "coordinator=" + config->CoordinatorIP + ":" + std::to_string(config->CoordinatorPort));
     if (!coordinator_hello_ok(client))

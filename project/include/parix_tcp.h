@@ -6,7 +6,11 @@
 namespace ECProject
 {
 
-  /** Magic for parixScheduleDataUpdate side-channel TCP (multi-client safe framing). */
+  /** Magic for parixScheduleDataUpdate side-channel TCP (multi-client safe framing).
+   *  Multi-client identity: each client's batch_id is globally unique (coordinator-assigned),
+   *  so the proxy matches the correct (client, batch, block) triple without an explicit client_id field.
+   *  Client identity is carried in gRPC metadata and client-side log lines via the client_tag.
+   */
   inline constexpr uint32_t kParixScheduleTcpMagic = 0x50525831u; // "PRX1"
 
 #pragma pack(push, 1)

@@ -26,944 +26,1040 @@ Hello Client ID: 172.16.2.31:77779
 Parix batch update from file: /root/xue/tmp/parix_batch_split_2.log
 Line format: stripe_id range_count start0 end0 [start1 end1 ...]  (# and empty lines skipped)
 Each range is logical half-open [start, end) in [0, k*BlockSize).
---- request #1 (file line 3) stripe_id=2 ranges=4 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=1
-[batch line 3] parix update success stripe_id=2 latency=0.153315 s
---- request #2 (file line 4) stripe_id=6 ranges=5 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=6
-[batch line 4] parix update success stripe_id=6 latency=0.151943 s
---- request #3 (file line 5) stripe_id=10 ranges=4 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=10
-[batch line 5] parix update success stripe_id=10 latency=0.177616 s
---- request #4 (file line 6) stripe_id=14 ranges=5 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=13
-[batch line 6] parix update success stripe_id=14 latency=0.179196 s
---- request #5 (file line 7) stripe_id=18 ranges=4 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=17
-[batch line 7] parix update success stripe_id=18 latency=0.135963 s
---- request #6 (file line 8) stripe_id=22 ranges=5 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=21
-[batch line 8] parix update success stripe_id=22 latency=0.158653 s
---- request #7 (file line 9) stripe_id=26 ranges=4 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=25
-[batch line 9] parix update success stripe_id=26 latency=0.141063 s
---- request #8 (file line 10) stripe_id=30 ranges=4 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=29
-[batch line 10] parix update success stripe_id=30 latency=0.137869 s
---- request #9 (file line 11) stripe_id=34 ranges=5 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=32
-[batch line 11] parix update success stripe_id=34 latency=0.163894 s
---- request #10 (file line 12) stripe_id=38 ranges=5 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=36
-[batch line 12] parix update success stripe_id=38 latency=0.198303 s
+--- request #1 (file line 3) stripe_id=2 ranges=100 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=2
+[batch line 3] parix update success stripe_id=2 latency=0.0648161 s
+--- request #2 (file line 4) stripe_id=6 ranges=130 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=6
+[batch line 4] parix update success stripe_id=6 latency=0.0643703 s
+--- request #3 (file line 5) stripe_id=10 ranges=118 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=10
+[batch line 5] parix update success stripe_id=10 latency=0.0832087 s
+--- request #4 (file line 6) stripe_id=14 ranges=128 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=14
+[batch line 6] parix update success stripe_id=14 latency=0.055923 s
+--- request #5 (file line 7) stripe_id=18 ranges=32 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=18
+[batch line 7] parix update success stripe_id=18 latency=0.0561394 s
+--- request #6 (file line 8) stripe_id=22 ranges=132 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=22
+[batch line 8] parix update success stripe_id=22 latency=0.0572757 s
+--- request #7 (file line 9) stripe_id=26 ranges=109 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=26
+[batch line 9] parix update success stripe_id=26 latency=0.0585275 s
+--- request #8 (file line 10) stripe_id=30 ranges=19 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=30
+[batch line 10] parix update success stripe_id=30 latency=0.0570532 s
+--- request #9 (file line 11) stripe_id=34 ranges=128 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=34
+[batch line 11] parix update success stripe_id=34 latency=0.0837531 s
+--- request #10 (file line 12) stripe_id=38 ranges=40 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=38
+[batch line 12] parix update success stripe_id=38 latency=0.0728196 s
 [client2] progress success=10 failed=0
---- request #11 (file line 13) stripe_id=42 ranges=5 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=40
-[batch line 13] parix update success stripe_id=42 latency=0.188526 s
---- request #12 (file line 14) stripe_id=46 ranges=6 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=44
-[batch line 14] parix update success stripe_id=46 latency=0.248325 s
---- request #13 (file line 15) stripe_id=50 ranges=6 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=50
-[batch line 15] parix update success stripe_id=50 latency=0.223906 s
---- request #14 (file line 16) stripe_id=54 ranges=6 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=54
-[batch line 16] parix update success stripe_id=54 latency=0.194974 s
---- request #15 (file line 17) stripe_id=58 ranges=4 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=56
-[batch line 17] parix update success stripe_id=58 latency=0.140003 s
---- request #16 (file line 18) stripe_id=62 ranges=5 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=58
-[batch line 18] parix update success stripe_id=62 latency=0.170673 s
---- request #17 (file line 19) stripe_id=66 ranges=5 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=60
-[batch line 19] parix update success stripe_id=66 latency=0.175251 s
---- request #18 (file line 20) stripe_id=70 ranges=5 ---
-[Client][Parix] parixSupplyD0 failed parity_block_id=10
-[batch line 20] parix update failed, skip. latency=0.284694 s (excluded from total and average time)
---- request #19 (file line 21) stripe_id=74 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=65 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=65 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=65 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=65 block=0
-[batch line 21] parix update failed, skip. latency=0.114091 s (excluded from total and average time)
---- request #20 (file line 22) stripe_id=78 ranges=6 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=67
-[batch line 22] parix update success stripe_id=78 latency=0.206087 s
---- request #21 (file line 23) stripe_id=82 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 23] parix update failed, skip. latency=0.0242445 s (excluded from total and average time)
---- request #22 (file line 24) stripe_id=86 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=72 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=72 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=72 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=72 block=2
-[batch line 24] parix update failed, skip. latency=0.143131 s (excluded from total and average time)
---- request #23 (file line 25) stripe_id=90 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 25] parix update failed, skip. latency=0.0270025 s (excluded from total and average time)
---- request #24 (file line 26) stripe_id=94 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=75 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=75 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=75 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=75 block=4
-[batch line 26] parix update failed, skip. latency=0.184715 s (excluded from total and average time)
---- request #25 (file line 27) stripe_id=98 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=77 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=77 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=77 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=77 block=6
-[batch line 27] parix update failed, skip. latency=0.162474 s (excluded from total and average time)
---- request #26 (file line 28) stripe_id=102 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=80 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=80 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=80 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=80 block=5
-[batch line 28] parix update failed, skip. latency=0.159605 s (excluded from total and average time)
---- request #27 (file line 29) stripe_id=106 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 29] parix update failed, skip. latency=0.0190753 s (excluded from total and average time)
---- request #28 (file line 30) stripe_id=110 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=83 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=83 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=83 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=83 block=1
-[batch line 30] parix update failed, skip. latency=0.141688 s (excluded from total and average time)
---- request #29 (file line 31) stripe_id=114 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=85 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=85 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=85 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=85 block=6
-[batch line 31] parix update failed, skip. latency=0.183159 s (excluded from total and average time)
---- request #30 (file line 32) stripe_id=118 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=87 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=87 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=87 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=87 block=0
-[batch line 32] parix update failed, skip. latency=0.116882 s (excluded from total and average time)
---- request #31 (file line 33) stripe_id=122 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 33] parix update failed, skip. latency=0.023394 s (excluded from total and average time)
---- request #32 (file line 34) stripe_id=126 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=93 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=93 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=93 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=93 block=2
-[batch line 34] parix update failed, skip. latency=0.116109 s (excluded from total and average time)
---- request #33 (file line 35) stripe_id=130 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 35] parix update failed, skip. latency=0.0296443 s (excluded from total and average time)
---- request #34 (file line 36) stripe_id=134 ranges=3 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=96 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=96 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=96 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=96 block=0
-[batch line 36] parix update failed, skip. latency=0.113541 s (excluded from total and average time)
---- request #35 (file line 37) stripe_id=138 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 37] parix update failed, skip. latency=0.0260586 s (excluded from total and average time)
---- request #36 (file line 38) stripe_id=142 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 38] parix update failed, skip. latency=0.0282312 s (excluded from total and average time)
---- request #37 (file line 39) stripe_id=146 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=100 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=100 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=100 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=100 block=2
-[batch line 39] parix update failed, skip. latency=0.135597 s (excluded from total and average time)
---- request #38 (file line 40) stripe_id=150 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 40] parix update failed, skip. latency=0.0313142 s (excluded from total and average time)
---- request #39 (file line 41) stripe_id=154 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=104 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=104 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=104 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=104 block=1
-[batch line 41] parix update failed, skip. latency=0.115012 s (excluded from total and average time)
---- request #40 (file line 42) stripe_id=158 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=108 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=108 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=108 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=108 block=4
-[batch line 42] parix update failed, skip. latency=0.115136 s (excluded from total and average time)
---- request #41 (file line 43) stripe_id=162 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=109 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=109 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=109 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=109 block=7
-[batch line 43] parix update failed, skip. latency=0.229018 s (excluded from total and average time)
---- request #42 (file line 44) stripe_id=166 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=112 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=112 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=112 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=112 block=1
-[batch line 44] parix update failed, skip. latency=0.11591 s (excluded from total and average time)
---- request #43 (file line 45) stripe_id=170 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=114 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=114 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=114 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=114 block=0
-[batch line 45] parix update failed, skip. latency=0.1157 s (excluded from total and average time)
---- request #44 (file line 46) stripe_id=174 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=115 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=115 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=115 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=115 block=0
-[batch line 46] parix update failed, skip. latency=0.117527 s (excluded from total and average time)
---- request #45 (file line 47) stripe_id=178 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 47] parix update failed, skip. latency=0.133545 s (excluded from total and average time)
---- request #46 (file line 48) stripe_id=182 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=119 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=119 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=119 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=119 block=2
-[batch line 48] parix update failed, skip. latency=0.116306 s (excluded from total and average time)
---- request #47 (file line 49) stripe_id=186 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=123 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=123 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=123 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=123 block=0
-[batch line 49] parix update failed, skip. latency=0.11729 s (excluded from total and average time)
---- request #48 (file line 50) stripe_id=190 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=126 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=126 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=126 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=126 block=0
-[batch line 50] parix update failed, skip. latency=0.116215 s (excluded from total and average time)
---- request #49 (file line 51) stripe_id=194 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=129 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=129 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=129 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=129 block=5
-[batch line 51] parix update failed, skip. latency=0.196621 s (excluded from total and average time)
---- request #50 (file line 52) stripe_id=198 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=132 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=132 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=132 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=132 block=0
-[batch line 52] parix update failed, skip. latency=0.117975 s (excluded from total and average time)
---- request #51 (file line 53) stripe_id=202 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=134 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=134 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=134 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=134 block=0
-[batch line 53] parix update failed, skip. latency=0.114675 s (excluded from total and average time)
---- request #52 (file line 54) stripe_id=206 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=136 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=136 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=136 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=136 block=4
-[batch line 54] parix update failed, skip. latency=0.178018 s (excluded from total and average time)
---- request #53 (file line 55) stripe_id=210 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 55] parix update failed, skip. latency=0.0188569 s (excluded from total and average time)
---- request #54 (file line 56) stripe_id=214 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 56] parix update failed, skip. latency=0.0320372 s (excluded from total and average time)
---- request #55 (file line 57) stripe_id=218 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=143 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=143 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=143 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=143 block=2
-[batch line 57] parix update failed, skip. latency=0.113858 s (excluded from total and average time)
---- request #56 (file line 58) stripe_id=222 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=145 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=145 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=145 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=145 block=0
-[batch line 58] parix update failed, skip. latency=0.117268 s (excluded from total and average time)
---- request #57 (file line 59) stripe_id=226 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=147 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=147 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=147 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=147 block=7
-[batch line 59] parix update failed, skip. latency=0.184285 s (excluded from total and average time)
---- request #58 (file line 60) stripe_id=230 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=151 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=151 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=151 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=151 block=2
-[batch line 60] parix update failed, skip. latency=0.165936 s (excluded from total and average time)
---- request #59 (file line 61) stripe_id=234 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=154 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=154 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=154 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=154 block=1
-[batch line 61] parix update failed, skip. latency=0.119226 s (excluded from total and average time)
---- request #60 (file line 62) stripe_id=238 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=157 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=157 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=157 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=157 block=0
-[batch line 62] parix update failed, skip. latency=0.114809 s (excluded from total and average time)
---- request #61 (file line 63) stripe_id=242 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 63] parix update failed, skip. latency=0.0182974 s (excluded from total and average time)
---- request #62 (file line 64) stripe_id=246 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 64] parix update failed, skip. latency=0.0168108 s (excluded from total and average time)
---- request #63 (file line 65) stripe_id=250 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 65] parix update failed, skip. latency=0.0285509 s (excluded from total and average time)
---- request #64 (file line 66) stripe_id=254 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 66] parix update failed, skip. latency=0.0211778 s (excluded from total and average time)
---- request #65 (file line 67) stripe_id=258 ranges=3 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=165 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=165 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=165 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=165 block=0
-[batch line 67] parix update failed, skip. latency=0.112643 s (excluded from total and average time)
---- request #66 (file line 68) stripe_id=262 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=167 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=167 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=167 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=167 block=1
-[batch line 68] parix update failed, skip. latency=0.115596 s (excluded from total and average time)
---- request #67 (file line 69) stripe_id=266 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 69] parix update failed, skip. latency=0.0214883 s (excluded from total and average time)
---- request #68 (file line 70) stripe_id=270 ranges=7 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 70] parix update failed, skip. latency=0.0256313 s (excluded from total and average time)
---- request #69 (file line 71) stripe_id=274 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=171 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=171 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=171 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=171 block=2
-[batch line 71] parix update failed, skip. latency=0.114709 s (excluded from total and average time)
---- request #70 (file line 72) stripe_id=278 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=175 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=175 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=175 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=175 block=1
-[batch line 72] parix update failed, skip. latency=0.115659 s (excluded from total and average time)
---- request #71 (file line 73) stripe_id=282 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 73] parix update failed, skip. latency=0.0228546 s (excluded from total and average time)
---- request #72 (file line 74) stripe_id=286 ranges=3 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=178
-[batch line 74] parix update success stripe_id=286 latency=0.11829 s
---- request #73 (file line 75) stripe_id=290 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 75] parix update failed, skip. latency=0.0232262 s (excluded from total and average time)
---- request #74 (file line 76) stripe_id=294 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 76] parix update failed, skip. latency=0.107674 s (excluded from total and average time)
---- request #75 (file line 77) stripe_id=298 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 77] parix update failed, skip. latency=0.0213069 s (excluded from total and average time)
---- request #76 (file line 78) stripe_id=302 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 78] parix update failed, skip. latency=0.135671 s (excluded from total and average time)
---- request #77 (file line 79) stripe_id=306 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=187 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=187 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=187 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=187 block=5
-[batch line 79] parix update failed, skip. latency=0.134522 s (excluded from total and average time)
---- request #78 (file line 80) stripe_id=310 ranges=7 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=190 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=190 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=190 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=190 block=0
-[batch line 80] parix update failed, skip. latency=0.120634 s (excluded from total and average time)
---- request #79 (file line 81) stripe_id=314 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=191 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=191 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=191 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=191 block=8
-[batch line 81] parix update failed, skip. latency=0.194858 s (excluded from total and average time)
---- request #80 (file line 82) stripe_id=318 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=194 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=194 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=194 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=194 block=0
-[batch line 82] parix update failed, skip. latency=0.116637 s (excluded from total and average time)
---- request #81 (file line 83) stripe_id=322 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=200 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=200 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=200 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=200 block=5
-[batch line 83] parix update failed, skip. latency=0.15473 s (excluded from total and average time)
---- request #82 (file line 84) stripe_id=326 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 84] parix update failed, skip. latency=0.0219041 s (excluded from total and average time)
---- request #83 (file line 85) stripe_id=330 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=203 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=203 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=203 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=203 block=0
-[batch line 85] parix update failed, skip. latency=0.116582 s (excluded from total and average time)
---- request #84 (file line 86) stripe_id=334 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=205 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=205 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=205 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=205 block=2
-[batch line 86] parix update failed, skip. latency=0.114089 s (excluded from total and average time)
---- request #85 (file line 87) stripe_id=338 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=207 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=207 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=207 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=207 block=1
-[batch line 87] parix update failed, skip. latency=0.118154 s (excluded from total and average time)
---- request #86 (file line 88) stripe_id=342 ranges=3 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=209 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=209 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=209 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=209 block=7
-[batch line 88] parix update failed, skip. latency=0.157585 s (excluded from total and average time)
---- request #87 (file line 89) stripe_id=346 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 89] parix update failed, skip. latency=0.0261924 s (excluded from total and average time)
---- request #88 (file line 90) stripe_id=350 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=212 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=212 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=212 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=212 block=0
-[batch line 90] parix update failed, skip. latency=0.112659 s (excluded from total and average time)
---- request #89 (file line 91) stripe_id=354 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 91] parix update failed, skip. latency=0.0264929 s (excluded from total and average time)
---- request #90 (file line 92) stripe_id=358 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=216 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=216 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=216 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=216 block=0
-[batch line 92] parix update failed, skip. latency=0.113986 s (excluded from total and average time)
---- request #91 (file line 93) stripe_id=362 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=219 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=219 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=219 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=219 block=0
-[batch line 93] parix update failed, skip. latency=0.119397 s (excluded from total and average time)
---- request #92 (file line 94) stripe_id=366 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=221 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=221 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=221 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=221 block=0
-[batch line 94] parix update failed, skip. latency=0.11787 s (excluded from total and average time)
---- request #93 (file line 95) stripe_id=370 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 95] parix update failed, skip. latency=0.0215992 s (excluded from total and average time)
---- request #94 (file line 96) stripe_id=374 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=226 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=226 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=226 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=226 block=3
-[batch line 96] parix update failed, skip. latency=0.133263 s (excluded from total and average time)
---- request #95 (file line 97) stripe_id=378 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 97] parix update failed, skip. latency=0.0165865 s (excluded from total and average time)
---- request #96 (file line 98) stripe_id=382 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=232 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=232 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=232 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=232 block=0
-[batch line 98] parix update failed, skip. latency=0.114057 s (excluded from total and average time)
---- request #97 (file line 99) stripe_id=386 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 99] parix update failed, skip. latency=0.0267831 s (excluded from total and average time)
---- request #98 (file line 100) stripe_id=390 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=238 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=238 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=238 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=238 block=1
-[batch line 100] parix update failed, skip. latency=0.11629 s (excluded from total and average time)
---- request #99 (file line 101) stripe_id=394 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=240 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=240 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=240 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=240 block=0
-[batch line 101] parix update failed, skip. latency=0.119464 s (excluded from total and average time)
---- request #100 (file line 102) stripe_id=398 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=242 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=242 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=242 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=242 block=1
-[batch line 102] parix update failed, skip. latency=0.141358 s (excluded from total and average time)
---- request #101 (file line 103) stripe_id=402 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=245 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=245 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=245 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=245 block=9
-[batch line 103] parix update failed, skip. latency=0.227786 s (excluded from total and average time)
---- request #102 (file line 104) stripe_id=406 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 104] parix update failed, skip. latency=0.0228308 s (excluded from total and average time)
---- request #103 (file line 105) stripe_id=410 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 105] parix update failed, skip. latency=0.0233065 s (excluded from total and average time)
---- request #104 (file line 106) stripe_id=414 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=252 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=252 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=252 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=252 block=3
-[batch line 106] parix update failed, skip. latency=0.113835 s (excluded from total and average time)
---- request #105 (file line 107) stripe_id=418 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 107] parix update failed, skip. latency=0.0185136 s (excluded from total and average time)
---- request #106 (file line 108) stripe_id=422 ranges=3 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 108] parix update failed, skip. latency=0.0172364 s (excluded from total and average time)
---- request #107 (file line 109) stripe_id=426 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=257 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=257 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=257 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=257 block=2
-[batch line 109] parix update failed, skip. latency=0.11552 s (excluded from total and average time)
---- request #108 (file line 110) stripe_id=430 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 110] parix update failed, skip. latency=0.0185285 s (excluded from total and average time)
---- request #109 (file line 111) stripe_id=434 ranges=3 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=260 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=260 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=260 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=260 block=0
-[batch line 111] parix update failed, skip. latency=0.111948 s (excluded from total and average time)
---- request #110 (file line 112) stripe_id=438 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=261 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=261 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=261 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=261 block=1
-[batch line 112] parix update failed, skip. latency=0.142181 s (excluded from total and average time)
---- request #111 (file line 113) stripe_id=442 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 113] parix update failed, skip. latency=0.0231629 s (excluded from total and average time)
---- request #112 (file line 114) stripe_id=446 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 114] parix update failed, skip. latency=0.0223952 s (excluded from total and average time)
---- request #113 (file line 115) stripe_id=450 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 115] parix update failed, skip. latency=0.0283042 s (excluded from total and average time)
---- request #114 (file line 116) stripe_id=454 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 116] parix update failed, skip. latency=0.0185673 s (excluded from total and average time)
---- request #115 (file line 117) stripe_id=458 ranges=7 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=268 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=268 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=268 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=268 block=0
-[batch line 117] parix update failed, skip. latency=0.121284 s (excluded from total and average time)
---- request #116 (file line 118) stripe_id=462 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 118] parix update failed, skip. latency=0.0221188 s (excluded from total and average time)
---- request #117 (file line 119) stripe_id=466 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 119] parix update failed, skip. latency=0.0298538 s (excluded from total and average time)
---- request #118 (file line 120) stripe_id=470 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=272 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=272 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=272 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=272 block=1
-[batch line 120] parix update failed, skip. latency=0.117188 s (excluded from total and average time)
---- request #119 (file line 121) stripe_id=474 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 121] parix update failed, skip. latency=0.0199288 s (excluded from total and average time)
---- request #120 (file line 122) stripe_id=478 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 122] parix update failed, skip. latency=0.0204676 s (excluded from total and average time)
---- request #121 (file line 123) stripe_id=482 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 123] parix update failed, skip. latency=0.0202151 s (excluded from total and average time)
---- request #122 (file line 124) stripe_id=486 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 124] parix update failed, skip. latency=0.0184383 s (excluded from total and average time)
---- request #123 (file line 125) stripe_id=490 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 125] parix update failed, skip. latency=0.0284894 s (excluded from total and average time)
---- request #124 (file line 126) stripe_id=494 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 126] parix update failed, skip. latency=0.0260277 s (excluded from total and average time)
---- request #125 (file line 127) stripe_id=498 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 127] parix update failed, skip. latency=0.0197751 s (excluded from total and average time)
---- request #126 (file line 128) stripe_id=502 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=283 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=283 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=283 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=283 block=1
-[batch line 128] parix update failed, skip. latency=0.118449 s (excluded from total and average time)
---- request #127 (file line 129) stripe_id=506 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=285 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=285 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=285 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=285 block=0
-[batch line 129] parix update failed, skip. latency=0.116491 s (excluded from total and average time)
---- request #128 (file line 130) stripe_id=510 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=288 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=288 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=288 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=288 block=4
-[batch line 130] parix update failed, skip. latency=0.140182 s (excluded from total and average time)
---- request #129 (file line 131) stripe_id=514 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 131] parix update failed, skip. latency=0.0277983 s (excluded from total and average time)
---- request #130 (file line 132) stripe_id=518 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=291 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=291 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=291 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=291 block=4
-[batch line 132] parix update failed, skip. latency=0.140288 s (excluded from total and average time)
---- request #131 (file line 133) stripe_id=522 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 133] parix update failed, skip. latency=0.0779961 s (excluded from total and average time)
---- request #132 (file line 134) stripe_id=526 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 134] parix update failed, skip. latency=0.0200191 s (excluded from total and average time)
---- request #133 (file line 135) stripe_id=530 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=298 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=298 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=298 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=298 block=2
-[batch line 135] parix update failed, skip. latency=0.111801 s (excluded from total and average time)
---- request #134 (file line 136) stripe_id=534 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=300 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=300 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=300 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=300 block=1
-[batch line 136] parix update failed, skip. latency=0.115603 s (excluded from total and average time)
---- request #135 (file line 137) stripe_id=538 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=302 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=302 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=302 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=302 block=0
-[batch line 137] parix update failed, skip. latency=0.117668 s (excluded from total and average time)
---- request #136 (file line 138) stripe_id=542 ranges=3 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 138] parix update failed, skip. latency=0.0223734 s (excluded from total and average time)
---- request #137 (file line 139) stripe_id=546 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 139] parix update failed, skip. latency=0.0320964 s (excluded from total and average time)
---- request #138 (file line 140) stripe_id=550 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 140] parix update failed, skip. latency=0.0273717 s (excluded from total and average time)
---- request #139 (file line 141) stripe_id=554 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 141] parix update failed, skip. latency=0.0249755 s (excluded from total and average time)
---- request #140 (file line 142) stripe_id=558 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 142] parix update failed, skip. latency=0.0304954 s (excluded from total and average time)
---- request #141 (file line 143) stripe_id=562 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=310 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=310 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=310 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=310 block=2
-[batch line 143] parix update failed, skip. latency=0.117796 s (excluded from total and average time)
---- request #142 (file line 144) stripe_id=566 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 144] parix update failed, skip. latency=1.0765 s (excluded from total and average time)
---- request #143 (file line 145) stripe_id=570 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=316 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=316 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=316 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=316 block=1
-[batch line 145] parix update failed, skip. latency=0.114708 s (excluded from total and average time)
---- request #144 (file line 146) stripe_id=574 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=318 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=318 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=318 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=318 block=4
-[batch line 146] parix update failed, skip. latency=0.179362 s (excluded from total and average time)
---- request #145 (file line 147) stripe_id=578 ranges=7 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 147] parix update failed, skip. latency=0.0279611 s (excluded from total and average time)
---- request #146 (file line 148) stripe_id=582 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 148] parix update failed, skip. latency=0.0252364 s (excluded from total and average time)
---- request #147 (file line 149) stripe_id=586 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=325 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=325 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=325 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=325 block=4
-[batch line 149] parix update failed, skip. latency=0.113232 s (excluded from total and average time)
---- request #148 (file line 150) stripe_id=590 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 150] parix update failed, skip. latency=0.782983 s (excluded from total and average time)
---- request #149 (file line 151) stripe_id=594 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 151] parix update failed, skip. latency=0.0220376 s (excluded from total and average time)
---- request #150 (file line 152) stripe_id=598 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=328 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=328 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=328 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=328 block=0
-[batch line 152] parix update failed, skip. latency=0.118454 s (excluded from total and average time)
---- request #151 (file line 153) stripe_id=602 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 153] parix update failed, skip. latency=1.53659 s (excluded from total and average time)
---- request #152 (file line 154) stripe_id=606 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 154] parix update failed, skip. latency=0.0258297 s (excluded from total and average time)
---- request #153 (file line 155) stripe_id=610 ranges=3 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 155] parix update failed, skip. latency=0.0215717 s (excluded from total and average time)
---- request #154 (file line 156) stripe_id=614 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=336 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=336 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=336 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=336 block=6
-[batch line 156] parix update failed, skip. latency=0.115599 s (excluded from total and average time)
---- request #155 (file line 157) stripe_id=618 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 157] parix update failed, skip. latency=0.0187072 s (excluded from total and average time)
---- request #156 (file line 158) stripe_id=622 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=338 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=338 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=338 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=338 block=1
-[batch line 158] parix update failed, skip. latency=0.119645 s (excluded from total and average time)
---- request #157 (file line 159) stripe_id=626 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=339 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=339 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=339 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=339 block=3
-[batch line 159] parix update failed, skip. latency=0.149179 s (excluded from total and average time)
---- request #158 (file line 160) stripe_id=630 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=340 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=340 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=340 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=340 block=0
-[batch line 160] parix update failed, skip. latency=0.118294 s (excluded from total and average time)
---- request #159 (file line 161) stripe_id=634 ranges=3 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 161] parix update failed, skip. latency=0.0221601 s (excluded from total and average time)
---- request #160 (file line 162) stripe_id=638 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 162] parix update failed, skip. latency=0.0279525 s (excluded from total and average time)
---- request #161 (file line 163) stripe_id=642 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 163] parix update failed, skip. latency=0.0211464 s (excluded from total and average time)
---- request #162 (file line 164) stripe_id=646 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=344 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=344 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=344 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=344 block=3
-[batch line 164] parix update failed, skip. latency=0.113715 s (excluded from total and average time)
---- request #163 (file line 165) stripe_id=650 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 165] parix update failed, skip. latency=0.0309406 s (excluded from total and average time)
---- request #164 (file line 166) stripe_id=654 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=346 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=346 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=346 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=346 block=2
-[batch line 166] parix update failed, skip. latency=0.116375 s (excluded from total and average time)
---- request #165 (file line 167) stripe_id=658 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 167] parix update failed, skip. latency=1.76899 s (excluded from total and average time)
---- request #166 (file line 168) stripe_id=662 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 168] parix update failed, skip. latency=0.0243794 s (excluded from total and average time)
---- request #167 (file line 169) stripe_id=666 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 169] parix update failed, skip. latency=0.0235854 s (excluded from total and average time)
---- request #168 (file line 170) stripe_id=670 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 170] parix update failed, skip. latency=0.0188935 s (excluded from total and average time)
---- request #169 (file line 171) stripe_id=674 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 171] parix update failed, skip. latency=0.0163679 s (excluded from total and average time)
---- request #170 (file line 172) stripe_id=678 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=355 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=355 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=355 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=355 block=3
-[batch line 172] parix update failed, skip. latency=0.134438 s (excluded from total and average time)
---- request #171 (file line 173) stripe_id=682 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=357 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=357 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=357 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=357 block=1
-[batch line 173] parix update failed, skip. latency=0.117502 s (excluded from total and average time)
---- request #172 (file line 174) stripe_id=686 ranges=4 ---
-[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
-[Client][Parix] partial update committed batch_id=359
-[batch line 174] parix update success stripe_id=686 latency=0.127407 s
-[client2] progress success=20 failed=152
---- request #173 (file line 175) stripe_id=690 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 175] parix update failed, skip. latency=0.0209653 s (excluded from total and average time)
---- request #174 (file line 176) stripe_id=694 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 176] parix update failed, skip. latency=0.0203599 s (excluded from total and average time)
---- request #175 (file line 177) stripe_id=698 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 177] parix update failed, skip. latency=6.61087 s (excluded from total and average time)
---- request #176 (file line 178) stripe_id=702 ranges=7 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 178] parix update failed, skip. latency=0.0253118 s (excluded from total and average time)
---- request #177 (file line 179) stripe_id=706 ranges=3 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 179] parix update failed, skip. latency=11.001 s (excluded from total and average time)
---- request #178 (file line 180) stripe_id=710 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=406 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=406 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=406 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=406 block=1
-[batch line 180] parix update failed, skip. latency=0.119261 s (excluded from total and average time)
---- request #179 (file line 181) stripe_id=714 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 181] parix update failed, skip. latency=0.0260985 s (excluded from total and average time)
---- request #180 (file line 182) stripe_id=718 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=408 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=408 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=408 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=408 block=1
-[batch line 182] parix update failed, skip. latency=0.116802 s (excluded from total and average time)
---- request #181 (file line 183) stripe_id=722 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 183] parix update failed, skip. latency=0.0262775 s (excluded from total and average time)
---- request #182 (file line 184) stripe_id=726 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 184] parix update failed, skip. latency=0.0199307 s (excluded from total and average time)
---- request #183 (file line 185) stripe_id=730 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 185] parix update failed, skip. latency=0.0195557 s (excluded from total and average time)
---- request #184 (file line 186) stripe_id=734 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 186] parix update failed, skip. latency=0.0241527 s (excluded from total and average time)
---- request #185 (file line 187) stripe_id=738 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 187] parix update failed, skip. latency=0.0153468 s (excluded from total and average time)
---- request #186 (file line 188) stripe_id=742 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 188] parix update failed, skip. latency=8.85577 s (excluded from total and average time)
---- request #187 (file line 189) stripe_id=746 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=416 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=416 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=416 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=416 block=0
-[batch line 189] parix update failed, skip. latency=0.116344 s (excluded from total and average time)
---- request #188 (file line 190) stripe_id=750 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=417 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=417 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=417 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=417 block=3
-[batch line 190] parix update failed, skip. latency=0.115095 s (excluded from total and average time)
---- request #189 (file line 191) stripe_id=754 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=420 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=420 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=420 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=420 block=1
-[batch line 191] parix update failed, skip. latency=0.115727 s (excluded from total and average time)
---- request #190 (file line 192) stripe_id=758 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=422 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=422 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=422 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=422 block=1
-[batch line 192] parix update failed, skip. latency=0.113162 s (excluded from total and average time)
---- request #191 (file line 193) stripe_id=762 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 193] parix update failed, skip. latency=4.79543 s (excluded from total and average time)
---- request #192 (file line 194) stripe_id=766 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 194] parix update failed, skip. latency=13.7259 s (excluded from total and average time)
---- request #193 (file line 195) stripe_id=770 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=445 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=445 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=445 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=445 block=3
-[batch line 195] parix update failed, skip. latency=0.192997 s (excluded from total and average time)
---- request #194 (file line 196) stripe_id=774 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=446 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=446 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=446 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=446 block=0
-[batch line 196] parix update failed, skip. latency=0.115085 s (excluded from total and average time)
---- request #195 (file line 197) stripe_id=778 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 197] parix update failed, skip. latency=9.82862 s (excluded from total and average time)
---- request #196 (file line 198) stripe_id=782 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=448 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=448 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=448 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=448 block=1
-[batch line 198] parix update failed, skip. latency=0.116791 s (excluded from total and average time)
---- request #197 (file line 199) stripe_id=786 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 199] parix update failed, skip. latency=0.0162276 s (excluded from total and average time)
---- request #198 (file line 200) stripe_id=790 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=450 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=450 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=450 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=450 block=1
-[batch line 200] parix update failed, skip. latency=0.120142 s (excluded from total and average time)
---- request #199 (file line 201) stripe_id=794 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=451 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=451 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=451 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=451 block=1
-[batch line 201] parix update failed, skip. latency=0.115708 s (excluded from total and average time)
---- request #200 (file line 202) stripe_id=798 ranges=6 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 202] parix update failed, skip. latency=0.0201196 s (excluded from total and average time)
---- request #201 (file line 203) stripe_id=802 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=453 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=453 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=453 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=453 block=0
-[batch line 203] parix update failed, skip. latency=0.115576 s (excluded from total and average time)
---- request #202 (file line 204) stripe_id=806 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 204] parix update failed, skip. latency=21.0276 s (excluded from total and average time)
---- request #203 (file line 205) stripe_id=810 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 205] parix update failed, skip. latency=0.0730966 s (excluded from total and average time)
---- request #204 (file line 206) stripe_id=814 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=459 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=459 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=459 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=459 block=3
-[batch line 206] parix update failed, skip. latency=0.113275 s (excluded from total and average time)
---- request #205 (file line 207) stripe_id=818 ranges=4 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=461 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=461 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=461 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=461 block=6
-[batch line 207] parix update failed, skip. latency=0.141466 s (excluded from total and average time)
---- request #206 (file line 208) stripe_id=822 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=462 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=462 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.51:50508 batch=462 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.51:50508 batch=462 block=1
-[batch line 208] parix update failed, skip. latency=0.116373 s (excluded from total and average time)
---- request #207 (file line 209) stripe_id=826 ranges=4 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 209] parix update failed, skip. latency=0.716371 s (excluded from total and average time)
---- request #208 (file line 210) stripe_id=830 ranges=6 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=464 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=464 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=464 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=464 block=0
-[batch line 210] parix update failed, skip. latency=0.117446 s (excluded from total and average time)
---- request #209 (file line 211) stripe_id=834 ranges=5 ---
-[Client][Parix] parixScheduleDataUpdate failed
-[batch line 211] parix update failed, skip. latency=1.24487 s (excluded from total and average time)
---- request #210 (file line 212) stripe_id=838 ranges=5 ---
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=466 attempt=1/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=466 attempt=2/3 err=connect: Connection refused
-[Client][Parix] schedule TCP connect/send failed data_proxy=172.16.2.60:50509 batch=466 attempt=3/3 err=connect: Connection refused
-[Client][Parix] schedule TCP payload send failed data_proxy=172.16.2.60:50509 batch=466 block=1
-[batch line 212] parix update failed, skip. latency=0.116816 s (excluded from total and average time)
---- request #211 (file line 213) stripe_id=842 ranges=4 ---
+--- request #11 (file line 13) stripe_id=42 ranges=23 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=42
+[batch line 13] parix update success stripe_id=42 latency=0.0564186 s
+--- request #12 (file line 14) stripe_id=46 ranges=103 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=46
+[batch line 14] parix update success stripe_id=46 latency=0.0559136 s
+--- request #13 (file line 15) stripe_id=50 ranges=49 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=50
+[batch line 15] parix update success stripe_id=50 latency=0.0561349 s
+--- request #14 (file line 16) stripe_id=54 ranges=12 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=54
+[batch line 16] parix update success stripe_id=54 latency=0.055284 s
+--- request #15 (file line 17) stripe_id=58 ranges=100 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=58
+[batch line 17] parix update success stripe_id=58 latency=0.0573354 s
+--- request #16 (file line 18) stripe_id=62 ranges=117 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=62
+[batch line 18] parix update success stripe_id=62 latency=0.0638668 s
+--- request #17 (file line 19) stripe_id=66 ranges=115 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=66
+[batch line 19] parix update success stripe_id=66 latency=0.0562111 s
+--- request #18 (file line 20) stripe_id=70 ranges=45 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=70
+[batch line 20] parix update success stripe_id=70 latency=0.0558825 s
+--- request #19 (file line 21) stripe_id=74 ranges=72 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=74
+[batch line 21] parix update success stripe_id=74 latency=0.0573183 s
+--- request #20 (file line 22) stripe_id=78 ranges=48 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=78
+[batch line 22] parix update success stripe_id=78 latency=0.0730109 s
+[client2] progress success=20 failed=0
+--- request #21 (file line 23) stripe_id=82 ranges=129 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=82
+[batch line 23] parix update success stripe_id=82 latency=0.0565011 s
+--- request #22 (file line 24) stripe_id=86 ranges=155 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=86
+[batch line 24] parix update success stripe_id=86 latency=0.0572751 s
+--- request #23 (file line 25) stripe_id=90 ranges=117 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=90
+[batch line 25] parix update success stripe_id=90 latency=0.0568767 s
+--- request #24 (file line 26) stripe_id=94 ranges=52 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=94
+[batch line 26] parix update success stripe_id=94 latency=0.0561238 s
+--- request #25 (file line 27) stripe_id=98 ranges=68 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=98
+[batch line 27] parix update success stripe_id=98 latency=0.0562236 s
+--- request #26 (file line 28) stripe_id=102 ranges=17 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=102
+[batch line 28] parix update success stripe_id=102 latency=0.0562004 s
+--- request #27 (file line 29) stripe_id=106 ranges=12 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=106
+[batch line 29] parix update success stripe_id=106 latency=0.0597715 s
+--- request #28 (file line 30) stripe_id=110 ranges=76 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=110
+[batch line 30] parix update success stripe_id=110 latency=0.0617274 s
+--- request #29 (file line 31) stripe_id=114 ranges=11 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=114
+[batch line 31] parix update success stripe_id=114 latency=0.0565673 s
+--- request #30 (file line 32) stripe_id=118 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=118
+[batch line 32] parix update success stripe_id=118 latency=0.056421 s
+[client2] progress success=30 failed=0
+--- request #31 (file line 33) stripe_id=122 ranges=141 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=122
+[batch line 33] parix update success stripe_id=122 latency=0.0562199 s
+--- request #32 (file line 34) stripe_id=126 ranges=60 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=126
+[batch line 34] parix update success stripe_id=126 latency=0.0576177 s
+--- request #33 (file line 35) stripe_id=130 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=130
+[batch line 35] parix update success stripe_id=130 latency=0.0701554 s
+--- request #34 (file line 36) stripe_id=134 ranges=80 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=134
+[batch line 36] parix update success stripe_id=134 latency=0.0551698 s
+--- request #35 (file line 37) stripe_id=138 ranges=104 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=138
+[batch line 37] parix update success stripe_id=138 latency=0.0563921 s
+--- request #36 (file line 38) stripe_id=142 ranges=67 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=142
+[batch line 38] parix update success stripe_id=142 latency=0.0557502 s
+--- request #37 (file line 39) stripe_id=146 ranges=100 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=146
+[batch line 39] parix update success stripe_id=146 latency=0.0563792 s
+--- request #38 (file line 40) stripe_id=150 ranges=33 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=150
+[batch line 40] parix update success stripe_id=150 latency=0.0573712 s
+--- request #39 (file line 41) stripe_id=154 ranges=90 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=154
+[batch line 41] parix update success stripe_id=154 latency=0.0704418 s
+--- request #40 (file line 42) stripe_id=158 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=158
+[batch line 42] parix update success stripe_id=158 latency=0.0596231 s
+[client2] progress success=40 failed=0
+--- request #41 (file line 43) stripe_id=162 ranges=99 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=162
+[batch line 43] parix update success stripe_id=162 latency=0.0552353 s
+--- request #42 (file line 44) stripe_id=166 ranges=22 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=166
+[batch line 44] parix update success stripe_id=166 latency=0.0556113 s
+--- request #43 (file line 45) stripe_id=170 ranges=94 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=170
+[batch line 45] parix update success stripe_id=170 latency=0.060401 s
+--- request #44 (file line 46) stripe_id=174 ranges=90 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=174
+[batch line 46] parix update success stripe_id=174 latency=0.0583187 s
+--- request #45 (file line 47) stripe_id=178 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=178
+[batch line 47] parix update success stripe_id=178 latency=0.058531 s
+--- request #46 (file line 48) stripe_id=182 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=182
+[batch line 48] parix update success stripe_id=182 latency=0.0788599 s
+--- request #47 (file line 49) stripe_id=186 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=186
+[batch line 49] parix update success stripe_id=186 latency=0.0737011 s
+--- request #48 (file line 50) stripe_id=190 ranges=47 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=190
+[batch line 50] parix update success stripe_id=190 latency=0.0596976 s
+--- request #49 (file line 51) stripe_id=194 ranges=111 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=194
+[batch line 51] parix update success stripe_id=194 latency=0.0553021 s
+--- request #50 (file line 52) stripe_id=198 ranges=113 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=198
+[batch line 52] parix update success stripe_id=198 latency=0.0562971 s
+[client2] progress success=50 failed=0
+--- request #51 (file line 53) stripe_id=202 ranges=86 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=202
+[batch line 53] parix update success stripe_id=202 latency=0.0569129 s
+--- request #52 (file line 54) stripe_id=206 ranges=68 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=206
+[batch line 54] parix update success stripe_id=206 latency=0.0566133 s
+--- request #53 (file line 55) stripe_id=210 ranges=86 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=210
+[batch line 55] parix update success stripe_id=210 latency=0.0564509 s
+--- request #54 (file line 56) stripe_id=214 ranges=52 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=214
+[batch line 56] parix update success stripe_id=214 latency=0.0585868 s
+--- request #55 (file line 57) stripe_id=218 ranges=78 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=218
+[batch line 57] parix update success stripe_id=218 latency=0.0584406 s
+--- request #56 (file line 58) stripe_id=222 ranges=65 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=222
+[batch line 58] parix update success stripe_id=222 latency=0.0590462 s
+--- request #57 (file line 59) stripe_id=226 ranges=47 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=226
+[batch line 59] parix update success stripe_id=226 latency=0.057763 s
+--- request #58 (file line 60) stripe_id=230 ranges=162 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=230
+[batch line 60] parix update success stripe_id=230 latency=0.0561255 s
+--- request #59 (file line 61) stripe_id=234 ranges=113 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=234
+[batch line 61] parix update success stripe_id=234 latency=0.0569986 s
+--- request #60 (file line 62) stripe_id=238 ranges=87 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=238
+[batch line 62] parix update success stripe_id=238 latency=0.0578702 s
+[client2] progress success=60 failed=0
+--- request #61 (file line 63) stripe_id=242 ranges=148 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=242
+[batch line 63] parix update success stripe_id=242 latency=0.0562401 s
+--- request #62 (file line 64) stripe_id=246 ranges=90 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=246
+[batch line 64] parix update success stripe_id=246 latency=0.0560509 s
+--- request #63 (file line 65) stripe_id=250 ranges=50 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=250
+[batch line 65] parix update success stripe_id=250 latency=0.0572062 s
+--- request #64 (file line 66) stripe_id=254 ranges=98 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=254
+[batch line 66] parix update success stripe_id=254 latency=0.0567544 s
+--- request #65 (file line 67) stripe_id=258 ranges=139 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=258
+[batch line 67] parix update success stripe_id=258 latency=0.0560284 s
+--- request #66 (file line 68) stripe_id=262 ranges=64 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=262
+[batch line 68] parix update success stripe_id=262 latency=0.0614949 s
+--- request #67 (file line 69) stripe_id=266 ranges=113 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=266
+[batch line 69] parix update success stripe_id=266 latency=0.065831 s
+--- request #68 (file line 70) stripe_id=270 ranges=31 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=270
+[batch line 70] parix update success stripe_id=270 latency=0.0576501 s
+--- request #69 (file line 71) stripe_id=274 ranges=95 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=274
+[batch line 71] parix update success stripe_id=274 latency=0.063702 s
+--- request #70 (file line 72) stripe_id=278 ranges=96 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=278
+[batch line 72] parix update success stripe_id=278 latency=0.0567503 s
+[client2] progress success=70 failed=0
+--- request #71 (file line 73) stripe_id=282 ranges=62 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=282
+[batch line 73] parix update success stripe_id=282 latency=0.0756346 s
+--- request #72 (file line 74) stripe_id=286 ranges=12 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=286
+[batch line 74] parix update success stripe_id=286 latency=0.0555687 s
+--- request #73 (file line 75) stripe_id=290 ranges=77 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=290
+[batch line 75] parix update success stripe_id=290 latency=0.0576659 s
+--- request #74 (file line 76) stripe_id=294 ranges=126 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=294
+[batch line 76] parix update success stripe_id=294 latency=0.0566272 s
+--- request #75 (file line 77) stripe_id=298 ranges=67 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=298
+[batch line 77] parix update success stripe_id=298 latency=0.0558389 s
+--- request #76 (file line 78) stripe_id=302 ranges=71 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=302
+[batch line 78] parix update success stripe_id=302 latency=0.0561721 s
+--- request #77 (file line 79) stripe_id=306 ranges=111 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=306
+[batch line 79] parix update success stripe_id=306 latency=0.056036 s
+--- request #78 (file line 80) stripe_id=310 ranges=111 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=310
+[batch line 80] parix update success stripe_id=310 latency=0.0601463 s
+--- request #79 (file line 81) stripe_id=314 ranges=22 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=314
+[batch line 81] parix update success stripe_id=314 latency=0.0566367 s
+--- request #80 (file line 82) stripe_id=318 ranges=93 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=318
+[batch line 82] parix update success stripe_id=318 latency=0.0560562 s
+[client2] progress success=80 failed=0
+--- request #81 (file line 83) stripe_id=322 ranges=63 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=322
+[batch line 83] parix update success stripe_id=322 latency=0.0550931 s
+--- request #82 (file line 84) stripe_id=326 ranges=109 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=326
+[batch line 84] parix update success stripe_id=326 latency=0.055869 s
+--- request #83 (file line 85) stripe_id=330 ranges=88 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=330
+[batch line 85] parix update success stripe_id=330 latency=0.0558719 s
+--- request #84 (file line 86) stripe_id=334 ranges=83 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=334
+[batch line 86] parix update success stripe_id=334 latency=0.0559728 s
+--- request #85 (file line 87) stripe_id=338 ranges=87 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=338
+[batch line 87] parix update success stripe_id=338 latency=0.0550888 s
+--- request #86 (file line 88) stripe_id=342 ranges=147 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=342
+[batch line 88] parix update success stripe_id=342 latency=0.0555536 s
+--- request #87 (file line 89) stripe_id=346 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=346
+[batch line 89] parix update success stripe_id=346 latency=0.0560967 s
+--- request #88 (file line 90) stripe_id=350 ranges=15 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=350
+[batch line 90] parix update success stripe_id=350 latency=0.0560694 s
+--- request #89 (file line 91) stripe_id=354 ranges=123 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=354
+[batch line 91] parix update success stripe_id=354 latency=0.0556093 s
+--- request #90 (file line 92) stripe_id=358 ranges=13 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=358
+[batch line 92] parix update success stripe_id=358 latency=0.0558236 s
+[client2] progress success=90 failed=0
+--- request #91 (file line 93) stripe_id=362 ranges=12 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=362
+[batch line 93] parix update success stripe_id=362 latency=0.0563832 s
+--- request #92 (file line 94) stripe_id=366 ranges=88 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=366
+[batch line 94] parix update success stripe_id=366 latency=0.0553295 s
+--- request #93 (file line 95) stripe_id=370 ranges=83 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=370
+[batch line 95] parix update success stripe_id=370 latency=0.057218 s
+--- request #94 (file line 96) stripe_id=374 ranges=60 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=374
+[batch line 96] parix update success stripe_id=374 latency=0.0556756 s
+--- request #95 (file line 97) stripe_id=378 ranges=73 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=378
+[batch line 97] parix update success stripe_id=378 latency=0.0559204 s
+--- request #96 (file line 98) stripe_id=382 ranges=77 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=382
+[batch line 98] parix update success stripe_id=382 latency=0.0571619 s
+--- request #97 (file line 99) stripe_id=386 ranges=33 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=386
+[batch line 99] parix update success stripe_id=386 latency=0.0564024 s
+--- request #98 (file line 100) stripe_id=390 ranges=43 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=390
+[batch line 100] parix update success stripe_id=390 latency=0.056875 s
+--- request #99 (file line 101) stripe_id=394 ranges=33 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=394
+[batch line 101] parix update success stripe_id=394 latency=0.0559092 s
+--- request #100 (file line 102) stripe_id=398 ranges=61 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=398
+[batch line 102] parix update success stripe_id=398 latency=0.056841 s
+[client2] progress success=100 failed=0
+--- request #101 (file line 103) stripe_id=402 ranges=102 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=402
+[batch line 103] parix update success stripe_id=402 latency=0.0565255 s
+--- request #102 (file line 104) stripe_id=406 ranges=59 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=406
+[batch line 104] parix update success stripe_id=406 latency=0.0568331 s
+--- request #103 (file line 105) stripe_id=410 ranges=117 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=410
+[batch line 105] parix update success stripe_id=410 latency=0.056829 s
+--- request #104 (file line 106) stripe_id=414 ranges=38 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=414
+[batch line 106] parix update success stripe_id=414 latency=0.0584347 s
+--- request #105 (file line 107) stripe_id=418 ranges=66 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=418
+[batch line 107] parix update success stripe_id=418 latency=0.0695338 s
+--- request #106 (file line 108) stripe_id=422 ranges=24 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=422
+[batch line 108] parix update success stripe_id=422 latency=0.0555569 s
+--- request #107 (file line 109) stripe_id=426 ranges=12 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=426
+[batch line 109] parix update success stripe_id=426 latency=0.0560423 s
+--- request #108 (file line 110) stripe_id=430 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=430
+[batch line 110] parix update success stripe_id=430 latency=0.0564292 s
+--- request #109 (file line 111) stripe_id=434 ranges=75 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=434
+[batch line 111] parix update success stripe_id=434 latency=0.0563565 s
+--- request #110 (file line 112) stripe_id=438 ranges=34 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=438
+[batch line 112] parix update success stripe_id=438 latency=0.056953 s
+[client2] progress success=110 failed=0
+--- request #111 (file line 113) stripe_id=442 ranges=62 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=442
+[batch line 113] parix update success stripe_id=442 latency=0.056181 s
+--- request #112 (file line 114) stripe_id=446 ranges=61 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=446
+[batch line 114] parix update success stripe_id=446 latency=0.0564475 s
+--- request #113 (file line 115) stripe_id=450 ranges=79 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=450
+[batch line 115] parix update success stripe_id=450 latency=0.0560101 s
+--- request #114 (file line 116) stripe_id=454 ranges=11 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=454
+[batch line 116] parix update success stripe_id=454 latency=0.0560064 s
+--- request #115 (file line 117) stripe_id=458 ranges=60 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=458
+[batch line 117] parix update success stripe_id=458 latency=0.0572047 s
+--- request #116 (file line 118) stripe_id=462 ranges=66 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=462
+[batch line 118] parix update success stripe_id=462 latency=0.0576117 s
+--- request #117 (file line 119) stripe_id=466 ranges=88 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=466
+[batch line 119] parix update success stripe_id=466 latency=0.0571207 s
+--- request #118 (file line 120) stripe_id=470 ranges=100 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=470
+[batch line 120] parix update success stripe_id=470 latency=0.0565444 s
+--- request #119 (file line 121) stripe_id=474 ranges=41 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=474
+[batch line 121] parix update success stripe_id=474 latency=0.0576781 s
+--- request #120 (file line 122) stripe_id=478 ranges=11 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=478
+[batch line 122] parix update success stripe_id=478 latency=0.075513 s
+[client2] progress success=120 failed=0
+--- request #121 (file line 123) stripe_id=482 ranges=67 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=482
+[batch line 123] parix update success stripe_id=482 latency=0.0572338 s
+--- request #122 (file line 124) stripe_id=486 ranges=65 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=486
+[batch line 124] parix update success stripe_id=486 latency=0.0576282 s
+--- request #123 (file line 125) stripe_id=490 ranges=90 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=490
+[batch line 125] parix update success stripe_id=490 latency=0.0562443 s
+--- request #124 (file line 126) stripe_id=494 ranges=77 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=494
+[batch line 126] parix update success stripe_id=494 latency=0.0579496 s
+--- request #125 (file line 127) stripe_id=498 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=498
+[batch line 127] parix update success stripe_id=498 latency=0.0569806 s
+--- request #126 (file line 128) stripe_id=502 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=502
+[batch line 128] parix update success stripe_id=502 latency=0.0580903 s
+--- request #127 (file line 129) stripe_id=506 ranges=129 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=506
+[batch line 129] parix update success stripe_id=506 latency=0.0579724 s
+--- request #128 (file line 130) stripe_id=510 ranges=63 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=510
+[batch line 130] parix update success stripe_id=510 latency=0.0566213 s
+--- request #129 (file line 131) stripe_id=514 ranges=13 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=514
+[batch line 131] parix update success stripe_id=514 latency=0.0577947 s
+--- request #130 (file line 132) stripe_id=518 ranges=39 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=518
+[batch line 132] parix update success stripe_id=518 latency=0.0574572 s
+[client2] progress success=130 failed=0
+--- request #131 (file line 133) stripe_id=522 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=522
+[batch line 133] parix update success stripe_id=522 latency=0.0562595 s
+--- request #132 (file line 134) stripe_id=526 ranges=66 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=526
+[batch line 134] parix update success stripe_id=526 latency=0.0568132 s
+--- request #133 (file line 135) stripe_id=530 ranges=57 ---
+[client2][172.16.2.31:77779][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[client2][172.16.2.31:77779][Parix] partial update committed batch_id=2
+[batch line 135] parix update success stripe_id=530 latency=0.384801 s
+--- request #134 (file line 136) stripe_id=534 ranges=59 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=534
+[batch line 136] parix update success stripe_id=534 latency=0.0583085 s
+--- request #135 (file line 137) stripe_id=538 ranges=68 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=538
+[batch line 137] parix update success stripe_id=538 latency=0.0564283 s
+--- request #136 (file line 138) stripe_id=542 ranges=38 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=542
+[batch line 138] parix update success stripe_id=542 latency=0.0564478 s
+--- request #137 (file line 139) stripe_id=546 ranges=62 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=546
+[batch line 139] parix update success stripe_id=546 latency=0.0569709 s
+--- request #138 (file line 140) stripe_id=550 ranges=80 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=550
+[batch line 140] parix update success stripe_id=550 latency=0.056638 s
+--- request #139 (file line 141) stripe_id=554 ranges=26 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=554
+[batch line 141] parix update success stripe_id=554 latency=0.05629 s
+--- request #140 (file line 142) stripe_id=558 ranges=67 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=558
+[batch line 142] parix update success stripe_id=558 latency=0.0561545 s
+[client2] progress success=140 failed=0
+--- request #141 (file line 143) stripe_id=562 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=562
+[batch line 143] parix update success stripe_id=562 latency=0.0561419 s
+--- request #142 (file line 144) stripe_id=566 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=566
+[batch line 144] parix update success stripe_id=566 latency=0.0600685 s
+--- request #143 (file line 145) stripe_id=570 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=570
+[batch line 145] parix update success stripe_id=570 latency=0.0568004 s
+--- request #144 (file line 146) stripe_id=574 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=574
+[batch line 146] parix update success stripe_id=574 latency=0.0570006 s
+--- request #145 (file line 147) stripe_id=578 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=578
+[batch line 147] parix update success stripe_id=578 latency=0.0564841 s
+--- request #146 (file line 148) stripe_id=582 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=582
+[batch line 148] parix update success stripe_id=582 latency=0.0598126 s
+--- request #147 (file line 149) stripe_id=586 ranges=22 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=586
+[batch line 149] parix update success stripe_id=586 latency=0.0665332 s
+--- request #148 (file line 150) stripe_id=590 ranges=37 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=590
+[batch line 150] parix update success stripe_id=590 latency=0.0570098 s
+--- request #149 (file line 151) stripe_id=594 ranges=25 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=594
+[batch line 151] parix update success stripe_id=594 latency=0.055295 s
+--- request #150 (file line 152) stripe_id=598 ranges=61 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=598
+[batch line 152] parix update success stripe_id=598 latency=0.0570039 s
+[client2] progress success=150 failed=0
+--- request #151 (file line 153) stripe_id=602 ranges=45 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=602
+[batch line 153] parix update success stripe_id=602 latency=0.057389 s
+--- request #152 (file line 154) stripe_id=606 ranges=72 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=606
+[batch line 154] parix update success stripe_id=606 latency=0.0565345 s
+--- request #153 (file line 155) stripe_id=610 ranges=91 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=610
+[batch line 155] parix update success stripe_id=610 latency=0.0574561 s
+--- request #154 (file line 156) stripe_id=614 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=614
+[batch line 156] parix update success stripe_id=614 latency=0.0571756 s
+--- request #155 (file line 157) stripe_id=618 ranges=62 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=618
+[batch line 157] parix update success stripe_id=618 latency=0.0570912 s
+--- request #156 (file line 158) stripe_id=622 ranges=13 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=622
+[batch line 158] parix update success stripe_id=622 latency=0.0792936 s
+--- request #157 (file line 159) stripe_id=626 ranges=46 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=626
+[batch line 159] parix update success stripe_id=626 latency=0.057361 s
+--- request #158 (file line 160) stripe_id=630 ranges=48 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=630
+[batch line 160] parix update success stripe_id=630 latency=0.0574005 s
+--- request #159 (file line 161) stripe_id=634 ranges=51 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=634
+[batch line 161] parix update success stripe_id=634 latency=0.0559075 s
+--- request #160 (file line 162) stripe_id=638 ranges=73 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=638
+[batch line 162] parix update success stripe_id=638 latency=0.0557546 s
+[client2] progress success=160 failed=0
+--- request #161 (file line 163) stripe_id=642 ranges=99 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=642
+[batch line 163] parix update success stripe_id=642 latency=0.0568739 s
+--- request #162 (file line 164) stripe_id=646 ranges=52 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=646
+[batch line 164] parix update success stripe_id=646 latency=0.0559291 s
+--- request #163 (file line 165) stripe_id=650 ranges=43 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=650
+[batch line 165] parix update success stripe_id=650 latency=0.0574229 s
+--- request #164 (file line 166) stripe_id=654 ranges=97 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=654
+[batch line 166] parix update success stripe_id=654 latency=0.0565172 s
+--- request #165 (file line 167) stripe_id=658 ranges=151 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=658
+[batch line 167] parix update success stripe_id=658 latency=0.0749561 s
+--- request #166 (file line 168) stripe_id=662 ranges=104 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=662
+[batch line 168] parix update success stripe_id=662 latency=0.0580335 s
+--- request #167 (file line 169) stripe_id=666 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=666
+[batch line 169] parix update success stripe_id=666 latency=0.0560219 s
+--- request #168 (file line 170) stripe_id=670 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=670
+[batch line 170] parix update success stripe_id=670 latency=0.0563889 s
+--- request #169 (file line 171) stripe_id=674 ranges=25 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=674
+[batch line 171] parix update success stripe_id=674 latency=0.0570195 s
+--- request #170 (file line 172) stripe_id=678 ranges=81 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=678
+[batch line 172] parix update success stripe_id=678 latency=0.0555308 s
+[client2] progress success=170 failed=0
+--- request #171 (file line 173) stripe_id=682 ranges=94 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=682
+[batch line 173] parix update success stripe_id=682 latency=0.0561031 s
+--- request #172 (file line 174) stripe_id=686 ranges=82 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=686
+[batch line 174] parix update success stripe_id=686 latency=0.0563632 s
+--- request #173 (file line 175) stripe_id=690 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=690
+[batch line 175] parix update success stripe_id=690 latency=0.0558143 s
+--- request #174 (file line 176) stripe_id=694 ranges=41 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=694
+[batch line 176] parix update success stripe_id=694 latency=0.0558322 s
+--- request #175 (file line 177) stripe_id=698 ranges=112 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=698
+[batch line 177] parix update success stripe_id=698 latency=0.0563911 s
+--- request #176 (file line 178) stripe_id=702 ranges=64 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=702
+[batch line 178] parix update success stripe_id=702 latency=0.057699 s
+--- request #177 (file line 179) stripe_id=706 ranges=76 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=706
+[batch line 179] parix update success stripe_id=706 latency=0.0563396 s
+--- request #178 (file line 180) stripe_id=710 ranges=71 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=710
+[batch line 180] parix update success stripe_id=710 latency=0.0570156 s
+--- request #179 (file line 181) stripe_id=714 ranges=32 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=714
+[batch line 181] parix update success stripe_id=714 latency=0.0555565 s
+--- request #180 (file line 182) stripe_id=718 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=718
+[batch line 182] parix update success stripe_id=718 latency=0.0573895 s
+[client2] progress success=180 failed=0
+--- request #181 (file line 183) stripe_id=722 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=722
+[batch line 183] parix update success stripe_id=722 latency=0.0563411 s
+--- request #182 (file line 184) stripe_id=726 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=726
+[batch line 184] parix update success stripe_id=726 latency=0.0604993 s
+--- request #183 (file line 185) stripe_id=730 ranges=55 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=730
+[batch line 185] parix update success stripe_id=730 latency=0.0580906 s
+--- request #184 (file line 186) stripe_id=734 ranges=46 ---
+[client2][172.16.2.31:77779][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[client2][172.16.2.31:77779][Parix] partial update committed batch_id=5
+[batch line 186] parix update success stripe_id=734 latency=0.372737 s
+--- request #185 (file line 187) stripe_id=738 ranges=75 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=738
+[batch line 187] parix update success stripe_id=738 latency=0.0614091 s
+--- request #186 (file line 188) stripe_id=742 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=742
+[batch line 188] parix update success stripe_id=742 latency=0.0573857 s
+--- request #187 (file line 189) stripe_id=746 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=746
+[batch line 189] parix update success stripe_id=746 latency=0.0672431 s
+--- request #188 (file line 190) stripe_id=750 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=750
+[batch line 190] parix update success stripe_id=750 latency=0.0560853 s
+--- request #189 (file line 191) stripe_id=754 ranges=10 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=754
+[batch line 191] parix update success stripe_id=754 latency=0.0561078 s
+--- request #190 (file line 192) stripe_id=758 ranges=16 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=758
+[batch line 192] parix update success stripe_id=758 latency=0.0567558 s
+[client2] progress success=190 failed=0
+--- request #191 (file line 193) stripe_id=762 ranges=14 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=762
+[batch line 193] parix update success stripe_id=762 latency=0.0562768 s
+--- request #192 (file line 194) stripe_id=766 ranges=63 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=766
+[batch line 194] parix update success stripe_id=766 latency=0.0560894 s
+--- request #193 (file line 195) stripe_id=770 ranges=52 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=770
+[batch line 195] parix update success stripe_id=770 latency=0.073577 s
+--- request #194 (file line 196) stripe_id=774 ranges=55 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=774
+[batch line 196] parix update success stripe_id=774 latency=0.0582394 s
+--- request #195 (file line 197) stripe_id=778 ranges=29 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=778
+[batch line 197] parix update success stripe_id=778 latency=0.0575584 s
+--- request #196 (file line 198) stripe_id=782 ranges=69 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=782
+[batch line 198] parix update success stripe_id=782 latency=0.0570391 s
+--- request #197 (file line 199) stripe_id=786 ranges=32 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=786
+[batch line 199] parix update success stripe_id=786 latency=0.0576229 s
+--- request #198 (file line 200) stripe_id=790 ranges=40 ---
+[client2][172.16.2.31:77779][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[client2][172.16.2.31:77779][Parix] partial update committed batch_id=8
+[batch line 200] parix update success stripe_id=790 latency=0.252283 s
+--- request #199 (file line 201) stripe_id=794 ranges=47 ---
+[client2][172.16.2.31:77779][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[client2][172.16.2.31:77779][Parix] partial update committed batch_id=10
+[batch line 201] parix update success stripe_id=794 latency=0.287536 s
+--- request #200 (file line 202) stripe_id=798 ranges=42 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=798
+[batch line 202] parix update success stripe_id=798 latency=0.0601554 s
+[client2] progress success=200 failed=0
+--- request #201 (file line 203) stripe_id=802 ranges=69 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=802
+[batch line 203] parix update success stripe_id=802 latency=0.0653095 s
+--- request #202 (file line 204) stripe_id=806 ranges=51 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=806
+[batch line 204] parix update success stripe_id=806 latency=0.0758803 s
+--- request #203 (file line 205) stripe_id=810 ranges=215 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=810
+[batch line 205] parix update success stripe_id=810 latency=0.0569941 s
+--- request #204 (file line 206) stripe_id=814 ranges=59 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=814
+[batch line 206] parix update success stripe_id=814 latency=0.0579322 s
+--- request #205 (file line 207) stripe_id=818 ranges=12 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=818
+[batch line 207] parix update success stripe_id=818 latency=0.0644415 s
+--- request #206 (file line 208) stripe_id=822 ranges=39 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=822
+[batch line 208] parix update success stripe_id=822 latency=0.0708416 s
+--- request #207 (file line 209) stripe_id=826 ranges=54 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=826
+[batch line 209] parix update success stripe_id=826 latency=0.0574188 s
+--- request #208 (file line 210) stripe_id=830 ranges=103 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=830
+[batch line 210] parix update success stripe_id=830 latency=0.0569185 s
+--- request #209 (file line 211) stripe_id=834 ranges=29 ---
+[client2][172.16.2.31:77779][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[client2][172.16.2.31:77779][Parix] partial update committed batch_id=14
+[batch line 211] parix update success stripe_id=834 latency=0.19748 s
+--- request #210 (file line 212) stripe_id=838 ranges=56 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=838
+[batch line 212] parix update success stripe_id=838 latency=0.0575604 s
+[client2] progress success=210 failed=0
+--- request #211 (file line 213) stripe_id=842 ranges=60 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=842
+[batch line 213] parix update success stripe_id=842 latency=0.0560728 s
+--- request #212 (file line 214) stripe_id=846 ranges=35 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=846
+[batch line 214] parix update success stripe_id=846 latency=0.0571132 s
+--- request #213 (file line 215) stripe_id=850 ranges=12 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=850
+[batch line 215] parix update success stripe_id=850 latency=0.0566947 s
+--- request #214 (file line 216) stripe_id=854 ranges=58 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=854
+[batch line 216] parix update success stripe_id=854 latency=0.0572468 s
+--- request #215 (file line 217) stripe_id=858 ranges=37 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=858
+[batch line 217] parix update success stripe_id=858 latency=0.055548 s
+--- request #216 (file line 218) stripe_id=862 ranges=41 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=862
+[batch line 218] parix update success stripe_id=862 latency=0.0569123 s
+--- request #217 (file line 219) stripe_id=866 ranges=18 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=866
+[batch line 219] parix update success stripe_id=866 latency=0.0568746 s
+--- request #218 (file line 220) stripe_id=870 ranges=19 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=870
+[batch line 220] parix update success stripe_id=870 latency=0.0575655 s
+--- request #219 (file line 221) stripe_id=874 ranges=56 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=874
+[batch line 221] parix update success stripe_id=874 latency=0.0567815 s
+--- request #220 (file line 222) stripe_id=878 ranges=26 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=878
+[batch line 222] parix update success stripe_id=878 latency=0.0561449 s
+[client2] progress success=220 failed=0
+--- request #221 (file line 223) stripe_id=882 ranges=21 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=882
+[batch line 223] parix update success stripe_id=882 latency=0.0568511 s
+--- request #222 (file line 224) stripe_id=886 ranges=35 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=886
+[batch line 224] parix update success stripe_id=886 latency=0.0563252 s
+--- request #223 (file line 225) stripe_id=890 ranges=90 ---
+[client2][172.16.2.31:77779][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[client2][172.16.2.31:77779][Parix] partial update committed batch_id=17
+[batch line 225] parix update success stripe_id=890 latency=0.407979 s
+--- request #224 (file line 226) stripe_id=894 ranges=119 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=894
+[batch line 226] parix update success stripe_id=894 latency=0.0577211 s
+--- request #225 (file line 227) stripe_id=898 ranges=41 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=898
+[batch line 227] parix update success stripe_id=898 latency=0.0571902 s
+--- request #226 (file line 228) stripe_id=902 ranges=48 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=902
+[batch line 228] parix update success stripe_id=902 latency=0.0568429 s
+--- request #227 (file line 229) stripe_id=906 ranges=47 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=906
+[batch line 229] parix update success stripe_id=906 latency=0.0569362 s
+--- request #228 (file line 230) stripe_id=910 ranges=61 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=910
+[batch line 230] parix update success stripe_id=910 latency=0.0561588 s
+--- request #229 (file line 231) stripe_id=914 ranges=51 ---
+[client2][172.16.2.31:77779][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)
+[client2][172.16.2.31:77779][Parix] partial update committed batch_id=19
+[batch line 231] parix update success stripe_id=914 latency=0.308757 s
+--- request #230 (file line 232) stripe_id=918 ranges=38 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=918
+[batch line 232] parix update success stripe_id=918 latency=0.0599954 s
+[client2] progress success=230 failed=0
+--- request #231 (file line 233) stripe_id=922 ranges=39 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=922
+[batch line 233] parix update success stripe_id=922 latency=0.0592069 s
+--- request #232 (file line 234) stripe_id=926 ranges=58 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=926
+[batch line 234] parix update success stripe_id=926 latency=0.0621706 s
+--- request #233 (file line 235) stripe_id=930 ranges=43 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=930
+[batch line 235] parix update success stripe_id=930 latency=0.0581903 s
+--- request #234 (file line 236) stripe_id=934 ranges=53 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=934
+[batch line 236] parix update success stripe_id=934 latency=0.0565755 s
+--- request #235 (file line 237) stripe_id=938 ranges=64 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=938
+[batch line 237] parix update success stripe_id=938 latency=0.0627461 s
+--- request #236 (file line 238) stripe_id=942 ranges=52 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=942
+[batch line 238] parix update success stripe_id=942 latency=0.0594957 s
+--- request #237 (file line 239) stripe_id=946 ranges=79 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=946
+[batch line 239] parix update success stripe_id=946 latency=0.05775 s
+--- request #238 (file line 240) stripe_id=950 ranges=43 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=950
+[batch line 240] parix update success stripe_id=950 latency=0.0563944 s
+--- request #239 (file line 241) stripe_id=954 ranges=39 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=954
+[batch line 241] parix update success stripe_id=954 latency=0.0577495 s
+--- request #240 (file line 242) stripe_id=958 ranges=18 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=958
+[batch line 242] parix update success stripe_id=958 latency=0.0572531 s
+[client2] progress success=240 failed=0
+--- request #241 (file line 243) stripe_id=962 ranges=32 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=962
+[batch line 243] parix update success stripe_id=962 latency=0.0568127 s
+--- request #242 (file line 244) stripe_id=966 ranges=51 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=966
+[batch line 244] parix update success stripe_id=966 latency=0.0558158 s
+--- request #243 (file line 245) stripe_id=970 ranges=29 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=970
+[batch line 245] parix update success stripe_id=970 latency=0.0570149 s
+--- request #244 (file line 246) stripe_id=974 ranges=58 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=974
+[batch line 246] parix update success stripe_id=974 latency=0.0574282 s
+--- request #245 (file line 247) stripe_id=978 ranges=54 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=978
+[batch line 247] parix update success stripe_id=978 latency=0.0566107 s
+--- request #246 (file line 248) stripe_id=982 ranges=12 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=982
+[batch line 248] parix update success stripe_id=982 latency=0.0562861 s
+--- request #247 (file line 249) stripe_id=986 ranges=12 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=986
+[batch line 249] parix update success stripe_id=986 latency=0.0564611 s
+--- request #248 (file line 250) stripe_id=990 ranges=29 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=990
+[batch line 250] parix update success stripe_id=990 latency=0.0560887 s
+--- request #249 (file line 251) stripe_id=994 ranges=82 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=994
+[batch line 251] parix update success stripe_id=994 latency=0.056104 s
+--- request #250 (file line 252) stripe_id=998 ranges=90 ---
+[client2][172.16.2.31:77779][Parix] full stripe rewrite done stripe_id=998
+[batch line 252] parix update success stripe_id=998 latency=0.0568634 s
+[client2] progress success=250 failed=0
+=== Parix batch summary ===
+total_requests=250 success=250 failed=0
+success_req[1] line=3 stripe_id=2 latency_s=0.0648161
+success_req[2] line=4 stripe_id=6 latency_s=0.0643703
+success_req[3] line=5 stripe_id=10 latency_s=0.0832087
+success_req[4] line=6 stripe_id=14 latency_s=0.055923
+success_req[5] line=7 stripe_id=18 latency_s=0.0561394
+success_req[6] line=8 stripe_id=22 latency_s=0.0572757
+success_req[7] line=9 stripe_id=26 latency_s=0.0585275
+success_req[8] line=10 stripe_id=30 latency_s=0.0570532
+success_req[9] line=11 stripe_id=34 latency_s=0.0837531
+success_req[10] line=12 stripe_id=38 latency_s=0.0728196
+success_req[11] line=13 stripe_id=42 latency_s=0.0564186
+success_req[12] line=14 stripe_id=46 latency_s=0.0559136
+success_req[13] line=15 stripe_id=50 latency_s=0.0561349
+success_req[14] line=16 stripe_id=54 latency_s=0.055284
+success_req[15] line=17 stripe_id=58 latency_s=0.0573354
+success_req[16] line=18 stripe_id=62 latency_s=0.0638668
+success_req[17] line=19 stripe_id=66 latency_s=0.0562111
+success_req[18] line=20 stripe_id=70 latency_s=0.0558825
+success_req[19] line=21 stripe_id=74 latency_s=0.0573183
+success_req[20] line=22 stripe_id=78 latency_s=0.0730109
+success_req[21] line=23 stripe_id=82 latency_s=0.0565011
+success_req[22] line=24 stripe_id=86 latency_s=0.0572751
+success_req[23] line=25 stripe_id=90 latency_s=0.0568767
+success_req[24] line=26 stripe_id=94 latency_s=0.0561238
+success_req[25] line=27 stripe_id=98 latency_s=0.0562236
+success_req[26] line=28 stripe_id=102 latency_s=0.0562004
+success_req[27] line=29 stripe_id=106 latency_s=0.0597715
+success_req[28] line=30 stripe_id=110 latency_s=0.0617274
+success_req[29] line=31 stripe_id=114 latency_s=0.0565673
+success_req[30] line=32 stripe_id=118 latency_s=0.056421
+success_req[31] line=33 stripe_id=122 latency_s=0.0562199
+success_req[32] line=34 stripe_id=126 latency_s=0.0576177
+success_req[33] line=35 stripe_id=130 latency_s=0.0701554
+success_req[34] line=36 stripe_id=134 latency_s=0.0551698
+success_req[35] line=37 stripe_id=138 latency_s=0.0563921
+success_req[36] line=38 stripe_id=142 latency_s=0.0557502
+success_req[37] line=39 stripe_id=146 latency_s=0.0563792
+success_req[38] line=40 stripe_id=150 latency_s=0.0573712
+success_req[39] line=41 stripe_id=154 latency_s=0.0704418
+success_req[40] line=42 stripe_id=158 latency_s=0.0596231
+success_req[41] line=43 stripe_id=162 latency_s=0.0552353
+success_req[42] line=44 stripe_id=166 latency_s=0.0556113
+success_req[43] line=45 stripe_id=170 latency_s=0.060401
+success_req[44] line=46 stripe_id=174 latency_s=0.0583187
+success_req[45] line=47 stripe_id=178 latency_s=0.058531
+success_req[46] line=48 stripe_id=182 latency_s=0.0788599
+success_req[47] line=49 stripe_id=186 latency_s=0.0737011
+success_req[48] line=50 stripe_id=190 latency_s=0.0596976
+success_req[49] line=51 stripe_id=194 latency_s=0.0553021
+success_req[50] line=52 stripe_id=198 latency_s=0.0562971
+success_req[51] line=53 stripe_id=202 latency_s=0.0569129
+success_req[52] line=54 stripe_id=206 latency_s=0.0566133
+success_req[53] line=55 stripe_id=210 latency_s=0.0564509
+success_req[54] line=56 stripe_id=214 latency_s=0.0585868
+success_req[55] line=57 stripe_id=218 latency_s=0.0584406
+success_req[56] line=58 stripe_id=222 latency_s=0.0590462
+success_req[57] line=59 stripe_id=226 latency_s=0.057763
+success_req[58] line=60 stripe_id=230 latency_s=0.0561255
+success_req[59] line=61 stripe_id=234 latency_s=0.0569986
+success_req[60] line=62 stripe_id=238 latency_s=0.0578702
+success_req[61] line=63 stripe_id=242 latency_s=0.0562401
+success_req[62] line=64 stripe_id=246 latency_s=0.0560509
+success_req[63] line=65 stripe_id=250 latency_s=0.0572062
+success_req[64] line=66 stripe_id=254 latency_s=0.0567544
+success_req[65] line=67 stripe_id=258 latency_s=0.0560284
+success_req[66] line=68 stripe_id=262 latency_s=0.0614949
+success_req[67] line=69 stripe_id=266 latency_s=0.065831
+success_req[68] line=70 stripe_id=270 latency_s=0.0576501
+success_req[69] line=71 stripe_id=274 latency_s=0.063702
+success_req[70] line=72 stripe_id=278 latency_s=0.0567503
+success_req[71] line=73 stripe_id=282 latency_s=0.0756346
+success_req[72] line=74 stripe_id=286 latency_s=0.0555687
+success_req[73] line=75 stripe_id=290 latency_s=0.0576659
+success_req[74] line=76 stripe_id=294 latency_s=0.0566272
+success_req[75] line=77 stripe_id=298 latency_s=0.0558389
+success_req[76] line=78 stripe_id=302 latency_s=0.0561721
+success_req[77] line=79 stripe_id=306 latency_s=0.056036
+success_req[78] line=80 stripe_id=310 latency_s=0.0601463
+success_req[79] line=81 stripe_id=314 latency_s=0.0566367
+success_req[80] line=82 stripe_id=318 latency_s=0.0560562
+success_req[81] line=83 stripe_id=322 latency_s=0.0550931
+success_req[82] line=84 stripe_id=326 latency_s=0.055869
+success_req[83] line=85 stripe_id=330 latency_s=0.0558719
+success_req[84] line=86 stripe_id=334 latency_s=0.0559728
+success_req[85] line=87 stripe_id=338 latency_s=0.0550888
+success_req[86] line=88 stripe_id=342 latency_s=0.0555536
+success_req[87] line=89 stripe_id=346 latency_s=0.0560967
+success_req[88] line=90 stripe_id=350 latency_s=0.0560694
+success_req[89] line=91 stripe_id=354 latency_s=0.0556093
+success_req[90] line=92 stripe_id=358 latency_s=0.0558236
+success_req[91] line=93 stripe_id=362 latency_s=0.0563832
+success_req[92] line=94 stripe_id=366 latency_s=0.0553295
+success_req[93] line=95 stripe_id=370 latency_s=0.057218
+success_req[94] line=96 stripe_id=374 latency_s=0.0556756
+success_req[95] line=97 stripe_id=378 latency_s=0.0559204
+success_req[96] line=98 stripe_id=382 latency_s=0.0571619
+success_req[97] line=99 stripe_id=386 latency_s=0.0564024
+success_req[98] line=100 stripe_id=390 latency_s=0.056875
+success_req[99] line=101 stripe_id=394 latency_s=0.0559092
+success_req[100] line=102 stripe_id=398 latency_s=0.056841
+success_req[101] line=103 stripe_id=402 latency_s=0.0565255
+success_req[102] line=104 stripe_id=406 latency_s=0.0568331
+success_req[103] line=105 stripe_id=410 latency_s=0.056829
+success_req[104] line=106 stripe_id=414 latency_s=0.0584347
+success_req[105] line=107 stripe_id=418 latency_s=0.0695338
+success_req[106] line=108 stripe_id=422 latency_s=0.0555569
+success_req[107] line=109 stripe_id=426 latency_s=0.0560423
+success_req[108] line=110 stripe_id=430 latency_s=0.0564292
+success_req[109] line=111 stripe_id=434 latency_s=0.0563565
+success_req[110] line=112 stripe_id=438 latency_s=0.056953
+success_req[111] line=113 stripe_id=442 latency_s=0.056181
+success_req[112] line=114 stripe_id=446 latency_s=0.0564475
+success_req[113] line=115 stripe_id=450 latency_s=0.0560101
+success_req[114] line=116 stripe_id=454 latency_s=0.0560064
+success_req[115] line=117 stripe_id=458 latency_s=0.0572047
+success_req[116] line=118 stripe_id=462 latency_s=0.0576117
+success_req[117] line=119 stripe_id=466 latency_s=0.0571207
+success_req[118] line=120 stripe_id=470 latency_s=0.0565444
+success_req[119] line=121 stripe_id=474 latency_s=0.0576781
+success_req[120] line=122 stripe_id=478 latency_s=0.075513
+success_req[121] line=123 stripe_id=482 latency_s=0.0572338
+success_req[122] line=124 stripe_id=486 latency_s=0.0576282
+success_req[123] line=125 stripe_id=490 latency_s=0.0562443
+success_req[124] line=126 stripe_id=494 latency_s=0.0579496
+success_req[125] line=127 stripe_id=498 latency_s=0.0569806
+success_req[126] line=128 stripe_id=502 latency_s=0.0580903
+success_req[127] line=129 stripe_id=506 latency_s=0.0579724
+success_req[128] line=130 stripe_id=510 latency_s=0.0566213
+success_req[129] line=131 stripe_id=514 latency_s=0.0577947
+success_req[130] line=132 stripe_id=518 latency_s=0.0574572
+success_req[131] line=133 stripe_id=522 latency_s=0.0562595
+success_req[132] line=134 stripe_id=526 latency_s=0.0568132
+success_req[133] line=135 stripe_id=530 latency_s=0.384801
+success_req[134] line=136 stripe_id=534 latency_s=0.0583085
+success_req[135] line=137 stripe_id=538 latency_s=0.0564283
+success_req[136] line=138 stripe_id=542 latency_s=0.0564478
+success_req[137] line=139 stripe_id=546 latency_s=0.0569709
+success_req[138] line=140 stripe_id=550 latency_s=0.056638
+success_req[139] line=141 stripe_id=554 latency_s=0.05629
+success_req[140] line=142 stripe_id=558 latency_s=0.0561545
+success_req[141] line=143 stripe_id=562 latency_s=0.0561419
+success_req[142] line=144 stripe_id=566 latency_s=0.0600685
+success_req[143] line=145 stripe_id=570 latency_s=0.0568004
+success_req[144] line=146 stripe_id=574 latency_s=0.0570006
+success_req[145] line=147 stripe_id=578 latency_s=0.0564841
+success_req[146] line=148 stripe_id=582 latency_s=0.0598126
+success_req[147] line=149 stripe_id=586 latency_s=0.0665332
+success_req[148] line=150 stripe_id=590 latency_s=0.0570098
+success_req[149] line=151 stripe_id=594 latency_s=0.055295
+success_req[150] line=152 stripe_id=598 latency_s=0.0570039
+success_req[151] line=153 stripe_id=602 latency_s=0.057389
+success_req[152] line=154 stripe_id=606 latency_s=0.0565345
+success_req[153] line=155 stripe_id=610 latency_s=0.0574561
+success_req[154] line=156 stripe_id=614 latency_s=0.0571756
+success_req[155] line=157 stripe_id=618 latency_s=0.0570912
+success_req[156] line=158 stripe_id=622 latency_s=0.0792936
+success_req[157] line=159 stripe_id=626 latency_s=0.057361
+success_req[158] line=160 stripe_id=630 latency_s=0.0574005
+success_req[159] line=161 stripe_id=634 latency_s=0.0559075
+success_req[160] line=162 stripe_id=638 latency_s=0.0557546
+success_req[161] line=163 stripe_id=642 latency_s=0.0568739
+success_req[162] line=164 stripe_id=646 latency_s=0.0559291
+success_req[163] line=165 stripe_id=650 latency_s=0.0574229
+success_req[164] line=166 stripe_id=654 latency_s=0.0565172
+success_req[165] line=167 stripe_id=658 latency_s=0.0749561
+success_req[166] line=168 stripe_id=662 latency_s=0.0580335
+success_req[167] line=169 stripe_id=666 latency_s=0.0560219
+success_req[168] line=170 stripe_id=670 latency_s=0.0563889
+success_req[169] line=171 stripe_id=674 latency_s=0.0570195
+success_req[170] line=172 stripe_id=678 latency_s=0.0555308
+success_req[171] line=173 stripe_id=682 latency_s=0.0561031
+success_req[172] line=174 stripe_id=686 latency_s=0.0563632
+success_req[173] line=175 stripe_id=690 latency_s=0.0558143
+success_req[174] line=176 stripe_id=694 latency_s=0.0558322
+success_req[175] line=177 stripe_id=698 latency_s=0.0563911
+success_req[176] line=178 stripe_id=702 latency_s=0.057699
+success_req[177] line=179 stripe_id=706 latency_s=0.0563396
+success_req[178] line=180 stripe_id=710 latency_s=0.0570156
+success_req[179] line=181 stripe_id=714 latency_s=0.0555565
+success_req[180] line=182 stripe_id=718 latency_s=0.0573895
+success_req[181] line=183 stripe_id=722 latency_s=0.0563411
+success_req[182] line=184 stripe_id=726 latency_s=0.0604993
+success_req[183] line=185 stripe_id=730 latency_s=0.0580906
+success_req[184] line=186 stripe_id=734 latency_s=0.372737
+success_req[185] line=187 stripe_id=738 latency_s=0.0614091
+success_req[186] line=188 stripe_id=742 latency_s=0.0573857
+success_req[187] line=189 stripe_id=746 latency_s=0.0672431
+success_req[188] line=190 stripe_id=750 latency_s=0.0560853
+success_req[189] line=191 stripe_id=754 latency_s=0.0561078
+success_req[190] line=192 stripe_id=758 latency_s=0.0567558
+success_req[191] line=193 stripe_id=762 latency_s=0.0562768
+success_req[192] line=194 stripe_id=766 latency_s=0.0560894
+success_req[193] line=195 stripe_id=770 latency_s=0.073577
+success_req[194] line=196 stripe_id=774 latency_s=0.0582394
+success_req[195] line=197 stripe_id=778 latency_s=0.0575584
+success_req[196] line=198 stripe_id=782 latency_s=0.0570391
+success_req[197] line=199 stripe_id=786 latency_s=0.0576229
+success_req[198] line=200 stripe_id=790 latency_s=0.252283
+success_req[199] line=201 stripe_id=794 latency_s=0.287536
+success_req[200] line=202 stripe_id=798 latency_s=0.0601554
+success_req[201] line=203 stripe_id=802 latency_s=0.0653095
+success_req[202] line=204 stripe_id=806 latency_s=0.0758803
+success_req[203] line=205 stripe_id=810 latency_s=0.0569941
+success_req[204] line=206 stripe_id=814 latency_s=0.0579322
+success_req[205] line=207 stripe_id=818 latency_s=0.0644415
+success_req[206] line=208 stripe_id=822 latency_s=0.0708416
+success_req[207] line=209 stripe_id=826 latency_s=0.0574188
+success_req[208] line=210 stripe_id=830 latency_s=0.0569185
+success_req[209] line=211 stripe_id=834 latency_s=0.19748
+success_req[210] line=212 stripe_id=838 latency_s=0.0575604
+success_req[211] line=213 stripe_id=842 latency_s=0.0560728
+success_req[212] line=214 stripe_id=846 latency_s=0.0571132
+success_req[213] line=215 stripe_id=850 latency_s=0.0566947
+success_req[214] line=216 stripe_id=854 latency_s=0.0572468
+success_req[215] line=217 stripe_id=858 latency_s=0.055548
+success_req[216] line=218 stripe_id=862 latency_s=0.0569123
+success_req[217] line=219 stripe_id=866 latency_s=0.0568746
+success_req[218] line=220 stripe_id=870 latency_s=0.0575655
+success_req[219] line=221 stripe_id=874 latency_s=0.0567815
+success_req[220] line=222 stripe_id=878 latency_s=0.0561449
+success_req[221] line=223 stripe_id=882 latency_s=0.0568511
+success_req[222] line=224 stripe_id=886 latency_s=0.0563252
+success_req[223] line=225 stripe_id=890 latency_s=0.407979
+success_req[224] line=226 stripe_id=894 latency_s=0.0577211
+success_req[225] line=227 stripe_id=898 latency_s=0.0571902
+success_req[226] line=228 stripe_id=902 latency_s=0.0568429
+success_req[227] line=229 stripe_id=906 latency_s=0.0569362
+success_req[228] line=230 stripe_id=910 latency_s=0.0561588
+success_req[229] line=231 stripe_id=914 latency_s=0.308757
+success_req[230] line=232 stripe_id=918 latency_s=0.0599954
+success_req[231] line=233 stripe_id=922 latency_s=0.0592069
+success_req[232] line=234 stripe_id=926 latency_s=0.0621706
+success_req[233] line=235 stripe_id=930 latency_s=0.0581903
+success_req[234] line=236 stripe_id=934 latency_s=0.0565755
+success_req[235] line=237 stripe_id=938 latency_s=0.0627461
+success_req[236] line=238 stripe_id=942 latency_s=0.0594957
+success_req[237] line=239 stripe_id=946 latency_s=0.05775
+success_req[238] line=240 stripe_id=950 latency_s=0.0563944
+success_req[239] line=241 stripe_id=954 latency_s=0.0577495
+success_req[240] line=242 stripe_id=958 latency_s=0.0572531
+success_req[241] line=243 stripe_id=962 latency_s=0.0568127
+success_req[242] line=244 stripe_id=966 latency_s=0.0558158
+success_req[243] line=245 stripe_id=970 latency_s=0.0570149
+success_req[244] line=246 stripe_id=974 latency_s=0.0574282
+success_req[245] line=247 stripe_id=978 latency_s=0.0566107
+success_req[246] line=248 stripe_id=982 latency_s=0.0562861
+success_req[247] line=249 stripe_id=986 latency_s=0.0564611
+success_req[248] line=250 stripe_id=990 latency_s=0.0560887
+success_req[249] line=251 stripe_id=994 latency_s=0.056104
+success_req[250] line=252 stripe_id=998 latency_s=0.0568634
+total_time=16.4238 s (failures excluded)
+avg_time=0.0656953 s (failures excluded)
+成功请求数: 250, 失败请求数: 0

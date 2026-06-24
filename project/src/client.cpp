@@ -60,6 +60,14 @@ namespace ECProject
       return enabled != 0;
     }
 
+    // Exponential backoff sleep helper for retry loops
+    static void parix_retry_sleep(int attempt, int base_ms)
+    {
+      int ms = base_ms * (1 << attempt);
+      if (ms > 30000) ms = 30000; // cap at 30s
+      std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+    }
+
     struct ParixPendingSlice
     {
       int off{};
@@ -344,7 +352,8 @@ namespace ECProject
     }
 
     bool parix_send_schedule_tcp_payload(const std::string &dp_ip, int dp_tcp, uint64_t batch_id, uint32_t data_block_id,
-                                         const char *payload, size_t payload_len, int connect_retries = 3)
+                                         const char *payload, size_t payload_len, const std::string &client_tag = "",
+                                         int connect_retries = 5)
     {
       if (payload == nullptr || payload_len == 0)
       {
@@ -352,6 +361,7 @@ namespace ECProject
       }
       const ParixScheduleTcpHeader hdr =
           make_parix_schedule_tcp_header(batch_id, data_block_id, static_cast<uint64_t>(payload_len));
+      const std::string tag_prefix = client_tag.empty() ? "" : ("[" + client_tag + "] ");
       for (int attempt = 0; attempt < connect_retries; ++attempt)
       {
         try
@@ -373,18 +383,18 @@ namespace ECProject
           {
             return true;
           }
-          std::cerr << "[Client][Parix] schedule TCP write failed data_proxy=" << dp_ip << ":" << dp_tcp << " batch="
+          std::cerr << tag_prefix << "[Parix] schedule TCP write failed data_proxy=" << dp_ip << ":" << dp_tcp << " batch="
                     << batch_id << " ec=" << ec.message() << std::endl;
         }
         catch (const std::exception &e)
         {
-          std::cerr << "[Client][Parix] schedule TCP connect/send failed data_proxy=" << dp_ip << ":" << dp_tcp << " batch="
+          std::cerr << tag_prefix << "[Parix] schedule TCP connect/send failed data_proxy=" << dp_ip << ":" << dp_tcp << " batch="
                     << batch_id << " attempt=" << (attempt + 1) << "/" << connect_retries << " err=" << e.what()
                     << std::endl;
         }
         if (attempt + 1 < connect_retries)
         {
-          std::this_thread::sleep_for(std::chrono::milliseconds(50));
+          parix_retry_sleep(attempt, 50);
         }
       }
       return false;
@@ -1723,7 +1733,7 @@ namespace ECProject
   {
     if (logical_offset_end_exclusive <= logical_offset_start)
     {
-      std::cout << "[Client][Parix] invalid logical range" << std::endl;
+      std::cout << parix_tag() << "invalid logical range" << std::endl;
       return false;
     }
     const std::vector<std::pair<int, int>> one{{logical_offset_start, logical_offset_end_exclusive}};
@@ -1779,17 +1789,18 @@ namespace ECProject
     }
     if (!parix_ranges_disjoint_half_open(ranges))
     {
-      std::cout << "[Client][Parix] ranges must be non-empty, half-open [start,end), pairwise disjoint" << std::endl;
+      std::cout << parix_tag() << "ranges must be non-empty, half-open [start,end), pairwise disjoint" << std::endl;
       return false;
     }
     const int packed_len = parix_packed_total_len(ranges);
     if (packed_len <= 0)
     {
-      std::cout << "[Client][Parix] invalid packed length" << std::endl;
+      std::cout << parix_tag() << "invalid packed length" << std::endl;
       return false;
     }
     const int bs = m_sys_config->BlockSize;
 
+    // planParixPartial with retry (coordinator may be transiently overloaded)
     grpc::ClientContext pctx;
     coordinator_proto::ParixPartialPlanRequest preq;
     preq.set_stripe_id(stripe_id);
@@ -1800,15 +1811,26 @@ namespace ECProject
       lr->set_logical_offset_end(ab.second);
     }
     coordinator_proto::ParixPartialPlanReply plan;
-    grpc::Status pst = m_coordinator_ptr->planParixPartial(&pctx, preq, &plan);
+    grpc::Status pst;
+    constexpr int kPlanRetries = 3;
+    for (int plan_attempt = 0; plan_attempt < kPlanRetries; ++plan_attempt)
+    {
+      grpc::ClientContext pctx_local;
+      pst = m_coordinator_ptr->planParixPartial(&pctx_local, preq, &plan);
+      if (pst.ok()) break;
+      std::cerr << parix_tag() << "planParixPartial failed (attempt " << (plan_attempt + 1) << "/" << kPlanRetries
+                << "): " << pst.error_message() << std::endl;
+      if (plan_attempt + 1 < kPlanRetries) parix_retry_sleep(plan_attempt, 1000);
+    }
     if (!pst.ok())
     {
-      std::cout << "[Client][Parix] planParixPartial failed: " << pst.error_message() << std::endl;
+      std::cerr << parix_tag() << "planParixPartial failed after " << kPlanRetries << " retries: "
+                << pst.error_message() << std::endl;
       return false;
     }
     if (plan.segments_size() == 0)
     {
-      std::cout << "[Client][Parix] empty plan segments" << std::endl;
+      std::cout << parix_tag() << "empty plan segments" << std::endl;
       return false;
     }
 
@@ -1830,7 +1852,7 @@ namespace ECProject
       const coordinator_proto::ParixDataSegmentPlan &seg_read = plan.segments(idxs[0]);
       if (parix_client_trace())
       {
-        std::cout << "[Client][Parix] --- data block group block_key=" << bk << " segments_in_block=" << idxs.size() << std::endl;
+        std::cout << parix_tag() << "--- data block group block_key=" << bk << " segments_in_block=" << idxs.size() << std::endl;
       }
 
       const std::string dn_ep = seg_read.datanode_ip() + ":" + std::to_string(seg_read.datanode_port());
@@ -1868,7 +1890,7 @@ namespace ECProject
             if (!parix_datanode_read_range_stub(dn_stub.get(), seg_read.datanode_ip(), seg_read.datanode_port(), seg_read.block_key(), bs,
                                                   run_lo, run_len, run_buf.data()))
             {
-              std::cout << "[Client][Parix] read data slice failed " << seg_read.block_key() << std::endl;
+              std::cout << parix_tag() << "read data slice failed " << seg_read.block_key() << std::endl;
               return false;
             }
             for (size_t t = g; t <= h; t++)
@@ -1890,7 +1912,7 @@ namespace ECProject
             if (!parix_datanode_read_range_stub(dn_stub.get(), seg_read.datanode_ip(), seg_read.datanode_port(), seg_read.block_key(), bs,
                                                  static_cast<int>(s.range_offset()), l, old_seg_by_idx[idx].data()))
             {
-              std::cout << "[Client][Parix] read data slice failed " << seg_read.block_key() << std::endl;
+              std::cout << parix_tag() << "read data slice failed " << seg_read.block_key() << std::endl;
               return false;
             }
             g++;
@@ -1911,12 +1933,12 @@ namespace ECProject
         int buf_off = 0;
         if (!parix_find_packed_payload_offset(seg_lo, rlen, ranges, &buf_off))
         {
-          std::cout << "[Client][Parix] segment not covered by any input range" << std::endl;
+          std::cout << parix_tag() << "segment not covered by any input range" << std::endl;
           return false;
         }
         if (buf_off < 0 || buf_off + rlen > packed_len)
         {
-          std::cout << "[Client][Parix] segment buffer mapping error" << std::endl;
+          std::cout << parix_tag() << "segment buffer mapping error" << std::endl;
           return false;
         }
         const char *payload_ptr = packed_new_bytes + static_cast<size_t>(buf_off);
@@ -1924,7 +1946,7 @@ namespace ECProject
 
         if (parix_client_trace())
         {
-          std::cout << "[Client][Parix] segment plan_idx=" << idx << " logical[" << seg_lo << "," << (seg_lo + rlen)
+          std::cout << parix_tag() << "segment plan_idx=" << idx << " logical[" << seg_lo << "," << (seg_lo + rlen)
                     << ") block_intra_off=" << seg.range_offset() << " len=" << rlen << std::endl;
         }
         parix_log_slice_hex("BEFORE update (on block slice)", old_seg.data(), rlen);
@@ -1963,7 +1985,7 @@ namespace ECProject
 
       if (parix_client_trace())
       {
-        std::cout << "[Client][Parix] batched schedule data_proxy gRPC=" << seg_read.data_proxy_ip() << ":"
+        std::cout << parix_tag() << "batched schedule data_proxy gRPC=" << seg_read.data_proxy_ip() << ":"
                   << seg_read.data_proxy_grpc_port() << " tcp_payload_port=" << seg_read.data_proxy_tcp_shift_port()
                   << " slices=" << slice_work.size() << " tcp_bytes=" << tcp_total
                   << " (proxy will fan-out parixJournalAppend to parities)" << std::endl;
@@ -1975,25 +1997,35 @@ namespace ECProject
       const uint32_t data_block_id = static_cast<uint32_t>(seg_read.block_id());
 
       // Queue payload on the data proxy before schedule RPC (background accept thread matches by batch_id+block_id).
-      if (!parix_send_schedule_tcp_payload(dp_ip, dp_tcp, batch_id, data_block_id, tcp_batch_buf.data(), tcp_batch_buf.size()))
+      if (!parix_send_schedule_tcp_payload(dp_ip, dp_tcp, batch_id, data_block_id, tcp_batch_buf.data(), tcp_batch_buf.size(), m_client_tag))
       {
-        std::cout << "[Client][Parix] schedule TCP payload send failed data_proxy=" << dp_ip << ":" << dp_tcp << " batch=" << batch_id
+        std::cout << parix_tag() << "schedule TCP payload send failed data_proxy=" << dp_ip << ":" << dp_tcp << " batch=" << batch_id
                   << " block=" << data_block_id << std::endl;
         return false;
       }
 
-      grpc::ClientContext sched_ctx;
-      proxy_proto::ParixScheduleDataUpdateReply sched_rep;
       const std::string dpe = seg_read.data_proxy_ip() + ":" + std::to_string(seg_read.data_proxy_grpc_port());
       auto ds_it = data_proxy_stubs.find(dpe);
       if (ds_it == data_proxy_stubs.end())
       {
         ds_it = data_proxy_stubs.emplace(dpe, proxy_proto::proxyService::NewStub(parix_proxy_channel(dpe))).first;
       }
-      grpc::Status sched_st = ds_it->second->parixScheduleDataUpdate(&sched_ctx, placement, &sched_rep);
+      // parixScheduleDataUpdate with retry (proxy may be transiently overloaded)
+      grpc::Status sched_st;
+      proxy_proto::ParixScheduleDataUpdateReply sched_rep;
+      constexpr int kSchedRetries = 2;
+      for (int sched_attempt = 0; sched_attempt < kSchedRetries; ++sched_attempt)
+      {
+        grpc::ClientContext sched_ctx;
+        sched_st = ds_it->second->parixScheduleDataUpdate(&sched_ctx, placement, &sched_rep);
+        if (sched_st.ok() && sched_rep.ifcommit()) break;
+        std::cerr << parix_tag() << "parixScheduleDataUpdate failed (attempt " << (sched_attempt + 1) << "/" << kSchedRetries
+                  << ") data_proxy=" << dpe << std::endl;
+        if (sched_attempt + 1 < kSchedRetries) parix_retry_sleep(sched_attempt, 500);
+      }
       if (!sched_st.ok() || !sched_rep.ifcommit())
       {
-        std::cout << "[Client][Parix] parixScheduleDataUpdate failed" << std::endl;
+        std::cerr << parix_tag() << "parixScheduleDataUpdate failed after " << kSchedRetries << " retries data_proxy=" << dpe << std::endl;
         return false;
       }
 
@@ -2009,7 +2041,7 @@ namespace ECProject
         if (parix_client_trace())
         {
           const char *ack_str = (ack.ack() == proxy_proto::PARIX_ACK_SUCCESS) ? "SUCCESS" : "NEED_D0";
-          std::cout << "[Client][Parix]   schedule reply: parity_proxy " << ack.parity_proxy_ip() << ":"
+          std::cout << parix_tag() << "  schedule reply: parity_proxy " << ack.parity_proxy_ip() << ":"
                     << ack.parity_proxy_grpc_port() << " parity_block_id=" << ack.parity_block_id()
                     << " range[" << ack.range_offset() << "," << (ack.range_offset() + static_cast<int>(ack.range_length()))
                     << ") -> " << ack_str << std::endl;
@@ -2033,20 +2065,10 @@ namespace ECProject
         }
         if (old_payload == nullptr || static_cast<int>(old_payload->size()) != ack_len)
         {
-          std::cout << "[Client][Parix] parixSupplyD0 old payload lookup failed range[" << ack_off << "," << (ack_off + ack_len)
+          std::cout << parix_tag() << "parixSupplyD0 old payload lookup failed range[" << ack_off << "," << (ack_off + ack_len)
                     << ")" << std::endl;
           return false;
         }
-        grpc::ClientContext sup_ctx;
-        proxy_proto::ParixSupplyD0Request sreq;
-        sreq.set_stripe_id(stripe_id);
-        sreq.set_batch_id(plan.batch_id());
-        sreq.set_write_generation(seg_read.write_generation());
-        sreq.set_parity_block_id(ack.parity_block_id());
-        sreq.set_data_block_id(seg_read.block_id());
-        sreq.set_range_offset(ack_off);
-        sreq.set_range_length(static_cast<uint64_t>(ack_len));
-        sreq.set_old_payload(old_payload->data(), static_cast<size_t>(ack_len));
         const std::string sup_ep = ack.parity_proxy_ip() + ":" + std::to_string(ack.parity_proxy_grpc_port());
         auto pit = parity_stub_by_ep.find(sup_ep);
         if (pit == parity_stub_by_ep.end())
@@ -2054,16 +2076,37 @@ namespace ECProject
           auto sup_ch = parix_proxy_channel(sup_ep);
           pit = parity_stub_by_ep.emplace(sup_ep, proxy_proto::proxyService::NewStub(sup_ch)).first;
         }
+        // parixSupplyD0 with retry (parity proxy may be transiently overloaded)
         proxy_proto::SetReply sup_rep;
-        grpc::Status sup_st = pit->second->parixSupplyD0(&sup_ctx, sreq, &sup_rep);
+        grpc::Status sup_st;
+        constexpr int kSupRetries = 2;
+        for (int sup_attempt = 0; sup_attempt < kSupRetries; ++sup_attempt)
+        {
+          grpc::ClientContext sup_ctx;
+          proxy_proto::ParixSupplyD0Request sreq;
+          sreq.set_stripe_id(stripe_id);
+          sreq.set_batch_id(plan.batch_id());
+          sreq.set_write_generation(seg_read.write_generation());
+          sreq.set_parity_block_id(ack.parity_block_id());
+          sreq.set_data_block_id(seg_read.block_id());
+          sreq.set_range_offset(ack_off);
+          sreq.set_range_length(static_cast<uint64_t>(ack_len));
+          sreq.set_old_payload(old_payload->data(), static_cast<size_t>(ack_len));
+          sup_st = pit->second->parixSupplyD0(&sup_ctx, sreq, &sup_rep);
+          if (sup_st.ok() && sup_rep.ifcommit()) break;
+          std::cerr << parix_tag() << "parixSupplyD0 failed (attempt " << (sup_attempt + 1) << "/" << kSupRetries
+                    << ") parity_block_id=" << ack.parity_block_id() << " parity_proxy=" << sup_ep << std::endl;
+          if (sup_attempt + 1 < kSupRetries) parix_retry_sleep(sup_attempt, 500);
+        }
         if (!sup_st.ok() || !sup_rep.ifcommit())
         {
-          std::cout << "[Client][Parix] parixSupplyD0 failed parity_block_id=" << ack.parity_block_id() << std::endl;
+          std::cerr << parix_tag() << "parixSupplyD0 failed after " << kSupRetries << " retries parity_block_id="
+                    << ack.parity_block_id() << std::endl;
           return false;
         }
         if (parix_client_trace())
         {
-          std::cout << "[Client][Parix]   parixSupplyD0 ok -> parity_proxy " << ack.parity_proxy_ip() << ":"
+          std::cout << parix_tag() << "  parixSupplyD0 ok -> parity_proxy " << ack.parity_proxy_ip() << ":"
                     << ack.parity_proxy_grpc_port() << " parity_block_id=" << ack.parity_block_id() << std::endl;
         }
       }
@@ -2082,31 +2125,42 @@ namespace ECProject
         if (!parix_datanode_write_range_stub(dn_stub.get(), seg_read.datanode_ip(), seg_read.datanode_port(), seg_read.block_key(), bs,
                                             cw.off, cw.len, cw.data))
         {
-          std::cout << "[Client][Parix] write data slice failed " << seg_read.block_key() << std::endl;
+          std::cout << parix_tag() << "write data slice failed " << seg_read.block_key() << std::endl;
           return false;
         }
       }
       if (parix_client_trace())
       {
-        std::cout << "[Client][Parix] data block slice writeback done datanode " << seg_read.datanode_ip() << ":" << seg_read.datanode_port()
+        std::cout << parix_tag() << "data block slice writeback done datanode " << seg_read.datanode_ip() << ":" << seg_read.datanode_port()
                   << " key=" << seg_read.block_key() << " logical_slices=" << idxs.size() << " disk_writes=" << coalesced.size()
                   << std::endl;
       }
     }
 
-    grpc::ClientContext cctx;
-    coordinator_proto::ParixCommitBatchRequest creq;
-    creq.set_stripe_id(stripe_id);
-    creq.set_batch_id(plan.batch_id());
+    // commitParixBatch with retry (coordinator may be transiently overloaded)
+    grpc::Status cst;
     coordinator_proto::ReplyFromCoordinator crpl;
-    std::cout << "[Client][Parix] commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)" << std::endl;
-    grpc::Status cst = m_coordinator_ptr->commitParixBatch(&cctx, creq, &crpl);
+    std::cout << parix_tag() << "commitParixBatch -> coordinator (parity flush is journal-threshold driven on proxies)" << std::endl;
+    constexpr int kCommitRetries = 3;
+    for (int commit_attempt = 0; commit_attempt < kCommitRetries; ++commit_attempt)
+    {
+      grpc::ClientContext cctx;
+      coordinator_proto::ParixCommitBatchRequest creq;
+      creq.set_stripe_id(stripe_id);
+      creq.set_batch_id(plan.batch_id());
+      cst = m_coordinator_ptr->commitParixBatch(&cctx, creq, &crpl);
+      if (cst.ok()) break;
+      std::cerr << parix_tag() << "commitParixBatch failed (attempt " << (commit_attempt + 1) << "/" << kCommitRetries
+                << "): " << cst.error_message() << std::endl;
+      if (commit_attempt + 1 < kCommitRetries) parix_retry_sleep(commit_attempt, 1000);
+    }
     if (!cst.ok())
     {
-      std::cout << "[Client][Parix] commitParixBatch failed: " << cst.error_message() << std::endl;
+      std::cerr << parix_tag() << "commitParixBatch failed after " << kCommitRetries << " retries: "
+                << cst.error_message() << std::endl;
       return false;
     }
-    std::cout << "[Client][Parix] partial update committed batch_id=" << plan.batch_id() << std::endl;
+    std::cout << parix_tag() << "partial update committed batch_id=" << plan.batch_id() << std::endl;
     return true;
   }
 
@@ -2157,7 +2211,7 @@ namespace ECProject
     }
     else
     {
-      std::cout << "[Client][Parix] full stripe: CodeType not supported" << std::endl;
+      std::cout << parix_tag() << "full stripe: CodeType not supported" << std::endl;
       return false;
     }
 
@@ -2168,7 +2222,7 @@ namespace ECProject
     grpc::Status fst = m_coordinator_ptr->planParixFullStripe(&fctx, freq, &fplan);
     if (!fst.ok() || !fplan.ok())
     {
-      std::cout << "[Client][Parix] planParixFullStripe failed: " << (fst.ok() ? fplan.err() : fst.error_message()) << std::endl;
+      std::cout << parix_tag() << "planParixFullStripe failed: " << (fst.ok() ? fplan.err() : fst.error_message()) << std::endl;
       return false;
     }
 
@@ -2179,7 +2233,7 @@ namespace ECProject
       const int idx = pbid - k;
       if (idx < 0 || idx >= r + z)
       {
-        std::cout << "[Client][Parix] full stripe: bad parity_block_id " << pbid << std::endl;
+        std::cout << parix_tag() << "full stripe: bad parity_block_id " << pbid << std::endl;
         return false;
       }
       proxy_proto::ParixParityFullOverwriteRequest oreq;
@@ -2205,11 +2259,11 @@ namespace ECProject
       grpc::Status pst = pstub->parixParityFullOverwrite(&po_ctx, oreq, &prepl);
       if (!pst.ok() || !prepl.ifcommit())
       {
-        std::cout << "[Client][Parix] parixParityFullOverwrite failed parity_block_id=" << pbid << std::endl;
+        std::cout << parix_tag() << "parixParityFullOverwrite failed parity_block_id=" << pbid << std::endl;
         return false;
       }
     }
-    std::cout << "[Client][Parix] full stripe rewrite done stripe_id=" << stripe_id << std::endl;
+    std::cout << parix_tag() << "full stripe rewrite done stripe_id=" << stripe_id << std::endl;
     return true;
   }
 } // namespace ECProject
