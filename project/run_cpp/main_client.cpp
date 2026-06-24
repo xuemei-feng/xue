@@ -395,6 +395,23 @@ int main(int argc, char **argv)
 
         // Pacing: random jitter to desynchronize concurrent clients
         std::mt19937 pacing_rng(std::random_device{}());
+
+        // Initial stagger: spread out the first request of each client
+        // Uses client_port as seed → different clients get different delays,
+        // same client across runs gets same delay (predictable).
+        {
+            std::mt19937 stagger_rng(static_cast<unsigned>(run_opt.client_port));
+            // Random stagger 0..400ms, plus base from port to ensure separation
+            int base_stagger = (run_opt.client_port % 100) * 4; // 0..396ms from port
+            std::uniform_int_distribution<int> stagger_jitter(-20, 20);
+            int stagger_ms = base_stagger + stagger_jitter(stagger_rng);
+            if (stagger_ms < 0) stagger_ms = 0;
+            if (stagger_ms > 0)
+            {
+                log_client_line(run_opt, "initial stagger " + std::to_string(stagger_ms) + "ms to desync client starts");
+                std::this_thread::sleep_for(std::chrono::milliseconds(stagger_ms));
+            }
+        }
         auto pacing_jitter_ms = [&pacing_rng](int base_ms) -> int {
             if (base_ms <= 0) return 0;
             std::uniform_int_distribution<int> jitter(-base_ms / 5, base_ms / 5); // ±20%

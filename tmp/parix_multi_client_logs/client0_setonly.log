@@ -1024,5 +1024,5 @@ Hello Client ID: 172.16.2.31:77777
 [SET437] Client 172.16.2.31:77777 set successfully!
 [client0] Set stripe operation finished
 Conducting experiments, please wait...
-write throughput: 703.174MB/s
+write throughput: 698.308MB/s
 [client0] set-only: exit without batch update
