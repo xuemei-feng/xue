@@ -203,6 +203,11 @@ namespace ECProject
     asio::ip::tcp::acceptor acceptor;
     sem_t sem;
     std::string m_coordinator_address;
+
+    // ──────── concurrent data upload acceptor ────────
+    void cordDataAcceptorLoop();
+    void cordProcessDataUpload(asio::ip::tcp::socket sock,
+                               std::shared_ptr<proxy_proto::CordDataUpdatePlacement> placement);
   };
 
   class Proxy

@@ -2344,7 +2344,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         return grpc::Status(grpc::StatusCode::INTERNAL, "cluster has no datanode for CoRD delta store");
       }
       proxy_proto::CordDataUpdatePlacement plan;
-      plan.set_key(m_toolbox->gen_cord_key(stripe_id, cid));
+      plan.set_key(cord_xfer_plan_key + "_data_c" + std::to_string(cid));
       plan.set_cluster_id(cid);
       plan.set_stripe_id(stripe_id);
       uint64_t cluster_payload = 0;
@@ -2404,6 +2404,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                 << " steps=" << cord_xfer_plan.steps_size()
                 << " rounds=" << cord_xfer_plan.total_rounds()
                 << " plan_clusters=" << plan_clusters.size() << "\n";
+      if (!cord_delta_append_keys.empty())
+      {
+        cord_register_auto_begin_session(cord_xfer_plan_key, cord_delta_append_keys);
+        std::cout << "[CoRD] auto-begin session registered: plan_key=" << cord_xfer_plan_key
+                  << " delta_keys=" << cord_delta_append_keys.size() << "\n";
+      }
     }
     else
     {

@@ -33,7 +33,7 @@ if [ ! -f "${CORD_TRACE_FILE}" ]; then
 fi
 
 # 并行 batch：CORD_BATCH_THREADS（默认 1）；CORD_PIPELINE_XFER=1（默认）upload 后不阻塞 wait，与下一条 stripe 重叠
-export CORD_BATCH_THREADS="${CORD_BATCH_THREADS:-1}"
+export CORD_BATCH_THREADS="${CORD_BATCH_THREADS:-4}"
 export CORD_PIPELINE_XFER="${CORD_PIPELINE_XFER:-1}"
 echo "CoRD batch trace: ${CORD_TRACE_FILE}"
 echo "ClientStripeNum=${CLIENT_STRIPE_NUM} (from ${CONFIG_XML})"

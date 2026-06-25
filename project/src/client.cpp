@@ -11,6 +11,7 @@
 #include <random>
 #include <sstream>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include "unilrc_encoder.h"
 namespace ECProject
 {
@@ -434,6 +435,17 @@ namespace ECProject
     asio::connect(sock_data, endpoints, error);
     if (error || cord_abort_if_timed_out())
       return;
+
+    // Send tag header: [4 bytes key_len (network order)] [key_bytes]
+    {
+      const uint32_t key_len = static_cast<uint32_t>(cord_key.size());
+      const uint32_t key_len_net = htonl(key_len);
+      asio::write(sock_data, asio::buffer(&key_len_net, sizeof(key_len_net)), error);
+      if (!error)
+        asio::write(sock_data, asio::buffer(cord_key.data(), key_len), error);
+      if (error || cord_abort_if_timed_out())
+        return;
+    }
 
     asio::write(sock_data, asio::buffer(cluster_slice_data, static_cast<size_t>(cluster_slice_size)), error);
     if (error || cord_abort_if_timed_out())
