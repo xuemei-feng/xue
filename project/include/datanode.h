@@ -8,6 +8,12 @@
 #include <asio.hpp>
 #include <string>
 #include <vector>
+#include <queue>
+#include <unordered_map>
+#include <memory>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
 #include "meta_definition.h"
 #include "config.h"
 // #define IF_DEBUG true
@@ -77,6 +83,12 @@ namespace ECProject
         std::vector<ParitySlice> deserialize(const std::string &filename);
         void deserialize(const std::string &filename, char *buf);
         bool createDirectories(const std::string &path);
+
+        /// Start the single-threaded acceptor loop (must be called before Run).
+        void start_acceptor();
+        /// Stop the acceptor loop cleanly.
+        void stop_acceptor();
+
         ECProject::Config *m_sys_config;
 
     private:
@@ -87,6 +99,33 @@ namespace ECProject
         int m_download_port;
         asio::io_context io_context;
         asio::ip::tcp::acceptor acceptor;
+
+        // Tag-based connection matching: acceptor reads a tag header from each
+        // incoming TCP connection, then signals the specific gRPC handler thread
+        // that is waiting for that tag (keyed by block_key).  This eliminates the
+        // cross-connection race inherent in the previous shared FIFO queue.
+        struct PendingConnection {
+            std::unique_ptr<asio::ip::tcp::socket> socket;
+            bool ready = false;
+        };
+        std::mutex pending_mutex_;
+        std::condition_variable pending_cv_;
+        std::unordered_map<std::string, PendingConnection> pending_connections_;
+        std::thread acceptor_thread_;
+        std::atomic<bool> acceptor_running_{false};
+
+        /// Block until a socket with the given tag is available from the acceptor.
+        /// The tag is the block_key, which is unique per in-flight request.
+        /// Must be called after register_pending_tag().
+        asio::ip::tcp::socket wait_for_tagged_socket(const std::string &tag);
+
+        /// Pre-register a tag synchronously (call BEFORE detaching the handler thread).
+        /// This guarantees the tag is in the map before the gRPC response is sent,
+        /// eliminating the race between the handler thread and the proxy's TCP connect.
+        void register_pending_tag(const std::string &tag);
+
+        /// Release a pre-registered tag (call on handler error/early-exit to prevent leaks).
+        void release_pending_tag(const std::string &tag);
     };
 
     class DataNode
@@ -100,6 +139,9 @@ namespace ECProject
 
         void Run()
         {
+            // Start the single-threaded acceptor before gRPC to avoid concurrent accept() races.
+            m_datanodeImpl_ptr.start_acceptor();
+
             grpc::EnableDefaultHealthCheckService(true);
             grpc::reflection::InitProtoReflectionServerBuilderPlugin();
             grpc::ServerBuilder builder;

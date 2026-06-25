@@ -407,6 +407,10 @@ int main(int argc, char **argv)
         auto token_bucket_last = std::chrono::high_resolution_clock::now();
 
         std::string line;
+
+        // Wall-clock end-to-end timer: from first request to last response
+        const auto wall_start = std::chrono::high_resolution_clock::now();
+
         while (std::getline(batch_file, line))
         {
             line_no++;
@@ -493,6 +497,9 @@ int main(int argc, char **argv)
             }
         }
 
+        const auto wall_end = std::chrono::high_resolution_clock::now();
+        const double wall_clock_s = std::chrono::duration_cast<std::chrono::duration<double>>(wall_end - wall_start).count();
+
         double sum_success_latency_s = 0.0;
         for (const BatchSuccessRecord &rec : success_records)
         {
@@ -511,6 +518,7 @@ int main(int argc, char **argv)
         }
         std::cout << "total_time=" << sum_success_latency_s << " s (failures excluded)" << std::endl;
         std::cout << "avg_time=" << avg_success_latency_s << " s (failures excluded)" << std::endl;
+        std::cout << "wall_clock_time=" << wall_clock_s << " s (end-to-end, incl. delays)" << std::endl;
         std::cout << "成功请求数: " << success_count << ", 失败请求数: " << fail_count << std::endl;
         if (req_index > 0 && success_count == 0)
         {

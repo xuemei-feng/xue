@@ -10,6 +10,7 @@
 #include <mutex>
 #include <cassert>
 #include <string>
+#include <cstring>
 #include <fstream>
 #include <sys/mman.h>
 #include "unilrc_encoder.h"
@@ -223,6 +224,13 @@ namespace ECProject
         std::cout << "Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " failed! block_key: " << block_key << " block_id: " << block_id << " slice_size: " << slice_size << " slice_offset: " << slice_offset << " is_serialized: " << is_serialized << std::endl;
         exit(-1);
       }
+      // Tag header: [2-byte tag_len (network order)][tag_bytes][4-byte data_len (network order)]
+      size_t key_len = std::strlen(block_key);
+      uint16_t tag_len = htons(static_cast<uint16_t>(key_len));
+      asio::write(socket, asio::buffer(&tag_len, sizeof(tag_len)), error);
+      asio::write(socket, asio::buffer(block_key, key_len), error);
+      uint32_t data_len = htonl(static_cast<uint32_t>(slice_size));
+      asio::write(socket, asio::buffer(&data_len, sizeof(data_len)), error);
       asio::write(socket, asio::buffer(slice_buf, slice_size), error);
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
@@ -251,16 +259,13 @@ namespace ECProject
       recovery_info.set_block_key(std::string(block_key));
       recovery_info.set_block_id(block_id);
       std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
-      std::thread notify_datanode_thread([this, &context, &recovery_info, &result, &node_ip_port, &block_key, &block_id]()
+      // gRPC must complete BEFORE TCP connect so register_pending_tag runs first
+      grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleRecovery(&context, recovery_info, &result);
+      if (!stat.ok())
       {
-        grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleRecovery(&context, recovery_info, &result);
-        if (!stat.ok())
-        {
-          std::cout << "[RecoveryToDatanode] notify datanode failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
-          exit(-1);
-        }
-      });
-      //grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleRecovery(&context, recovery_info, &result);
+        std::cout << "[RecoveryToDatanode] notify datanode failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
+        exit(-1);
+      }
 
       asio::error_code error;
       asio::io_context io_context;
@@ -277,11 +282,17 @@ namespace ECProject
         std::cout << "[RecoveryToDatanode] Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
         exit(-1);
       }
+      // Tag header: [2-byte tag_len (network order)][tag_bytes][4-byte data_len (network order)]
+      size_t key_len = std::strlen(block_key);
+      uint16_t tag_len = htons(static_cast<uint16_t>(key_len));
+      asio::write(socket, asio::buffer(&tag_len, sizeof(tag_len)), error);
+      asio::write(socket, asio::buffer(block_key, key_len), error);
+      uint32_t data_len = htonl(static_cast<uint32_t>(m_sys_config->BlockSize));
+      asio::write(socket, asio::buffer(&data_len, sizeof(data_len)), error);
       asio::write(socket, asio::buffer(buf, m_sys_config->BlockSize), error);
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
-      notify_datanode_thread.join();
     }
     catch (const std::exception &e)
     {
@@ -301,17 +312,14 @@ namespace ECProject
       recovery_info.set_block_key(std::string(block_key));
       recovery_info.set_block_id(block_id);
       std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
-      std::chrono::high_resolution_clock::time_point grpc_notify_time;
-      std::thread notify_datanode_thread([this, &context, &recovery_info, &result, &grpc_notify_time, &node_ip_port, &block_key, &block_id]()
+      // gRPC must complete BEFORE TCP connect so register_pending_tag runs first
+      std::chrono::high_resolution_clock::time_point grpc_notify_time = std::chrono::high_resolution_clock::now();
+      grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleRecoveryBreakdown(&context, recovery_info, &result);
+      if (!stat.ok())
       {
-        grpc_notify_time = std::chrono::high_resolution_clock::now();
-        grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleRecoveryBreakdown(&context, recovery_info, &result);
-        if (!stat.ok())
-        {
-          std::cout << "[RecoveryToDatanode] notify datanode failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
-          exit(-1);
-        }
-      });
+        std::cout << "[RecoveryToDatanode] notify datanode failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
+        exit(-1);
+      }
 
       asio::error_code error;
       asio::io_context io_context;
@@ -329,13 +337,19 @@ namespace ECProject
         std::cout << "[RecoveryToDatanode] Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
         exit(-1);
       }
+      // Tag header: [2-byte tag_len (network order)][tag_bytes][4-byte data_len (network order)]
+      size_t key_len = std::strlen(block_key);
+      uint16_t tag_len = htons(static_cast<uint16_t>(key_len));
+      asio::write(socket, asio::buffer(&tag_len, sizeof(tag_len)), error);
+      asio::write(socket, asio::buffer(block_key, key_len), error);
+      uint32_t data_len = htonl(static_cast<uint32_t>(m_sys_config->BlockSize));
+      asio::write(socket, asio::buffer(&data_len, sizeof(data_len)), error);
       asio::write(socket, asio::buffer(buf, m_sys_config->BlockSize), error);
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
       std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now(); // end time for network
       *network_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - begin).count();
-      notify_datanode_thread.join();
       *disk_io_time = result.disk_io_end_time() - result.disk_io_start_time();
       *network_time += result.grpc_start_time() - std::chrono::duration_cast<std::chrono::duration<double>>(grpc_notify_time.time_since_epoch()).count();
   
@@ -374,6 +388,12 @@ namespace ECProject
         std::cout << "Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " success!" << std::endl;
       }
 
+      // Tag header: [2-byte tag_len (network order)][tag_bytes][4-byte data_len (network order)]
+      uint16_t tag_len = htons(static_cast<uint16_t>(key_length));
+      asio::write(socket, asio::buffer(&tag_len, sizeof(tag_len)), error);
+      asio::write(socket, asio::buffer(key, key_length), error);
+      uint32_t data_len = htonl(static_cast<uint32_t>(value_length));
+      asio::write(socket, asio::buffer(&data_len, sizeof(data_len)), error);
       asio::write(socket, asio::buffer(value, value_length), error);
 
       asio::error_code ignore_ec;
@@ -434,6 +454,12 @@ namespace ECProject
       asio::ip::tcp::socket socket(io_context);
       std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now(); // start time for network
       asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}));
+      // Tag header: [2-byte tag_len (network order)][tag_bytes]
+      // (no data_len needed — datanode handler sends data after matching)
+      uint16_t tag_len = htons(static_cast<uint16_t>(key.size()));
+      asio::error_code tag_ec;
+      asio::write(socket, asio::buffer(&tag_len, sizeof(tag_len)), tag_ec);
+      asio::write(socket, asio::buffer(key.data(), key.size()), tag_ec);
       asio::error_code ec;
       asio::read(socket, asio::buffer(value, value_length), ec);
       asio::error_code ignore_ec;
@@ -488,6 +514,11 @@ namespace ECProject
       asio::ip::tcp::resolver resolver(io_context);
       asio::ip::tcp::socket socket(io_context);
       asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}));
+      // Tag header: [2-byte tag_len (network order)][tag_bytes]
+      uint16_t tag_len = htons(static_cast<uint16_t>(key_length));
+      asio::error_code tag_ec;
+      asio::write(socket, asio::buffer(&tag_len, sizeof(tag_len)), tag_ec);
+      asio::write(socket, asio::buffer(key, key_length), tag_ec);
       asio::error_code ec;
       asio::read(socket, asio::buffer(buf, value_length), ec);
       asio::error_code ignore_ec;
@@ -543,6 +574,11 @@ namespace ECProject
       asio::ip::tcp::resolver resolver(io_context);
       asio::ip::tcp::socket socket(io_context);
       asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}));
+      // Tag header: [2-byte tag_len (network order)][tag_bytes]
+      uint16_t tag_len = htons(static_cast<uint16_t>(key.size()));
+      asio::error_code tag_ec;
+      asio::write(socket, asio::buffer(&tag_len, sizeof(tag_len)), tag_ec);
+      asio::write(socket, asio::buffer(key.data(), key.size()), tag_ec);
       asio::error_code ec;
       asio::read(socket, asio::buffer(value, value_length), ec);
       asio::error_code ignore_ec;

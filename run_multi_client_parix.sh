@@ -23,7 +23,7 @@ BUILD="${ROOT_DIR}/project/build/main_client"
 CONFIG="${ROOT_DIR}/project/config/parameterConfiguration.xml"
 SPLIT_PREFIX="${ROOT_DIR}/tmp/parix_batch_split_"
 LOG_DIR="${ROOT_DIR}/tmp/parix_multi_client_logs"
-COMMON_ARGS=(--config "${CONFIG}")
+COMMON_ARGS=(--config "${CONFIG}" --delay-ms 50)
 
 if [[ ! -x "${BUILD}" ]]; then
   echo "missing executable: ${BUILD}" >&2
@@ -47,6 +47,7 @@ echo "=== Phase 1: initialize stripes (worker 0 only) ==="
 
 echo "=== Phase 2: parallel batch updates ==="
 pids=()
+PHASE2_START=$(date +%s.%N)
 for ((i = 0; i < NUM_CLIENTS; i++)); do
   PORT=$((BASE_PORT + i))
   TAG="client${i}"
@@ -64,6 +65,64 @@ for pid in "${pids[@]}"; do
     fail=1
   fi
 done
+PHASE2_END=$(date +%s.%N)
+PHASE2_WALL=$(echo "scale=3; ($PHASE2_END - $PHASE2_START) / 1" | bc 2>/dev/null || awk "BEGIN {printf \"%.3f\", $PHASE2_END - $PHASE2_START}")
 
+# ── Aggregate total across all clients ──────────────────────────────────
+SUMMARY_FILE="${LOG_DIR}/summary.log"
+# Build summary into a variable to avoid subshell issues with | tee
+total_success=0
+total_fail=0
+total_reqs=0
+total_sum_latency=0
+max_wall=0
+min_wall=999999
+SUMMARY=""
+summary_line() { SUMMARY="${SUMMARY}$1"$'\n'; }
+summary_line "$(printf "╔══════════════════════════════════════════════════════════╗")"
+summary_line "$(printf "║           Multi-Client Parix Batch Summary              ║")"
+summary_line "$(printf "╠══════════════════════════════════════════════════════════╣")"
+summary_line "$(printf "║  Total clients            : %-27d ║" "${NUM_CLIENTS}")"
+summary_line "$(printf "║  Overall end-to-end time  : %-23.3f s ║" "${PHASE2_WALL}")"
+summary_line "$(printf "╠══════════════════════════════════════════════════════════╣")"
+for ((i = 0; i < NUM_CLIENTS; i++)); do
+  CLIENT_LOG="${LOG_DIR}/client${i}.log"
+  if [[ -f "${CLIENT_LOG}" ]]; then
+    # extract stats from client summary lines
+    # Example: "total_requests=125 success=125 failed=0"
+    #          "total_time=8.31581 s"  "wall_clock_time=14.5617 s"
+    c_reqs=$(sed -n 's/.*total_requests=\([0-9]\+\).*/\1/p' "${CLIENT_LOG}" | tail -1)
+    c_succ=$(sed -n 's/.*success=\([0-9]\+\).*/\1/p' "${CLIENT_LOG}" | tail -1)
+    c_fail=$(sed -n 's/.*failed=\([0-9]\+\).*/\1/p' "${CLIENT_LOG}" | tail -1)
+    c_wall=$(sed -n 's/.*wall_clock_time=\([0-9.]\+\).*/\1/p' "${CLIENT_LOG}" | tail -1)
+    c_total=$(sed -n 's/.*total_time=\([0-9.]\+\).*/\1/p' "${CLIENT_LOG}" | tail -1)
+    c_reqs=${c_reqs:-0}; c_succ=${c_succ:-0}; c_fail=${c_fail:-0}
+    c_wall=${c_wall:-0}; c_total=${c_total:-0}
+    total_reqs=$((total_reqs + c_reqs))
+    total_success=$((total_success + c_succ))
+    total_fail=$((total_fail + c_fail))
+    total_sum_latency=$(awk "BEGIN {printf \"%.3f\", ${total_sum_latency} + ${c_total}}")
+    if awk "BEGIN {exit !(${c_wall} > ${max_wall})}"; then max_wall="${c_wall}"; fi
+    if awk "BEGIN {exit !(${c_wall} > 0 && ${c_wall} < ${min_wall})}"; then min_wall="${c_wall}"; fi
+    summary_line "$(printf "║  client%-2d  success=%-5s fail=%-3s wall=%-10s s ║" "${i}" "${c_succ}" "${c_fail}" "${c_wall}")"
+  fi
+done
+summary_line "$(printf "╠══════════════════════════════════════════════════════════╣")"
+summary_line "$(printf "║  Total requests (all clients) : %-21d ║" "${total_reqs}")"
+summary_line "$(printf "║  Total success (all clients)  : %-21d ║" "${total_success}")"
+summary_line "$(printf "║  Total failed  (all clients)  : %-21d ║" "${total_fail}")"
+summary_line "$(printf "║  Sum of per-request latencies : %-18.3f s ║" "${total_sum_latency}")"
+if [[ "${total_success}" -gt 0 ]]; then
+  avg_all=$(awk "BEGIN {printf \"%.3f\", ${total_sum_latency} / ${total_success}}")
+  summary_line "$(printf "║  Avg per-request latency      : %-18.3f s ║" "${avg_all}")"
+fi
+summary_line "$(printf "║  Slowest client wall-clock    : %-18s s ║" "${max_wall}")"
+summary_line "$(printf "║  Fastest client wall-clock    : %-18s s ║" "${min_wall}")"
+summary_line "$(printf "╚══════════════════════════════════════════════════════════╝")"
+echo "${SUMMARY}" | tee "${SUMMARY_FILE}"
+
+echo ""
 echo "=== Done (fail=${fail}) logs in ${LOG_DIR} ==="
+echo "=== Overall end-to-end (Phase 2): ${PHASE2_WALL} s (all ${NUM_CLIENTS} clients) ==="
+echo "=== Summary file: ${SUMMARY_FILE} ==="
 exit "${fail}"

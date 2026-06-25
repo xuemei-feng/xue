@@ -4,8 +4,186 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <chrono>
+#include <arpa/inet.h>
 namespace ECProject
 {
+    void DatanodeImpl::start_acceptor()
+    {
+        if (acceptor_running_.exchange(true))
+        {
+            return; // already running
+        }
+        acceptor_thread_ = std::thread([this]() {
+            while (acceptor_running_.load(std::memory_order_relaxed))
+            {
+                asio::error_code ec;
+                asio::ip::tcp::socket socket(io_context);
+                acceptor.accept(socket, ec);
+                if (ec)
+                {
+                    if (ec == asio::error::operation_aborted)
+                    {
+                        break; // acceptor closed, normal shutdown
+                    }
+                    std::cerr << "[Datanode" << m_port << "] acceptor error: " << ec.message() << std::endl;
+                    continue;
+                }
+
+                // Set 2-second receive timeout so a stalled proxy never blocks the acceptor
+                {
+                    struct timeval tv;
+                    tv.tv_sec = 2;
+                    tv.tv_usec = 0;
+                    setsockopt(socket.native_handle(), SOL_SOCKET, SO_RCVTIMEO,
+                               reinterpret_cast<const char *>(&tv), sizeof(tv));
+                }
+
+                // Read tag header: [2 bytes tag_len (network order)][tag_bytes]
+                uint16_t tag_len = 0;
+                asio::error_code header_ec;
+                asio::read(socket, asio::buffer(&tag_len, sizeof(tag_len)), header_ec);
+                if (header_ec)
+                {
+                    std::cerr << "[Datanode" << m_port << "] failed to read tag_len header: " << header_ec.message() << std::endl;
+                    socket.close();
+                    continue;
+                }
+                tag_len = ntohs(tag_len);
+                if (tag_len == 0 || tag_len > 1024)
+                {
+                    std::cerr << "[Datanode" << m_port << "] invalid tag_len=" << tag_len << std::endl;
+                    socket.close();
+                    continue;
+                }
+
+                std::vector<char> tag_buf(static_cast<size_t>(tag_len));
+                asio::read(socket, asio::buffer(tag_buf.data(), tag_len), header_ec);
+                if (header_ec)
+                {
+                    std::cerr << "[Datanode" << m_port << "] failed to read tag: " << header_ec.message() << std::endl;
+                    socket.close();
+                    continue;
+                }
+                std::string tag(tag_buf.data(), tag_len);
+
+                // Match tag to a waiting handler
+                {
+                    std::lock_guard<std::mutex> lock(pending_mutex_);
+                    auto it = pending_connections_.find(tag);
+                    if (it != pending_connections_.end() && !it->second.ready)
+                    {
+                        it->second.socket = std::make_unique<asio::ip::tcp::socket>(std::move(socket));
+                        it->second.ready = true;
+                        pending_cv_.notify_all();
+                    }
+                    else
+                    {
+                        // No handler waiting for this tag, or duplicate — close socket
+                        if (IF_DEBUG)
+                        {
+                            std::cerr << "[Datanode" << m_port << "] no waiter for tag=" << tag << std::endl;
+                        }
+                        socket.close();
+                    }
+                }
+            }
+            // Wake up all waiters on shutdown so they don't hang
+            {
+                std::lock_guard<std::mutex> lock(pending_mutex_);
+            }
+            pending_cv_.notify_all();
+        });
+    }
+
+    void DatanodeImpl::stop_acceptor()
+    {
+        if (!acceptor_running_.exchange(false))
+        {
+            return; // already stopped
+        }
+        acceptor.close(); // unblock acceptor.accept()
+        if (acceptor_thread_.joinable())
+        {
+            acceptor_thread_.join();
+        }
+        // Wake any remaining waiters so they see shutdown
+        {
+            std::lock_guard<std::mutex> lock(pending_mutex_);
+            // Mark all pending entries as ready with closed sockets
+            for (auto &kv : pending_connections_)
+            {
+                if (!kv.second.ready)
+                {
+                    kv.second.ready = true;
+                    // socket stays default-constructed (closed)
+                }
+            }
+        }
+        pending_cv_.notify_all();
+    }
+
+    void DatanodeImpl::register_pending_tag(const std::string &tag)
+    {
+        std::unique_lock<std::mutex> lock(pending_mutex_);
+        // Wait for any previous entry with the same tag to complete
+        pending_cv_.wait(lock, [this, &tag]() {
+            auto it = pending_connections_.find(tag);
+            return it == pending_connections_.end() || it->second.ready || !acceptor_running_.load(std::memory_order_relaxed);
+        });
+        if (!acceptor_running_.load(std::memory_order_relaxed))
+        {
+            return;
+        }
+        // Remove any stale completed entry
+        auto it = pending_connections_.find(tag);
+        if (it != pending_connections_.end())
+        {
+            pending_connections_.erase(it);
+        }
+        // Insert new pending entry (ready=false, socket=null)
+        pending_connections_[tag] = PendingConnection{};
+    }
+
+    void DatanodeImpl::release_pending_tag(const std::string &tag)
+    {
+        std::lock_guard<std::mutex> lock(pending_mutex_);
+        auto it = pending_connections_.find(tag);
+        if (it != pending_connections_.end() && !it->second.ready)
+        {
+            pending_connections_.erase(it);
+            pending_cv_.notify_all();
+        }
+    }
+
+    asio::ip::tcp::socket DatanodeImpl::wait_for_tagged_socket(const std::string &tag)
+    {
+        asio::ip::tcp::socket socket(io_context);
+        {
+            std::unique_lock<std::mutex> lock(pending_mutex_);
+
+            // Wait for the acceptor to match our pre-registered tag (30s timeout)
+            bool matched = pending_cv_.wait_for(lock, std::chrono::seconds(30), [this, &tag]() {
+                auto it = pending_connections_.find(tag);
+                return (it != pending_connections_.end() && it->second.ready) || !acceptor_running_.load(std::memory_order_relaxed);
+            });
+
+            auto it = pending_connections_.find(tag);
+            if (it != pending_connections_.end())
+            {
+                if (it->second.ready && it->second.socket)
+                {
+                    socket = std::move(*it->second.socket);
+                }
+                pending_connections_.erase(it);
+            }
+            else if (!matched && !acceptor_running_.load(std::memory_order_relaxed))
+            {
+                // Timeout — tag was never matched; removed above if it existed
+            }
+        }
+        return socket;
+    }
+
     grpc::Status DatanodeImpl::checkalive(
         grpc::ServerContext *context,
         const datanode_proto::CheckaliveCMD *request,
@@ -139,11 +317,20 @@ namespace ECProject
         {
             try
             {
-                std::vector<char> buf(append_size);
                 // only send data
                 asio::error_code ec;
-                asio::ip::tcp::socket socket(io_context);
-                acceptor.accept(socket);
+                asio::ip::tcp::socket socket = wait_for_tagged_socket(block_key);
+                if (!socket.is_open()) return;
+                std::vector<char> buf(append_size);
+                // Read data_len header sent by proxy after the tag
+                uint32_t data_len = 0;
+                asio::read(socket, asio::buffer(&data_len, sizeof(data_len)), ec);
+                data_len = ntohl(data_len);
+                if (static_cast<int>(data_len) != append_size)
+                {
+                    std::cerr << "[Datanode" << m_port << "][Append] data_len mismatch: got " << data_len
+                              << " expected " << append_size << std::endl;
+                }
                 asio::read(socket, asio::buffer(buf.data(), append_size), ec);
 
                 asio::error_code ignore_ec;
@@ -191,11 +378,15 @@ namespace ECProject
         {
             try
             {
-                char *buf = new char[append_size];
                 // only send data
                 asio::error_code ec;
-                asio::ip::tcp::socket socket(io_context);
-                acceptor.accept(socket);
+                asio::ip::tcp::socket socket = wait_for_tagged_socket(block_key);
+                if (!socket.is_open()) return;
+                char *buf = new char[append_size];
+                // Read data_len header sent by proxy after the tag
+                uint32_t data_len = 0;
+                asio::read(socket, asio::buffer(&data_len, sizeof(data_len)), ec);
+                data_len = ntohl(data_len);
                 asio::read(socket, asio::buffer(buf, append_size), ec);
 
                 asio::error_code ignore_ec;
@@ -252,11 +443,13 @@ namespace ECProject
             }
             if (block_id < m_sys_config->k)
             {
+                register_pending_tag(block_key);
                 std::thread my_thread(dataBlockHandler, block_key, append_size, append_offset);
                 my_thread.detach();
             }
             else
             {
+                register_pending_tag(block_key);
                 std::thread my_thread(ParityBlockHandler, block_key, append_size, append_offset, is_serialized);
                 my_thread.detach();
             }
@@ -282,11 +475,15 @@ namespace ECProject
         {
             try
             {
-                std::vector<char> buf(m_sys_config->BlockSize);
                 // only send data
                 asio::error_code ec;
-                asio::ip::tcp::socket socket(io_context);
-                acceptor.accept(socket);
+                asio::ip::tcp::socket socket = wait_for_tagged_socket(block_key);
+                if (!socket.is_open()) return;
+                std::vector<char> buf(m_sys_config->BlockSize);
+                // Read data_len header sent by proxy after the tag
+                uint32_t data_len = 0;
+                asio::read(socket, asio::buffer(&data_len, sizeof(data_len)), ec);
+                data_len = ntohl(data_len);
                 asio::read(socket, asio::buffer(buf.data(), m_sys_config->BlockSize), ec);
 
                 asio::error_code ignore_ec;
@@ -323,8 +520,9 @@ namespace ECProject
 
         try
         {
+            register_pending_tag(block_key);
             std::thread my_thread(handler, block_key, block_id);
-            my_thread.join();
+            my_thread.detach();
             response->set_message(true);
         }
         catch (const std::exception &e)
@@ -350,11 +548,15 @@ namespace ECProject
         {
             try
             {
-                std::vector<char> buf(m_sys_config->BlockSize);
                 // only send data
                 asio::error_code ec;
-                asio::ip::tcp::socket socket(io_context);
-                acceptor.accept(socket);
+                asio::ip::tcp::socket socket = wait_for_tagged_socket(block_key);
+                if (!socket.is_open()) return;
+                std::vector<char> buf(m_sys_config->BlockSize);
+                // Read data_len header sent by proxy after the tag
+                uint32_t data_len = 0;
+                asio::read(socket, asio::buffer(&data_len, sizeof(data_len)), ec);
+                data_len = ntohl(data_len);
                 asio::read(socket, asio::buffer(buf.data(), m_sys_config->BlockSize), ec);
 
                 asio::error_code ignore_ec;
@@ -395,8 +597,9 @@ namespace ECProject
 
         try
         {
+            register_pending_tag(block_key);
             std::thread my_thread(handler, block_key, block_id);
-            my_thread.join();
+            my_thread.detach();
             response->set_message(true);
         }
         catch (const std::exception &e)
@@ -537,16 +740,25 @@ namespace ECProject
             {
                 const bool partial = (set_range_length > 0);
                 const int nbytes = partial ? set_range_length : block_size;
+                // Always consume the tag first (registered by handleSet gRPC handler)
+                asio::error_code ec;
+                asio::ip::tcp::socket socket = wait_for_tagged_socket(block_key);
+                if (!socket.is_open()) return;
+                // Validate range AFTER consuming tag to prevent tag leak
                 if (partial && (set_range_offset < 0 || nbytes <= 0 || set_range_offset + nbytes > block_size))
                 {
                     std::cerr << "[Datanode] partial set invalid range offset=" << set_range_offset << " len=" << nbytes
                               << " block_size=" << block_size << std::endl;
+                    asio::error_code ignore_ec;
+                    socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+                    socket.close(ignore_ec);
                     return;
                 }
                 std::vector<char> buf(static_cast<size_t>(nbytes));
-                asio::error_code ec;
-                asio::ip::tcp::socket socket(io_context);
-                acceptor.accept(socket);
+                // Read data_len header sent by proxy after the tag
+                uint32_t data_len = 0;
+                asio::read(socket, asio::buffer(&data_len, sizeof(data_len)), ec);
+                data_len = ntohl(data_len);
                 asio::read(socket, asio::buffer(buf.data(), static_cast<size_t>(nbytes)), ec);
 
                 asio::error_code ignore_ec;
@@ -652,6 +864,7 @@ namespace ECProject
             }
             else
             {
+                register_pending_tag(block_key);
                 std::thread my_thread(handler1, block_key, block_size);
                 my_thread.detach();
             }
@@ -703,8 +916,8 @@ namespace ECProject
         auto handler = [this](std::string block_key, int block_size, std::string proxy_ip, int proxy_port, char* buf) mutable
         {
             asio::error_code error;
-            asio::ip::tcp::socket socket(io_context);
-            acceptor.accept(socket);
+            asio::ip::tcp::socket socket = wait_for_tagged_socket(block_key);
+            if (!socket.is_open()) { delete buf; return; }
             asio::write(socket, asio::buffer(buf, block_size), error);
             asio::error_code ignore_ec;
             socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
@@ -721,6 +934,7 @@ namespace ECProject
             {
                 std::cout << "[Datanode" << m_port << "][GET] ready to handle get!" << std::endl;
             }
+            register_pending_tag(block_key);
             std::thread my_thread(handler, block_key, block_size, proxy_ip, proxy_port, buf);
             my_thread.detach();
             response->set_message(true);
@@ -778,8 +992,8 @@ namespace ECProject
         auto handler = [this](std::string block_key, int nbytes_tx, std::string proxy_ip, int proxy_port, char *buf) mutable
         {
             asio::error_code error;
-            asio::ip::tcp::socket socket(io_context);
-            acceptor.accept(socket);
+            asio::ip::tcp::socket socket = wait_for_tagged_socket(block_key);
+            if (!socket.is_open()) { delete buf; return; }
             asio::write(socket, asio::buffer(buf, static_cast<size_t>(nbytes_tx)), error);
             asio::error_code ignore_ec;
             socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
@@ -796,6 +1010,7 @@ namespace ECProject
             {
                 std::cout << "[Datanode" << m_port << "][GET] ready to handle get!" << std::endl;
             }
+            register_pending_tag(block_key);
             std::thread my_thread(handler, block_key, nbytes, proxy_ip, proxy_port, buf);
             my_thread.detach();
             response->set_message(true);
