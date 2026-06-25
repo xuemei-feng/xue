@@ -72,10 +72,11 @@ namespace ECProject
   static std::mutex g_cord_plan_exec_mu;
   static std::unordered_map<std::string, std::thread> g_cord_plan_exec_threads;
 
-  // ──────── concurrent data upload acceptor ────────
-  static std::mutex g_cord_data_placement_mu;
-  static std::unordered_map<std::string, std::shared_ptr<proxy_proto::CordDataUpdatePlacement>> g_cord_data_placements;
-  static std::once_flag g_cord_data_acceptor_flag;
+  // worker pool: limit concurrent datanode I/O
+  static std::mutex g_cord_worker_mu;
+  static std::condition_variable g_cord_worker_cv;
+  static int g_cord_worker_active = 0;
+  static constexpr int kMaxCordWorkers = 16;
 
   static std::string cord_plan_wall_ts_ms();
 
@@ -1969,176 +1970,116 @@ namespace ECProject
     }
   }
 
-  // ──────── concurrent data upload: processing thread ────────
-  void ProxyImpl::cordProcessDataUpload(asio::ip::tcp::socket sock,
-                                         std::shared_ptr<proxy_proto::CordDataUpdatePlacement> placement)
-  {
-    try
-    {
-      const uint64_t payload_size = placement->update_payload_size();
-      const int slice_num = placement->blockkeys_size();
-      const int stripe_id = placement->stripe_id();
-
-      asio::error_code error;
-      std::vector<char> buf(static_cast<size_t>(payload_size));
-      asio::read(sock, asio::buffer(buf.data(), static_cast<size_t>(payload_size)), error);
-      std::string peer_ep = "unknown";
-      try
-      {
-        auto re = sock.remote_endpoint();
-        peer_ep = re.address().to_string() + ":" + std::to_string(re.port());
-      }
-      catch (...) {}
-      asio::error_code ignore_ec;
-      sock.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
-      sock.close(ignore_ec);
-
-      std::vector<size_t> sizes;
-      for (int i = 0; i < slice_num; ++i)
-        sizes.push_back(static_cast<size_t>(placement->sizes(i)));
-      std::vector<char *> slices =
-          m_toolbox->splitCharPointer(buf.data(), static_cast<size_t>(payload_size), sizes);
-
-      std::vector<char> delta_concat;
-      delta_concat.reserve(static_cast<size_t>(payload_size));
-      for (int j = 0; j < slice_num; ++j)
-      {
-        const size_t slen = sizes[static_cast<size_t>(j)];
-        std::vector<char> oldbuf(slen);
-        if (!CordRangeReadFromDatanode(placement->blockkeys(j), placement->blockids(j),
-                                      static_cast<int>(placement->offsets(j)), oldbuf.data(), slen,
-                                      placement->datanodeip(j).c_str(), placement->datanodeport(j)))
-        {
-          std::cout << "[CoRD][Proxy] range read failed slice " << j << std::endl;
-          return;
-        }
-        for (size_t u = 0; u < slen; ++u)
-          delta_concat.push_back(static_cast<char>(oldbuf[u] ^ slices[static_cast<size_t>(j)][u]));
-        if (!CordRangeWriteToDatanode(placement->blockkeys(j), placement->blockids(j),
-                                      static_cast<int>(placement->offsets(j)), slices[static_cast<size_t>(j)],
-                                      slen, placement->datanodeip(j).c_str(), placement->datanodeport(j)))
-        {
-          std::cout << "[CoRD][Proxy] range write failed slice " << j << std::endl;
-          return;
-        }
-        std::vector<char> verify_new(slen);
-        CordRangeReadFromDatanode(placement->blockkeys(j), placement->blockids(j),
-                                  static_cast<int>(placement->offsets(j)), verify_new.data(), slen,
-                                  placement->datanodeip(j).c_str(), placement->datanodeport(j));
-      }
-      if (!CordDeltaBlobToDatanode(placement->delta_blob_key(), delta_concat.data(), delta_concat.size(),
-                                   placement->delta_datanode_ip().c_str(),
-                                   placement->delta_datanode_port()))
-      {
-        std::cout << "[CoRD][Proxy] delta blob store failed" << std::endl;
-        return;
-      }
-
-      coordinator_proto::CommitAbortKey commit_abort_key;
-      coordinator_proto::ReplyFromCoordinator result;
-      grpc::ClientContext ctx;
-      commit_abort_key.set_opp(ECProject::CORD_UPDATE);
-      commit_abort_key.set_key(placement->key());
-      commit_abort_key.set_stripe_id(stripe_id);
-      commit_abort_key.set_ifcommitmetadata(true);
-      grpc::Status st = m_coordinator_ptr->reportCommitAbort(&ctx, commit_abort_key, &result);
-      if (!st.ok() && IF_DEBUG)
-        std::cout << "[CoRD][Proxy] reportCommitAbort failed" << std::endl;
-    }
-    catch (std::exception &e)
-    {
-      std::cout << "[CoRD][Proxy] exception: " << e.what() << std::endl;
-    }
-  }
-
-  // ──────── concurrent data upload: acceptor loop ────────
-  void ProxyImpl::cordDataAcceptorLoop()
-  {
-    std::cout << "[CoRD-DATA][" << proxy_ip_port << "] data acceptor started" << std::endl;
-    while (true)
-    {
-      try
-      {
-        asio::ip::tcp::socket sock(io_context);
-        acceptor.accept(sock);
-
-        // Read tag header: [4 bytes key_len (network order)] [key_bytes]
-        uint32_t key_len_net = 0;
-        asio::error_code ec;
-        asio::read(sock, asio::buffer(&key_len_net, sizeof(key_len_net)), ec);
-        if (ec)
-        {
-          std::cout << "[CoRD-DATA][" << proxy_ip_port << "] failed to read tag header: " << ec.message() << std::endl;
-          sock.close();
-          continue;
-        }
-        const uint32_t key_len = ntohl(key_len_net);
-        if (key_len == 0 || key_len > 1024)
-        {
-          std::cout << "[CoRD-DATA][" << proxy_ip_port << "] bad key_len=" << key_len << std::endl;
-          sock.close();
-          continue;
-        }
-        std::string tag(key_len, '\0');
-        asio::read(sock, asio::buffer(&tag[0], key_len), ec);
-        if (ec)
-        {
-          std::cout << "[CoRD-DATA][" << proxy_ip_port << "] failed to read tag: " << ec.message() << std::endl;
-          sock.close();
-          continue;
-        }
-
-        // Lookup placement by tag
-        std::shared_ptr<proxy_proto::CordDataUpdatePlacement> placement;
-        {
-          std::lock_guard<std::mutex> lk(g_cord_data_placement_mu);
-          auto it = g_cord_data_placements.find(tag);
-          if (it != g_cord_data_placements.end())
-          {
-            placement = it->second;
-            g_cord_data_placements.erase(it);
-          }
-        }
-        if (!placement)
-        {
-          std::cout << "[CoRD-DATA][" << proxy_ip_port << "] unknown tag: " << tag << std::endl;
-          sock.close();
-          continue;
-        }
-
-        // Spawn concurrent processing thread
-        std::thread([this, sock = std::move(sock), placement]() mutable {
-          cordProcessDataUpload(std::move(sock), placement);
-        }).detach();
-      }
-      catch (std::exception &e)
-      {
-        std::cout << "[CoRD-DATA][" << proxy_ip_port << "] acceptor error: " << e.what() << std::endl;
-      }
-    }
-  }
-
   grpc::Status ProxyImpl::scheduleCordDataUpdate(
       grpc::ServerContext *context,
       const proxy_proto::CordDataUpdatePlacement *placement,
       proxy_proto::SetReply *response)
   {
     (void)context;
-    response->set_ifcommit(false);
+    (void)response;
+    const int stripe_id = placement->stripe_id();
+    const uint64_t payload_size = placement->update_payload_size();
+    const int slice_num = placement->blockkeys_size();
     auto placement_copy = std::make_shared<proxy_proto::CordDataUpdatePlacement>(*placement);
-    const std::string key = placement_copy->key();
 
+    // accept thread: accept + read data (fast), then dispatch slow I/O to worker
+    auto cord_job = [this, stripe_id, payload_size, slice_num, placement_copy]() mutable
     {
-      std::lock_guard<std::mutex> lk(g_cord_data_placement_mu);
-      g_cord_data_placements[key] = placement_copy;
-    }
+      try
+      {
+        asio::ip::tcp::socket socket_data(io_context);
+        acceptor.accept(socket_data);
+        asio::error_code error;
+        std::vector<char> buf(static_cast<size_t>(payload_size));
+        asio::read(socket_data, asio::buffer(buf.data(), static_cast<size_t>(payload_size)), error);
+        asio::error_code ignore_ec;
+        socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
+        socket_data.close(ignore_ec);
 
-    // Start acceptor thread once (thread-safe)
-    std::call_once(g_cord_data_acceptor_flag, [this]() {
-      std::thread([this]() { cordDataAcceptorLoop(); }).detach();
-    });
+        // throttle: wait for a free worker slot, then dispatch
+        {
+          std::unique_lock<std::mutex> lk(g_cord_worker_mu);
+          g_cord_worker_cv.wait(lk, []{ return g_cord_worker_active < kMaxCordWorkers; });
+          ++g_cord_worker_active;
+        }
+        // dispatch datanode I/O to worker thread — don't block acceptor queue
+        std::thread([this, placement_copy, stripe_id, payload_size, slice_num,
+                     buf = std::move(buf)]() mutable {
+          try
+          {
+            std::vector<size_t> sizes;
+            for (int i = 0; i < slice_num; ++i)
+              sizes.push_back(static_cast<size_t>(placement_copy->sizes(i)));
+            std::vector<char *> slices =
+                m_toolbox->splitCharPointer(buf.data(), static_cast<size_t>(payload_size), sizes);
 
-    response->set_ifcommit(true);
+            std::vector<char> delta_concat;
+            delta_concat.reserve(static_cast<size_t>(payload_size));
+            for (int j = 0; j < slice_num; ++j)
+            {
+              const size_t slen = sizes[static_cast<size_t>(j)];
+              std::vector<char> oldbuf(slen);
+              if (!CordRangeReadFromDatanode(placement_copy->blockkeys(j), placement_copy->blockids(j),
+                                            static_cast<int>(placement_copy->offsets(j)), oldbuf.data(), slen,
+                                            placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j)))
+              {
+                std::cout << "[CoRD][Proxy] range read failed slice " << j << std::endl;
+                return;
+              }
+              for (size_t u = 0; u < slen; ++u)
+                delta_concat.push_back(static_cast<char>(oldbuf[u] ^ slices[static_cast<size_t>(j)][u]));
+              if (!CordRangeWriteToDatanode(placement_copy->blockkeys(j), placement_copy->blockids(j),
+                                            static_cast<int>(placement_copy->offsets(j)),
+                                            slices[static_cast<size_t>(j)],
+                                            slen, placement_copy->datanodeip(j).c_str(),
+                                            placement_copy->datanodeport(j)))
+              {
+                std::cout << "[CoRD][Proxy] range write failed slice " << j << std::endl;
+                return;
+              }
+              std::vector<char> verify_new(slen);
+              CordRangeReadFromDatanode(placement_copy->blockkeys(j), placement_copy->blockids(j),
+                                        static_cast<int>(placement_copy->offsets(j)), verify_new.data(), slen,
+                                        placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j));
+            }
+            if (!CordDeltaBlobToDatanode(placement_copy->delta_blob_key(), delta_concat.data(),
+                                         delta_concat.size(),
+                                         placement_copy->delta_datanode_ip().c_str(),
+                                         placement_copy->delta_datanode_port()))
+            {
+              std::cout << "[CoRD][Proxy] delta blob store failed" << std::endl;
+              return;
+            }
+
+            coordinator_proto::CommitAbortKey commit_abort_key;
+            coordinator_proto::ReplyFromCoordinator result;
+            grpc::ClientContext ctx;
+            commit_abort_key.set_opp(ECProject::CORD_UPDATE);
+            commit_abort_key.set_key(placement_copy->key());
+            commit_abort_key.set_stripe_id(stripe_id);
+            commit_abort_key.set_ifcommitmetadata(true);
+            grpc::Status st = m_coordinator_ptr->reportCommitAbort(&ctx, commit_abort_key, &result);
+            if (!st.ok() && IF_DEBUG)
+              std::cout << "[CoRD][Proxy] reportCommitAbort failed" << std::endl;
+          }
+          catch (std::exception &e)
+          {
+            std::cout << "[CoRD][Proxy] worker exception: " << e.what() << std::endl;
+          }
+          {
+            std::lock_guard<std::mutex> lk(g_cord_worker_mu);
+            --g_cord_worker_active;
+          }
+          g_cord_worker_cv.notify_one();
+        }).detach();
+      }
+      catch (std::exception &e)
+      {
+        std::cout << "[CoRD][Proxy] accept exception: " << e.what() << std::endl;
+      }
+    };
+    std::thread th(cord_job);
+    th.detach();
     return grpc::Status::OK;
   }
 
