@@ -1,4 +1,5 @@
 #include "client.h"
+#include "xue_slice_layout.h"
 #include "coordinator.grpc.pb.h"
 
 #include <asio.hpp>
@@ -214,56 +215,44 @@ namespace ECProject
     std::map<int, std::vector<std::pair<int, int>>> build_xue_block_to_slices_from_ranges(
         const std::vector<std::pair<int, int>> &logical_ranges, int block_size)
     {
-      std::map<int, std::vector<std::pair<int, int>>> block_to_slices;
-      for (const auto &r : logical_ranges)
-      {
-        int pos = r.first;
-        const int end = r.second;
-        while (pos < end)
-        {
-          const int block_id = pos / block_size;
-          const int block_offset = pos % block_size;
-          const int take = std::min(block_size - block_offset, end - pos);
-          add_sparse_slice(block_to_slices, block_id, take, block_offset);
-          pos += take;
-        }
-      }
-      return block_to_slices;
+      return xue_logical_ranges_to_block_slices(logical_ranges, block_size);
     }
 
     void extend_xue_parity_slices_in_block_map(
         std::map<int, std::vector<std::pair<int, int>>> *block_to_slices, int k, int n,
         int block_size, int unit_size)
     {
-      if (block_to_slices == nullptr)
+      xue_extend_parity_slices_in_block_map(block_to_slices, k, n, block_size, unit_size);
+    }
+
+    bool pack_xue_tcp_payload_from_plan_layout(const char *stripe_buf, int block_size,
+                                                 const coordinator_proto::AppendPlanLayout &layout,
+                                                 std::vector<char> *out)
+    {
+      if (out == nullptr)
       {
-        return;
+        return false;
       }
-      std::map<int, std::vector<std::pair<int, int>>> data_only;
-      for (const auto &kv : *block_to_slices)
+      out->clear();
+      const int n = layout.slice_block_ids_size();
+      if (n != layout.slice_offsets_size() || n != layout.slice_sizes_size())
       {
-        if (kv.first >= 0 && kv.first < k)
+        return false;
+      }
+      for (int i = 0; i < n; ++i)
+      {
+        const int bid = layout.slice_block_ids(i);
+        const int off = layout.slice_offsets(i);
+        const int sz = layout.slice_sizes(i);
+        if (bid < 0 || off < 0 || sz <= 0)
         {
-          data_only[kv.first] = kv.second;
+          return false;
         }
+        const char *src = stripe_buf + static_cast<size_t>(bid) * static_cast<size_t>(block_size) +
+                          static_cast<size_t>(off);
+        out->insert(out->end(), src, src + static_cast<size_t>(sz));
       }
-      for (const auto &kv : data_only)
-      {
-        for (const auto &slice : kv.second)
-        {
-          const int block_off = slice.second;
-          const int block_end = block_off + slice.first - 1;
-          const int u0 = block_off / unit_size;
-          const int u1 = block_end / unit_size;
-          const int parity_off = u0 * unit_size;
-          const int parity_end = std::min(block_size - 1, (u1 + 1) * unit_size - 1);
-          const int parity_len = parity_end - parity_off + 1;
-          for (int i = k; i < n; i++)
-          {
-            add_sparse_slice(*block_to_slices, i, parity_len, parity_off);
-          }
-        }
-      }
+      return true;
     }
 
     bool pack_xue_tcp_payload_for_append_key(
@@ -280,6 +269,8 @@ namespace ECProject
       {
         return false;
       }
+      // append_key 的 # 段与 Coordinator sub plan 的 TCP sizes[] 同序：同一 block 多 slice 时
+      // block id 重复出现（如 #2,2,2），按 key 顺序逐 slice 打包进一次 TCP payload。
       out->clear();
       std::map<int, size_t> slice_cursor;
       for (int bid : tcp_block_ids)
@@ -888,7 +879,7 @@ namespace ECProject
     coordinator_proto::XueStripeScheduleId wait_req;
     coordinator_proto::ReplyFromCoordinator wait_rep;
     wait_req.set_stripe_id(stripe_id);
-    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(10000));
+    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(120000));
     const grpc::Status wait_st =
         m_coordinator_ptr->waitXueAllCommitsReady(&wait_ctx, wait_req, &wait_rep);
     if (timing != nullptr)
@@ -980,7 +971,7 @@ namespace ECProject
     coordinator_proto::XueStripeScheduleId wait_req;
     coordinator_proto::ReplyFromCoordinator wait_rep;
     wait_req.set_stripe_id(stripe_id);
-    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
+    wait_ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(30000));
     const grpc::Status wait_st =
         m_coordinator_ptr->waitXueAllIngressReady(&wait_ctx, wait_req, &wait_rep);
     if (!wait_st.ok())
@@ -1717,8 +1708,17 @@ namespace ECProject
       for (int i = 0; i < reply.append_keys_size(); ++i)
       {
         std::vector<char> cluster_payload;
-        if (!pack_xue_tcp_payload_for_append_key(local_buffer.data(), block_to_slices,
-                                                 reply.append_keys(i), block_size, &cluster_payload))
+        const bool use_plan_layout =
+            reply.plan_layouts_size() == reply.append_keys_size() &&
+            reply.plan_layouts(i).slice_block_ids_size() > 0;
+        const bool packed =
+            use_plan_layout
+                ? pack_xue_tcp_payload_from_plan_layout(local_buffer.data(), block_size,
+                                                        reply.plan_layouts(i), &cluster_payload)
+                : pack_xue_tcp_payload_for_append_key(local_buffer.data(), block_to_slices,
+                                                      reply.append_keys(i), block_size,
+                                                      &cluster_payload);
+        if (!packed)
         {
           std::cout << "[XUE_UPDATE] failed to pack TCP payload for key=" << reply.append_keys(i)
                     << std::endl;

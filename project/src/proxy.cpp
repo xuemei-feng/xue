@@ -22,13 +22,12 @@
 
 namespace
 {
-  std::mutex &xue_forward_dest_cluster_mutex(int stripe_id, int dest_cluster_id)
+  std::mutex &datanode_endpoint_io_mutex(const std::string &node_ip_port)
   {
     static std::mutex map_mutex;
-    static std::map<std::pair<int, int>, std::unique_ptr<std::mutex>> mutexes;
-    const std::pair<int, int> key(stripe_id, dest_cluster_id);
+    static std::map<std::string, std::unique_ptr<std::mutex>> mutexes;
     std::lock_guard<std::mutex> lk(map_mutex);
-    std::unique_ptr<std::mutex> &slot = mutexes[key];
+    std::unique_ptr<std::mutex> &slot = mutexes[node_ip_port];
     if (!slot)
     {
       slot = std::make_unique<std::mutex>();
@@ -845,8 +844,6 @@ namespace ECProject
                                           const char *delta_buf, size_t delta_size, bool log_send,
                                           bool gate_strict_schedule_step)
   {
-    std::lock_guard<std::mutex> dest_forward_lk(
-        xue_forward_dest_cluster_mutex(placement.stripe_id(), dest_cluster_id));
     if (placement.xue_strict_schedule() && gate_strict_schedule_step)
     {
       if (!waitXueScheduleStepBeforeForward(placement.stripe_id(), placement.key(), m_self_cluster_id,
@@ -948,7 +945,7 @@ namespace ECProject
     }
 
     grpc::ClientContext ctx;
-    ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(1000));
+    ctx.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(30000));
     proxy_proto::SetReply rep;
     grpc::Status st = stub->scheduleAppend2Datanode(&ctx, fwd, &rep);
     if (!st.ok())
@@ -993,9 +990,21 @@ namespace ECProject
         std::cerr << "[Proxy][XFERT] " << ts << " proxy_tcp_failed "
                   << fmt_proxy_tcp_route(m_self_cluster_id, dest_cluster_id)
                   << " reason=tcp_write append_key=" << placement.key() << std::endl;
+        if (placement.xue_strict_schedule() && gate_strict_schedule_step)
+        {
+          reportXueScheduleStepDoneAfterForward(placement.stripe_id(), placement.key(),
+                                                m_self_cluster_id, dest_cluster_id, false,
+                                                placement.xue_xfer_plan_id());
+        }
         return false;
       }
       char ack = 0;
+      {
+        struct timeval tv;
+        tv.tv_sec = 60;
+        tv.tv_usec = 0;
+        setsockopt(socket.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+      }
       asio::error_code read_ec;
       asio::read(socket, asio::buffer(&ack, 1), read_ec);
       asio::error_code ignore_ec;
@@ -1116,7 +1125,8 @@ namespace ECProject
 
   void ProxyImpl::runXueStrictDeferredForwards(
       std::shared_ptr<proxy_proto::AppendStripeDataPlacement> placement,
-      std::shared_ptr<std::vector<char>> append_buf, std::vector<char *> slices, int tcp_slice_count)
+      std::shared_ptr<std::vector<char>> append_buf, std::vector<char *> slices, int tcp_slice_count,
+      bool report_commit)
   {
     if (!placement || !append_buf)
     {
@@ -1223,17 +1233,20 @@ namespace ECProject
       }
     }
 
-    coordinator_proto::CommitAbortKey commit_abort_key;
-    coordinator_proto::ReplyFromCoordinator result;
-    grpc::ClientContext context;
-    commit_abort_key.set_opp(APPEND);
-    commit_abort_key.set_key(placement->key());
-    commit_abort_key.set_stripe_id(placement->stripe_id());
-    commit_abort_key.set_ifcommitmetadata(ok);
-    const grpc::Status status =
-        m_coordinator_ptr->reportCommitAbort(&context, commit_abort_key, &result);
-    log_append_commit_report(proxy_xfer_timestamp(), m_self_cluster_id, placement->key(),
-                             placement->stripe_id(), status.ok());
+    if (report_commit)
+    {
+      coordinator_proto::CommitAbortKey commit_abort_key;
+      coordinator_proto::ReplyFromCoordinator result;
+      grpc::ClientContext context;
+      commit_abort_key.set_opp(APPEND);
+      commit_abort_key.set_key(placement->key());
+      commit_abort_key.set_stripe_id(placement->stripe_id());
+      commit_abort_key.set_ifcommitmetadata(ok);
+      const grpc::Status status =
+          m_coordinator_ptr->reportCommitAbort(&context, commit_abort_key, &result);
+      log_append_commit_report(proxy_xfer_timestamp(), m_self_cluster_id, placement->key(),
+                               placement->stripe_id(), status.ok());
+    }
     record_xue_xfer_sample(stripe_id, xfer_plan_id, xfer_t0, std::chrono::steady_clock::now(),
                           xfer_w0, xue_wall_unix_ms_now());
   }
@@ -1786,6 +1799,24 @@ namespace ECProject
       return false;
     }
     const int global_cluster = placement.xue_global_parity_cluster_id();
+    if (global_cluster >= 0)
+    {
+      for (const auto &dp : placement.xue_downstream_forward_plans())
+      {
+        if (dp.target_cluster() != global_cluster)
+        {
+          continue;
+        }
+        for (const auto &hop : dp.outgoing())
+        {
+          if (hop.to_cluster() == local_cluster &&
+              hop.forward_append_mode() == "XUE_LOCAL_PARITY_DELTA")
+          {
+            return false;
+          }
+        }
+      }
+    }
     return global_cluster < 0 || data_cluster != global_cluster;
   }
 
@@ -2113,6 +2144,8 @@ namespace ECProject
   {
     try
     {
+      const std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
+      std::lock_guard<std::mutex> io_lk(datanode_endpoint_io_mutex(node_ip_port));
       grpc::ClientContext context;
       datanode_proto::ReadRangeInfo req;
       datanode_proto::RequestResult result;
@@ -2120,7 +2153,6 @@ namespace ECProject
       req.set_block_id(block_id);
       req.set_range_offset(range_offset);
       req.set_range_size(range_size);
-      std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
       grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleReadRange(&context, req, &result);
       if (!stat.ok() || !result.message())
       {
@@ -2154,6 +2186,8 @@ namespace ECProject
   {
     try
     {
+      const std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
+      std::lock_guard<std::mutex> io_lk(datanode_endpoint_io_mutex(node_ip_port));
       grpc::ClientContext context;
       datanode_proto::WriteRangeInfo req;
       datanode_proto::RequestResult result;
@@ -2161,7 +2195,6 @@ namespace ECProject
       req.set_block_id(block_id);
       req.set_range_offset(range_offset);
       req.set_range_size(range_size);
-      std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
       grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleWriteRange(&context, req, &result);
       if (!stat.ok() || !result.message())
       {
@@ -2196,6 +2229,8 @@ namespace ECProject
   {
     try
     {
+      const std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
+      std::lock_guard<std::mutex> io_lk(datanode_endpoint_io_mutex(node_ip_port));
       grpc::ClientContext context;
       datanode_proto::WriteRangeInfo req;
       datanode_proto::RequestResult result;
@@ -2203,7 +2238,6 @@ namespace ECProject
       req.set_block_id(block_id);
       req.set_range_offset(range_offset);
       req.set_range_size(range_size);
-      std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
       grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleXorWriteRange(&context, req, &result);
       if (!stat.ok() || !result.message())
       {
@@ -2672,8 +2706,8 @@ namespace ECProject
           std::lock_guard<std::mutex> accept_lk(m_client_accept_mutex);
           {
             struct timeval tv;
-            tv.tv_sec = 0;
-            tv.tv_usec = 500000;
+            tv.tv_sec = 60;
+            tv.tv_usec = 0;
             setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
           }
           acceptor.accept(socket_data, accept_ec);
@@ -2686,6 +2720,10 @@ namespace ECProject
         }
         if (accept_ec)
         {
+          std::cerr << "[Proxy] accept failed append_key=" << placement_copy->key()
+                    << " proxy_cluster=" << m_self_cluster_id
+                    << " mode=" << placement_copy->append_mode()
+                    << " ec=" << accept_ec.message() << std::endl;
           return;
         }
         asio::error_code error;
@@ -2788,8 +2826,9 @@ namespace ECProject
           {
             reportXueIngressReadyToCoordinator(stripe_id, placement_copy->key());
             auto append_shared = std::make_shared<std::vector<char>>(append_buf.begin(), append_buf.end());
-            std::vector<char *> slice_ptrs = slices;
-            std::thread([this, placement_copy, append_shared, slice_ptrs, tcp_slice_count]() {
+            std::thread([this, placement_copy, append_shared, tcp_slice_sizes, tcp_slice_count]() {
+              std::vector<char *> slice_ptrs = m_toolbox->splitCharPointer(
+                  append_shared->data(), append_shared->size(), tcp_slice_sizes);
               runXueStrictDeferredForwards(placement_copy, append_shared, slice_ptrs, tcp_slice_count);
             }).detach();
             if (send_ack)
@@ -2926,6 +2965,18 @@ namespace ECProject
             asio::write(socket_data, asio::buffer(&ack, 1), ack_ec);
           }
           close_socket();
+          if (ok && placement_copy->xue_strict_schedule() &&
+              placement_copy->xue_strict_outgoing_size() > 0)
+          {
+            auto append_shared =
+                std::make_shared<std::vector<char>>(append_buf.begin(), append_buf.end());
+            std::thread([this, placement_copy, append_shared, tcp_slice_sizes, tcp_slice_count]() {
+              std::vector<char *> slice_ptrs = m_toolbox->splitCharPointer(
+                  append_shared->data(), append_shared->size(), tcp_slice_sizes);
+              runXueStrictDeferredForwards(placement_copy, append_shared, slice_ptrs, tcp_slice_count,
+                                           false);
+            }).detach();
+          }
           return;
         }
 
@@ -3166,8 +3217,9 @@ namespace ECProject
           }
           reportXueIngressReadyToCoordinator(stripe_id, placement_copy->key());
           auto append_shared = std::make_shared<std::vector<char>>(append_buf.begin(), append_buf.end());
-          std::vector<char *> slice_ptrs = slices;
-          std::thread([this, placement_copy, append_shared, slice_ptrs, tcp_slice_count]() {
+          std::thread([this, placement_copy, append_shared, tcp_slice_sizes, tcp_slice_count]() {
+            std::vector<char *> slice_ptrs = m_toolbox->splitCharPointer(
+                append_shared->data(), append_shared->size(), tcp_slice_sizes);
             runXueStrictDeferredForwards(placement_copy, append_shared, slice_ptrs, tcp_slice_count);
           }).detach();
           if (send_ack)
@@ -3445,8 +3497,8 @@ namespace ECProject
           std::lock_guard<std::mutex> accept_lk(m_client_accept_mutex);
           {
             struct timeval tv;
-            tv.tv_sec = 0;
-            tv.tv_usec = 500000;
+            tv.tv_sec = 60;
+            tv.tv_usec = 0;
             setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
           }
           acceptor.accept(socket_data, accept_ec);
@@ -3459,6 +3511,9 @@ namespace ECProject
         }
         if (accept_ec)
         {
+          std::cerr << "[Proxy] accept failed key=" << key
+                    << " proxy_cluster=" << m_self_cluster_id
+                    << " ec=" << accept_ec.message() << std::endl;
           return;
         }
         asio::error_code error;

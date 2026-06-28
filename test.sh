@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # xue 批量更新请求文件路径（实验时只需改这一行）
-XUE_UPDATE_REQUEST_FILE="/users/xue/xue/T00-64KB-100-10"
+XUE_UPDATE_REQUEST_FILE="/users/xue/xue/T00-1MB-1000-10log"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONFIG_XML="${SCRIPT_DIR}/project/config/parameterConfiguration.xml"

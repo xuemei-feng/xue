@@ -130,6 +130,12 @@ PROTOBUF_CONSTEXPR AppendPlanLayout::AppendPlanLayout(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.block_ids_)*/{}
   , /*decltype(_impl_._block_ids_cached_byte_size_)*/{0}
+  , /*decltype(_impl_.slice_block_ids_)*/{}
+  , /*decltype(_impl_._slice_block_ids_cached_byte_size_)*/{0}
+  , /*decltype(_impl_.slice_offsets_)*/{}
+  , /*decltype(_impl_._slice_offsets_cached_byte_size_)*/{0}
+  , /*decltype(_impl_.slice_sizes_)*/{}
+  , /*decltype(_impl_._slice_sizes_cached_byte_size_)*/{0}
   , /*decltype(_impl_.group_id_)*/0
   , /*decltype(_impl_.cluster_id_)*/0
   , /*decltype(_impl_.data_block_num_)*/0
@@ -674,6 +680,9 @@ const uint32_t TableStruct_coordinator_2eproto::offsets[] PROTOBUF_SECTION_VARIA
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::AppendPlanLayout, _impl_.global_parity_block_num_),
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::AppendPlanLayout, _impl_.local_parity_block_num_),
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::AppendPlanLayout, _impl_.block_ids_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::AppendPlanLayout, _impl_.slice_block_ids_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::AppendPlanLayout, _impl_.slice_offsets_),
+  PROTOBUF_FIELD_OFFSET(::coordinator_proto::AppendPlanLayout, _impl_.slice_sizes_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::coordinator_proto::XueTransferStepInfo, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -952,35 +961,35 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 45, -1, -1, sizeof(::coordinator_proto::ReplyProxyIPPort)},
   { 53, -1, -1, sizeof(::coordinator_proto::CommitAbortKey)},
   { 63, -1, -1, sizeof(::coordinator_proto::AppendPlanLayout)},
-  { 75, -1, -1, sizeof(::coordinator_proto::XueTransferStepInfo)},
-  { 91, -1, -1, sizeof(::coordinator_proto::XueStripeScheduleId)},
-  { 98, -1, -1, sizeof(::coordinator_proto::XueIngressReadyReport)},
-  { 106, -1, -1, sizeof(::coordinator_proto::XueScheduleStepWait)},
-  { 118, -1, -1, sizeof(::coordinator_proto::XueScheduleStepDone)},
-  { 131, -1, -1, sizeof(::coordinator_proto::XueScheduleClientWave)},
-  { 139, -1, -1, sizeof(::coordinator_proto::XueAppendKeyCommitWave)},
-  { 147, -1, -1, sizeof(::coordinator_proto::XueScheduleWaveRelease)},
-  { 155, -1, -1, sizeof(::coordinator_proto::XueScheduleHopWait)},
-  { 165, -1, -1, sizeof(::coordinator_proto::ReplyProxyIPsPorts)},
-  { 184, -1, -1, sizeof(::coordinator_proto::XueXferTimingPull)},
-  { 192, -1, -1, sizeof(::coordinator_proto::XueXferTimingProxySample)},
-  { 202, -1, -1, sizeof(::coordinator_proto::XueXferTimingSummary)},
-  { 211, -1, -1, sizeof(::coordinator_proto::AskIfSuccess)},
-  { 220, -1, -1, sizeof(::coordinator_proto::RepIfSuccess)},
-  { 227, -1, -1, sizeof(::coordinator_proto::KeyAndClientIP)},
-  { 236, -1, -1, sizeof(::coordinator_proto::RepIfGetSuccess)},
-  { 244, -1, -1, sizeof(::coordinator_proto::BlockIDsAndClientIP)},
-  { 255, -1, -1, sizeof(::coordinator_proto::LogicalRange)},
-  { 263, -1, -1, sizeof(::coordinator_proto::XueUpdateRequest)},
-  { 272, -1, -1, sizeof(::coordinator_proto::KeyFromClient)},
-  { 279, -1, -1, sizeof(::coordinator_proto::StripeIdFromClient)},
-  { 286, -1, -1, sizeof(::coordinator_proto::StripeIdAndBlockIDsFromClient)},
-  { 294, -1, -1, sizeof(::coordinator_proto::NodeIdFromClient)},
-  { 301, -1, -1, sizeof(::coordinator_proto::RepIfDeling)},
-  { 308, -1, -1, sizeof(::coordinator_proto::RepStripeIds)},
-  { 315, -1, -1, sizeof(::coordinator_proto::RepBlockNum)},
-  { 322, -1, -1, sizeof(::coordinator_proto::DegradedReadReply)},
-  { 332, -1, -1, sizeof(::coordinator_proto::RecoveryReply)},
+  { 78, -1, -1, sizeof(::coordinator_proto::XueTransferStepInfo)},
+  { 94, -1, -1, sizeof(::coordinator_proto::XueStripeScheduleId)},
+  { 101, -1, -1, sizeof(::coordinator_proto::XueIngressReadyReport)},
+  { 109, -1, -1, sizeof(::coordinator_proto::XueScheduleStepWait)},
+  { 121, -1, -1, sizeof(::coordinator_proto::XueScheduleStepDone)},
+  { 134, -1, -1, sizeof(::coordinator_proto::XueScheduleClientWave)},
+  { 142, -1, -1, sizeof(::coordinator_proto::XueAppendKeyCommitWave)},
+  { 150, -1, -1, sizeof(::coordinator_proto::XueScheduleWaveRelease)},
+  { 158, -1, -1, sizeof(::coordinator_proto::XueScheduleHopWait)},
+  { 168, -1, -1, sizeof(::coordinator_proto::ReplyProxyIPsPorts)},
+  { 187, -1, -1, sizeof(::coordinator_proto::XueXferTimingPull)},
+  { 195, -1, -1, sizeof(::coordinator_proto::XueXferTimingProxySample)},
+  { 205, -1, -1, sizeof(::coordinator_proto::XueXferTimingSummary)},
+  { 214, -1, -1, sizeof(::coordinator_proto::AskIfSuccess)},
+  { 223, -1, -1, sizeof(::coordinator_proto::RepIfSuccess)},
+  { 230, -1, -1, sizeof(::coordinator_proto::KeyAndClientIP)},
+  { 239, -1, -1, sizeof(::coordinator_proto::RepIfGetSuccess)},
+  { 247, -1, -1, sizeof(::coordinator_proto::BlockIDsAndClientIP)},
+  { 258, -1, -1, sizeof(::coordinator_proto::LogicalRange)},
+  { 266, -1, -1, sizeof(::coordinator_proto::XueUpdateRequest)},
+  { 275, -1, -1, sizeof(::coordinator_proto::KeyFromClient)},
+  { 282, -1, -1, sizeof(::coordinator_proto::StripeIdFromClient)},
+  { 289, -1, -1, sizeof(::coordinator_proto::StripeIdAndBlockIDsFromClient)},
+  { 297, -1, -1, sizeof(::coordinator_proto::NodeIdFromClient)},
+  { 304, -1, -1, sizeof(::coordinator_proto::RepIfDeling)},
+  { 311, -1, -1, sizeof(::coordinator_proto::RepStripeIds)},
+  { 318, -1, -1, sizeof(::coordinator_proto::RepBlockNum)},
+  { 325, -1, -1, sizeof(::coordinator_proto::DegradedReadReply)},
+  { 335, -1, -1, sizeof(::coordinator_proto::RecoveryReply)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -1040,168 +1049,169 @@ const char descriptor_table_protodef_coordinator_2eproto[] PROTOBUF_SECTION_VARI
   "ort\022\017\n\007proxyip\030\001 \001(\t\022\021\n\tproxyport\030\002 \001(\005\""
   "W\n\016CommitAbortKey\022\013\n\003key\030\001 \001(\t\022\030\n\020ifcomm"
   "itmetadata\030\002 \001(\010\022\013\n\003opp\030\003 \001(\005\022\021\n\tstripe_"
-  "id\030\004 \001(\005\"\244\001\n\020AppendPlanLayout\022\020\n\010group_i"
+  "id\030\004 \001(\005\"\351\001\n\020AppendPlanLayout\022\020\n\010group_i"
   "d\030\001 \001(\005\022\022\n\ncluster_id\030\002 \001(\005\022\026\n\016data_bloc"
   "k_num\030\003 \001(\005\022\037\n\027global_parity_block_num\030\004"
   " \001(\005\022\036\n\026local_parity_block_num\030\005 \001(\005\022\021\n\t"
-  "block_ids\030\006 \003(\005\"\350\001\n\023XueTransferStepInfo\022"
-  "\017\n\007step_no\030\001 \001(\005\022\026\n\016parallel_group\030\002 \001(\005"
-  "\022\022\n\nappend_key\030\003 \001(\t\022\024\n\014from_cluster\030\004 \001"
-  "(\005\022\022\n\nto_cluster\030\005 \001(\005\022\017\n\007payload\030\006 \001(\t\022"
-  "\021\n\tpath_desc\030\007 \001(\t\022\022\n\nstart_time\030\010 \001(\001\022\025"
-  "\n\rpred_step_nos\030\t \003(\005\022\033\n\023forward_append_"
-  "mode\030\n \001(\t\"(\n\023XueStripeScheduleId\022\021\n\tstr"
-  "ipe_id\030\001 \001(\005\">\n\025XueIngressReadyReport\022\021\n"
-  "\tstripe_id\030\001 \001(\005\022\022\n\nappend_key\030\002 \001(\t\"\221\001\n"
-  "\023XueScheduleStepWait\022\021\n\tstripe_id\030\001 \001(\005\022"
-  "\017\n\007step_no\030\002 \001(\005\022\022\n\nappend_key\030\003 \001(\t\022\024\n\014"
-  "from_cluster\030\004 \001(\005\022\022\n\nto_cluster\030\005 \001(\005\022\030"
-  "\n\020xue_xfer_plan_id\030\006 \001(\004\"\242\001\n\023XueSchedule"
-  "StepDone\022\021\n\tstripe_id\030\001 \001(\005\022\017\n\007step_no\030\002"
-  " \001(\005\022\017\n\007success\030\003 \001(\010\022\022\n\nappend_key\030\004 \001("
-  "\t\022\024\n\014from_cluster\030\005 \001(\005\022\022\n\nto_cluster\030\006 "
-  "\001(\005\022\030\n\020xue_xfer_plan_id\030\007 \001(\004\"O\n\025XueSche"
-  "duleClientWave\022\022\n\nwave_index\030\001 \001(\005\022\"\n\032cl"
-  "ient_ingress_append_keys\030\002 \003(\t\"F\n\026XueApp"
-  "endKeyCommitWave\022\022\n\nappend_key\030\001 \001(\t\022\030\n\020"
-  "wait_commit_wave\030\002 \001(\005\"B\n\026XueScheduleWav"
-  "eRelease\022\021\n\tstripe_id\030\001 \001(\005\022\025\n\rreleased_"
-  "wave\030\002 \001(\005\"e\n\022XueScheduleHopWait\022\021\n\tstri"
-  "pe_id\030\001 \001(\005\022\022\n\nappend_key\030\002 \001(\t\022\024\n\014from_"
-  "cluster\030\003 \001(\005\022\022\n\nto_cluster\030\004 \001(\005\"\373\003\n\022Re"
-  "plyProxyIPsPorts\022\027\n\017sum_append_size\030\001 \001("
-  "\004\022\023\n\013append_keys\030\002 \003(\t\022\020\n\010proxyips\030\003 \003(\t"
-  "\022\022\n\nproxyports\030\004 \003(\005\022\033\n\023cluster_slice_si"
-  "zes\030\005 \003(\004\022\021\n\tgroup_ids\030\006 \003(\005\0229\n\014plan_lay"
-  "outs\030\007 \003(\0132#.coordinator_proto.AppendPla"
-  "nLayout\022B\n\020xue_client_waves\030\010 \003(\0132(.coor"
-  "dinator_proto.XueScheduleClientWave\022C\n\020x"
-  "ue_commit_waves\030\t \003(\0132).coordinator_prot"
-  "o.XueAppendKeyCommitWave\022\036\n\026xue_schedule"
-  "_stripe_id\030\n \001(\005\022B\n\022xue_transfer_steps\030\013"
-  " \003(\0132&.coordinator_proto.XueTransferStep"
-  "Info\022\037\n\027xue_schedule_num_groups\030\014 \001(\005\022\030\n"
-  "\020xue_xfer_plan_id\030\r \001(\004\"@\n\021XueXferTiming"
-  "Pull\022\021\n\tstripe_id\030\001 \001(\005\022\030\n\020xue_xfer_plan"
-  "_id\030\002 \001(\004\"\213\001\n\030XueXferTimingProxySample\022\022"
-  "\n\ncluster_id\030\001 \001(\005\022\033\n\023proxy_pure_xfer_se"
-  "c\030\002 \001(\001\022\037\n\027wall_span_start_unix_ms\030\003 \001(\003"
-  "\022\035\n\025wall_span_end_unix_ms\030\004 \001(\003\"\236\001\n\024XueX"
-  "ferTimingSummary\022<\n\007proxies\030\001 \003(\0132+.coor"
-  "dinator_proto.XueXferTimingProxySample\022\037"
-  "\n\027max_proxy_pure_xfer_sec\030\002 \001(\001\022\'\n\037clust"
-  "er_pure_xfer_span_wall_sec\030\003 \001(\001\";\n\014AskI"
-  "fSuccess\022\013\n\003key\030\001 \001(\t\022\013\n\003opp\030\002 \001(\005\022\021\n\tst"
-  "ripe_id\030\003 \001(\005\" \n\014RepIfSuccess\022\020\n\010ifcommi"
-  "t\030\001 \001(\010\"C\n\016KeyAndClientIP\022\013\n\003key\030\001 \001(\t\022\020"
-  "\n\010clientip\030\002 \001(\t\022\022\n\nclientport\030\003 \001(\005\"\?\n\017"
-  "RepIfGetSuccess\022\024\n\014ifgetsuccess\030\001 \001(\010\022\026\n"
-  "\016valuesizebytes\030\002 \001(\005\"\202\001\n\023BlockIDsAndCli"
-  "entIP\022\026\n\016start_block_id\030\001 \001(\005\022\024\n\014end_blo"
-  "ck_id\030\002 \001(\005\022\020\n\010clientip\030\003 \001(\t\022\022\n\nclientp"
-  "ort\030\004 \001(\005\022\027\n\017failed_block_id\030\005 \001(\005\"H\n\014Lo"
-  "gicalRange\022\034\n\024logical_offset_start\030\001 \001(\005"
-  "\022\032\n\022logical_offset_end\030\002 \001(\005\"i\n\020XueUpdat"
-  "eRequest\022\021\n\tclient_id\030\001 \001(\t\022\021\n\tstripe_id"
-  "\030\002 \001(\005\022/\n\006ranges\030\003 \003(\0132\037.coordinator_pro"
-  "to.LogicalRange\"\034\n\rKeyFromClient\022\013\n\003key\030"
-  "\001 \001(\t\"\'\n\022StripeIdFromClient\022\021\n\tstripe_id"
-  "\030\001 \001(\005\"E\n\035StripeIdAndBlockIDsFromClient\022"
-  "\021\n\tstripe_id\030\001 \001(\005\022\021\n\tblock_ids\030\002 \003(\005\"#\n"
-  "\020NodeIdFromClient\022\017\n\007node_id\030\001 \001(\005\"\037\n\013Re"
-  "pIfDeling\022\020\n\010ifdeling\030\001 \001(\010\"\"\n\014RepStripe"
-  "Ids\022\022\n\nstripe_ids\030\001 \003(\005\" \n\013RepBlockNum\022\021"
-  "\n\tblock_num\030\001 \001(\005\"m\n\021DegradedReadReply\022\024"
-  "\n\014disk_io_time\030\001 \001(\001\022\024\n\014network_time\030\002 \001"
-  "(\001\022\023\n\013decode_time\030\003 \001(\001\022\027\n\017grpc_start_ti"
-  "me\030\004 \001(\001\"\204\001\n\rRecoveryReply\022\026\n\016disk_read_"
-  "time\030\001 \001(\001\022\024\n\014network_time\030\002 \001(\001\022\023\n\013deco"
-  "de_time\030\003 \001(\001\022\027\n\017disk_write_time\030\004 \001(\001\022\027"
-  "\n\017grpc_start_time\030\005 \001(\0012\346\030\n\022coordinatorS"
-  "ervice\022k\n\025sayHelloToCoordinator\022\'.coordi"
-  "nator_proto.RequestToCoordinator\032\'.coord"
-  "inator_proto.ReplyFromCoordinator\"\000\022`\n\nc"
-  "heckalive\022\'.coordinator_proto.RequestToC"
-  "oordinator\032\'.coordinator_proto.ReplyFrom"
-  "Coordinator\"\000\022V\n\014setParameter\022\034.coordina"
-  "tor_proto.Parameter\032&.coordinator_proto."
-  "RepIfSetParaSuccess\"\000\022d\n\024uploadOriginKey"
-  "Value\022%.coordinator_proto.RequestProxyIP"
-  "Port\032#.coordinator_proto.ReplyProxyIPPor"
-  "t\"\000\022a\n\021reportCommitAbort\022!.coordinator_p"
-  "roto.CommitAbortKey\032\'.coordinator_proto."
-  "ReplyFromCoordinator\"\000\022V\n\020checkCommitAbo"
-  "rt\022\037.coordinator_proto.AskIfSuccess\032\037.co"
-  "ordinator_proto.RepIfSuccess\"\000\022`\n\016upload"
-  "SetValue\022%.coordinator_proto.RequestProx"
-  "yIPPort\032%.coordinator_proto.ReplyProxyIP"
-  "sPorts\"\000\022c\n\021uploadSubsetValue\022%.coordina"
-  "tor_proto.RequestProxyIPPort\032%.coordinat"
-  "or_proto.ReplyProxyIPsPorts\"\000\022c\n\021uploadA"
-  "ppendValue\022%.coordinator_proto.RequestPr"
-  "oxyIPPort\032%.coordinator_proto.ReplyProxy"
-  "IPsPorts\"\000\022_\n\017uploadXueUpdate\022#.coordina"
-  "tor_proto.XueUpdateRequest\032%.coordinator"
-  "_proto.ReplyProxyIPsPorts\"\000\022l\n\025reportXue"
-  "IngressReady\022(.coordinator_proto.XueIngr"
-  "essReadyReport\032\'.coordinator_proto.Reply"
-  "FromCoordinator\"\000\022k\n\026waitXueAllIngressRe"
-  "ady\022&.coordinator_proto.XueStripeSchedul"
-  "eId\032\'.coordinator_proto.ReplyFromCoordin"
-  "ator\"\000\022k\n\026waitXueAllCommitsReady\022&.coord"
-  "inator_proto.XueStripeScheduleId\032\'.coord"
-  "inator_proto.ReplyFromCoordinator\"\000\022h\n\023w"
-  "aitXueScheduleStep\022&.coordinator_proto.X"
-  "ueScheduleStepWait\032\'.coordinator_proto.R"
-  "eplyFromCoordinator\"\000\022n\n\031reportXueSchedu"
-  "leStepDone\022&.coordinator_proto.XueSchedu"
-  "leStepDone\032\'.coordinator_proto.ReplyFrom"
-  "Coordinator\"\000\022n\n\026releaseXueScheduleWave\022"
-  ").coordinator_proto.XueScheduleWaveRelea"
-  "se\032\'.coordinator_proto.ReplyFromCoordina"
-  "tor\"\000\022f\n\022waitXueScheduleHop\022%.coordinato"
-  "r_proto.XueScheduleHopWait\032\'.coordinator"
-  "_proto.ReplyFromCoordinator\"\000\022d\n\021pullXue"
-  "XferTiming\022$.coordinator_proto.XueXferTi"
-  "mingPull\032\'.coordinator_proto.XueXferTimi"
-  "ngSummary\"\000\022S\n\010getValue\022!.coordinator_pr"
-  "oto.KeyAndClientIP\032\".coordinator_proto.R"
-  "epIfGetSuccess\"\000\022W\n\tgetStripe\022!.coordina"
-  "tor_proto.KeyAndClientIP\032%.coordinator_p"
-  "roto.ReplyProxyIPsPorts\"\000\022\\\n\tgetBlocks\022&"
-  ".coordinator_proto.BlockIDsAndClientIP\032%"
+  "block_ids\030\006 \003(\005\022\027\n\017slice_block_ids\030\007 \003(\005"
+  "\022\025\n\rslice_offsets\030\010 \003(\005\022\023\n\013slice_sizes\030\t"
+  " \003(\005\"\350\001\n\023XueTransferStepInfo\022\017\n\007step_no\030"
+  "\001 \001(\005\022\026\n\016parallel_group\030\002 \001(\005\022\022\n\nappend_"
+  "key\030\003 \001(\t\022\024\n\014from_cluster\030\004 \001(\005\022\022\n\nto_cl"
+  "uster\030\005 \001(\005\022\017\n\007payload\030\006 \001(\t\022\021\n\tpath_des"
+  "c\030\007 \001(\t\022\022\n\nstart_time\030\010 \001(\001\022\025\n\rpred_step"
+  "_nos\030\t \003(\005\022\033\n\023forward_append_mode\030\n \001(\t\""
+  "(\n\023XueStripeScheduleId\022\021\n\tstripe_id\030\001 \001("
+  "\005\">\n\025XueIngressReadyReport\022\021\n\tstripe_id\030"
+  "\001 \001(\005\022\022\n\nappend_key\030\002 \001(\t\"\221\001\n\023XueSchedul"
+  "eStepWait\022\021\n\tstripe_id\030\001 \001(\005\022\017\n\007step_no\030"
+  "\002 \001(\005\022\022\n\nappend_key\030\003 \001(\t\022\024\n\014from_cluste"
+  "r\030\004 \001(\005\022\022\n\nto_cluster\030\005 \001(\005\022\030\n\020xue_xfer_"
+  "plan_id\030\006 \001(\004\"\242\001\n\023XueScheduleStepDone\022\021\n"
+  "\tstripe_id\030\001 \001(\005\022\017\n\007step_no\030\002 \001(\005\022\017\n\007suc"
+  "cess\030\003 \001(\010\022\022\n\nappend_key\030\004 \001(\t\022\024\n\014from_c"
+  "luster\030\005 \001(\005\022\022\n\nto_cluster\030\006 \001(\005\022\030\n\020xue_"
+  "xfer_plan_id\030\007 \001(\004\"O\n\025XueScheduleClientW"
+  "ave\022\022\n\nwave_index\030\001 \001(\005\022\"\n\032client_ingres"
+  "s_append_keys\030\002 \003(\t\"F\n\026XueAppendKeyCommi"
+  "tWave\022\022\n\nappend_key\030\001 \001(\t\022\030\n\020wait_commit"
+  "_wave\030\002 \001(\005\"B\n\026XueScheduleWaveRelease\022\021\n"
+  "\tstripe_id\030\001 \001(\005\022\025\n\rreleased_wave\030\002 \001(\005\""
+  "e\n\022XueScheduleHopWait\022\021\n\tstripe_id\030\001 \001(\005"
+  "\022\022\n\nappend_key\030\002 \001(\t\022\024\n\014from_cluster\030\003 \001"
+  "(\005\022\022\n\nto_cluster\030\004 \001(\005\"\373\003\n\022ReplyProxyIPs"
+  "Ports\022\027\n\017sum_append_size\030\001 \001(\004\022\023\n\013append"
+  "_keys\030\002 \003(\t\022\020\n\010proxyips\030\003 \003(\t\022\022\n\nproxypo"
+  "rts\030\004 \003(\005\022\033\n\023cluster_slice_sizes\030\005 \003(\004\022\021"
+  "\n\tgroup_ids\030\006 \003(\005\0229\n\014plan_layouts\030\007 \003(\0132"
+  "#.coordinator_proto.AppendPlanLayout\022B\n\020"
+  "xue_client_waves\030\010 \003(\0132(.coordinator_pro"
+  "to.XueScheduleClientWave\022C\n\020xue_commit_w"
+  "aves\030\t \003(\0132).coordinator_proto.XueAppend"
+  "KeyCommitWave\022\036\n\026xue_schedule_stripe_id\030"
+  "\n \001(\005\022B\n\022xue_transfer_steps\030\013 \003(\0132&.coor"
+  "dinator_proto.XueTransferStepInfo\022\037\n\027xue"
+  "_schedule_num_groups\030\014 \001(\005\022\030\n\020xue_xfer_p"
+  "lan_id\030\r \001(\004\"@\n\021XueXferTimingPull\022\021\n\tstr"
+  "ipe_id\030\001 \001(\005\022\030\n\020xue_xfer_plan_id\030\002 \001(\004\"\213"
+  "\001\n\030XueXferTimingProxySample\022\022\n\ncluster_i"
+  "d\030\001 \001(\005\022\033\n\023proxy_pure_xfer_sec\030\002 \001(\001\022\037\n\027"
+  "wall_span_start_unix_ms\030\003 \001(\003\022\035\n\025wall_sp"
+  "an_end_unix_ms\030\004 \001(\003\"\236\001\n\024XueXferTimingSu"
+  "mmary\022<\n\007proxies\030\001 \003(\0132+.coordinator_pro"
+  "to.XueXferTimingProxySample\022\037\n\027max_proxy"
+  "_pure_xfer_sec\030\002 \001(\001\022\'\n\037cluster_pure_xfe"
+  "r_span_wall_sec\030\003 \001(\001\";\n\014AskIfSuccess\022\013\n"
+  "\003key\030\001 \001(\t\022\013\n\003opp\030\002 \001(\005\022\021\n\tstripe_id\030\003 \001"
+  "(\005\" \n\014RepIfSuccess\022\020\n\010ifcommit\030\001 \001(\010\"C\n\016"
+  "KeyAndClientIP\022\013\n\003key\030\001 \001(\t\022\020\n\010clientip\030"
+  "\002 \001(\t\022\022\n\nclientport\030\003 \001(\005\"\?\n\017RepIfGetSuc"
+  "cess\022\024\n\014ifgetsuccess\030\001 \001(\010\022\026\n\016valuesizeb"
+  "ytes\030\002 \001(\005\"\202\001\n\023BlockIDsAndClientIP\022\026\n\016st"
+  "art_block_id\030\001 \001(\005\022\024\n\014end_block_id\030\002 \001(\005"
+  "\022\020\n\010clientip\030\003 \001(\t\022\022\n\nclientport\030\004 \001(\005\022\027"
+  "\n\017failed_block_id\030\005 \001(\005\"H\n\014LogicalRange\022"
+  "\034\n\024logical_offset_start\030\001 \001(\005\022\032\n\022logical"
+  "_offset_end\030\002 \001(\005\"i\n\020XueUpdateRequest\022\021\n"
+  "\tclient_id\030\001 \001(\t\022\021\n\tstripe_id\030\002 \001(\005\022/\n\006r"
+  "anges\030\003 \003(\0132\037.coordinator_proto.LogicalR"
+  "ange\"\034\n\rKeyFromClient\022\013\n\003key\030\001 \001(\t\"\'\n\022St"
+  "ripeIdFromClient\022\021\n\tstripe_id\030\001 \001(\005\"E\n\035S"
+  "tripeIdAndBlockIDsFromClient\022\021\n\tstripe_i"
+  "d\030\001 \001(\005\022\021\n\tblock_ids\030\002 \003(\005\"#\n\020NodeIdFrom"
+  "Client\022\017\n\007node_id\030\001 \001(\005\"\037\n\013RepIfDeling\022\020"
+  "\n\010ifdeling\030\001 \001(\010\"\"\n\014RepStripeIds\022\022\n\nstri"
+  "pe_ids\030\001 \003(\005\" \n\013RepBlockNum\022\021\n\tblock_num"
+  "\030\001 \001(\005\"m\n\021DegradedReadReply\022\024\n\014disk_io_t"
+  "ime\030\001 \001(\001\022\024\n\014network_time\030\002 \001(\001\022\023\n\013decod"
+  "e_time\030\003 \001(\001\022\027\n\017grpc_start_time\030\004 \001(\001\"\204\001"
+  "\n\rRecoveryReply\022\026\n\016disk_read_time\030\001 \001(\001\022"
+  "\024\n\014network_time\030\002 \001(\001\022\023\n\013decode_time\030\003 \001"
+  "(\001\022\027\n\017disk_write_time\030\004 \001(\001\022\027\n\017grpc_star"
+  "t_time\030\005 \001(\0012\346\030\n\022coordinatorService\022k\n\025s"
+  "ayHelloToCoordinator\022\'.coordinator_proto"
+  ".RequestToCoordinator\032\'.coordinator_prot"
+  "o.ReplyFromCoordinator\"\000\022`\n\ncheckalive\022\'"
+  ".coordinator_proto.RequestToCoordinator\032"
+  "\'.coordinator_proto.ReplyFromCoordinator"
+  "\"\000\022V\n\014setParameter\022\034.coordinator_proto.P"
+  "arameter\032&.coordinator_proto.RepIfSetPar"
+  "aSuccess\"\000\022d\n\024uploadOriginKeyValue\022%.coo"
+  "rdinator_proto.RequestProxyIPPort\032#.coor"
+  "dinator_proto.ReplyProxyIPPort\"\000\022a\n\021repo"
+  "rtCommitAbort\022!.coordinator_proto.Commit"
+  "AbortKey\032\'.coordinator_proto.ReplyFromCo"
+  "ordinator\"\000\022V\n\020checkCommitAbort\022\037.coordi"
+  "nator_proto.AskIfSuccess\032\037.coordinator_p"
+  "roto.RepIfSuccess\"\000\022`\n\016uploadSetValue\022%."
+  "coordinator_proto.RequestProxyIPPort\032%.c"
+  "oordinator_proto.ReplyProxyIPsPorts\"\000\022c\n"
+  "\021uploadSubsetValue\022%.coordinator_proto.R"
+  "equestProxyIPPort\032%.coordinator_proto.Re"
+  "plyProxyIPsPorts\"\000\022c\n\021uploadAppendValue\022"
+  "%.coordinator_proto.RequestProxyIPPort\032%"
   ".coordinator_proto.ReplyProxyIPsPorts\"\000\022"
-  "h\n\025getDegradedReadBlocks\022&.coordinator_p"
-  "roto.BlockIDsAndClientIP\032%.coordinator_p"
-  "roto.ReplyProxyIPsPorts\"\000\022a\n\024getDegraded"
-  "ReadBlock\022!.coordinator_proto.KeyAndClie"
-  "ntIP\032$.coordinator_proto.DegradedReadRep"
-  "ly\"\000\022j\n\035getDegradedReadBlockBreakdown\022!."
-  "coordinator_proto.KeyAndClientIP\032$.coord"
-  "inator_proto.DegradedReadReply\"\000\022T\n\013getR"
-  "ecovery\022!.coordinator_proto.KeyAndClient"
-  "IP\032 .coordinator_proto.RecoveryReply\"\000\022]"
-  "\n\024getRecoveryBreakdown\022!.coordinator_pro"
-  "to.KeyAndClientIP\032 .coordinator_proto.Re"
-  "coveryReply\"\000\022Y\n\020fullNodeRecovery\022#.coor"
-  "dinator_proto.NodeIdFromClient\032\036.coordin"
-  "ator_proto.RepBlockNum\"\000\022j\n\022multiBlockRe"
-  "covery\0220.coordinator_proto.StripeIdAndBl"
-  "ockIDsFromClient\032 .coordinator_proto.Rec"
-  "overyReply\"\000\022N\n\010delByKey\022 .coordinator_p"
-  "roto.KeyFromClient\032\036.coordinator_proto.R"
-  "epIfDeling\"\000\022V\n\013delByStripe\022%.coordinato"
-  "r_proto.StripeIdFromClient\032\036.coordinator"
-  "_proto.RepIfDeling\"\000\022Y\n\013listStripes\022\'.co"
-  "ordinator_proto.RequestToCoordinator\032\037.c"
-  "oordinator_proto.RepStripeIds\"\000\022W\n\ndecod"
-  "eTest\022!.coordinator_proto.KeyAndClientIP"
-  "\032$.coordinator_proto.DegradedReadReply\"\000"
-  "b\006proto3"
+  "_\n\017uploadXueUpdate\022#.coordinator_proto.X"
+  "ueUpdateRequest\032%.coordinator_proto.Repl"
+  "yProxyIPsPorts\"\000\022l\n\025reportXueIngressRead"
+  "y\022(.coordinator_proto.XueIngressReadyRep"
+  "ort\032\'.coordinator_proto.ReplyFromCoordin"
+  "ator\"\000\022k\n\026waitXueAllIngressReady\022&.coord"
+  "inator_proto.XueStripeScheduleId\032\'.coord"
+  "inator_proto.ReplyFromCoordinator\"\000\022k\n\026w"
+  "aitXueAllCommitsReady\022&.coordinator_prot"
+  "o.XueStripeScheduleId\032\'.coordinator_prot"
+  "o.ReplyFromCoordinator\"\000\022h\n\023waitXueSched"
+  "uleStep\022&.coordinator_proto.XueScheduleS"
+  "tepWait\032\'.coordinator_proto.ReplyFromCoo"
+  "rdinator\"\000\022n\n\031reportXueScheduleStepDone\022"
+  "&.coordinator_proto.XueScheduleStepDone\032"
+  "\'.coordinator_proto.ReplyFromCoordinator"
+  "\"\000\022n\n\026releaseXueScheduleWave\022).coordinat"
+  "or_proto.XueScheduleWaveRelease\032\'.coordi"
+  "nator_proto.ReplyFromCoordinator\"\000\022f\n\022wa"
+  "itXueScheduleHop\022%.coordinator_proto.Xue"
+  "ScheduleHopWait\032\'.coordinator_proto.Repl"
+  "yFromCoordinator\"\000\022d\n\021pullXueXferTiming\022"
+  "$.coordinator_proto.XueXferTimingPull\032\'."
+  "coordinator_proto.XueXferTimingSummary\"\000"
+  "\022S\n\010getValue\022!.coordinator_proto.KeyAndC"
+  "lientIP\032\".coordinator_proto.RepIfGetSucc"
+  "ess\"\000\022W\n\tgetStripe\022!.coordinator_proto.K"
+  "eyAndClientIP\032%.coordinator_proto.ReplyP"
+  "roxyIPsPorts\"\000\022\\\n\tgetBlocks\022&.coordinato"
+  "r_proto.BlockIDsAndClientIP\032%.coordinato"
+  "r_proto.ReplyProxyIPsPorts\"\000\022h\n\025getDegra"
+  "dedReadBlocks\022&.coordinator_proto.BlockI"
+  "DsAndClientIP\032%.coordinator_proto.ReplyP"
+  "roxyIPsPorts\"\000\022a\n\024getDegradedReadBlock\022!"
+  ".coordinator_proto.KeyAndClientIP\032$.coor"
+  "dinator_proto.DegradedReadReply\"\000\022j\n\035get"
+  "DegradedReadBlockBreakdown\022!.coordinator"
+  "_proto.KeyAndClientIP\032$.coordinator_prot"
+  "o.DegradedReadReply\"\000\022T\n\013getRecovery\022!.c"
+  "oordinator_proto.KeyAndClientIP\032 .coordi"
+  "nator_proto.RecoveryReply\"\000\022]\n\024getRecove"
+  "ryBreakdown\022!.coordinator_proto.KeyAndCl"
+  "ientIP\032 .coordinator_proto.RecoveryReply"
+  "\"\000\022Y\n\020fullNodeRecovery\022#.coordinator_pro"
+  "to.NodeIdFromClient\032\036.coordinator_proto."
+  "RepBlockNum\"\000\022j\n\022multiBlockRecovery\0220.co"
+  "ordinator_proto.StripeIdAndBlockIDsFromC"
+  "lient\032 .coordinator_proto.RecoveryReply\""
+  "\000\022N\n\010delByKey\022 .coordinator_proto.KeyFro"
+  "mClient\032\036.coordinator_proto.RepIfDeling\""
+  "\000\022V\n\013delByStripe\022%.coordinator_proto.Str"
+  "ipeIdFromClient\032\036.coordinator_proto.RepI"
+  "fDeling\"\000\022Y\n\013listStripes\022\'.coordinator_p"
+  "roto.RequestToCoordinator\032\037.coordinator_"
+  "proto.RepStripeIds\"\000\022W\n\ndecodeTest\022!.coo"
+  "rdinator_proto.KeyAndClientIP\032$.coordina"
+  "tor_proto.DegradedReadReply\"\000b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_coordinator_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_coordinator_2eproto = {
-    false, false, 6928, descriptor_table_protodef_coordinator_2eproto,
+    false, false, 6997, descriptor_table_protodef_coordinator_2eproto,
     "coordinator.proto",
     &descriptor_table_coordinator_2eproto_once, nullptr, 0, 37,
     schemas, file_default_instances, TableStruct_coordinator_2eproto::offsets,
@@ -2994,6 +3004,12 @@ AppendPlanLayout::AppendPlanLayout(const AppendPlanLayout& from)
   new (&_impl_) Impl_{
       decltype(_impl_.block_ids_){from._impl_.block_ids_}
     , /*decltype(_impl_._block_ids_cached_byte_size_)*/{0}
+    , decltype(_impl_.slice_block_ids_){from._impl_.slice_block_ids_}
+    , /*decltype(_impl_._slice_block_ids_cached_byte_size_)*/{0}
+    , decltype(_impl_.slice_offsets_){from._impl_.slice_offsets_}
+    , /*decltype(_impl_._slice_offsets_cached_byte_size_)*/{0}
+    , decltype(_impl_.slice_sizes_){from._impl_.slice_sizes_}
+    , /*decltype(_impl_._slice_sizes_cached_byte_size_)*/{0}
     , decltype(_impl_.group_id_){}
     , decltype(_impl_.cluster_id_){}
     , decltype(_impl_.data_block_num_){}
@@ -3015,6 +3031,12 @@ inline void AppendPlanLayout::SharedCtor(
   new (&_impl_) Impl_{
       decltype(_impl_.block_ids_){arena}
     , /*decltype(_impl_._block_ids_cached_byte_size_)*/{0}
+    , decltype(_impl_.slice_block_ids_){arena}
+    , /*decltype(_impl_._slice_block_ids_cached_byte_size_)*/{0}
+    , decltype(_impl_.slice_offsets_){arena}
+    , /*decltype(_impl_._slice_offsets_cached_byte_size_)*/{0}
+    , decltype(_impl_.slice_sizes_){arena}
+    , /*decltype(_impl_._slice_sizes_cached_byte_size_)*/{0}
     , decltype(_impl_.group_id_){0}
     , decltype(_impl_.cluster_id_){0}
     , decltype(_impl_.data_block_num_){0}
@@ -3036,6 +3058,9 @@ AppendPlanLayout::~AppendPlanLayout() {
 inline void AppendPlanLayout::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.block_ids_.~RepeatedField();
+  _impl_.slice_block_ids_.~RepeatedField();
+  _impl_.slice_offsets_.~RepeatedField();
+  _impl_.slice_sizes_.~RepeatedField();
 }
 
 void AppendPlanLayout::SetCachedSize(int size) const {
@@ -3049,6 +3074,9 @@ void AppendPlanLayout::Clear() {
   (void) cached_has_bits;
 
   _impl_.block_ids_.Clear();
+  _impl_.slice_block_ids_.Clear();
+  _impl_.slice_offsets_.Clear();
+  _impl_.slice_sizes_.Clear();
   ::memset(&_impl_.group_id_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&_impl_.local_parity_block_num_) -
       reinterpret_cast<char*>(&_impl_.group_id_)) + sizeof(_impl_.local_parity_block_num_));
@@ -3108,6 +3136,39 @@ const char* AppendPlanLayout::_InternalParse(const char* ptr, ::_pbi::ParseConte
           CHK_(ptr);
         } else if (static_cast<uint8_t>(tag) == 48) {
           _internal_add_block_ids(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated int32 slice_block_ids = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 58)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_slice_block_ids(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<uint8_t>(tag) == 56) {
+          _internal_add_slice_block_ids(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated int32 slice_offsets = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_slice_offsets(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<uint8_t>(tag) == 64) {
+          _internal_add_slice_offsets(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated int32 slice_sizes = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 74)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_slice_sizes(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<uint8_t>(tag) == 72) {
+          _internal_add_slice_sizes(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -3180,6 +3241,33 @@ uint8_t* AppendPlanLayout::_InternalSerialize(
     }
   }
 
+  // repeated int32 slice_block_ids = 7;
+  {
+    int byte_size = _impl_._slice_block_ids_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt32Packed(
+          7, _internal_slice_block_ids(), byte_size, target);
+    }
+  }
+
+  // repeated int32 slice_offsets = 8;
+  {
+    int byte_size = _impl_._slice_offsets_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt32Packed(
+          8, _internal_slice_offsets(), byte_size, target);
+    }
+  }
+
+  // repeated int32 slice_sizes = 9;
+  {
+    int byte_size = _impl_._slice_sizes_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt32Packed(
+          9, _internal_slice_sizes(), byte_size, target);
+    }
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -3206,6 +3294,48 @@ size_t AppendPlanLayout::ByteSizeLong() const {
     }
     int cached_size = ::_pbi::ToCachedSize(data_size);
     _impl_._block_ids_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
+  // repeated int32 slice_block_ids = 7;
+  {
+    size_t data_size = ::_pbi::WireFormatLite::
+      Int32Size(this->_impl_.slice_block_ids_);
+    if (data_size > 0) {
+      total_size += 1 +
+        ::_pbi::WireFormatLite::Int32Size(static_cast<int32_t>(data_size));
+    }
+    int cached_size = ::_pbi::ToCachedSize(data_size);
+    _impl_._slice_block_ids_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
+  // repeated int32 slice_offsets = 8;
+  {
+    size_t data_size = ::_pbi::WireFormatLite::
+      Int32Size(this->_impl_.slice_offsets_);
+    if (data_size > 0) {
+      total_size += 1 +
+        ::_pbi::WireFormatLite::Int32Size(static_cast<int32_t>(data_size));
+    }
+    int cached_size = ::_pbi::ToCachedSize(data_size);
+    _impl_._slice_offsets_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
+  // repeated int32 slice_sizes = 9;
+  {
+    size_t data_size = ::_pbi::WireFormatLite::
+      Int32Size(this->_impl_.slice_sizes_);
+    if (data_size > 0) {
+      total_size += 1 +
+        ::_pbi::WireFormatLite::Int32Size(static_cast<int32_t>(data_size));
+    }
+    int cached_size = ::_pbi::ToCachedSize(data_size);
+    _impl_._slice_sizes_cached_byte_size_.store(cached_size,
                                     std::memory_order_relaxed);
     total_size += data_size;
   }
@@ -3254,6 +3384,9 @@ void AppendPlanLayout::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const
   (void) cached_has_bits;
 
   _this->_impl_.block_ids_.MergeFrom(from._impl_.block_ids_);
+  _this->_impl_.slice_block_ids_.MergeFrom(from._impl_.slice_block_ids_);
+  _this->_impl_.slice_offsets_.MergeFrom(from._impl_.slice_offsets_);
+  _this->_impl_.slice_sizes_.MergeFrom(from._impl_.slice_sizes_);
   if (from._internal_group_id() != 0) {
     _this->_internal_set_group_id(from._internal_group_id());
   }
@@ -3287,6 +3420,9 @@ void AppendPlanLayout::InternalSwap(AppendPlanLayout* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   _impl_.block_ids_.InternalSwap(&other->_impl_.block_ids_);
+  _impl_.slice_block_ids_.InternalSwap(&other->_impl_.slice_block_ids_);
+  _impl_.slice_offsets_.InternalSwap(&other->_impl_.slice_offsets_);
+  _impl_.slice_sizes_.InternalSwap(&other->_impl_.slice_sizes_);
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(AppendPlanLayout, _impl_.local_parity_block_num_)
       + sizeof(AppendPlanLayout::_impl_.local_parity_block_num_)

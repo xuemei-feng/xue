@@ -1542,6 +1542,9 @@ class AppendPlanLayout final :
 
   enum : int {
     kBlockIdsFieldNumber = 6,
+    kSliceBlockIdsFieldNumber = 7,
+    kSliceOffsetsFieldNumber = 8,
+    kSliceSizesFieldNumber = 9,
     kGroupIdFieldNumber = 1,
     kClusterIdFieldNumber = 2,
     kDataBlockNumFieldNumber = 3,
@@ -1569,6 +1572,72 @@ class AppendPlanLayout final :
       block_ids() const;
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
       mutable_block_ids();
+
+  // repeated int32 slice_block_ids = 7;
+  int slice_block_ids_size() const;
+  private:
+  int _internal_slice_block_ids_size() const;
+  public:
+  void clear_slice_block_ids();
+  private:
+  int32_t _internal_slice_block_ids(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_slice_block_ids() const;
+  void _internal_add_slice_block_ids(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_slice_block_ids();
+  public:
+  int32_t slice_block_ids(int index) const;
+  void set_slice_block_ids(int index, int32_t value);
+  void add_slice_block_ids(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      slice_block_ids() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_slice_block_ids();
+
+  // repeated int32 slice_offsets = 8;
+  int slice_offsets_size() const;
+  private:
+  int _internal_slice_offsets_size() const;
+  public:
+  void clear_slice_offsets();
+  private:
+  int32_t _internal_slice_offsets(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_slice_offsets() const;
+  void _internal_add_slice_offsets(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_slice_offsets();
+  public:
+  int32_t slice_offsets(int index) const;
+  void set_slice_offsets(int index, int32_t value);
+  void add_slice_offsets(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      slice_offsets() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_slice_offsets();
+
+  // repeated int32 slice_sizes = 9;
+  int slice_sizes_size() const;
+  private:
+  int _internal_slice_sizes_size() const;
+  public:
+  void clear_slice_sizes();
+  private:
+  int32_t _internal_slice_sizes(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_slice_sizes() const;
+  void _internal_add_slice_sizes(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_slice_sizes();
+  public:
+  int32_t slice_sizes(int index) const;
+  void set_slice_sizes(int index, int32_t value);
+  void add_slice_sizes(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      slice_sizes() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_slice_sizes();
 
   // int32 group_id = 1;
   void clear_group_id();
@@ -1625,6 +1694,12 @@ class AppendPlanLayout final :
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > block_ids_;
     mutable std::atomic<int> _block_ids_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > slice_block_ids_;
+    mutable std::atomic<int> _slice_block_ids_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > slice_offsets_;
+    mutable std::atomic<int> _slice_offsets_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > slice_sizes_;
+    mutable std::atomic<int> _slice_sizes_cached_byte_size_;
     int32_t group_id_;
     int32_t cluster_id_;
     int32_t data_block_num_;
@@ -7684,6 +7759,147 @@ inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
 AppendPlanLayout::mutable_block_ids() {
   // @@protoc_insertion_point(field_mutable_list:coordinator_proto.AppendPlanLayout.block_ids)
   return _internal_mutable_block_ids();
+}
+
+// repeated int32 slice_block_ids = 7;
+inline int AppendPlanLayout::_internal_slice_block_ids_size() const {
+  return _impl_.slice_block_ids_.size();
+}
+inline int AppendPlanLayout::slice_block_ids_size() const {
+  return _internal_slice_block_ids_size();
+}
+inline void AppendPlanLayout::clear_slice_block_ids() {
+  _impl_.slice_block_ids_.Clear();
+}
+inline int32_t AppendPlanLayout::_internal_slice_block_ids(int index) const {
+  return _impl_.slice_block_ids_.Get(index);
+}
+inline int32_t AppendPlanLayout::slice_block_ids(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.AppendPlanLayout.slice_block_ids)
+  return _internal_slice_block_ids(index);
+}
+inline void AppendPlanLayout::set_slice_block_ids(int index, int32_t value) {
+  _impl_.slice_block_ids_.Set(index, value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.AppendPlanLayout.slice_block_ids)
+}
+inline void AppendPlanLayout::_internal_add_slice_block_ids(int32_t value) {
+  _impl_.slice_block_ids_.Add(value);
+}
+inline void AppendPlanLayout::add_slice_block_ids(int32_t value) {
+  _internal_add_slice_block_ids(value);
+  // @@protoc_insertion_point(field_add:coordinator_proto.AppendPlanLayout.slice_block_ids)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+AppendPlanLayout::_internal_slice_block_ids() const {
+  return _impl_.slice_block_ids_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+AppendPlanLayout::slice_block_ids() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.AppendPlanLayout.slice_block_ids)
+  return _internal_slice_block_ids();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+AppendPlanLayout::_internal_mutable_slice_block_ids() {
+  return &_impl_.slice_block_ids_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+AppendPlanLayout::mutable_slice_block_ids() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.AppendPlanLayout.slice_block_ids)
+  return _internal_mutable_slice_block_ids();
+}
+
+// repeated int32 slice_offsets = 8;
+inline int AppendPlanLayout::_internal_slice_offsets_size() const {
+  return _impl_.slice_offsets_.size();
+}
+inline int AppendPlanLayout::slice_offsets_size() const {
+  return _internal_slice_offsets_size();
+}
+inline void AppendPlanLayout::clear_slice_offsets() {
+  _impl_.slice_offsets_.Clear();
+}
+inline int32_t AppendPlanLayout::_internal_slice_offsets(int index) const {
+  return _impl_.slice_offsets_.Get(index);
+}
+inline int32_t AppendPlanLayout::slice_offsets(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.AppendPlanLayout.slice_offsets)
+  return _internal_slice_offsets(index);
+}
+inline void AppendPlanLayout::set_slice_offsets(int index, int32_t value) {
+  _impl_.slice_offsets_.Set(index, value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.AppendPlanLayout.slice_offsets)
+}
+inline void AppendPlanLayout::_internal_add_slice_offsets(int32_t value) {
+  _impl_.slice_offsets_.Add(value);
+}
+inline void AppendPlanLayout::add_slice_offsets(int32_t value) {
+  _internal_add_slice_offsets(value);
+  // @@protoc_insertion_point(field_add:coordinator_proto.AppendPlanLayout.slice_offsets)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+AppendPlanLayout::_internal_slice_offsets() const {
+  return _impl_.slice_offsets_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+AppendPlanLayout::slice_offsets() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.AppendPlanLayout.slice_offsets)
+  return _internal_slice_offsets();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+AppendPlanLayout::_internal_mutable_slice_offsets() {
+  return &_impl_.slice_offsets_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+AppendPlanLayout::mutable_slice_offsets() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.AppendPlanLayout.slice_offsets)
+  return _internal_mutable_slice_offsets();
+}
+
+// repeated int32 slice_sizes = 9;
+inline int AppendPlanLayout::_internal_slice_sizes_size() const {
+  return _impl_.slice_sizes_.size();
+}
+inline int AppendPlanLayout::slice_sizes_size() const {
+  return _internal_slice_sizes_size();
+}
+inline void AppendPlanLayout::clear_slice_sizes() {
+  _impl_.slice_sizes_.Clear();
+}
+inline int32_t AppendPlanLayout::_internal_slice_sizes(int index) const {
+  return _impl_.slice_sizes_.Get(index);
+}
+inline int32_t AppendPlanLayout::slice_sizes(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.AppendPlanLayout.slice_sizes)
+  return _internal_slice_sizes(index);
+}
+inline void AppendPlanLayout::set_slice_sizes(int index, int32_t value) {
+  _impl_.slice_sizes_.Set(index, value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.AppendPlanLayout.slice_sizes)
+}
+inline void AppendPlanLayout::_internal_add_slice_sizes(int32_t value) {
+  _impl_.slice_sizes_.Add(value);
+}
+inline void AppendPlanLayout::add_slice_sizes(int32_t value) {
+  _internal_add_slice_sizes(value);
+  // @@protoc_insertion_point(field_add:coordinator_proto.AppendPlanLayout.slice_sizes)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+AppendPlanLayout::_internal_slice_sizes() const {
+  return _impl_.slice_sizes_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+AppendPlanLayout::slice_sizes() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.AppendPlanLayout.slice_sizes)
+  return _internal_slice_sizes();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+AppendPlanLayout::_internal_mutable_slice_sizes() {
+  return &_impl_.slice_sizes_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+AppendPlanLayout::mutable_slice_sizes() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.AppendPlanLayout.slice_sizes)
+  return _internal_mutable_slice_sizes();
 }
 
 // -------------------------------------------------------------------

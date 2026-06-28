@@ -152,7 +152,7 @@ namespace ECProject
     void runXueStrictDeferredForwards(
         std::shared_ptr<proxy_proto::AppendStripeDataPlacement> placement,
         std::shared_ptr<std::vector<char>> append_buf, std::vector<char *> slices,
-        int tcp_slice_count);
+        int tcp_slice_count, bool report_commit = true);
     int applyXueDataBlocksNewValueToDataDelta(const proxy_proto::AppendStripeDataPlacement &placement,
                                               std::vector<char *> &slices, int tcp_slice_count);
     bool handleXueClass1RelayAtDataCluster(const proxy_proto::AppendStripeDataPlacement &placement,

@@ -1,4 +1,5 @@
 #include "coordinator.h"
+#include "xue_slice_layout.h"
 #include "tinyxml2.h"
 #include <memory>
 #include <random>
@@ -89,6 +90,17 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                                     ECProject::PROXY_PORT_SHIFT);
         proxyIPPort->add_cluster_slice_sizes(plan.append_size());
         proxyIPPort->add_group_ids(parse_group_id_from_cluster_append_key(plan.key()));
+        coordinator_proto::AppendPlanLayout *layout = proxyIPPort->add_plan_layouts();
+        layout->set_group_id(parse_group_id_from_cluster_append_key(plan.key()));
+        layout->set_cluster_id(plan.cluster_id());
+        const int tcp_n =
+            plan.xue_tcp_slice_count() > 0 ? plan.xue_tcp_slice_count() : plan.blockids_size();
+        for (int j = 0; j < tcp_n && j < plan.blockids_size(); ++j)
+        {
+          layout->add_slice_block_ids(plan.blockids(j));
+          layout->add_slice_offsets(plan.offsets(j));
+          layout->add_slice_sizes(plan.sizes(j));
+        }
         sum_append_size += plan.append_size();
       }
       proxyIPPort->set_sum_append_size(sum_append_size);
@@ -147,8 +159,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       {
         const int cluster_id = kv.first;
         auto &entries = kv.second;
-        std::sort(entries.begin(), entries.end(),
-                  [](const BlockEntry &a, const BlockEntry &b) { return a.block_id < b.block_id; });
+        std::sort(entries.begin(), entries.end(), [](const BlockEntry &a, const BlockEntry &b) {
+          if (a.block_id != b.block_id)
+          {
+            return a.block_id < b.block_id;
+          }
+          return a.offset < b.offset;
+        });
         proxy_proto::AppendStripeDataPlacement out = base_plan[cluster_id];
         out.clear_datanodeip();
         out.clear_datanodeport();
@@ -186,8 +203,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             append_size += static_cast<size_t>(e.size);
           }
         }
-        std::sort(tcp_block_ids.begin(), tcp_block_ids.end());
-        tcp_block_ids.erase(std::unique(tcp_block_ids.begin(), tcp_block_ids.end()), tcp_block_ids.end());
         std::sort(meta_block_ids.begin(), meta_block_ids.end());
         meta_block_ids.erase(std::unique(meta_block_ids.begin(), meta_block_ids.end()), meta_block_ids.end());
         out.set_cluster_id(cluster_id);
@@ -198,6 +213,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         merged.push_back(std::move(out));
       }
       return merged;
+    }
+
+    bool plan_block_index_less(const proxy_proto::AppendStripeDataPlacement &plan, int a, int b)
+    {
+      if (plan.blockids(a) != plan.blockids(b))
+      {
+        return plan.blockids(a) < plan.blockids(b);
+      }
+      return plan.offsets(a) < plan.offsets(b);
     }
 
     int parse_xue_class_subgroup_from_plan_key(const std::string &key)
@@ -261,7 +285,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             }
           }
           std::sort(idxs.begin(), idxs.end(),
-                    [&plan](int a, int b) { return plan.blockids(a) < plan.blockids(b); });
+                    [&plan](int a, int b) { return plan_block_index_less(plan, a, b); });
         };
         // 任意带 client TCP 的子 plan 挂全量 parity/global 元数据（勿依赖 plan.cluster_id==子 plan cluster，
         // 同 group 多类并存时 group_to_ingress_cluster 可能指向其它 cluster）。
@@ -289,8 +313,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             }
           }
           std::sort(idxs.begin(), idxs.end(),
-                    [&plan](int a, int b) { return plan.blockids(a) < plan.blockids(b); });
+                    [&plan](int a, int b) { return plan_block_index_less(plan, a, b); });
         }
+        // TCP slice 顺序与 sub plan 的 sizes[] 一致；append_key 中 block id 可重复（每 slice 一项）。
+        std::sort(idxs.begin(), idxs.end(),
+                  [&plan](int a, int b) { return plan_block_index_less(plan, a, b); });
         std::vector<int> tcp_block_ids;
         std::vector<int> meta_block_ids;
         tcp_block_ids.reserve(idxs.size());
@@ -306,9 +333,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             meta_block_ids.push_back(plan.blockids(j));
           }
         }
-        // 去重：同一 block_id 可能被不同 class_sub 阶段重复添加到 meta
-        std::sort(tcp_block_ids.begin(), tcp_block_ids.end());
-        tcp_block_ids.erase(std::unique(tcp_block_ids.begin(), tcp_block_ids.end()), tcp_block_ids.end());
+        // meta block id 去重（parity 元数据）；tcp block id 保留重复以表达多 slice
         std::sort(meta_block_ids.begin(), meta_block_ids.end());
         meta_block_ids.erase(std::unique(meta_block_ids.begin(), meta_block_ids.end()), meta_block_ids.end());
         proxy_proto::AppendStripeDataPlacement sub = plan;
@@ -435,6 +460,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
 
     int get_group_id_for_data_block(const Stripe *stripe, int data_block_id);
+    int get_local_parity_block_id(const Stripe *stripe, int group_id);
     const Block *find_block_by_id(const Stripe *stripe, int block_id);
 
     struct XueExecSchedulePlan
@@ -653,6 +679,54 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                                      step.forward_append_mode());
     }
 
+    int count_plan_decision_block_overlap(const proxy_proto::AppendStripeDataPlacement &plan,
+                                          const std::vector<int> &decision_block_ids)
+    {
+      if (decision_block_ids.empty())
+      {
+        return 0;
+      }
+      std::set<int> decision_set(decision_block_ids.begin(), decision_block_ids.end());
+      int overlap = 0;
+      const int tcp_n = plan.xue_tcp_slice_count() > 0 ? plan.xue_tcp_slice_count()
+                                                         : plan.blockids_size();
+      for (int j = 0; j < tcp_n && j < plan.blockids_size(); ++j)
+      {
+        if (decision_set.count(plan.blockids(j)) > 0)
+        {
+          ++overlap;
+        }
+      }
+      return overlap;
+    }
+
+    // step 与 ingress plan 按 group + class subgroup + from_cluster 对齐，避免同 cluster 多
+    // class 子 plan 时 exact key 对不上导致 outgoing hop 漏挂。
+    bool strict_step_matches_ingress_plan(const coordinator_proto::XueTransferStepInfo &step,
+                                          const proxy_proto::AppendStripeDataPlacement &plan)
+    {
+      if (step.from_cluster() != plan.cluster_id())
+      {
+        return false;
+      }
+      if (parse_group_id_from_cluster_append_key(step.append_key()) !=
+          parse_group_id_from_cluster_append_key(plan.key()))
+      {
+        return false;
+      }
+      if (step.append_key() == plan.key())
+      {
+        return true;
+      }
+      const int step_class = parse_xue_class_subgroup_from_plan_key(step.append_key());
+      const int plan_class = parse_xue_class_subgroup_from_plan_key(plan.key());
+      if (step_class > 0 && plan_class > 0)
+      {
+        return step_class == plan_class;
+      }
+      return false;
+    }
+
   // 调度器按 block 拆 step；合并 ingress 下一次 TCP 应对应一次 proxy 转发。
   // 去掉 strict 表里 (append_key, from, to, mode) 重复的 step，并重映射 pred。
     void dedupe_strict_transfer_steps(XueStrictTransferPlan &plan)
@@ -778,6 +852,110 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
       }
       return -1;
+    }
+
+    // 与 scheduler 一致：plan.group -> stripe 本地校验块 -> map2cluster；plan 块列表作回退。
+    int resolve_local_parity_cluster_for_plan(const Stripe *stripe,
+                                              const proxy_proto::AppendStripeDataPlacement *plan,
+                                              const std::string &code_type, int k, int r, int z)
+    {
+      if (plan == nullptr)
+      {
+        return -1;
+      }
+      if (stripe != nullptr)
+      {
+        const int gid = parse_group_id_from_cluster_append_key(plan->key());
+        if (gid >= 0)
+        {
+          const int lp_id = get_local_parity_block_id(stripe, gid);
+          const Block *lp_blk = find_block_by_id(stripe, lp_id);
+          if (lp_blk != nullptr)
+          {
+            return lp_blk->map2cluster;
+          }
+        }
+      }
+      return local_parity_cluster_from_ingress_plan(plan, code_type, k, r, z);
+    }
+
+    bool is_class3_skipped_local_parity_step(
+        const Stripe *stripe, const coordinator_proto::XueTransferStepInfo &step,
+        const proxy_proto::AppendStripeDataPlacement &plan, const std::string &code_type, int k,
+        int r, int z)
+    {
+      const int plan_lp_cluster =
+          resolve_local_parity_cluster_for_plan(stripe, &plan, code_type, k, r, z);
+      if (plan_lp_cluster < 0 || step.to_cluster() != plan_lp_cluster ||
+          plan.cluster_id() == plan_lp_cluster || plan.xue_compute_global_parity())
+      {
+        return false;
+      }
+      if (step.payload() == "data_delta")
+      {
+        return true;
+      }
+      return step.payload() == "parity_delta" &&
+             step.forward_append_mode() == "XUE_LOCAL_PARITY_DELTA";
+    }
+
+    // class3/class2 的 local parity 在 data/global ingress proxy 侧同步完成，不会走
+    // deferred outgoing；对应 schedule step 需预先标 DONE，否则后继 hop 永久等待。
+    bool is_ingress_completed_local_parity_step(
+        const Stripe *stripe, const coordinator_proto::XueTransferStepInfo &step,
+        const proxy_proto::AppendStripeDataPlacement &plan, const std::string &code_type, int k,
+        int r, int z)
+    {
+      if (step.from_cluster() != plan.cluster_id())
+      {
+        return false;
+      }
+      if (parse_group_id_from_cluster_append_key(step.append_key()) !=
+          parse_group_id_from_cluster_append_key(plan.key()))
+      {
+        return false;
+      }
+      const int plan_lp = resolve_local_parity_cluster_for_plan(stripe, &plan, code_type, k, r, z);
+      if (plan_lp < 0 || step.to_cluster() != plan_lp)
+      {
+        return false;
+      }
+      if (is_class3_skipped_local_parity_step(stripe, step, plan, code_type, k, r, z))
+      {
+        return true;
+      }
+      if (plan.xue_compute_global_parity() &&
+          plan.cluster_id() == plan.xue_global_parity_cluster_id())
+      {
+        return step.forward_append_mode() == "XUE_COMPUTE_LOCAL_PARITY" ||
+               (step.payload() == "parity_delta" &&
+                step.forward_append_mode() == "XUE_LOCAL_PARITY_DELTA");
+      }
+      return false;
+    }
+
+    void mark_ingress_completed_local_parity_strict_steps(
+        const Stripe *stripe, CoordinatorImpl::XueStrictScheduleSession &session,
+        const std::vector<proxy_proto::AppendStripeDataPlacement> &append_plans,
+        const XueStrictTransferPlan &strict, const std::string &code_type, int k, int r, int z)
+    {
+      for (size_t i = 0; i < strict.steps.size(); ++i)
+      {
+        if (session.step_states[i] != CoordinatorImpl::XueStepRuntimeState::PENDING)
+        {
+          continue;
+        }
+        for (const auto &plan : append_plans)
+        {
+          if (is_ingress_completed_local_parity_step(stripe, strict.steps[i], plan, code_type, k,
+                                                     r, z))
+          {
+            session.step_states[i] = CoordinatorImpl::XueStepRuntimeState::DONE;
+            break;
+          }
+        }
+      }
+      session.try_advance_ready_steps();
     }
 
     std::string infer_strict_forward_append_mode(
@@ -929,6 +1107,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
 
     void attach_strict_outgoing_to_plans(
+        Stripe *stripe,
         std::vector<proxy_proto::AppendStripeDataPlacement> &append_plans,
         const XueStrictTransferPlan &strict,
         const std::string &code_type,
@@ -960,7 +1139,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         plan.clear_xue_strict_outgoing();
         bool has_relay_hop = false;
         const int plan_lp_cluster =
-            local_parity_cluster_from_ingress_plan(&plan, code_type, k, r, z);
+            resolve_local_parity_cluster_for_plan(stripe, &plan, code_type, k, r, z);
         // 调度器按 block 拆 step，client ingress 可能合并为一次 TCP；同一
         // (append_key, from, to, mode) 只保留一个 outgoing hop，避免整包重复转发。
         std::set<std::tuple<std::string, int, int, std::string>> seen_outgoing_hops;
@@ -970,24 +1149,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           {
             continue;
           }
-          const bool key_match = (s.append_key() == plan.key());
-          if (!key_match)
+          if (!strict_step_matches_ingress_plan(s, plan))
           {
-            // 诊断：步骤的 from_cluster 和 plan 的 cluster 匹配，但 key 不匹配
-            std::cerr << "[Coord] attach_outgoing KEY_MISMATCH plan_cluster=" << plan.cluster_id()
-                      << " plan_key=" << plan.key()
-                      << " step_from=" << s.from_cluster() << " step_to=" << s.to_cluster()
-                      << " step_key=" << s.append_key()
-                      << " step_mode=" << s.forward_append_mode()
-                      << " step_payload=" << s.payload()
-                      << " step_no=" << s.step_no() << std::endl;
             continue;
           }
           // class3：data 在远端 ingress 算 local parity，改由 proxy ingress 侧 merged forward 完成
           // class2（data/global 同 cluster）仍走 schedule 的 data->local hop
-          if (s.payload() == "data_delta" && plan_lp_cluster >= 0 &&
-              s.to_cluster() == plan_lp_cluster && plan.cluster_id() != plan_lp_cluster &&
-              !plan.xue_compute_global_parity())
+          if (is_class3_skipped_local_parity_step(stripe, s, plan, code_type, k, r, z))
           {
             std::cerr << "[Coord] attach_outgoing CLASS3_SKIP plan_cluster=" << plan.cluster_id()
                       << " step_from=" << s.from_cluster() << " step_to=" << s.to_cluster()
@@ -1104,6 +1272,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       const int gid = get_group_id_for_data_block(stripe, decision.block_ids[0]);
       std::string from_cluster_ingress_key;
+      int from_cluster_best_overlap = 0;
       std::string any_ingress_tcp_key;
       int from_cluster_plan_found = 0;
       int total_candidate_plans = 0;
@@ -1130,8 +1299,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         ++total_candidate_plans;
         if (ap.cluster_id() == from_cluster)
         {
-          from_cluster_ingress_key = ap.key();
           ++from_cluster_plan_found;
+          const int overlap = count_plan_decision_block_overlap(ap, decision.block_ids);
+          if (overlap > from_cluster_best_overlap)
+          {
+            from_cluster_best_overlap = overlap;
+            from_cluster_ingress_key = ap.key();
+          }
         }
         if (any_ingress_tcp_key.empty())
           any_ingress_tcp_key = ap.key();
@@ -1614,7 +1788,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         if (remaining_pred[i] == 0)
           ready_set.insert(i);
       }
-      std::vector<double> send_next(64, 0.0), recv_next(64, 0.0);
       std::vector<bool> finished(n, false);
       std::vector<bool> canceled(n, false);
       std::vector<bool> alt_group_resolved(alt_group_tasks.size(), false);
@@ -1664,21 +1837,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         // for (int tid : ready_set) std::cout << " " << tid;
         // std::cout << " }" << std::endl;
 
-        // ==== STEP 1: 搜集本轮可以立刻启动的 candidates ====
+        // ==== STEP 1: 搜集本轮可启动的 candidates（仅受 DAG 前继约束，同 cluster 可并发） ====
         std::vector<int> candidates;
         for (int tid : ready_set)
         {
-          if (canceled[tid] || finished[tid]) 
-            continue;
-          const auto &t = tasks[tid];
-          if (t.from_cluster >= 0 && t.to_cluster >= 0 &&
-              t.from_cluster < static_cast<int>(send_next.size()) &&
-              t.to_cluster < static_cast<int>(recv_next.size()) &&
-              send_next[t.from_cluster] <= current_t &&
-              recv_next[t.to_cluster] <= current_t)
+          if (canceled[tid] || finished[tid])
           {
-            candidates.push_back(tid);
+            continue;
           }
+          candidates.push_back(tid);
         }
 
         // ==== DEBUG: 打印可调度(candidates)任务 ====
@@ -1687,46 +1854,25 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         //   std::cout << " " << tid;
         // std::cout << std::endl;
 
-        // ==== STEP 2: 如果有可调度的任务，选出优先启动的 ====
+        // ==== STEP 2: 启动所有满足 alt_group 约束的 ready 任务 ====
         if (!candidates.empty())
         {
-          // pair_best: 每对(src,dst)只留分最高的一个
-          std::map<std::pair<int, int>, int> pair_best;
+          std::sort(candidates.begin(), candidates.end(),
+                    [&](int a, int b) { return score[a] > score[b]; });
+
+          std::vector<int> selected;
           for (int tid : candidates)
           {
-            auto key = std::make_pair(tasks[tid].from_cluster, tasks[tid].to_cluster);
-            if (!pair_best.count(key) || score[tid] > score[pair_best[key]])
-              pair_best[key] = tid;
-          }
-
-          std::vector<int> sorted;
-          for (const auto &kv : pair_best)
-            sorted.push_back(kv.second);
-          std::sort(sorted.begin(), sorted.end(), [&](int a, int b) { return score[a] > score[b]; });
-
-          // std::cout << "[debug] sorted-tasks:";
-          // for (int tid : sorted)
-          //   std::cout << " " << tid << "(" << score[tid] << ")";
-          // std::cout << std::endl;
-
-          std::set<int> used_src, used_dst;
-          std::vector<int> selected;
-          for (int tid : sorted)
-          {
-            int src = tasks[tid].from_cluster;
-            int dst = tasks[tid].to_cluster;
             int g = tasks[tid].alt_group;
             if (g >= 0 && g < static_cast<int>(alt_group_resolved.size()) && alt_group_resolved[g])
             {
               // alt_group 已决议后，只跳过互斥入口；保留已选路径的后续任务（alt_kind=2）。
               const int kind = tasks[tid].alt_kind;
               if (kind == 1 || kind == 3)
+              {
                 continue;
+              }
             }
-            if (used_src.count(src) || used_dst.count(dst))
-              continue;
-            used_src.insert(src);
-            used_dst.insert(dst);
             selected.push_back(tid);
           }
 
@@ -1768,8 +1914,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             ready_set.erase(tid);
             double st = current_t;
             double ed = st + t.duration;
-            send_next[t.from_cluster] = ed;
-            recv_next[t.to_cluster] = ed;
             running.push({ed, tid});
             std::vector<int> pred_ids;
             for (int v = 0; v < n; ++v)
@@ -1794,32 +1938,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           {
             break;
           }
-          // 无运行任务但未完成：推进到最近可用时刻
-          double next_t = std::numeric_limits<double>::infinity();
-          for (int tid : ready_set)
-          {
-            const auto &t = tasks[tid];
-            if (t.from_cluster >= 0 && t.to_cluster >= 0 &&
-                t.from_cluster < static_cast<int>(send_next.size()) &&
-                t.to_cluster < static_cast<int>(recv_next.size()))
-            {
-              next_t = std::min(next_t, std::max(send_next[t.from_cluster], recv_next[t.to_cluster]));
-            }
-          }
-          // ==== DEBUG: 卡住可能，打印下一跳时刻 ====
-          if (next_t == std::numeric_limits<double>::infinity()) {
-            // std::cout << "[debug] 卡住！ready_set剩余任务也等不到资源可用，可能死锁！" << std::endl;
-            break;
-          }
-          if (next_t <= current_t + 1e-12)
-          {
-            // std::cout << "[debug] 卡住！next_t 未前进 (next_t=" << next_t
-                      // << ", current_t=" << current_t << ")，终止调度循环避免活锁。" << std::endl;
-            break;
-          }
-          // std::cout << "[debug] 无可运行任务, 推进到 next_t=" << next_t << std::endl;
-          current_t = next_t;
-          continue;
+          // 无运行任务但未完成：ready_set 非空却未启动，说明 alt_group 互斥导致活锁
+          break;
         }
 
         // ==== STEP 3: 事件推进，处理最早结束的一批任务 ====
@@ -2236,7 +2356,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
         const DataSliceUpdate &u = class2_updates[c2_i];
         const int lp_id = get_local_parity_block_id(stripe, u.group_id);
-        group_to_ingress_cluster[u.group_id] = u.local_parity_cluster;
+        group_to_ingress_cluster[u.group_id] = u.data_cluster;
         TransferPlanDecision d;
         d.hot_cluster = u.global_parity_cluster;
         d.block_ids = {u.block_id};
@@ -2274,14 +2394,83 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             }
           }
 
+          const double bw_d2l =
+              estimate_bandwidth_between_clusters(g.front().data_cluster, g.front().local_parity_cluster);
+          const double bw_g2l = estimate_bandwidth_between_clusters(g.front().global_parity_cluster,
+                                                                    g.front().local_parity_cluster);
+          const bool use_parallel = bw_d2l >= bw_g2l;
+          group_to_ingress_cluster[g.front().group_id] = g.front().data_cluster;
+
           if (any_intersection)
           {
-            // 第3类相交集合：
-            //   (a) 发送各数据块增量到全局校验块cluster
-            //   (b) 再在“到本地校验cluster”和“到全局校验cluster”中择高带宽目标发送校验增量
+            // 第3类相交集合：先各 data->global，再按 max(d->l, g->l) 合并区间发一条 merged local parity delta
             TransferPlanDecision d;
             d.hot_cluster = g.front().global_parity_cluster;
-            d.reason = "class3-overlap: send data delta to global parity cluster, then choose parity path by max(data->local, global->local)";
+            d.reason = use_parallel
+                           ? "class3-overlap: parallel data->global + merged local parity delta data->local"
+                           : "class3-overlap: data->global then global merged local parity delta->local";
+            for (const auto &u : g)
+            {
+              const int gp_id = get_global_parity_block_id(stripe, u.group_id, code_type);
+              d.block_ids.push_back(u.block_id);
+              d.steps.push_back({u.data_cluster, u.global_parity_cluster, "data_delta", false,
+                                 fmt_cluster_id(u.data_cluster) + " 上 " + fmt_data_update_range(u) + " -> " +
+                                     fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id),
+                                 static_cast<double>(u.size)});
+            }
+            std::vector<std::pair<int, int>> merged_ranges;
+            for (const auto &u : g)
+            {
+              merged_ranges.push_back({u.offset, u.offset + u.size - 1});
+            }
+            std::sort(merged_ranges.begin(), merged_ranges.end());
+            std::vector<std::pair<int, int>> compact;
+            for (const auto &rg : merged_ranges)
+            {
+              if (compact.empty() || rg.first > compact.back().second + 1)
+              {
+                compact.push_back(rg);
+              }
+              else
+              {
+                compact.back().second = std::max(compact.back().second, rg.second);
+              }
+            }
+            const int lp_id = get_local_parity_block_id(stripe, g.front().group_id);
+            const int gp_id = get_global_parity_block_id(stripe, g.front().group_id, code_type);
+            for (const auto &rg : compact)
+            {
+              const std::string merged_desc =
+                  "相交集合合并区间[" + std::to_string(rg.first) + "," + std::to_string(rg.second + 1) + ")";
+              if (use_parallel)
+              {
+                d.steps.push_back({g.front().data_cluster, g.front().local_parity_cluster, "parity_delta", true,
+                                   fmt_cluster_id(g.front().data_cluster) + " 上 基于 " + merged_desc +
+                                       " 的校验更新 -> " + fmt_cluster_id(g.front().local_parity_cluster) + " " +
+                                       fmt_local_parity_block(lp_id),
+                                   static_cast<double>(rg.second - rg.first + 1)});
+              }
+              else
+              {
+                d.steps.push_back({g.front().global_parity_cluster, g.front().local_parity_cluster, "parity_delta",
+                                   true,
+                                   fmt_cluster_id(g.front().global_parity_cluster) + " " +
+                                       fmt_global_parity_block(gp_id) + " 侧基于 " + merged_desc +
+                                       " 的校验衍生数据 -> " + fmt_cluster_id(g.front().local_parity_cluster) + " " +
+                                       fmt_local_parity_block(lp_id),
+                                   static_cast<double>(rg.second - rg.first + 1)});
+              }
+            }
+            decisions.push_back(d);
+          }
+          else
+          {
+            // 第3类不相交：两种方案，整组按 max(d->l, g->l) 统一选择
+            TransferPlanDecision d;
+            d.hot_cluster = g.front().global_parity_cluster;
+            d.reason = use_parallel
+                           ? "class3-disjoint: parallel data->global + merged local parity delta data->local"
+                           : "class3-disjoint: data->global then global merged local parity delta->local";
             for (const auto &u : g)
             {
               const int lp_id = get_local_parity_block_id(stripe, u.group_id);
@@ -2289,93 +2478,23 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
               d.block_ids.push_back(u.block_id);
               d.steps.push_back({u.data_cluster, u.global_parity_cluster, "data_delta", false,
                                  fmt_cluster_id(u.data_cluster) + " 上 " + fmt_data_update_range(u) + " -> " +
-                                     fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id), static_cast<double>(u.size)});
-              const double bw_data_to_local = estimate_bandwidth_between_clusters(u.data_cluster, u.local_parity_cluster);
-              const double bw_global_to_local = estimate_bandwidth_between_clusters(u.global_parity_cluster, u.local_parity_cluster);
-              if (bw_data_to_local >= bw_global_to_local)
+                                     fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id),
+                                 static_cast<double>(u.size)});
+              if (use_parallel)
               {
-                // data->local 更优：由 data 所在 cluster 直接发送 parity_delta 到 local parity。
-                group_to_ingress_cluster[u.group_id] = u.local_parity_cluster;
                 d.steps.push_back({u.data_cluster, u.local_parity_cluster, "parity_delta", true,
-                                   fmt_cluster_id(u.data_cluster) + " 上 基于 " + fmt_data_update_range(u) + " 的校验更新 -> " +
+                                   fmt_cluster_id(u.data_cluster) + " 上 基于 " + fmt_data_update_range(u) +
+                                       " 的校验更新 -> " + fmt_cluster_id(u.local_parity_cluster) + " " +
+                                       fmt_local_parity_block(lp_id),
+                                   static_cast<double>(u.size)});
+              }
+              else
+              {
+                d.steps.push_back({u.global_parity_cluster, u.local_parity_cluster, "parity_delta", true,
+                                   fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id) +
+                                       " 侧基于 " + fmt_data_update_range(u) + " 的校验衍生数据 -> " +
                                        fmt_cluster_id(u.local_parity_cluster) + " " + fmt_local_parity_block(lp_id),
                                    static_cast<double>(u.size)});
-              }
-              else
-              {
-                // global->local 更优：由 global parity 所在 cluster 转发 parity_delta 到 local parity。
-                group_to_ingress_cluster[u.group_id] = u.global_parity_cluster;
-                d.steps.push_back({u.global_parity_cluster, u.local_parity_cluster, "parity_delta", true,
-                                   fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id) +
-                                       " 侧校验衍生数据 -> " + fmt_cluster_id(u.local_parity_cluster) + " " + fmt_local_parity_block(lp_id),
-                                   static_cast<double>(u.size)});
-              }
-            }
-            decisions.push_back(d);
-          }
-          else
-          {
-            // 第3类不相交集合：
-            // 三种候选路径：
-            // 1) data->global 与 data->local（并行双发）
-            // 2) data->local -> global（串行）
-            // 3) data->global -> local（串行）
-            TransferPlanDecision d;
-            d.hot_cluster = g.front().global_parity_cluster;
-            d.reason = "class3-disjoint: choose best of three routes (parallel direct / local-first / global-first)";
-            for (const auto &u : g)
-            {
-              const int lp_id = get_local_parity_block_id(stripe, u.group_id);
-              const int gp_id = get_global_parity_block_id(stripe, u.group_id, code_type);
-              d.block_ids.push_back(u.block_id);
-
-              const double bw_d2g = estimate_bandwidth_between_clusters(u.data_cluster, u.global_parity_cluster);
-              const double bw_d2l = estimate_bandwidth_between_clusters(u.data_cluster, u.local_parity_cluster);
-              const double bw_g2l = estimate_bandwidth_between_clusters(u.global_parity_cluster, u.local_parity_cluster);
-              const double bw_l2g = estimate_bandwidth_between_clusters(u.local_parity_cluster, u.global_parity_cluster);
-
-              // 路径1：并行双发（data->global + data->local）
-              const double score_parallel_direct = bw_d2g + bw_d2l;
-              // 路径2：data->local -> global
-              const double score_local_first = bw_d2l + bw_l2g;
-              // 路径3：data->global -> local
-              const double score_global_first = bw_d2g + bw_g2l;
-
-              if (score_parallel_direct >= score_local_first && score_parallel_direct >= score_global_first)
-              {
-                // 路径1：并行双发到两个校验cluster
-                d.steps.push_back({u.data_cluster, u.global_parity_cluster, "data_delta", false,
-                                   fmt_cluster_id(u.data_cluster) + " 上 " + fmt_data_update_range(u) + " -> " +
-                                       fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id)});
-                d.steps.push_back({u.data_cluster, u.local_parity_cluster, "data_delta", false,
-                                   fmt_cluster_id(u.data_cluster) + " 上 " + fmt_data_update_range(u) + " -> " +
-                                       fmt_cluster_id(u.local_parity_cluster) + " " + fmt_local_parity_block(lp_id)});
-                // 这里给客户端入口选 data->global / data->local 中带宽更高的一侧
-                group_to_ingress_cluster[u.group_id] = (bw_d2g >= bw_d2l) ? u.global_parity_cluster : u.local_parity_cluster;
-              }
-              else if (score_local_first >= score_global_first)
-              {
-                // 路径2：step1 data -> local, step2 local -> global（串行）
-                d.steps.push_back({u.data_cluster, u.local_parity_cluster, "data_delta", false,
-                                   fmt_cluster_id(u.data_cluster) + " 上 " + fmt_data_update_range(u) + " -> " +
-                                       fmt_cluster_id(u.local_parity_cluster) + " " + fmt_local_parity_block(lp_id)});
-                d.steps.push_back({u.local_parity_cluster, u.global_parity_cluster, "parity_delta", true,
-                                   fmt_cluster_id(u.local_parity_cluster) + " " + fmt_local_parity_block(lp_id) +
-                                       " 侧校验衍生数据 -> " + fmt_cluster_id(u.global_parity_cluster) + " " +
-                                       fmt_global_parity_block(gp_id)});
-                group_to_ingress_cluster[u.group_id] = u.local_parity_cluster;
-              }
-              else
-              {
-                // 路径3：step1 data -> global, step2 global -> local（串行）
-                d.steps.push_back({u.data_cluster, u.global_parity_cluster, "data_delta", false,
-                                   fmt_cluster_id(u.data_cluster) + " 上 " + fmt_data_update_range(u) + " -> " +
-                                       fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id)});
-                d.steps.push_back({u.global_parity_cluster, u.local_parity_cluster, "parity_delta", true,
-                                   fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id) +
-                                       " 侧校验衍生数据 -> " + fmt_cluster_id(u.local_parity_cluster) + " " +
-                                       fmt_local_parity_block(lp_id)});
-                group_to_ingress_cluster[u.group_id] = u.global_parity_cluster;
               }
             }
             decisions.push_back(d);
@@ -2385,7 +2504,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
       log_append_route_decisions(decisions);
 
-      // 根据依赖 + 机架端口约束做时间调度，输出“谁先谁后、谁可并发”
+      // 根据 DAG 前继依赖做时间调度，输出“谁先谁后、谁可并发”（同 cluster 可并发收发）
       std::vector<ScheduledTask> schedule = schedule_transfer_steps(decisions);
       log_append_schedule_visual(schedule);
       result.route_decisions = std::move(decisions);
@@ -2573,7 +2692,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
         const DataSliceUpdate &u = class2_updates[c2_i];
         const int lp_id = get_local_parity_block_id(stripe, u.group_id);
-        group_to_ingress_cluster[u.group_id] = u.local_parity_cluster;
+        group_to_ingress_cluster[u.group_id] = u.data_cluster;
         TransferPlanDecision d;
         d.hot_cluster = u.global_parity_cluster;
         d.block_ids = {u.block_id};
@@ -2603,9 +2722,17 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           }
           TransferPlanDecision d;
           d.hot_cluster = g.front().global_parity_cluster;
+          const double bw_d2l =
+              estimate_bandwidth_between_clusters(g.front().data_cluster, g.front().local_parity_cluster);
+          const double bw_g2l = estimate_bandwidth_between_clusters(g.front().global_parity_cluster,
+                                                                    g.front().local_parity_cluster);
+          const bool use_parallel = bw_d2l >= bw_g2l;
+          group_to_ingress_cluster[g.front().group_id] = g.front().data_cluster;
           if (any_intersection)
           {
-            d.reason = "class3-overlap: send data delta to global parity cluster, then choose parity path by max(data->local, global->local)";
+            d.reason = use_parallel
+                           ? "class3-overlap: parallel data->global + merged local parity delta data->local"
+                           : "class3-overlap: data->global then global merged local parity delta->local";
             std::map<int, std::vector<DataSliceUpdate>> by_block_overlap;
             for (const auto &u : g)
             {
@@ -2662,16 +2789,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                 }
               }
 
-              const double bw_data_to_local = estimate_bandwidth_between_clusters(g.front().data_cluster, base_local);
-              const double bw_global_to_local = estimate_bandwidth_between_clusters(base_global, base_local);
               const int lp_id = get_local_parity_block_id(stripe, base_group);
               const int gp_id = get_global_parity_block_id(stripe, base_group, code_type);
               for (const auto &rg : compact)
               {
-                if (bw_data_to_local >= bw_global_to_local)
+                if (use_parallel)
                 {
-                  // data->local 更优：由 data 所在 cluster 直接发送 parity_delta 到 local parity。
-                  group_to_ingress_cluster[base_group] = base_local;
                   d.steps.push_back({g.front().data_cluster, base_local, "parity_delta", true,
                                      fmt_cluster_id(g.front().data_cluster) + " 上 基于 相交集合合并区间[" +
                                          std::to_string(rg.first) + "," + std::to_string(rg.second + 1) + ") 的校验更新 -> " +
@@ -2680,8 +2803,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                 }
                 else
                 {
-                  // global->local 更优：由 global parity 所在 cluster 转发 parity_delta 到 local parity。
-                  group_to_ingress_cluster[base_group] = base_global;
                   d.steps.push_back({base_global, base_local, "parity_delta", true,
                                      fmt_cluster_id(base_global) + " " + fmt_global_parity_block(gp_id) +
                                          " 侧基于 相交集合合并区间[" + std::to_string(rg.first) + "," + std::to_string(rg.second + 1) +
@@ -2700,20 +2821,16 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                 const DataSliceUpdate &u = sls.front();
                 const int lp_id = get_local_parity_block_id(stripe, u.group_id);
                 const int gp_id = get_global_parity_block_id(stripe, u.group_id, code_type);
-                const double bw_data_to_local = estimate_bandwidth_between_clusters(u.data_cluster, u.local_parity_cluster);
-                const double bw_global_to_local = estimate_bandwidth_between_clusters(u.global_parity_cluster, u.local_parity_cluster);
                 const double batch_sz = sum_slice_transfer_bytes(sls);
                 const std::string batch_desc = fmt_block_multi_slice_ranges(bid, sls);
-                if (bw_data_to_local >= bw_global_to_local)
+                if (use_parallel)
                 {
-                  group_to_ingress_cluster[u.group_id] = u.local_parity_cluster;
                   d.steps.push_back({u.data_cluster, u.local_parity_cluster, "parity_delta", true,
                                      fmt_cluster_id(u.data_cluster) + " 上 基于 " + batch_desc + " 的校验更新 -> " +
                                          fmt_cluster_id(u.local_parity_cluster) + " " + fmt_local_parity_block(lp_id), batch_sz});
                 }
                 else
                 {
-                  group_to_ingress_cluster[u.group_id] = u.global_parity_cluster;
                   d.steps.push_back({u.global_parity_cluster, u.local_parity_cluster, "parity_delta", true,
                                      fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id) +
                                          " 侧基于 " + batch_desc + " 的校验衍生数据 -> " + fmt_cluster_id(u.local_parity_cluster) + " " +
@@ -2724,7 +2841,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           }
           else
           {
-            d.reason = "class3-disjoint: choose best of three routes (parallel direct / local-first / global-first)";
+            d.reason = use_parallel
+                           ? "class3-disjoint: parallel data->global + merged local parity delta data->local"
+                           : "class3-disjoint: data->global then global merged local parity delta->local";
             std::map<int, std::vector<DataSliceUpdate>> by_block_disjoint;
             for (const auto &u : g)
             {
@@ -2750,44 +2869,21 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
               const int gp_id = get_global_parity_block_id(stripe, u.group_id, code_type);
               const double batch_sz = sum_slice_transfer_bytes(sls);
               const std::string batch_desc = fmt_block_multi_slice_ranges(bid, sls);
-              const double bw_d2g = estimate_bandwidth_between_clusters(u.data_cluster, u.global_parity_cluster);
-              const double bw_d2l = estimate_bandwidth_between_clusters(u.data_cluster, u.local_parity_cluster);
-              const double bw_g2l = estimate_bandwidth_between_clusters(u.global_parity_cluster, u.local_parity_cluster);
-              const double bw_l2g = estimate_bandwidth_between_clusters(u.local_parity_cluster, u.global_parity_cluster);
-              const double score_parallel_direct = bw_d2g + bw_d2l;
-              const double score_local_first = bw_d2l + bw_l2g;
-              const double score_global_first = bw_d2g + bw_g2l;
-              if (score_parallel_direct >= score_local_first && score_parallel_direct >= score_global_first)
+              d.steps.push_back({u.data_cluster, u.global_parity_cluster, "data_delta", false,
+                                 fmt_cluster_id(u.data_cluster) + " 上 " + batch_desc + " -> " +
+                                     fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id), batch_sz});
+              if (use_parallel)
               {
-                d.steps.push_back({u.data_cluster, u.global_parity_cluster, "data_delta", false,
-                                   fmt_cluster_id(u.data_cluster) + " 上 " + batch_desc + " -> " +
-                                       fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id), batch_sz});
-                d.steps.push_back({u.data_cluster, u.local_parity_cluster, "data_delta", false,
-                                   fmt_cluster_id(u.data_cluster) + " 上 " + batch_desc + " -> " +
+                d.steps.push_back({u.data_cluster, u.local_parity_cluster, "parity_delta", true,
+                                   fmt_cluster_id(u.data_cluster) + " 上 基于 " + batch_desc + " 的校验更新 -> " +
                                        fmt_cluster_id(u.local_parity_cluster) + " " + fmt_local_parity_block(lp_id), batch_sz});
-                group_to_ingress_cluster[u.group_id] = (bw_d2g >= bw_d2l) ? u.global_parity_cluster : u.local_parity_cluster;
-              }
-              else if (score_local_first >= score_global_first)
-              {
-                d.steps.push_back({u.data_cluster, u.local_parity_cluster, "data_delta", false,
-                                   fmt_cluster_id(u.data_cluster) + " 上 " + batch_desc + " -> " +
-                                       fmt_cluster_id(u.local_parity_cluster) + " " + fmt_local_parity_block(lp_id), batch_sz});
-                d.steps.push_back({u.local_parity_cluster, u.global_parity_cluster, "parity_delta", true,
-                                   fmt_cluster_id(u.local_parity_cluster) + " " + fmt_local_parity_block(lp_id) +
-                                       " 侧校验衍生数据 -> " + fmt_cluster_id(u.global_parity_cluster) + " " +
-                                       fmt_global_parity_block(gp_id), batch_sz});
-                group_to_ingress_cluster[u.group_id] = u.local_parity_cluster;
               }
               else
               {
-                d.steps.push_back({u.data_cluster, u.global_parity_cluster, "data_delta", false,
-                                   fmt_cluster_id(u.data_cluster) + " 上 " + batch_desc + " -> " +
-                                       fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id), batch_sz});
                 d.steps.push_back({u.global_parity_cluster, u.local_parity_cluster, "parity_delta", true,
                                    fmt_cluster_id(u.global_parity_cluster) + " " + fmt_global_parity_block(gp_id) +
-                                       " 侧校验衍生数据 -> " + fmt_cluster_id(u.local_parity_cluster) + " " +
+                                       " 侧基于 " + batch_desc + " 的校验衍生数据 -> " + fmt_cluster_id(u.local_parity_cluster) + " " +
                                        fmt_local_parity_block(lp_id), batch_sz});
-                group_to_ingress_cluster[u.group_id] = u.global_parity_cluster;
               }
             }
           }
@@ -3848,37 +3944,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::map<int, std::vector<std::pair<int, int>>> block_to_slices;
     const int unit_size = static_cast<int>(m_sys_config->UnitSize);
     const int block_size = static_cast<int>(m_sys_config->BlockSize);
-    auto add_sparse_slice = [](std::map<int, std::vector<std::pair<int, int>>> &dst,
-                               int block_id, int len, int off) {
-      if (len <= 0) return;
-      auto &vec = dst[block_id];
-      vec.push_back(std::make_pair(len, off));
-      std::sort(vec.begin(), vec.end(), [](const auto &a, const auto &b) { return a.second < b.second; });
-      std::vector<std::pair<int, int>> merged;
-      for (const auto &s : vec)
-      {
-        const int cur_l = s.second;
-        const int cur_r = s.second + s.first - 1;
-        if (merged.empty())
-        {
-          merged.push_back(s);
-          continue;
-        }
-        int prev_l = merged.back().second;
-        int prev_r = merged.back().second + merged.back().first - 1;
-        if (cur_l <= prev_r + 1)
-        {
-          const int new_r = std::max(prev_r, cur_r);
-          merged.back().second = prev_l;
-          merged.back().first = new_r - prev_l + 1;
-        }
-        else
-        {
-          merged.push_back(s);
-        }
-      }
-      vec.swap(merged);
-    };
     for (int rid = 0; rid < request->ranges_size(); rid++)
     {
       const auto &rg = request->ranges(rid);
@@ -3888,16 +3953,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       {
         return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "range must satisfy start < end for [start,end)");
       }
-
-      int pos = logical_offset_start;
-      while (pos < logical_offset_end)
-      {
-        const int block_id = pos / block_size;
-        const int block_offset = pos % block_size;
-        const int take = std::min(block_size - block_offset, logical_offset_end - pos);
-        add_sparse_slice(block_to_slices, block_id, take, block_offset);
-        pos += take;
-      }
+      xue_add_logical_range_to_block_slices(block_size, logical_offset_start, logical_offset_end,
+                                            &block_to_slices);
     }
 
     if (block_to_slices.empty())
@@ -3906,28 +3963,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
 
     // parity 按受影响 unit 生成离散切片，避免扩成整块。
-    for (const auto &kv : block_to_slices)
-    {
-      const int block_id = kv.first;
-      if (block_id < 0 || block_id >= stripe->k)
-      {
-        continue;
-      }
-      for (const auto &slice : kv.second)
-      {
-        const int block_off = slice.second;
-        const int block_end = block_off + slice.first - 1;
-        const int u0 = block_off / unit_size;
-        const int u1 = block_end / unit_size;
-        const int parity_off = u0 * unit_size;
-        const int parity_end = std::min(block_size - 1, (u1 + 1) * unit_size - 1);
-        const int parity_len = parity_end - parity_off + 1;
-        for (int i = stripe->k; i < stripe->n; i++)
-        {
-          add_sparse_slice(block_to_slices, i, parity_len, parity_off);
-        }
-      }
-    }
+    xue_extend_parity_slices_in_block_map(&block_to_slices, stripe->k, stripe->n, block_size, unit_size);
     const bool is_merge_parity = false;
 
     // std::cout << "[XUE_UPDATE_SCOPE] stripe=" << stripe_id
@@ -4085,9 +4121,19 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             }
           }
         };
-        for (int bid : tcp_data_blocks)
+        const std::vector<XueBlockSlice> tcp_data_slices =
+            xue_collect_data_slices_for_blocks(block_to_slices, tcp_data_blocks);
+        for (const XueBlockSlice &rec : tcp_data_slices)
         {
-          add_block_slices(bid, true);
+          const Block *block = find_block_by_id(stripe, rec.block_id);
+          if (block == nullptr)
+          {
+            continue;
+          }
+          addBlockToAppendPlan(plan, block, m_node_table[block->map2node],
+                               std::make_pair(rec.len, rec.offset));
+          plan_append_size += rec.len;
+          ++tcp_slice_count;
         }
         // XueLRC: local parity block for group i is simply k + i.
         // Other code types: distributed across groups based on r/z ratio.
@@ -4236,9 +4282,20 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     if (use_strict_schedule)
     {
-      attach_strict_outgoing_to_plans(append_plans, strict_schedule, m_sys_config->CodeType,
+      attach_strict_outgoing_to_plans(stripe, append_plans, strict_schedule, m_sys_config->CodeType,
                                       stripe->k, stripe->r, stripe->z);
       build_downstream_forward_plans(append_plans, strict_schedule);
+      {
+        std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
+        auto sit = m_xue_strict_by_stripe.find(stripe_id);
+        if (sit != m_xue_strict_by_stripe.end() && sit->second)
+        {
+          std::lock_guard<std::mutex> session_lk(sit->second->mutex);
+          mark_ingress_completed_local_parity_strict_steps(
+              stripe, *sit->second, append_plans, strict_schedule, m_sys_config->CodeType,
+              stripe->k, stripe->r, stripe->z);
+        }
+      }
     }
 
     // client 已超时取消，跳过 proxy 通知，避免遗留无主 task 阻塞 proxy 队列
@@ -4281,6 +4338,36 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                   << " succeeded, " << (n - ok_plans.size()) << " failed" << std::endl;
       }
       append_plans.swap(ok_plans);
+
+      // notify 失败的 plan 不会发给 client，session 也不应再等待其 ingress/commit。
+      if (use_strict_schedule)
+      {
+        std::set<std::string> notify_ok_keys;
+        for (const auto &plan : append_plans)
+        {
+          notify_ok_keys.insert(plan.key());
+        }
+        std::lock_guard<std::mutex> lk(m_xue_schedule_mutex);
+        auto sit = m_xue_strict_by_stripe.find(stripe_id);
+        if (sit != m_xue_strict_by_stripe.end() && sit->second)
+        {
+          std::lock_guard<std::mutex> session_lk(sit->second->mutex);
+          XueStrictScheduleSession &session = *sit->second;
+          for (const auto &k : session.required_ingress_keys)
+          {
+            if (notify_ok_keys.find(k) == notify_ok_keys.end())
+            {
+              std::cerr << "[Coord] uploadXueUpdate stripe=" << stripe_id
+                        << " drop session key (notify failed): " << k << std::endl;
+            }
+          }
+          session.required_ingress_keys = notify_ok_keys;
+          session.required_commit_keys = notify_ok_keys;
+          session.try_advance_ready_steps();
+          session.try_advance_commits();
+          session.cv.notify_all();
+        }
+      }
     }
 
     // notify 完成后再次检查 client 是否已取消，避免向已放弃的 client 填充回复

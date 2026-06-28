@@ -125,6 +125,10 @@ message AppendPlanLayout {
   int32 global_parity_block_num = 4;
   int32 local_parity_block_num = 5;
   repeated int32 block_ids = 6;
+  // 与 cluster TCP payload 中 slice 顺序一一对应（block_id/offset/size）
+  repeated int32 slice_block_ids = 7;
+  repeated int32 slice_offsets = 8;
+  repeated int32 slice_sizes = 9;
 }
 
 // Strict XUE schedule: one row per scheduled_tasks hop (step_no 1-based, parallel_group = same start_time)

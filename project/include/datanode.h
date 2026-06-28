@@ -6,6 +6,7 @@
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/grpcpp.h>
 #include <asio.hpp>
+#include <mutex>
 #include <string>
 #include <vector>
 #include "meta_definition.h"
@@ -99,6 +100,8 @@ namespace ECProject
         int m_download_port;
         asio::io_context io_context;
         asio::ip::tcp::acceptor acceptor;
+        // 单 acceptor 上串行 accept，避免多 slice 并行 WriteRange/ReadRange 时 TCP 连接错配
+        std::mutex m_tcp_data_accept_mutex;
     };
 
     class DataNode

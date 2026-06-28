@@ -144,7 +144,10 @@ namespace ECProject
                 // only send data
                 asio::error_code ec;
                 asio::ip::tcp::socket socket(io_context);
-                acceptor.accept(socket);
+                {
+                  std::lock_guard<std::mutex> accept_lk(m_tcp_data_accept_mutex);
+                  acceptor.accept(socket);
+                }
                 asio::read(socket, asio::buffer(buf.data(), append_size), ec);
 
                 asio::error_code ignore_ec;
@@ -196,7 +199,10 @@ namespace ECProject
                 // only send data
                 asio::error_code ec;
                 asio::ip::tcp::socket socket(io_context);
-                acceptor.accept(socket);
+                {
+                  std::lock_guard<std::mutex> accept_lk(m_tcp_data_accept_mutex);
+                  acceptor.accept(socket);
+                }
                 asio::read(socket, asio::buffer(buf, append_size), ec);
 
                 asio::error_code ignore_ec;
@@ -309,7 +315,10 @@ namespace ECProject
             {
                 asio::error_code ec;
                 asio::ip::tcp::socket socket(io_context);
-                acceptor.accept(socket);
+                {
+                  std::lock_guard<std::mutex> accept_lk(m_tcp_data_accept_mutex);
+                  acceptor.accept(socket);
+                }
                 asio::write(socket, asio::buffer(buf->data(), static_cast<size_t>(range_size)), ec);
                 asio::error_code ignore_ec;
                 socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
@@ -363,7 +372,10 @@ namespace ECProject
                 std::vector<char> payload(static_cast<size_t>(range_size));
                 asio::error_code ec;
                 asio::ip::tcp::socket socket(io_context);
-                acceptor.accept(socket);
+                {
+                  std::lock_guard<std::mutex> accept_lk(m_tcp_data_accept_mutex);
+                  acceptor.accept(socket);
+                }
                 asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(range_size)), ec);
                 asio::error_code ignore_ec;
                 socket.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
@@ -437,7 +449,10 @@ namespace ECProject
                 std::vector<char> delta(static_cast<size_t>(range_size));
                 asio::error_code ec;
                 asio::ip::tcp::socket socket(io_context);
-                acceptor.accept(socket);
+                {
+                  std::lock_guard<std::mutex> accept_lk(m_tcp_data_accept_mutex);
+                  acceptor.accept(socket);
+                }
                 asio::read(socket, asio::buffer(delta.data(), static_cast<size_t>(range_size)), ec);
                 asio::error_code ignore_ec;
                 socket.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
@@ -520,7 +535,10 @@ namespace ECProject
                 // only send data
                 asio::error_code ec;
                 asio::ip::tcp::socket socket(io_context);
-                acceptor.accept(socket);
+                {
+                  std::lock_guard<std::mutex> accept_lk(m_tcp_data_accept_mutex);
+                  acceptor.accept(socket);
+                }
                 asio::read(socket, asio::buffer(buf.data(), m_sys_config->BlockSize), ec);
 
                 asio::error_code ignore_ec;
@@ -588,7 +606,10 @@ namespace ECProject
                 // only send data
                 asio::error_code ec;
                 asio::ip::tcp::socket socket(io_context);
-                acceptor.accept(socket);
+                {
+                  std::lock_guard<std::mutex> accept_lk(m_tcp_data_accept_mutex);
+                  acceptor.accept(socket);
+                }
                 asio::read(socket, asio::buffer(buf.data(), m_sys_config->BlockSize), ec);
 
                 asio::error_code ignore_ec;
@@ -772,7 +793,10 @@ namespace ECProject
                 // only send data
                 asio::error_code ec;
                 asio::ip::tcp::socket socket(io_context);
-                acceptor.accept(socket);
+                {
+                  std::lock_guard<std::mutex> accept_lk(m_tcp_data_accept_mutex);
+                  acceptor.accept(socket);
+                }
                 asio::read(socket, asio::buffer(buf.data(), block_size), ec);
 
                 asio::error_code ignore_ec;
@@ -909,7 +933,10 @@ namespace ECProject
         {
             asio::error_code error;
             asio::ip::tcp::socket socket(io_context);
-            acceptor.accept(socket);
+            {
+              std::lock_guard<std::mutex> accept_lk(m_tcp_data_accept_mutex);
+              acceptor.accept(socket);
+            }
             asio::write(socket, asio::buffer(buf, block_size), error);
             asio::error_code ignore_ec;
             socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
@@ -968,7 +995,10 @@ namespace ECProject
         {
             asio::error_code error;
             asio::ip::tcp::socket socket(io_context);
-            acceptor.accept(socket);
+            {
+              std::lock_guard<std::mutex> accept_lk(m_tcp_data_accept_mutex);
+              acceptor.accept(socket);
+            }
             asio::write(socket, asio::buffer(buf, block_size), error);
             asio::error_code ignore_ec;
             socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
