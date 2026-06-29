@@ -77,14 +77,24 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return std::stoi(key.substr(us + 1, end - us - 1));
     }
 
-    void fill_reply_from_append_plans(CoordinatorImpl *self,
-                                      const std::vector<proxy_proto::AppendStripeDataPlacement> &plans,
-                                      coordinator_proto::ReplyProxyIPsPorts *proxyIPPort)
+    void fill_reply_from_append_plans(
+        CoordinatorImpl *self, const std::vector<proxy_proto::AppendStripeDataPlacement> &plans,
+        coordinator_proto::ReplyProxyIPsPorts *proxyIPPort,
+        const std::vector<uint64_t> *tcp_accept_tokens = nullptr)
     {
       size_t sum_append_size = 0;
-      for (const auto &plan : plans)
+      for (size_t plan_idx = 0; plan_idx < plans.size(); ++plan_idx)
       {
+        const auto &plan = plans[plan_idx];
         proxyIPPort->add_append_keys(plan.key());
+        if (tcp_accept_tokens != nullptr && plan_idx < tcp_accept_tokens->size())
+        {
+          proxyIPPort->add_tcp_accept_tokens((*tcp_accept_tokens)[plan_idx]);
+        }
+        else
+        {
+          proxyIPPort->add_tcp_accept_tokens(0);
+        }
         proxyIPPort->add_proxyips(self->m_cluster_table[plan.cluster_id()].proxy_ip);
         proxyIPPort->add_proxyports(self->m_cluster_table[plan.cluster_id()].proxy_port +
                                     ECProject::PROXY_PORT_SHIFT);
@@ -3634,7 +3644,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     return append_plans;
   }
 
-  bool CoordinatorImpl::notify_proxies_ready(const proxy_proto::AppendStripeDataPlacement &plan)
+  bool CoordinatorImpl::notify_proxies_ready(const proxy_proto::AppendStripeDataPlacement &plan,
+                                             uint64_t *out_tcp_accept_token)
   {
     grpc::ClientContext cont;
     // 设置 500ms deadline，防止 proxy 无响应时永久阻塞 coordinator 线程
@@ -3644,6 +3655,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     grpc::Status status = m_proxy_ptrs[chosen_proxy]->scheduleAppend2Datanode(&cont, plan, &set_reply);
     if (status.ok())
     {
+      if (out_tcp_accept_token != nullptr)
+      {
+        *out_tcp_accept_token = set_reply.tcp_accept_token();
+      }
       m_mutex.lock();
       m_object_updating_table[plan.key()] = ObjectInfo(plan.append_size(), plan.stripe_id());
       m_mutex.unlock();
@@ -3738,12 +3753,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     // 3. notify proxies to receive data，单个 proxy 失败不影响整体
     const size_t notify_n = append_plans.size();
     std::unique_ptr<bool[]> notify_ok(new bool[notify_n]());
+    std::unique_ptr<uint64_t[]> notify_tokens(new uint64_t[notify_n]());
     std::vector<std::thread> threads;
     for (size_t i = 0; i < notify_n; ++i)
     {
       threads.push_back(std::thread(
-          [this, &plan = append_plans[i], result_ptr = &notify_ok[i]]() {
-            *result_ptr = notify_proxies_ready(plan);
+          [this, &plan = append_plans[i], result_ptr = &notify_ok[i], token_ptr = &notify_tokens[i]]() {
+            *result_ptr = notify_proxies_ready(plan, token_ptr);
           }));
     }
     for (auto &thread : threads)
@@ -3752,16 +3768,19 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     // 移除通知失败的 plan
     std::vector<proxy_proto::AppendStripeDataPlacement> ok_plans;
+    std::vector<uint64_t> ok_tokens;
     ok_plans.reserve(notify_n);
+    ok_tokens.reserve(notify_n);
     for (size_t i = 0; i < notify_n; ++i)
     {
       if (notify_ok[i])
       {
         ok_plans.push_back(std::move(append_plans[i]));
+        ok_tokens.push_back(notify_tokens[i]);
       }
     }
     append_plans.swap(ok_plans);
-    fill_reply_from_append_plans(this, append_plans, proxyIPPort);
+    fill_reply_from_append_plans(this, append_plans, proxyIPPort, &ok_tokens);
 
     m_cur_offset_table[clientID].offset += appendSizeBytes;
     // std::cout << "[Coordinator] stripe_id: " << m_cur_offset_table[clientID].stripe_id << " offset: " << m_cur_offset_table[clientID].offset << " is_erase " << (m_cur_offset_table[clientID].offset == m_sys_config->BlockSize * m_sys_config->k) << std::endl;
@@ -3809,8 +3828,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       for (int pred_no : steps[i].pred_step_nos())
       {
         const int idx = pred_no - 1;
-        if (idx < 0 || idx >= static_cast<int>(step_states.size()) ||
-            step_states[static_cast<size_t>(idx)] != XueStepRuntimeState::DONE)
+        if (idx < 0 || idx >= static_cast<int>(step_states.size()))
+        {
+          preds_done = false;
+          break;
+        }
+        const XueStepRuntimeState pst = step_states[static_cast<size_t>(idx)];
+        if (pst == XueStepRuntimeState::FAILED || pst != XueStepRuntimeState::DONE)
         {
           preds_done = false;
           break;
@@ -4306,15 +4330,17 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
     // 并行通知 proxy，单个 proxy 失败不影响整体；
     // 每个 notify_proxies_ready 内部有 500ms deadline，防止无限阻塞。
+    std::vector<uint64_t> append_tcp_tokens;
     {
       const size_t n = append_plans.size();
       std::unique_ptr<bool[]> notify_ok(new bool[n]());
+      std::unique_ptr<uint64_t[]> notify_tokens(new uint64_t[n]());
       std::vector<std::thread> notify_threads;
       for (size_t i = 0; i < n; ++i)
       {
         notify_threads.push_back(std::thread(
-            [this, &plan = append_plans[i], result_ptr = &notify_ok[i]]() {
-              *result_ptr = notify_proxies_ready(plan);
+            [this, &plan = append_plans[i], result_ptr = &notify_ok[i], token_ptr = &notify_tokens[i]]() {
+              *result_ptr = notify_proxies_ready(plan, token_ptr);
             }));
       }
       for (auto &t : notify_threads)
@@ -4323,12 +4349,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       // 移除通知失败的 plan，避免 client 向未就绪的 proxy 发送 TCP 数据
       std::vector<proxy_proto::AppendStripeDataPlacement> ok_plans;
+      std::vector<uint64_t> ok_tokens;
       ok_plans.reserve(n);
+      ok_tokens.reserve(n);
       for (size_t i = 0; i < n; ++i)
       {
         if (notify_ok[i])
         {
           ok_plans.push_back(std::move(append_plans[i]));
+          ok_tokens.push_back(notify_tokens[i]);
         }
       }
       if (ok_plans.size() < n)
@@ -4338,6 +4367,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                   << " succeeded, " << (n - ok_plans.size()) << " failed" << std::endl;
       }
       append_plans.swap(ok_plans);
+      append_tcp_tokens.swap(ok_tokens);
 
       // notify 失败的 plan 不会发给 client，session 也不应再等待其 ingress/commit。
       if (use_strict_schedule)
@@ -4376,7 +4406,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return grpc::Status(grpc::StatusCode::CANCELLED, "client cancelled during proxy notify");
     }
 
-    fill_reply_from_append_plans(this, append_plans, proxyIPPort);
+    fill_reply_from_append_plans(this, append_plans, proxyIPPort, &append_tcp_tokens);
     proxyIPPort->set_xue_xfer_plan_id(xue_xfer_plan_id);
     if (use_strict_schedule)
     {
@@ -4647,9 +4677,22 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return grpc::Status(grpc::StatusCode::NOT_FOUND, "no matching schedule step");
     }
     std::unique_lock<std::mutex> session_lk(session->mutex);
+    for (int pred_no : session->steps[static_cast<size_t>(step_idx)].pred_step_nos())
+    {
+      const int pred_idx = pred_no - 1;
+      if (pred_idx >= 0 && pred_idx < static_cast<int>(session->step_states.size()) &&
+          session->step_states[static_cast<size_t>(pred_idx)] == XueStepRuntimeState::FAILED)
+      {
+        return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, "predecessor schedule step failed");
+      }
+    }
     while (true)
     {
       const auto st = session->step_states[static_cast<size_t>(step_idx)];
+      if (st == XueStepRuntimeState::FAILED)
+      {
+        return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, "schedule step failed");
+      }
       if (st == XueStepRuntimeState::READY || st == XueStepRuntimeState::RUNNING ||
           st == XueStepRuntimeState::DONE)
       {
@@ -4726,7 +4769,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         session->steps[static_cast<size_t>(step_idx)];
     const XueStrictHopKey matched_hop = make_xue_strict_hop_key(matched_step);
     const auto new_state = request->success() ? XueStepRuntimeState::DONE
-                                              : XueStepRuntimeState::PENDING;
+                                              : XueStepRuntimeState::FAILED;
     for (size_t i = 0; i < session->steps.size(); ++i)
     {
       if (make_xue_strict_hop_key(session->steps[i]) == matched_hop)
@@ -5099,12 +5142,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
     const size_t set_notify_n = add_plans.size();
     std::unique_ptr<bool[]> set_notify_ok(new bool[set_notify_n]());
+    std::unique_ptr<uint64_t[]> set_notify_tokens(new uint64_t[set_notify_n]());
     std::vector<std::thread> threads;
     for (size_t i = 0; i < set_notify_n; ++i)
     {
       threads.push_back(std::thread(
-          [this, &plan = add_plans[i], result_ptr = &set_notify_ok[i]]() {
-            *result_ptr = notify_proxies_ready(plan);
+          [this, &plan = add_plans[i], result_ptr = &set_notify_ok[i], token_ptr = &set_notify_tokens[i]]() {
+            *result_ptr = notify_proxies_ready(plan, token_ptr);
           }));
     }
     for (auto &thread : threads)
@@ -5113,16 +5157,19 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     // 移除通知失败的 plan
     std::vector<proxy_proto::AppendStripeDataPlacement> set_ok_plans;
+    std::vector<uint64_t> set_ok_tokens;
     set_ok_plans.reserve(set_notify_n);
+    set_ok_tokens.reserve(set_notify_n);
     for (size_t i = 0; i < set_notify_n; ++i)
     {
       if (set_notify_ok[i])
       {
         set_ok_plans.push_back(std::move(add_plans[i]));
+        set_ok_tokens.push_back(set_notify_tokens[i]);
       }
     }
     add_plans.swap(set_ok_plans);
-    fill_reply_from_append_plans(this, add_plans, proxyIPPort);
+    fill_reply_from_append_plans(this, add_plans, proxyIPPort, &set_ok_tokens);
 
     m_stripe_table[t_stripe.stripe_id] = std::move(t_stripe);
 
@@ -5177,12 +5224,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
     const size_t subset_notify_n = add_plans.size();
     std::unique_ptr<bool[]> subset_notify_ok(new bool[subset_notify_n]());
+    std::unique_ptr<uint64_t[]> subset_notify_tokens(new uint64_t[subset_notify_n]());
     std::vector<std::thread> threads;
     for (size_t i = 0; i < subset_notify_n; ++i)
     {
       threads.push_back(std::thread(
-          [this, &plan = add_plans[i], result_ptr = &subset_notify_ok[i]]() {
-            *result_ptr = notify_proxies_ready(plan);
+          [this, &plan = add_plans[i], result_ptr = &subset_notify_ok[i],
+           token_ptr = &subset_notify_tokens[i]]() {
+            *result_ptr = notify_proxies_ready(plan, token_ptr);
           }));
     }
     for (auto &thread : threads)
@@ -5191,16 +5240,19 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     // 移除通知失败的 plan
     std::vector<proxy_proto::AppendStripeDataPlacement> subset_ok_plans;
+    std::vector<uint64_t> subset_ok_tokens;
     subset_ok_plans.reserve(subset_notify_n);
+    subset_ok_tokens.reserve(subset_notify_n);
     for (size_t i = 0; i < subset_notify_n; ++i)
     {
       if (subset_notify_ok[i])
       {
         subset_ok_plans.push_back(std::move(add_plans[i]));
+        subset_ok_tokens.push_back(subset_notify_tokens[i]);
       }
     }
     add_plans.swap(subset_ok_plans);
-    fill_reply_from_append_plans(this, add_plans, proxyIPPort);
+    fill_reply_from_append_plans(this, add_plans, proxyIPPort, &subset_ok_tokens);
 
     m_stripe_table[t_stripe.stripe_id] = std::move(t_stripe);
 

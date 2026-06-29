@@ -197,7 +197,8 @@ namespace ECProject
                                             bool *out_is_merge_parity, std::string *err_msg);
     void update_stripe_info_in_node(int t_node_id, int stripe_id, int index);
     int getClusterAppendSize(Stripe *stripe, const std::map<int, std::pair<int, int>> &block_to_slice_sizes, int curr_group_id, int parity_slice_size);
-    bool notify_proxies_ready(const proxy_proto::AppendStripeDataPlacement &plan);
+    bool notify_proxies_ready(const proxy_proto::AppendStripeDataPlacement &plan,
+                              uint64_t *out_tcp_accept_token = nullptr);
     void note_xue_strict_append_commit(int stripe_id, const std::string &append_key, bool committed);
     std::vector<int> get_recovery_group_ids(std::string code_type, int k, int r, int z, int failed_block_id);
     void init_recovery_group_lookup_table();
@@ -235,7 +236,8 @@ namespace ECProject
       PENDING = 0,
       READY = 1,
       RUNNING = 2,
-      DONE = 3
+      DONE = 3,
+      FAILED = 4
     };
 
     struct XueStrictScheduleSession

@@ -130,7 +130,8 @@ namespace ECProject
     void async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size,
                                  std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr,
                                  bool poll_commit_after_send = true,
-                                 XueAppendNetworkTiming *out_timing = nullptr);
+                                 XueAppendNetworkTiming *out_timing = nullptr,
+                                 uint64_t tcp_accept_token = 0);
     void launch_append_to_proxies_serial_per_endpoint(
         const coordinator_proto::ReplyProxyIPsPorts &reply, const char *send_buf,
         bool *if_commit_arr);

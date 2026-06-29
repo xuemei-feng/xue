@@ -22,6 +22,26 @@
 
 namespace
 {
+  bool writeTcpRoutingToken(asio::ip::tcp::socket &socket, uint64_t token, asio::error_code &ec)
+  {
+    ec.clear();
+    if (token == 0)
+    {
+      ec = asio::error::invalid_argument;
+      return false;
+    }
+    asio::write(socket, asio::buffer(&token, sizeof(token)), ec);
+    return !ec;
+  }
+
+  bool readTcpRoutingToken(asio::ip::tcp::socket &socket, uint64_t &token, asio::error_code &ec)
+  {
+    ec.clear();
+    token = 0;
+    asio::read(socket, asio::buffer(&token, sizeof(token)), ec);
+    return !ec && token != 0;
+  }
+
   std::mutex &datanode_endpoint_io_mutex(const std::string &node_ip_port)
   {
     static std::mutex map_mutex;
@@ -569,6 +589,10 @@ namespace ECProject
 {
   bool ProxyImpl::init_coordinator()
   {
+    if (m_coordinator_ptr != nullptr)
+    {
+      return true;
+    }
     m_coordinator_ptr = coordinator_proto::coordinatorService::NewStub(grpc::CreateChannel(m_coordinator_address, grpc::InsecureChannelCredentials()));
     // coordinator_proto::RequestToCoordinator req;
     // coordinator_proto::ReplyFromCoordinator rep;
@@ -646,10 +670,13 @@ namespace ECProject
 
   proxy_proto::proxyService::Stub *ProxyImpl::getProxyStubForCluster(int cluster_id)
   {
-    auto it = m_proxy_peer_stubs.find(cluster_id);
-    if (it != m_proxy_peer_stubs.end())
     {
-      return it->second.get();
+      std::lock_guard<std::mutex> lk(m_proxy_peer_stubs_mutex);
+      const auto it = m_proxy_peer_stubs.find(cluster_id);
+      if (it != m_proxy_peer_stubs.end())
+      {
+        return it->second.get();
+      }
     }
     auto ep_it = m_cluster_proxy_endpoints.find(cluster_id);
     if (ep_it == m_cluster_proxy_endpoints.end())
@@ -660,8 +687,16 @@ namespace ECProject
     auto stub = proxy_proto::proxyService::NewStub(
         grpc::CreateChannel(channel_addr, grpc::InsecureChannelCredentials()));
     proxy_proto::proxyService::Stub *raw = stub.get();
-    m_proxy_peer_stubs[cluster_id] = std::move(stub);
-    return raw;
+    {
+      std::lock_guard<std::mutex> lk(m_proxy_peer_stubs_mutex);
+      const auto it = m_proxy_peer_stubs.find(cluster_id);
+      if (it != m_proxy_peer_stubs.end())
+      {
+        return it->second.get();
+      }
+      m_proxy_peer_stubs[cluster_id] = std::move(stub);
+      return m_proxy_peer_stubs[cluster_id].get();
+    }
   }
 
   void ProxyImpl::waitXueScheduleHopBeforeForward(int stripe_id, const std::string &append_key,
@@ -980,6 +1015,35 @@ namespace ECProject
         {
           reportXueScheduleStepDoneAfterForward(placement.stripe_id(), placement.key(),
                                                 m_self_cluster_id, dest_cluster_id, false, placement.xue_xfer_plan_id());
+        }
+        return false;
+      }
+      const uint64_t tcp_accept_token = rep.tcp_accept_token();
+      if (tcp_accept_token == 0)
+      {
+        std::cerr << "[Proxy][XFERT] " << ts << " proxy_tcp_failed "
+                  << fmt_proxy_tcp_route(m_self_cluster_id, dest_cluster_id)
+                  << " reason=missing_tcp_accept_token append_key=" << placement.key() << std::endl;
+        if (placement.xue_strict_schedule() && gate_strict_schedule_step)
+        {
+          reportXueScheduleStepDoneAfterForward(placement.stripe_id(), placement.key(),
+                                                m_self_cluster_id, dest_cluster_id, false,
+                                                placement.xue_xfer_plan_id());
+        }
+        return false;
+      }
+      asio::error_code route_ec;
+      if (!writeTcpRoutingToken(socket, tcp_accept_token, route_ec))
+      {
+        std::cerr << "[Proxy][XFERT] " << ts << " proxy_tcp_failed "
+                  << fmt_proxy_tcp_route(m_self_cluster_id, dest_cluster_id)
+                  << " reason=tcp_route_write append_key=" << placement.key()
+                  << " token=" << tcp_accept_token << " ec=" << route_ec.message() << std::endl;
+        if (placement.xue_strict_schedule() && gate_strict_schedule_step)
+        {
+          reportXueScheduleStepDoneAfterForward(placement.stripe_id(), placement.key(),
+                                                m_self_cluster_id, dest_cluster_id, false,
+                                                placement.xue_xfer_plan_id());
         }
         return false;
       }
@@ -2055,7 +2119,6 @@ namespace ECProject
 
     // std::cout << "[Proxy] checkalive" << request->name() << std::endl;
     response->set_message(false);
-    init_coordinator();
     return grpc::Status::OK;
   }
 
@@ -2647,6 +2710,151 @@ namespace ECProject
     // std::cout << "===================================" << std::endl;
   }
 
+  uint64_t ProxyImpl::registerPendingTcpAppend(
+      std::shared_ptr<proxy_proto::AppendStripeDataPlacement> placement)
+  {
+    if (placement == nullptr)
+    {
+      return 0;
+    }
+    const uint64_t token = m_next_tcp_accept_token.fetch_add(1, std::memory_order_relaxed);
+    std::lock_guard<std::mutex> lk(m_pending_tcp_mutex);
+    cleanupExpiredPendingTcpTokensLocked();
+    m_pending_tcp_by_token[token] = PendingTcpEntry{placement, std::chrono::steady_clock::now()};
+    return token;
+  }
+
+  void ProxyImpl::releasePendingTcpAppend(uint64_t token)
+  {
+    if (token == 0)
+    {
+      return;
+    }
+    std::lock_guard<std::mutex> lk(m_pending_tcp_mutex);
+    m_pending_tcp_by_token.erase(token);
+  }
+
+  void ProxyImpl::cleanupExpiredPendingTcpTokensLocked()
+  {
+    const auto now = std::chrono::steady_clock::now();
+    const auto ttl = std::chrono::seconds(kPendingTcpTokenTtlSec);
+    for (auto it = m_pending_tcp_by_token.begin(); it != m_pending_tcp_by_token.end();)
+    {
+      if (now - it->second.created_at > ttl)
+      {
+        it = m_pending_tcp_by_token.erase(it);
+      }
+      else
+      {
+        ++it;
+      }
+    }
+  }
+
+  std::shared_ptr<proxy_proto::AppendStripeDataPlacement> ProxyImpl::consumePendingTcpAppend(
+      uint64_t token)
+  {
+    if (token == 0)
+    {
+      return nullptr;
+    }
+    std::lock_guard<std::mutex> lk(m_pending_tcp_mutex);
+    const auto it = m_pending_tcp_by_token.find(token);
+    if (it == m_pending_tcp_by_token.end())
+    {
+      return nullptr;
+    }
+    std::shared_ptr<proxy_proto::AppendStripeDataPlacement> out = it->second.placement;
+    m_pending_tcp_by_token.erase(it);
+    return out;
+  }
+
+  bool ProxyImpl::enqueueXueDeferredTask(std::function<void()> task)
+  {
+    if (!task)
+    {
+      return false;
+    }
+    ensure_xue_deferred_workers();
+    {
+      std::lock_guard<std::mutex> lk(m_xue_deferred_queue_mutex);
+      if (m_xue_deferred_tasks.size() >= kXueDeferredQueueMax)
+      {
+        std::cerr << "[Proxy] xue deferred task queue full proxy_cluster=" << m_self_cluster_id
+                  << " depth=" << m_xue_deferred_tasks.size() << std::endl;
+        return false;
+      }
+      m_xue_deferred_tasks.push_back(std::move(task));
+    }
+    m_xue_deferred_queue_cv.notify_one();
+    return true;
+  }
+
+  void ProxyImpl::attach_self(std::shared_ptr<ProxyImpl> self)
+  {
+    m_self_weak = std::move(self);
+  }
+
+  std::shared_ptr<ProxyImpl> ProxyImpl::lock_self() const
+  {
+    return m_self_weak.lock();
+  }
+
+  void ProxyImpl::warm_up_worker_pools()
+  {
+    ensure_client_append_workers();
+    ensure_xue_deferred_workers();
+  }
+
+  void ProxyImpl::ensure_xue_deferred_workers()
+  {
+    const auto self = lock_self();
+    if (!self)
+    {
+      std::cerr << "[Proxy] ensure_xue_deferred_workers: self not pinned proxy_cluster="
+                << m_self_cluster_id << std::endl;
+      return;
+    }
+    int expected = m_xue_deferred_worker_count.load(std::memory_order_acquire);
+    while (expected < kXueDeferredWorkerCount)
+    {
+      if (m_xue_deferred_worker_count.compare_exchange_strong(expected, expected + 1,
+                                                               std::memory_order_acq_rel))
+      {
+        std::thread([self]() { self->xue_deferred_worker_loop(self); }).detach();
+        expected = m_xue_deferred_worker_count.load(std::memory_order_acquire);
+      }
+    }
+  }
+
+  void ProxyImpl::xue_deferred_worker_loop(std::shared_ptr<ProxyImpl> keepalive)
+  {
+    for (;;)
+    {
+      std::function<void()> task;
+      {
+        std::unique_lock<std::mutex> lk(m_xue_deferred_queue_mutex);
+        m_xue_deferred_queue_cv.wait(lk, [keepalive]() {
+          return !keepalive->m_xue_deferred_tasks.empty();
+        });
+        task = std::move(m_xue_deferred_tasks.front());
+        m_xue_deferred_tasks.pop_front();
+      }
+      if (task)
+      {
+        try
+        {
+          task();
+        }
+        catch (const std::exception &e)
+        {
+          std::cerr << "[Proxy] xue_deferred_worker exception proxy_cluster="
+                    << keepalive->m_self_cluster_id << " what=" << e.what() << std::endl;
+        }
+      }
+    }
+  }
+
   grpc::Status ProxyImpl::scheduleAppend2Datanode(
       grpc::ServerContext *context,
       const proxy_proto::AppendStripeDataPlacement *append_stripe_data_placement,
@@ -2662,6 +2870,11 @@ namespace ECProject
     bool is_serialized = append_stripe_data_placement->is_serialized();
 
     auto placement_copy = std::make_shared<proxy_proto::AppendStripeDataPlacement>(*append_stripe_data_placement);
+    const uint64_t tcp_accept_token = registerPendingTcpAppend(placement_copy);
+    if (response != nullptr)
+    {
+      response->set_tcp_accept_token(tcp_accept_token);
+    }
 
     const bool layout_append =
         is_layout_stripe_append_mode(append_stripe_data_placement->append_mode());
@@ -2696,7 +2909,15 @@ namespace ECProject
       registerXueGlobalParityIngressExpected(stripe_id, append_stripe_data_placement->key());
     }
 
-    auto append_and_save = [this, stripe_id, cluster_append_size, slice_num, placement_copy, is_serialized]() mutable
+    const auto self = lock_self();
+    if (!self)
+    {
+      std::cerr << "[Proxy] scheduleAppend2Datanode: self not pinned proxy_cluster="
+                << m_self_cluster_id << std::endl;
+      return grpc::Status(grpc::StatusCode::INTERNAL, "proxy self not pinned");
+    }
+
+    auto append_and_save = [self, this, placement_copy, is_serialized, tcp_accept_token]() mutable
     {
       try
       {
@@ -2724,8 +2945,38 @@ namespace ECProject
                     << " proxy_cluster=" << m_self_cluster_id
                     << " mode=" << placement_copy->append_mode()
                     << " ec=" << accept_ec.message() << std::endl;
+          releasePendingTcpAppend(tcp_accept_token);
           return;
         }
+
+        std::shared_ptr<proxy_proto::AppendStripeDataPlacement> active_plan = placement_copy;
+        uint64_t route_token = 0;
+        asio::error_code route_ec;
+        if (!readTcpRoutingToken(socket_data, route_token, route_ec))
+        {
+          std::cerr << "[Proxy] tcp route token read failed proxy_cluster=" << m_self_cluster_id
+                    << " append_key=" << placement_copy->key()
+                    << " ec=" << route_ec.message() << std::endl;
+          asio::error_code ignore_ec;
+          socket_data.close(ignore_ec);
+          releasePendingTcpAppend(tcp_accept_token);
+          return;
+        }
+        active_plan = consumePendingTcpAppend(route_token);
+        if (active_plan == nullptr)
+        {
+          std::cerr << "[Proxy] tcp route token unmatched proxy_cluster=" << m_self_cluster_id
+                    << " token=" << route_token << std::endl;
+          asio::error_code ignore_ec;
+          socket_data.close(ignore_ec);
+          releasePendingTcpAppend(tcp_accept_token);
+          return;
+        }
+        placement_copy = active_plan;
+
+        const int stripe_id = placement_copy->stripe_id();
+        const size_t cluster_append_size = placement_copy->append_size();
+        const int slice_num = placement_copy->blockkeys_size();
         asio::error_code error;
 
         // assert(m_pre_allocated_buffer_queue.size() > 0 && "Pre-allocated buffer queue is empty");
@@ -2826,11 +3077,17 @@ namespace ECProject
           {
             reportXueIngressReadyToCoordinator(stripe_id, placement_copy->key());
             auto append_shared = std::make_shared<std::vector<char>>(append_buf.begin(), append_buf.end());
-            std::thread([this, placement_copy, append_shared, tcp_slice_sizes, tcp_slice_count]() {
-              std::vector<char *> slice_ptrs = m_toolbox->splitCharPointer(
+            auto deferred_task = [self, placement_copy, append_shared, tcp_slice_sizes,
+                                  tcp_slice_count]() {
+              std::vector<char *> slice_ptrs = self->m_toolbox->splitCharPointer(
                   append_shared->data(), append_shared->size(), tcp_slice_sizes);
-              runXueStrictDeferredForwards(placement_copy, append_shared, slice_ptrs, tcp_slice_count);
-            }).detach();
+              self->runXueStrictDeferredForwards(placement_copy, append_shared, slice_ptrs,
+                                                 tcp_slice_count);
+            };
+            if (!enqueueXueDeferredTask(deferred_task))
+            {
+              deferred_task();
+            }
             if (send_ack)
             {
               const char ack = ingress_ok ? static_cast<char>(1) : static_cast<char>(0);
@@ -2893,27 +3150,31 @@ namespace ECProject
 
             auto append_shared =
                 std::make_shared<std::vector<char>>(append_buf.begin(), append_buf.end());
-            std::thread([this, placement_copy, append_shared, tcp_slice_count, src_cluster,
-                         global_cluster, ts]() {
+            auto deferred_task = [self, placement_copy, append_shared, tcp_slice_count,
+                                  src_cluster, global_cluster, ts]() {
               const int stripe_id_local = placement_copy->stripe_id();
               const uint64_t xfer_plan_id = placement_copy->xue_xfer_plan_id();
               const auto xfer_t0 = std::chrono::steady_clock::now();
               const int64_t xfer_w0 = xue_wall_unix_ms_now();
               proxy_proto::AppendStripeDataPlacement fwd_placement = *placement_copy;
               fwd_placement.set_xue_data_slices_are_delta(true);
-              const bool ok = forwardXueDataDeltaSync(
+              const bool ok = self->forwardXueDataDeltaSync(
                   global_cluster, "XUE_DELTA_TO_GLOBAL", fwd_placement, append_shared->data(),
                   append_shared->size(), true);
               if (ok)
               {
-                log_proxy_tcp_relay_passthrough(ts, m_self_cluster_id, src_cluster, global_cluster,
-                                                placement_copy->key(), append_shared->size(),
-                                                tcp_slice_count);
+                log_proxy_tcp_relay_passthrough(ts, self->m_self_cluster_id, src_cluster,
+                                                global_cluster, placement_copy->key(),
+                                                append_shared->size(), tcp_slice_count);
               }
-              record_xue_xfer_sample(stripe_id_local, xfer_plan_id, xfer_t0,
-                                     std::chrono::steady_clock::now(), xfer_w0,
-                                     xue_wall_unix_ms_now());
-            }).detach();
+              self->record_xue_xfer_sample(stripe_id_local, xfer_plan_id, xfer_t0,
+                                         std::chrono::steady_clock::now(), xfer_w0,
+                                         xue_wall_unix_ms_now());
+            };
+            if (!enqueueXueDeferredTask(deferred_task))
+            {
+              deferred_task();
+            }
             return;
           }
 
@@ -2970,12 +3231,17 @@ namespace ECProject
           {
             auto append_shared =
                 std::make_shared<std::vector<char>>(append_buf.begin(), append_buf.end());
-            std::thread([this, placement_copy, append_shared, tcp_slice_sizes, tcp_slice_count]() {
-              std::vector<char *> slice_ptrs = m_toolbox->splitCharPointer(
+            auto deferred_task = [self, placement_copy, append_shared, tcp_slice_sizes,
+                                  tcp_slice_count]() {
+              std::vector<char *> slice_ptrs = self->m_toolbox->splitCharPointer(
                   append_shared->data(), append_shared->size(), tcp_slice_sizes);
-              runXueStrictDeferredForwards(placement_copy, append_shared, slice_ptrs, tcp_slice_count,
-                                           false);
-            }).detach();
+              self->runXueStrictDeferredForwards(placement_copy, append_shared, slice_ptrs,
+                                                 tcp_slice_count, false);
+            };
+            if (!enqueueXueDeferredTask(deferred_task))
+            {
+              deferred_task();
+            }
           }
           return;
         }
@@ -3217,11 +3483,17 @@ namespace ECProject
           }
           reportXueIngressReadyToCoordinator(stripe_id, placement_copy->key());
           auto append_shared = std::make_shared<std::vector<char>>(append_buf.begin(), append_buf.end());
-          std::thread([this, placement_copy, append_shared, tcp_slice_sizes, tcp_slice_count]() {
-            std::vector<char *> slice_ptrs = m_toolbox->splitCharPointer(
+          auto deferred_task = [self, placement_copy, append_shared, tcp_slice_sizes,
+                                tcp_slice_count]() {
+            std::vector<char *> slice_ptrs = self->m_toolbox->splitCharPointer(
                 append_shared->data(), append_shared->size(), tcp_slice_sizes);
-            runXueStrictDeferredForwards(placement_copy, append_shared, slice_ptrs, tcp_slice_count);
-          }).detach();
+            self->runXueStrictDeferredForwards(placement_copy, append_shared, slice_ptrs,
+                                               tcp_slice_count);
+          };
+          if (!enqueueXueDeferredTask(deferred_task))
+          {
+            deferred_task();
+          }
           if (send_ack)
           {
             const char ack = static_cast<char>(1);
@@ -3411,6 +3683,7 @@ namespace ECProject
       {
         std::cout << "exception in append_and_save" << std::endl;
         std::cout << e.what() << std::endl;
+        releasePendingTcpAppend(tcp_accept_token);
       }
     };
     try
@@ -3437,32 +3710,49 @@ namespace ECProject
 
   void ProxyImpl::ensure_client_append_workers()
   {
+    const auto self = lock_self();
+    if (!self)
+    {
+      std::cerr << "[Proxy] ensure_client_append_workers: self not pinned proxy_cluster="
+                << m_self_cluster_id << std::endl;
+      return;
+    }
     int expected = m_client_append_worker_count.load(std::memory_order_acquire);
     while (expected < kClientAppendWorkerCount)
     {
       if (m_client_append_worker_count.compare_exchange_strong(expected, expected + 1,
                                                                std::memory_order_acq_rel))
       {
-        std::thread([this]() { client_append_worker_loop(); }).detach();
+        std::thread([self]() { self->client_append_worker_loop(self); }).detach();
         expected = m_client_append_worker_count.load(std::memory_order_acquire);
       }
     }
   }
 
-  void ProxyImpl::client_append_worker_loop()
+  void ProxyImpl::client_append_worker_loop(std::shared_ptr<ProxyImpl> keepalive)
   {
     for (;;)
     {
       std::function<void()> task;
       {
         std::unique_lock<std::mutex> lk(m_client_append_queue_mutex);
-        m_client_append_queue_cv.wait(lk, [this]() { return !m_client_append_tasks.empty(); });
+        m_client_append_queue_cv.wait(lk, [keepalive]() {
+          return !keepalive->m_client_append_tasks.empty();
+        });
         task = std::move(m_client_append_tasks.front());
         m_client_append_tasks.pop_front();
       }
       if (task)
       {
-        task();
+        try
+        {
+          task();
+        }
+        catch (const std::exception &e)
+        {
+          std::cerr << "[Proxy] client_append_worker exception proxy_cluster="
+                    << keepalive->m_self_cluster_id << " what=" << e.what() << std::endl;
+        }
       }
     }
   }

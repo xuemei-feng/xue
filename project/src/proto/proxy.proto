@@ -300,6 +300,7 @@ message XueDownstreamForwardPlan {
 
 message SetReply {
   bool ifcommit = 1;
+  uint64 tcp_accept_token = 2;
 }
 message GetReply {
   bool getsuccess = 1;

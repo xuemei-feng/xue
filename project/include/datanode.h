@@ -2,8 +2,6 @@
 #define DATANODE_H
 
 #include "datanode.grpc.pb.h"
-#include <grpc++/health_check_service_interface.h>
-#include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/grpcpp.h>
 #include <asio.hpp>
 #include <mutex>
@@ -115,8 +113,7 @@ namespace ECProject
 
         void Run()
         {
-            grpc::EnableDefaultHealthCheckService(true);
-            grpc::reflection::InitProtoReflectionServerBuilderPlugin();
+            grpc::EnableDefaultHealthCheckService(false);
             grpc::ServerBuilder builder;
             std::cout << "datanode_ip_port:" << datanode_ip_port << std::endl;
             builder.AddListeningPort(datanode_ip_port, grpc::InsecureServerCredentials());

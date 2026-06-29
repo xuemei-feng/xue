@@ -212,6 +212,8 @@ message ReplyProxyIPsPorts {
   int32 xue_schedule_num_groups = 12;
   // correlates client/proxy timing samples for one XUE update round
   uint64 xue_xfer_plan_id = 13;
+  // per append_keys[i]: TCP accept tag from scheduleAppend2Datanode (0 = legacy/no tag)
+  repeated uint64 tcp_accept_tokens = 14;
 }
 
 message XueXferTimingPull {

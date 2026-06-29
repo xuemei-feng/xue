@@ -6098,8 +6098,18 @@ class SetReply final :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kTcpAcceptTokenFieldNumber = 2,
     kIfcommitFieldNumber = 1,
   };
+  // uint64 tcp_accept_token = 2;
+  void clear_tcp_accept_token();
+  uint64_t tcp_accept_token() const;
+  void set_tcp_accept_token(uint64_t value);
+  private:
+  uint64_t _internal_tcp_accept_token() const;
+  void _internal_set_tcp_accept_token(uint64_t value);
+  public:
+
   // bool ifcommit = 1;
   void clear_ifcommit();
   bool ifcommit() const;
@@ -6117,6 +6127,7 @@ class SetReply final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    uint64_t tcp_accept_token_;
     bool ifcommit_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -12327,6 +12338,26 @@ inline void SetReply::_internal_set_ifcommit(bool value) {
 inline void SetReply::set_ifcommit(bool value) {
   _internal_set_ifcommit(value);
   // @@protoc_insertion_point(field_set:proxy_proto.SetReply.ifcommit)
+}
+
+// uint64 tcp_accept_token = 2;
+inline void SetReply::clear_tcp_accept_token() {
+  _impl_.tcp_accept_token_ = uint64_t{0u};
+}
+inline uint64_t SetReply::_internal_tcp_accept_token() const {
+  return _impl_.tcp_accept_token_;
+}
+inline uint64_t SetReply::tcp_accept_token() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.SetReply.tcp_accept_token)
+  return _internal_tcp_accept_token();
+}
+inline void SetReply::_internal_set_tcp_accept_token(uint64_t value) {
+  
+  _impl_.tcp_accept_token_ = value;
+}
+inline void SetReply::set_tcp_accept_token(uint64_t value) {
+  _internal_set_tcp_accept_token(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.SetReply.tcp_accept_token)
 }
 
 // -------------------------------------------------------------------

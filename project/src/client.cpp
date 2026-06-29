@@ -22,6 +22,15 @@ namespace ECProject
       return proxy_ip + ":" + std::to_string(proxy_port);
     }
 
+    uint64_t reply_tcp_accept_token(const coordinator_proto::ReplyProxyIPsPorts &reply, int index)
+    {
+      if (index >= 0 && index < reply.tcp_accept_tokens_size())
+      {
+        return reply.tcp_accept_tokens(index);
+      }
+      return 0;
+    }
+
     std::mutex &mutex_for_proxy_endpoint(const std::string &proxy_ip, int proxy_port)
     {
       static std::mutex map_mutex;
@@ -797,7 +806,8 @@ namespace ECProject
           log_layout_client_send(proxy_cluster, reply.append_keys(i), reply.cluster_slice_sizes(i));
           async_append_to_proxies(cluster_slice_data[i], reply.append_keys(i),
                                   reply.cluster_slice_sizes(i), reply.proxyips(i),
-                                  reply.proxyports(i), i, if_commit_arr, true);
+                                  reply.proxyports(i), i, if_commit_arr, true, nullptr,
+                                  reply_tcp_accept_token(reply, i));
         }
       });
     }
@@ -834,7 +844,8 @@ namespace ECProject
           async_append_to_proxies(cluster_slice_data[i], reply.append_keys(i),
                                   reply.cluster_slice_sizes(i), reply.proxyips(i),
                                   reply.proxyports(i), i, if_commit_arr, poll_commit_after_send,
-                                  timing != nullptr ? &step_timing : nullptr);
+                                  timing != nullptr ? &step_timing : nullptr,
+                                  reply_tcp_accept_token(reply, i));
           if (timing != nullptr)
           {
             timing->sum_tcp_to_proxy_s += step_timing.tcp_resolve_connect_write_shutdown_s;
@@ -1085,7 +1096,7 @@ namespace ECProject
                        [](bool v) { return v; });
   }
 
-  void Client::async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr, bool poll_commit_after_send, XueAppendNetworkTiming *out_timing)
+  void Client::async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr, bool poll_commit_after_send, XueAppendNetworkTiming *out_timing, uint64_t tcp_accept_token)
   {
     std::lock_guard<std::mutex> endpoint_lk(mutex_for_proxy_endpoint(proxy_ip, proxy_port));
     if (append_key_uses_cluster_ingress(append_key))
@@ -1105,7 +1116,18 @@ namespace ECProject
     asio::ip::tcp::socket sock_data(io_context);
     asio::connect(sock_data, endpoints);
 
-    asio::write(sock_data, asio::buffer(cluster_slice_data, cluster_slice_size), error);
+    if (tcp_accept_token == 0)
+    {
+      std::cerr << "[Client] missing tcp_accept_token append_key=" << append_key << std::endl;
+    }
+    else
+    {
+      asio::write(sock_data, asio::buffer(&tcp_accept_token, sizeof(tcp_accept_token)), error);
+    }
+    if (!error)
+    {
+      asio::write(sock_data, asio::buffer(cluster_slice_data, cluster_slice_size), error);
+    }
     asio::error_code ignore_ec;
     if (!error)
     {

@@ -3545,6 +3545,7 @@ class ReplyProxyIPsPorts final :
     kXueClientWavesFieldNumber = 8,
     kXueCommitWavesFieldNumber = 9,
     kXueTransferStepsFieldNumber = 11,
+    kTcpAcceptTokensFieldNumber = 14,
     kSumAppendSizeFieldNumber = 1,
     kXueScheduleStripeIdFieldNumber = 10,
     kXueScheduleNumGroupsFieldNumber = 12,
@@ -3736,6 +3737,28 @@ class ReplyProxyIPsPorts final :
   const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::XueTransferStepInfo >&
       xue_transfer_steps() const;
 
+  // repeated uint64 tcp_accept_tokens = 14;
+  int tcp_accept_tokens_size() const;
+  private:
+  int _internal_tcp_accept_tokens_size() const;
+  public:
+  void clear_tcp_accept_tokens();
+  private:
+  uint64_t _internal_tcp_accept_tokens(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t >&
+      _internal_tcp_accept_tokens() const;
+  void _internal_add_tcp_accept_tokens(uint64_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t >*
+      _internal_mutable_tcp_accept_tokens();
+  public:
+  uint64_t tcp_accept_tokens(int index) const;
+  void set_tcp_accept_tokens(int index, uint64_t value);
+  void add_tcp_accept_tokens(uint64_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t >&
+      tcp_accept_tokens() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t >*
+      mutable_tcp_accept_tokens();
+
   // uint64 sum_append_size = 1;
   void clear_sum_append_size();
   uint64_t sum_append_size() const;
@@ -3792,6 +3815,8 @@ class ReplyProxyIPsPorts final :
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::XueScheduleClientWave > xue_client_waves_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::XueAppendKeyCommitWave > xue_commit_waves_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::coordinator_proto::XueTransferStepInfo > xue_transfer_steps_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t > tcp_accept_tokens_;
+    mutable std::atomic<int> _tcp_accept_tokens_cached_byte_size_;
     uint64_t sum_append_size_;
     int32_t xue_schedule_stripe_id_;
     int32_t xue_schedule_num_groups_;
@@ -9543,6 +9568,53 @@ inline void ReplyProxyIPsPorts::_internal_set_xue_xfer_plan_id(uint64_t value) {
 inline void ReplyProxyIPsPorts::set_xue_xfer_plan_id(uint64_t value) {
   _internal_set_xue_xfer_plan_id(value);
   // @@protoc_insertion_point(field_set:coordinator_proto.ReplyProxyIPsPorts.xue_xfer_plan_id)
+}
+
+// repeated uint64 tcp_accept_tokens = 14;
+inline int ReplyProxyIPsPorts::_internal_tcp_accept_tokens_size() const {
+  return _impl_.tcp_accept_tokens_.size();
+}
+inline int ReplyProxyIPsPorts::tcp_accept_tokens_size() const {
+  return _internal_tcp_accept_tokens_size();
+}
+inline void ReplyProxyIPsPorts::clear_tcp_accept_tokens() {
+  _impl_.tcp_accept_tokens_.Clear();
+}
+inline uint64_t ReplyProxyIPsPorts::_internal_tcp_accept_tokens(int index) const {
+  return _impl_.tcp_accept_tokens_.Get(index);
+}
+inline uint64_t ReplyProxyIPsPorts::tcp_accept_tokens(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.ReplyProxyIPsPorts.tcp_accept_tokens)
+  return _internal_tcp_accept_tokens(index);
+}
+inline void ReplyProxyIPsPorts::set_tcp_accept_tokens(int index, uint64_t value) {
+  _impl_.tcp_accept_tokens_.Set(index, value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.ReplyProxyIPsPorts.tcp_accept_tokens)
+}
+inline void ReplyProxyIPsPorts::_internal_add_tcp_accept_tokens(uint64_t value) {
+  _impl_.tcp_accept_tokens_.Add(value);
+}
+inline void ReplyProxyIPsPorts::add_tcp_accept_tokens(uint64_t value) {
+  _internal_add_tcp_accept_tokens(value);
+  // @@protoc_insertion_point(field_add:coordinator_proto.ReplyProxyIPsPorts.tcp_accept_tokens)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t >&
+ReplyProxyIPsPorts::_internal_tcp_accept_tokens() const {
+  return _impl_.tcp_accept_tokens_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t >&
+ReplyProxyIPsPorts::tcp_accept_tokens() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.ReplyProxyIPsPorts.tcp_accept_tokens)
+  return _internal_tcp_accept_tokens();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t >*
+ReplyProxyIPsPorts::_internal_mutable_tcp_accept_tokens() {
+  return &_impl_.tcp_accept_tokens_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t >*
+ReplyProxyIPsPorts::mutable_tcp_accept_tokens() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.ReplyProxyIPsPorts.tcp_accept_tokens)
+  return _internal_mutable_tcp_accept_tokens();
 }
 
 // -------------------------------------------------------------------

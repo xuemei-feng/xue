@@ -492,7 +492,8 @@ struct XueDownstreamForwardPlanDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 XueDownstreamForwardPlanDefaultTypeInternal _XueDownstreamForwardPlan_default_instance_;
 PROTOBUF_CONSTEXPR SetReply::SetReply(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.ifcommit_)*/false
+    /*decltype(_impl_.tcp_accept_token_)*/uint64_t{0u}
+  , /*decltype(_impl_.ifcommit_)*/false
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct SetReplyDefaultTypeInternal {
   PROTOBUF_CONSTEXPR SetReplyDefaultTypeInternal()
@@ -852,6 +853,7 @@ const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::SetReply, _impl_.ifcommit_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::SetReply, _impl_.tcp_accept_token_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::GetReply, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -900,8 +902,8 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 285, -1, -1, sizeof(::proxy_proto::XueStrictOutgoingHop)},
   { 293, -1, -1, sizeof(::proxy_proto::XueDownstreamForwardPlan)},
   { 301, -1, -1, sizeof(::proxy_proto::SetReply)},
-  { 308, -1, -1, sizeof(::proxy_proto::GetReply)},
-  { 315, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
+  { 309, -1, -1, sizeof(::proxy_proto::GetReply)},
+  { 316, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -1040,50 +1042,51 @@ const char descriptor_table_protodef_proxy_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "o_cluster\030\001 \001(\005\022\033\n\023forward_append_mode\030\002"
   " \001(\t\"g\n\030XueDownstreamForwardPlan\022\026\n\016targ"
   "et_cluster\030\001 \001(\005\0223\n\010outgoing\030\002 \003(\0132!.pro"
-  "xy_proto.XueStrictOutgoingHop\"\034\n\010SetRepl"
-  "y\022\020\n\010ifcommit\030\001 \001(\010\"\036\n\010GetReply\022\022\n\ngetsu"
-  "ccess\030\001 \001(\010\"\261\001\n\021StripeAndBlockIDs\022\021\n\tstr"
-  "ipe_id\030\001 \001(\005\022\020\n\010group_id\030\002 \001(\005\022\020\n\010client"
-  "ip\030\003 \001(\t\022\022\n\nclientport\030\004 \001(\005\022\021\n\tblock_id"
-  "s\030\005 \003(\005\022\022\n\nblock_keys\030\006 \003(\t\022\023\n\013datanodei"
-  "ps\030\007 \003(\t\022\025\n\rdatanodeports\030\010 \003(\0052\242\n\n\014prox"
-  "yService\022D\n\ncheckalive\022\032.proxy_proto.Che"
-  "ckaliveCMD\032\032.proxy_proto.RequestResult\022L"
-  "\n\022encodeAndSetObject\022\037.proxy_proto.Objec"
-  "tAndPlacement\032\025.proxy_proto.SetReply\022L\n\022"
-  "decodeAndGetObject\022\037.proxy_proto.ObjectA"
-  "ndPlacement\032\025.proxy_proto.GetReply\022P\n\014de"
-  "gradedRead\022 .proxy_proto.DegradedReadReq"
-  "uest\032\036.proxy_proto.DegradedReadReply\022S\n\023"
-  "degradedRead2Client\022\034.proxy_proto.Recove"
-  "ryRequest\032\036.proxy_proto.DegradedReadRepl"
-  "y\022Y\n\025degradedReadBreakdown\022 .proxy_proto"
-  ".DegradedReadRequest\032\036.proxy_proto.Degra"
-  "dedReadReply\022\\\n\034degradedRead2ClientBreak"
-  "down\022\034.proxy_proto.RecoveryRequest\032\036.pro"
-  "xy_proto.DegradedReadReply\022X\n\035degradedRe"
-  "adWithBlockStripeID\022 .proxy_proto.Degrad"
-  "edReadRequest\032\025.proxy_proto.GetReply\022V\n\017"
-  "partialDecoding\022#.proxy_proto.PartialDec"
-  "odingRequest\032\036.proxy_proto.DegradedReadR"
-  "eply\022D\n\010recovery\022\034.proxy_proto.RecoveryR"
-  "equest\032\032.proxy_proto.RecoveryReply\022M\n\021re"
-  "coveryBreakdown\022\034.proxy_proto.RecoveryRe"
-  "quest\032\032.proxy_proto.RecoveryReply\022O\n\020mul"
-  "tipleRecovery\022$.proxy_proto.MultipleReco"
-  "veryRequest\032\025.proxy_proto.GetReply\022\?\n\013de"
-  "leteBlock\022\031.proxy_proto.NodeAndBlock\032\025.p"
-  "roxy_proto.DelReply\022X\n\027scheduleAppend2Da"
-  "tanode\022&.proxy_proto.AppendStripeDataPla"
-  "cement\032\025.proxy_proto.SetReply\022Y\n\021xuePull"
-  "XferTiming\022\036.proxy_proto.XueXferTimingPu"
-  "ll\032$.proxy_proto.XueXferTimingProxyReply"
-  "\022B\n\tgetBlocks\022\036.proxy_proto.StripeAndBlo"
-  "ckIDs\032\025.proxy_proto.GetReplyb\006proto3"
+  "xy_proto.XueStrictOutgoingHop\"6\n\010SetRepl"
+  "y\022\020\n\010ifcommit\030\001 \001(\010\022\030\n\020tcp_accept_token\030"
+  "\002 \001(\004\"\036\n\010GetReply\022\022\n\ngetsuccess\030\001 \001(\010\"\261\001"
+  "\n\021StripeAndBlockIDs\022\021\n\tstripe_id\030\001 \001(\005\022\020"
+  "\n\010group_id\030\002 \001(\005\022\020\n\010clientip\030\003 \001(\t\022\022\n\ncl"
+  "ientport\030\004 \001(\005\022\021\n\tblock_ids\030\005 \003(\005\022\022\n\nblo"
+  "ck_keys\030\006 \003(\t\022\023\n\013datanodeips\030\007 \003(\t\022\025\n\rda"
+  "tanodeports\030\010 \003(\0052\242\n\n\014proxyService\022D\n\nch"
+  "eckalive\022\032.proxy_proto.CheckaliveCMD\032\032.p"
+  "roxy_proto.RequestResult\022L\n\022encodeAndSet"
+  "Object\022\037.proxy_proto.ObjectAndPlacement\032"
+  "\025.proxy_proto.SetReply\022L\n\022decodeAndGetOb"
+  "ject\022\037.proxy_proto.ObjectAndPlacement\032\025."
+  "proxy_proto.GetReply\022P\n\014degradedRead\022 .p"
+  "roxy_proto.DegradedReadRequest\032\036.proxy_p"
+  "roto.DegradedReadReply\022S\n\023degradedRead2C"
+  "lient\022\034.proxy_proto.RecoveryRequest\032\036.pr"
+  "oxy_proto.DegradedReadReply\022Y\n\025degradedR"
+  "eadBreakdown\022 .proxy_proto.DegradedReadR"
+  "equest\032\036.proxy_proto.DegradedReadReply\022\\"
+  "\n\034degradedRead2ClientBreakdown\022\034.proxy_p"
+  "roto.RecoveryRequest\032\036.proxy_proto.Degra"
+  "dedReadReply\022X\n\035degradedReadWithBlockStr"
+  "ipeID\022 .proxy_proto.DegradedReadRequest\032"
+  "\025.proxy_proto.GetReply\022V\n\017partialDecodin"
+  "g\022#.proxy_proto.PartialDecodingRequest\032\036"
+  ".proxy_proto.DegradedReadReply\022D\n\010recove"
+  "ry\022\034.proxy_proto.RecoveryRequest\032\032.proxy"
+  "_proto.RecoveryReply\022M\n\021recoveryBreakdow"
+  "n\022\034.proxy_proto.RecoveryRequest\032\032.proxy_"
+  "proto.RecoveryReply\022O\n\020multipleRecovery\022"
+  "$.proxy_proto.MultipleRecoveryRequest\032\025."
+  "proxy_proto.GetReply\022\?\n\013deleteBlock\022\031.pr"
+  "oxy_proto.NodeAndBlock\032\025.proxy_proto.Del"
+  "Reply\022X\n\027scheduleAppend2Datanode\022&.proxy"
+  "_proto.AppendStripeDataPlacement\032\025.proxy"
+  "_proto.SetReply\022Y\n\021xuePullXferTiming\022\036.p"
+  "roxy_proto.XueXferTimingPull\032$.proxy_pro"
+  "to.XueXferTimingProxyReply\022B\n\tgetBlocks\022"
+  "\036.proxy_proto.StripeAndBlockIDs\032\025.proxy_"
+  "proto.GetReplyb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_proxy_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_proxy_2eproto = {
-    false, false, 5796, descriptor_table_protodef_proxy_2eproto,
+    false, false, 5822, descriptor_table_protodef_proxy_2eproto,
     "proxy.proto",
     &descriptor_table_proxy_2eproto_once, nullptr, 0, 27,
     schemas, file_default_instances, TableStruct_proxy_2eproto::offsets,
@@ -10279,11 +10282,14 @@ SetReply::SetReply(const SetReply& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   SetReply* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.ifcommit_){}
+      decltype(_impl_.tcp_accept_token_){}
+    , decltype(_impl_.ifcommit_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _this->_impl_.ifcommit_ = from._impl_.ifcommit_;
+  ::memcpy(&_impl_.tcp_accept_token_, &from._impl_.tcp_accept_token_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.ifcommit_) -
+    reinterpret_cast<char*>(&_impl_.tcp_accept_token_)) + sizeof(_impl_.ifcommit_));
   // @@protoc_insertion_point(copy_constructor:proxy_proto.SetReply)
 }
 
@@ -10292,7 +10298,8 @@ inline void SetReply::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.ifcommit_){false}
+      decltype(_impl_.tcp_accept_token_){uint64_t{0u}}
+    , decltype(_impl_.ifcommit_){false}
     , /*decltype(_impl_._cached_size_)*/{}
   };
 }
@@ -10320,7 +10327,9 @@ void SetReply::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  _impl_.ifcommit_ = false;
+  ::memset(&_impl_.tcp_accept_token_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.ifcommit_) -
+      reinterpret_cast<char*>(&_impl_.tcp_accept_token_)) + sizeof(_impl_.ifcommit_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -10334,6 +10343,14 @@ const char* SetReply::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx)
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
           _impl_.ifcommit_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 tcp_accept_token = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.tcp_accept_token_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -10373,6 +10390,12 @@ uint8_t* SetReply::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteBoolToArray(1, this->_internal_ifcommit(), target);
   }
 
+  // uint64 tcp_accept_token = 2;
+  if (this->_internal_tcp_accept_token() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(2, this->_internal_tcp_accept_token(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -10388,6 +10411,11 @@ size_t SetReply::ByteSizeLong() const {
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
+
+  // uint64 tcp_accept_token = 2;
+  if (this->_internal_tcp_accept_token() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_tcp_accept_token());
+  }
 
   // bool ifcommit = 1;
   if (this->_internal_ifcommit() != 0) {
@@ -10412,6 +10440,9 @@ void SetReply::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTO
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
+  if (from._internal_tcp_accept_token() != 0) {
+    _this->_internal_set_tcp_accept_token(from._internal_tcp_accept_token());
+  }
   if (from._internal_ifcommit() != 0) {
     _this->_internal_set_ifcommit(from._internal_ifcommit());
   }
@@ -10432,7 +10463,12 @@ bool SetReply::IsInitialized() const {
 void SetReply::InternalSwap(SetReply* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_.ifcommit_, other->_impl_.ifcommit_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(SetReply, _impl_.ifcommit_)
+      + sizeof(SetReply::_impl_.ifcommit_)
+      - PROTOBUF_FIELD_OFFSET(SetReply, _impl_.tcp_accept_token_)>(
+          reinterpret_cast<char*>(&_impl_.tcp_accept_token_),
+          reinterpret_cast<char*>(&other->_impl_.tcp_accept_token_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata SetReply::GetMetadata() const {

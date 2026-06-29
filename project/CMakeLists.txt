@@ -148,7 +148,6 @@ foreach (_target
             #${_target}.cpp
             )
     target_link_libraries(${_target}
-            ${_REFLECTION}
             ${_GRPC_GRPCPP}
 	    ${_GRPC_GRPCPP_UNSECURE}
             ${_PROTOBUF_LIBPROTOBUF}
@@ -157,3 +156,6 @@ foreach (_target
             -lJerasure -lgf_complete
             )
 endforeach ()
+
+# Reflection plugin is only needed where InitProtoReflectionServerBuilderPlugin() runs.
+target_link_libraries(run_coordinator ${_REFLECTION})
