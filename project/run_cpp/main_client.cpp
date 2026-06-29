@@ -223,6 +223,10 @@ int main(int argc, char **argv)
         int request_idx = 0;
         int failure_count = 0;
         int success_count = 0;
+        int processed_count = 0;
+        double batch_elapsed_sum_sec = 0.0;
+        bool batch_e2e_started = false;
+        std::chrono::high_resolution_clock::time_point batch_e2e_t0;
         XueTimingTotals timing_totals;
         std::vector<ECProject::XueUpdateBatchTiming> per_success_timing;
         per_success_timing.reserve(64);
@@ -282,8 +286,15 @@ int main(int argc, char **argv)
 
             // std::cout << "[XUE_BATCH] Request #" << request_idx << " stripe_id=" << stripe_id
             //           << " range_cnt=" << range_cnt << " ..." << std::endl;
+            if (!batch_e2e_started)
+            {
+                batch_e2e_t0 = std::chrono::high_resolution_clock::now();
+                batch_e2e_started = true;
+            }
             const XueUpdateRunResult run_result =
                 run_xue_update_with_timeout(client, stripe_id, logical_ranges);
+            processed_count++;
+            batch_elapsed_sum_sec += run_result.elapsed_sec;
 
             if (run_result.ok)
             {
@@ -309,6 +320,15 @@ int main(int argc, char **argv)
             }
         }
 
+        double e2e_wall_sec = 0.0;
+        if (batch_e2e_started)
+        {
+            const auto batch_e2e_t1 = std::chrono::high_resolution_clock::now();
+            e2e_wall_sec = std::chrono::duration_cast<std::chrono::duration<double>>(
+                               batch_e2e_t1 - batch_e2e_t0)
+                               .count();
+        }
+
         std::cout << "=== XUE batch summary ===" << std::endl;
         std::cout << "request_file=" << request_file_path << std::endl;
         for (size_t i = 0; i < per_success_timing.size(); ++i)
@@ -331,6 +351,10 @@ int main(int argc, char **argv)
             print_xue_timing_fields(std::cout, avg_timing);
             std::cout << std::endl;
         }
+        std::cout << std::fixed << std::setprecision(6)
+                  << "e2e_wall_sec=" << e2e_wall_sec
+                  << " processed_count=" << processed_count
+                  << " batch_elapsed_sum_sec=" << batch_elapsed_sum_sec << std::endl;
     } 
     else 
     {
