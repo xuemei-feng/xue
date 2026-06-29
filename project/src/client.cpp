@@ -17,6 +17,11 @@ namespace ECProject
 {
   namespace
   {
+    // 与 set() 写入 datanode 的初始条带内容一致；更新区间写入 kXueUpdateNewByte，
+    // 使 data_delta = old(0xAA) XOR new(0xBB) = 0x11 为确定值，便于实验复现。
+    constexpr unsigned char kXueStripeInitialByte = 0xAA;
+    constexpr unsigned char kXueUpdateNewByte = 0xBB;
+
     std::string proxy_endpoint_key(const std::string &proxy_ip, int proxy_port)
     {
       return proxy_ip + ":" + std::to_string(proxy_port);
@@ -193,6 +198,20 @@ namespace ECProject
         }
       }
       return padded;
+    }
+
+    void fill_xue_stripe_logical_ranges_with_byte(
+        char *stripe_buf, const std::vector<std::pair<int, int>> &logical_ranges, unsigned char byte)
+    {
+      for (const auto &r : logical_ranges)
+      {
+        if (r.second <= r.first)
+        {
+          continue;
+        }
+        std::memset(stripe_buf + static_cast<size_t>(r.first), byte,
+                    static_cast<size_t>(r.second - r.first));
+      }
     }
 
     void zero_fill_xue_unit_padding_gaps(char *stripe_buf,
@@ -1679,7 +1698,7 @@ namespace ECProject
     // 每个请求使用独立的本地 buffer，确保 detach 残留线程与新请求之间完全隔离。
     const size_t full_stripe_bytes = static_cast<size_t>(block_size) * static_cast<size_t>(n);
     std::vector<char> local_buffer(full_stripe_bytes);
-    std::memset(local_buffer.data(), 0xaa, full_stripe_bytes);
+    std::memset(local_buffer.data(), kXueStripeInitialByte, full_stripe_bytes);
 
     const std::vector<std::pair<int, int>> padded_ranges =
         pad_xue_logical_ranges_to_unit_size(logical_ranges, block_size, unit_size);
@@ -1688,7 +1707,7 @@ namespace ECProject
       // std::cout << "[XUE_UPDATE] padded logical ranges to unit_size=" << unit_size
       //           << " for coordinator/plan alignment" << std::endl;
     }
-    zero_fill_xue_unit_padding_gaps(local_buffer.data(), logical_ranges, block_size, unit_size);
+    fill_xue_stripe_logical_ranges_with_byte(local_buffer.data(), padded_ranges, kXueUpdateNewByte);
 
     const auto total_t0 = wall_t0;
 
