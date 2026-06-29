@@ -1,5 +1,4 @@
 #include "client.h"
-#include "tcp_conn_pool.h"
 #include "xue_slice_layout.h"
 #include "coordinator.grpc.pb.h"
 
@@ -1128,34 +1127,39 @@ namespace ECProject
       }
     }
     const auto tcp_t0 = std::chrono::high_resolution_clock::now();
-    auto &pool = TcpEndpointPoolRegistry::pool_for(proxy_ip, proxy_port);
-    auto conn = pool.acquire(proxy_ip, proxy_port);
-    bool healthy = false;
-    bool conn_reusable = false;
+    asio::io_context io_context;
     asio::error_code error;
-    const int ack_timeout_sec =
-        std::max(60, 5 + static_cast<int>(static_cast<size_t>(cluster_slice_size) / (512 * 1024)));
-    if (conn != nullptr)
+    asio::ip::tcp::resolver resolver(io_context);
+    asio::ip::tcp::socket sock_data(io_context);
+    asio::connect(sock_data,
+                  resolver.resolve(proxy_ip, std::to_string(proxy_port)),
+                  error);
+
+    if (tcp_accept_token == 0)
     {
-      if (tcp_accept_token == 0)
-      {
-        std::cerr << "[Client] missing tcp_accept_token append_key=" << append_key << std::endl;
-      }
-      else
-      {
-        healthy = tcp_write_token_payload_read_ack(conn->socket, tcp_accept_token, cluster_slice_data,
-                                                   static_cast<size_t>(cluster_slice_size),
-                                                   ack_timeout_sec, error, &conn_reusable);
-      }
+      std::cerr << "[Client] missing tcp_accept_token append_key=" << append_key << std::endl;
     }
-    else
+    else if (!error)
     {
-      error = asio::error::connection_refused;
+      asio::write(sock_data, asio::buffer(&tcp_accept_token, sizeof(tcp_accept_token)), error);
     }
-    if (conn != nullptr)
+    if (!error)
     {
-      pool.release(conn, healthy && !error && conn_reusable);
+      asio::write(sock_data, asio::buffer(cluster_slice_data, cluster_slice_size), error);
     }
+    if (!error)
+    {
+      sock_data.shutdown(asio::ip::tcp::socket::shutdown_send, error);
+      struct timeval tv;
+      tv.tv_sec = 5;
+      tv.tv_usec = 0;
+      setsockopt(sock_data.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+      char ack_byte = 0;
+      asio::error_code read_ec;
+      asio::read(sock_data, asio::buffer(&ack_byte, 1), read_ec);
+    }
+    asio::error_code ignore_ec;
+    sock_data.close(ignore_ec);
     const auto tcp_t1 = std::chrono::high_resolution_clock::now();
     if (out_timing != nullptr)
     {

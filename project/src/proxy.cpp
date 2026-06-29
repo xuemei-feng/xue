@@ -1061,24 +1061,9 @@ namespace ECProject
     try
     {
       const int tcp_port = ep_it->second.second + ECProject::PROXY_PORT_SHIFT;
-      auto &pool = TcpEndpointPoolRegistry::pool_for(ep_it->second.first, tcp_port);
-      auto conn = pool.acquire(ep_it->second.first, tcp_port);
-      if (conn == nullptr)
-      {
-        std::cerr << "[Proxy][XFERT] " << ts << " proxy_tcp_failed "
-                  << fmt_proxy_tcp_route(m_self_cluster_id, dest_cluster_id)
-                  << " reason=tcp_connect append_key=" << placement.key() << std::endl;
-        if (placement.xue_strict_schedule() && gate_strict_schedule_step)
-        {
-          reportXueScheduleStepDoneAfterForward(placement.stripe_id(), placement.key(),
-                                                m_self_cluster_id, dest_cluster_id, false, placement.xue_xfer_plan_id());
-        }
-        return false;
-      }
       const uint64_t tcp_accept_token = rep.tcp_accept_token();
       if (tcp_accept_token == 0)
       {
-        pool.release(conn, false);
         std::cerr << "[Proxy][XFERT] " << ts << " proxy_tcp_failed "
                   << fmt_proxy_tcp_route(m_self_cluster_id, dest_cluster_id)
                   << " reason=missing_tcp_accept_token append_key=" << placement.key() << std::endl;
@@ -1090,11 +1075,51 @@ namespace ECProject
         }
         return false;
       }
+
       asio::error_code xfer_ec;
-      bool conn_reusable = false;
-      const bool ok = tcp_write_token_payload_read_ack(conn->socket, tcp_accept_token, delta_buf,
-                                                       delta_size, 60, xfer_ec, &conn_reusable);
-      pool.release(conn, ok && !xfer_ec && conn_reusable);
+      bool ok = false;
+      // Outbound pool requires persistent ingress on the peer: worker-per-accept closes
+      // the socket after ack, so reusing TCP connections causes Broken pipe.
+      const bool use_outbound_pool =
+          kXueTcpOutboundConnReuse && kXueTcpInboundConnReuse;
+      if (use_outbound_pool)
+      {
+        auto &pool = TcpEndpointPoolRegistry::pool_for(ep_it->second.first, tcp_port);
+        auto conn = pool.acquire(ep_it->second.first, tcp_port);
+        if (conn == nullptr)
+        {
+          std::cerr << "[Proxy][XFERT] " << ts << " proxy_tcp_failed "
+                    << fmt_proxy_tcp_route(m_self_cluster_id, dest_cluster_id)
+                    << " reason=tcp_connect append_key=" << placement.key() << std::endl;
+          if (placement.xue_strict_schedule() && gate_strict_schedule_step)
+          {
+            reportXueScheduleStepDoneAfterForward(placement.stripe_id(), placement.key(),
+                                                  m_self_cluster_id, dest_cluster_id, false, placement.xue_xfer_plan_id());
+          }
+          return false;
+        }
+        bool conn_reusable = false;
+        ok = tcp_write_token_payload_read_ack(conn->socket, tcp_accept_token, delta_buf,
+                                              delta_size, 60, xfer_ec, &conn_reusable);
+        pool.release(conn, ok && !xfer_ec && conn_reusable);
+      }
+      else
+      {
+        asio::io_context io_context;
+        asio::ip::tcp::resolver resolver(io_context);
+        asio::ip::tcp::socket sock(io_context);
+        asio::connect(sock,
+                      resolver.resolve(ep_it->second.first, std::to_string(tcp_port)),
+                      xfer_ec);
+        if (!xfer_ec)
+        {
+          ok = tcp_write_token_payload_read_ack(sock, tcp_accept_token, delta_buf,
+                                                delta_size, 60, xfer_ec, nullptr);
+        }
+        asio::error_code ignore_ec;
+        sock.close(ignore_ec);
+      }
+
       if (!ok)
       {
         std::cerr << "[Proxy][XFERT] " << ts << " proxy_tcp_failed "
@@ -2851,7 +2876,7 @@ namespace ECProject
 
   void ProxyImpl::warm_up_worker_pools()
   {
-    if (kXueTcpConnReuse)
+    if (kXueTcpInboundConnReuse)
     {
       ensure_persistent_client_ingress_acceptor();
     }
@@ -2965,7 +2990,7 @@ namespace ECProject
       registerXueGlobalParityIngressExpected(stripe_id, append_stripe_data_placement->key());
     }
 
-    if (!kXueTcpConnReuse)
+    if (!kXueTcpInboundConnReuse)
     {
       const auto self = lock_self();
       if (!self)
@@ -3159,7 +3184,7 @@ namespace ECProject
                     << std::endl;
         }
         auto finish_ingress_message = [&](bool allow_reuse) -> bool {
-          if (allow_reuse && kXueTcpConnReuse)
+          if (allow_reuse && kXueTcpInboundConnReuse)
           {
             return true;
           }

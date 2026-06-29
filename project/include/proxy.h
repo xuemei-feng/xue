@@ -247,7 +247,10 @@ namespace ECProject
     static constexpr int kXueDeferredWorkerCount = 12;
     static constexpr size_t kXueDeferredQueueMax = 512;
     static constexpr int kPendingTcpTokenTtlSec = 120;
-    static constexpr bool kXueTcpConnReuse = true;
+    /** Client→Proxy ingress: worker accept per request (lower upload overhead for large payloads). */
+    static constexpr bool kXueTcpInboundConnReuse = false;
+    /** Proxy→Proxy pool; only effective when kXueTcpInboundConnReuse is also true. */
+    static constexpr bool kXueTcpOutboundConnReuse = false;
     static constexpr int kTcpConnPoolMaxPerEndpoint = 8;
     static constexpr int kClientIngressConnIdleSec = 30;
     std::atomic<bool> m_persistent_client_ingress_started{false};

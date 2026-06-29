@@ -25,7 +25,7 @@ fi
 REMOTE_COMMAND_ATTACH="cd $ROOT_DIR && bash start_datanode_remote.sh %h attach"
 # pdsh expands %h -> target IP; URI/port come from clusterInformation.xml (not shared run_datanode.sh).
 REMOTE_COMMAND_DETACH="cd $ROOT_DIR && bash start_datanode_remote.sh %h detach"
-LOCK_FILE="/tmp/start_datanode.lock"
+LOCK_FILE="$ROOT_DIR/.start_datanode.lock"
 
 # Bottleneck is usually concurrent SSH from one host, not run_datanode itself:
 # sshd MaxStartups drops connections, ConnectTimeout fires, or client runs out of fds.
@@ -77,6 +77,9 @@ fi
 
 # Prevent accidental concurrent runs, which can look like a hang.
 if command -v flock >/dev/null 2>&1; then
+  mkdir -p "$(dirname "$LOCK_FILE")"
+  touch "$LOCK_FILE" 2>/dev/null || true
+  chmod 666 "$LOCK_FILE" 2>/dev/null || true
   exec 9>"$LOCK_FILE"
   if ! flock -n 9; then
     echo "Another start_datanode.sh is already running (lock: $LOCK_FILE)."
