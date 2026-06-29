@@ -291,6 +291,10 @@ message XueXferTimingProxyReply {
 message XueStrictOutgoingHop {
   int32 to_cluster = 1;
   string forward_append_mode = 2;
+  // Strict schedule metadata (from coordinator XueTransferStepInfo)
+  int32 step_no = 3;
+  int32 parallel_group = 4;
+  repeated int32 pred_step_nos = 5;
 }
 
 message XueDownstreamForwardPlan {

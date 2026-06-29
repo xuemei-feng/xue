@@ -689,6 +689,25 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                                      step.forward_append_mode());
     }
 
+
+    void fill_strict_outgoing_hop_from_step(proxy_proto::XueStrictOutgoingHop *hop,
+                                            const coordinator_proto::XueTransferStepInfo &step)
+    {
+      if (hop == nullptr)
+      {
+        return;
+      }
+      hop->set_to_cluster(step.to_cluster());
+      hop->set_forward_append_mode(step.forward_append_mode());
+      hop->set_step_no(step.step_no());
+      hop->set_parallel_group(step.parallel_group());
+      hop->clear_pred_step_nos();
+      for (int pred_no : step.pred_step_nos())
+      {
+        hop->add_pred_step_nos(pred_no);
+      }
+    }
+
     int count_plan_decision_block_overlap(const proxy_proto::AppendStripeDataPlacement &plan,
                                           const std::vector<int> &decision_block_ids)
     {
@@ -1090,8 +1109,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             continue;
           }
           proxy_proto::XueStrictOutgoingHop *hop = relay_plan_ptr->add_xue_strict_outgoing();
-          hop->set_to_cluster(s.to_cluster());
-          hop->set_forward_append_mode(s.forward_append_mode());
+          fill_strict_outgoing_hop_from_step(hop, s);
           // std::cout << "[XUE_SCHEDULE] relay_notify_add_hop key=" << relay_plan_ptr->key()
                     // << " cluster=" << relay_plan_ptr->cluster_id() << " hop->"
                     // << s.to_cluster() << " mode=" << s.forward_append_mode() << std::endl;
@@ -1106,8 +1124,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         relay_plan.set_xue_class1_relay_path(false);
         relay_plan.clear_xue_strict_outgoing();
         proxy_proto::XueStrictOutgoingHop *hop = relay_plan.add_xue_strict_outgoing();
-        hop->set_to_cluster(s.to_cluster());
-        hop->set_forward_append_mode(s.forward_append_mode());
+        fill_strict_outgoing_hop_from_step(hop, s);
         // std::cout << "[XUE_SCHEDULE] relay_notify_only key=" << relay_plan.key()
                   // << " cluster=" << relay_plan.cluster_id() << " hop->" << s.to_cluster()
                   // << " mode=" << s.forward_append_mode() << std::endl;
@@ -1182,8 +1199,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             continue;
           }
           proxy_proto::XueStrictOutgoingHop *hop = plan.add_xue_strict_outgoing();
-          hop->set_to_cluster(s.to_cluster());
-          hop->set_forward_append_mode(s.forward_append_mode());
+          fill_strict_outgoing_hop_from_step(hop, s);
           if (s.forward_append_mode() == "XUE_DELTA_TO_RELAY")
           {
             has_relay_hop = true;
@@ -1254,8 +1270,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             dp->set_target_cluster(s.from_cluster());
           }
           auto *hop = dp->add_outgoing();
-          hop->set_to_cluster(s.to_cluster());
-          hop->set_forward_append_mode(s.forward_append_mode());
+          fill_strict_outgoing_hop_from_step(hop, s);
           // 日志：记录 orphan step 被注入到哪个 plan
           std::cerr << "[Coord] downstream_plan INJECT from=" << s.from_cluster()
                     << " to=" << s.to_cluster()

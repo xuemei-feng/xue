@@ -19,6 +19,7 @@
 #include <map>
 #include <set>
 #include <sstream>
+#include <algorithm>
 
 namespace
 {
@@ -40,6 +41,66 @@ namespace
     token = 0;
     asio::read(socket, asio::buffer(&token, sizeof(token)), ec);
     return !ec && token != 0;
+  }
+
+
+  constexpr int kStrictHopParallelMax = 8;
+
+  enum class StrictHopExecKind
+  {
+    kMergedLocalParity,
+    kTcpForward,
+  };
+
+  struct ExecutableStrictHop
+  {
+    proxy_proto::XueStrictOutgoingHop hop;
+    StrictHopExecKind kind = StrictHopExecKind::kTcpForward;
+  };
+
+  std::vector<std::vector<size_t>> build_strict_hop_execution_waves(
+      const std::vector<ExecutableStrictHop> &hops)
+  {
+    const size_t n = hops.size();
+    std::vector<std::vector<size_t>> waves;
+    if (n == 0)
+    {
+      return waves;
+    }
+
+    bool has_schedule_meta = false;
+    for (const auto &item : hops)
+    {
+      if (item.hop.step_no() > 0)
+      {
+        has_schedule_meta = true;
+        break;
+      }
+    }
+
+    if (!has_schedule_meta)
+    {
+      waves.reserve(n);
+      for (size_t i = 0; i < n; ++i)
+      {
+        waves.push_back({i});
+      }
+      return waves;
+    }
+
+    // Coordinator assigns the same parallel_group to steps with the same start_time.
+    // Steps with predecessor dependencies always land in a later group.
+    std::map<int, std::vector<size_t>> by_parallel_group;
+    for (size_t i = 0; i < n; ++i)
+    {
+      by_parallel_group[hops[i].hop.parallel_group()].push_back(i);
+    }
+    waves.reserve(by_parallel_group.size());
+    for (const auto &kv : by_parallel_group)
+    {
+      waves.push_back(kv.second);
+    }
+    return waves;
   }
 
   std::mutex &datanode_endpoint_io_mutex(const std::string &node_ip_port)
@@ -1201,9 +1262,6 @@ namespace ECProject
     const auto xfer_t0 = std::chrono::steady_clock::now();
     const int64_t xfer_w0 = xue_wall_unix_ms_now();
 
-    // 不再调用 waitXueAllIngressReady：step 依赖图已保证
-    // 前驱 ingress step 完成后转发 step 才会 READY
-
     const size_t cluster_append_size = append_buf->size();
     bool ok = true;
 
@@ -1213,8 +1271,6 @@ namespace ECProject
           placement->xue_compute_global_parity() &&
           placement->xue_global_parity_cluster_id() == m_self_cluster_id &&
           m_self_cluster_id == placement->cluster_id();
-      // class3：data cluster ingress 已在 strict ingress 侧完成 merged local parity forward，
-      // coordinator 不会把 4->local 放进 strict_outgoing，deferred 无 hop 属预期。
       const bool class3_ingress_only =
           m_self_cluster_id == placement->cluster_id() &&
           needsClass3MergedLocalParityForward(*placement, tcp_slice_count);
@@ -1225,6 +1281,9 @@ namespace ECProject
         ok = false;
       }
     }
+
+    std::vector<ExecutableStrictHop> executable_hops;
+    executable_hops.reserve(static_cast<size_t>(placement->xue_strict_outgoing_size()));
     for (int hi = 0; hi < placement->xue_strict_outgoing_size(); ++hi)
     {
       const auto &hop = placement->xue_strict_outgoing(hi);
@@ -1238,62 +1297,93 @@ namespace ECProject
       {
         continue;
       }
-      if (placement->xue_compute_global_parity() &&
-          hop.forward_append_mode() == "XUE_COMPUTE_LOCAL_PARITY")
+
+      ExecutableStrictHop item;
+      item.hop = hop;
+      if ((placement->xue_compute_global_parity() &&
+           hop.forward_append_mode() == "XUE_COMPUTE_LOCAL_PARITY") ||
+          hop.forward_append_mode() == "XUE_LOCAL_PARITY_DELTA")
       {
-        if (!waitXueScheduleStepBeforeForward(placement->stripe_id(), placement->key(),
-                                              m_self_cluster_id, hop.to_cluster(),
-                                              placement->xue_xfer_plan_id()))
-        {
-          ok = false;
-          continue;
-        }
-        const bool merged_ok =
-            forwardMergedLocalParityDelta(hop.to_cluster(), *placement, slices, tcp_slice_count);
-        reportXueScheduleStepDoneAfterForward(placement->stripe_id(), placement->key(),
-                                              m_self_cluster_id, hop.to_cluster(), merged_ok, placement->xue_xfer_plan_id());
-        if (!merged_ok)
-        {
-          std::cerr << "[Proxy] strict class2 scheduled local parity forward failed append_key="
-                    << placement->key() << " " << m_self_cluster_id << "->" << hop.to_cluster()
-                    << std::endl;
-          ok = false;
-        }
-        continue;
+        item.kind = StrictHopExecKind::kMergedLocalParity;
       }
-      if (hop.forward_append_mode() == "XUE_LOCAL_PARITY_DELTA")
+      else
       {
-        if (!waitXueScheduleStepBeforeForward(placement->stripe_id(), placement->key(),
-                                              m_self_cluster_id, hop.to_cluster(),
-                                              placement->xue_xfer_plan_id()))
-        {
-          ok = false;
-          continue;
-        }
-        const bool merged_ok =
-            forwardMergedLocalParityDelta(hop.to_cluster(), *placement, slices, tcp_slice_count);
-        reportXueScheduleStepDoneAfterForward(placement->stripe_id(), placement->key(),
-                                              m_self_cluster_id, hop.to_cluster(), merged_ok, placement->xue_xfer_plan_id());
-        if (!merged_ok)
-        {
-          std::cerr << "[Proxy] strict local parity delta forward failed append_key="
-                    << placement->key() << " " << m_self_cluster_id << "->" << hop.to_cluster()
-                    << std::endl;
-          ok = false;
-        }
-        continue;
+        item.kind = StrictHopExecKind::kTcpForward;
       }
-      proxy_proto::AppendStripeDataPlacement fwd_placement = *placement;
-      fwd_placement.set_xue_data_slices_are_delta(true);
-      const bool hop_ok =
-          forwardXueDataDeltaSync(hop.to_cluster(), hop.forward_append_mode(), fwd_placement,
-                                  append_buf->data(), cluster_append_size);
-      if (!hop_ok)
+      executable_hops.push_back(std::move(item));
+    }
+
+    const auto waves = build_strict_hop_execution_waves(executable_hops);
+    for (const auto &wave : waves)
+    {
+      std::vector<std::thread> threads;
+      threads.reserve(wave.size());
+      std::vector<bool> wave_ok(wave.size(), true);
+
+      for (size_t batch_begin = 0; batch_begin < wave.size(); batch_begin += kStrictHopParallelMax)
       {
-        std::cerr << "[Proxy] strict scheduled hop failed append_key=" << placement->key()
-                  << " " << m_self_cluster_id << "->" << hop.to_cluster()
-                  << " mode=" << hop.forward_append_mode() << std::endl;
-        ok = false;
+        const size_t batch_end = std::min(wave.size(), batch_begin + static_cast<size_t>(kStrictHopParallelMax));
+        threads.clear();
+        for (size_t wi = batch_begin; wi < batch_end; ++wi)
+        {
+          const size_t hop_idx = wave[wi];
+          const ExecutableStrictHop &item = executable_hops[hop_idx];
+          threads.emplace_back([this, placement, append_buf, slices, tcp_slice_count, cluster_append_size,
+                                item, wi, &wave_ok]() {
+            const auto &hop = item.hop;
+            if (!waitXueScheduleStepBeforeForward(placement->stripe_id(), placement->key(),
+                                                  m_self_cluster_id, hop.to_cluster(),
+                                                  placement->xue_xfer_plan_id()))
+            {
+              wave_ok[wi] = false;
+              return;
+            }
+
+            bool hop_ok = false;
+            if (item.kind == StrictHopExecKind::kMergedLocalParity)
+            {
+              hop_ok = forwardMergedLocalParityDelta(hop.to_cluster(), *placement, slices, tcp_slice_count);
+              if (!hop_ok)
+              {
+                std::cerr << "[Proxy] strict merged local parity forward failed append_key="
+                          << placement->key() << " " << m_self_cluster_id << "->" << hop.to_cluster()
+                          << " mode=" << hop.forward_append_mode() << std::endl;
+              }
+            }
+            else
+            {
+              proxy_proto::AppendStripeDataPlacement fwd_placement = *placement;
+              fwd_placement.set_xue_data_slices_are_delta(true);
+              hop_ok = forwardXueDataDeltaSync(hop.to_cluster(), hop.forward_append_mode(), fwd_placement,
+                                               append_buf->data(), cluster_append_size, true, false);
+              if (!hop_ok)
+              {
+                std::cerr << "[Proxy] strict scheduled hop failed append_key=" << placement->key()
+                          << " " << m_self_cluster_id << "->" << hop.to_cluster()
+                          << " mode=" << hop.forward_append_mode()
+                          << " step_no=" << hop.step_no()
+                          << " parallel_group=" << hop.parallel_group() << std::endl;
+              }
+            }
+
+            reportXueScheduleStepDoneAfterForward(placement->stripe_id(), placement->key(),
+                                                  m_self_cluster_id, hop.to_cluster(), hop_ok,
+                                                  placement->xue_xfer_plan_id());
+            wave_ok[wi] = hop_ok;
+          });
+        }
+        for (auto &thread : threads)
+        {
+          thread.join();
+        }
+      }
+
+      for (bool hop_ok : wave_ok)
+      {
+        if (!hop_ok)
+        {
+          ok = false;
+        }
       }
     }
 

@@ -5766,9 +5766,34 @@ class XueStrictOutgoingHop final :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kPredStepNosFieldNumber = 5,
     kForwardAppendModeFieldNumber = 2,
     kToClusterFieldNumber = 1,
+    kStepNoFieldNumber = 3,
+    kParallelGroupFieldNumber = 4,
   };
+  // repeated int32 pred_step_nos = 5;
+  int pred_step_nos_size() const;
+  private:
+  int _internal_pred_step_nos_size() const;
+  public:
+  void clear_pred_step_nos();
+  private:
+  int32_t _internal_pred_step_nos(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_pred_step_nos() const;
+  void _internal_add_pred_step_nos(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_pred_step_nos();
+  public:
+  int32_t pred_step_nos(int index) const;
+  void set_pred_step_nos(int index, int32_t value);
+  void add_pred_step_nos(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      pred_step_nos() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_pred_step_nos();
+
   // string forward_append_mode = 2;
   void clear_forward_append_mode();
   const std::string& forward_append_mode() const;
@@ -5792,6 +5817,24 @@ class XueStrictOutgoingHop final :
   void _internal_set_to_cluster(int32_t value);
   public:
 
+  // int32 step_no = 3;
+  void clear_step_no();
+  int32_t step_no() const;
+  void set_step_no(int32_t value);
+  private:
+  int32_t _internal_step_no() const;
+  void _internal_set_step_no(int32_t value);
+  public:
+
+  // int32 parallel_group = 4;
+  void clear_parallel_group();
+  int32_t parallel_group() const;
+  void set_parallel_group(int32_t value);
+  private:
+  int32_t _internal_parallel_group() const;
+  void _internal_set_parallel_group(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:proxy_proto.XueStrictOutgoingHop)
  private:
   class _Internal;
@@ -5800,8 +5843,12 @@ class XueStrictOutgoingHop final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > pred_step_nos_;
+    mutable std::atomic<int> _pred_step_nos_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr forward_append_mode_;
     int32_t to_cluster_;
+    int32_t step_no_;
+    int32_t parallel_group_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -12250,6 +12297,93 @@ inline void XueStrictOutgoingHop::set_allocated_forward_append_mode(std::string*
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:proxy_proto.XueStrictOutgoingHop.forward_append_mode)
+}
+
+// int32 step_no = 3;
+inline void XueStrictOutgoingHop::clear_step_no() {
+  _impl_.step_no_ = 0;
+}
+inline int32_t XueStrictOutgoingHop::_internal_step_no() const {
+  return _impl_.step_no_;
+}
+inline int32_t XueStrictOutgoingHop::step_no() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueStrictOutgoingHop.step_no)
+  return _internal_step_no();
+}
+inline void XueStrictOutgoingHop::_internal_set_step_no(int32_t value) {
+  
+  _impl_.step_no_ = value;
+}
+inline void XueStrictOutgoingHop::set_step_no(int32_t value) {
+  _internal_set_step_no(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueStrictOutgoingHop.step_no)
+}
+
+// int32 parallel_group = 4;
+inline void XueStrictOutgoingHop::clear_parallel_group() {
+  _impl_.parallel_group_ = 0;
+}
+inline int32_t XueStrictOutgoingHop::_internal_parallel_group() const {
+  return _impl_.parallel_group_;
+}
+inline int32_t XueStrictOutgoingHop::parallel_group() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueStrictOutgoingHop.parallel_group)
+  return _internal_parallel_group();
+}
+inline void XueStrictOutgoingHop::_internal_set_parallel_group(int32_t value) {
+  
+  _impl_.parallel_group_ = value;
+}
+inline void XueStrictOutgoingHop::set_parallel_group(int32_t value) {
+  _internal_set_parallel_group(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueStrictOutgoingHop.parallel_group)
+}
+
+// repeated int32 pred_step_nos = 5;
+inline int XueStrictOutgoingHop::_internal_pred_step_nos_size() const {
+  return _impl_.pred_step_nos_.size();
+}
+inline int XueStrictOutgoingHop::pred_step_nos_size() const {
+  return _internal_pred_step_nos_size();
+}
+inline void XueStrictOutgoingHop::clear_pred_step_nos() {
+  _impl_.pred_step_nos_.Clear();
+}
+inline int32_t XueStrictOutgoingHop::_internal_pred_step_nos(int index) const {
+  return _impl_.pred_step_nos_.Get(index);
+}
+inline int32_t XueStrictOutgoingHop::pred_step_nos(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.XueStrictOutgoingHop.pred_step_nos)
+  return _internal_pred_step_nos(index);
+}
+inline void XueStrictOutgoingHop::set_pred_step_nos(int index, int32_t value) {
+  _impl_.pred_step_nos_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.XueStrictOutgoingHop.pred_step_nos)
+}
+inline void XueStrictOutgoingHop::_internal_add_pred_step_nos(int32_t value) {
+  _impl_.pred_step_nos_.Add(value);
+}
+inline void XueStrictOutgoingHop::add_pred_step_nos(int32_t value) {
+  _internal_add_pred_step_nos(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.XueStrictOutgoingHop.pred_step_nos)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+XueStrictOutgoingHop::_internal_pred_step_nos() const {
+  return _impl_.pred_step_nos_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+XueStrictOutgoingHop::pred_step_nos() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.XueStrictOutgoingHop.pred_step_nos)
+  return _internal_pred_step_nos();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+XueStrictOutgoingHop::_internal_mutable_pred_step_nos() {
+  return &_impl_.pred_step_nos_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+XueStrictOutgoingHop::mutable_pred_step_nos() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.XueStrictOutgoingHop.pred_step_nos)
+  return _internal_mutable_pred_step_nos();
 }
 
 // -------------------------------------------------------------------
