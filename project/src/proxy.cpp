@@ -1,4 +1,5 @@
 #include "proxy.h"
+#include "tcp_conn_pool.h"
 #include "jerasure.h"
 #include "jerasure/galois.h"
 #include "reed_sol.h"
@@ -1059,15 +1060,10 @@ namespace ECProject
 
     try
     {
-      asio::io_context io_context;
-      asio::ip::tcp::socket socket(io_context);
-      asio::ip::tcp::resolver resolver(io_context);
       const int tcp_port = ep_it->second.second + ECProject::PROXY_PORT_SHIFT;
-      asio::error_code con_error;
-      asio::connect(socket,
-                    resolver.resolve({ep_it->second.first, std::to_string(tcp_port)}),
-                    con_error);
-      if (con_error)
+      auto &pool = TcpEndpointPoolRegistry::pool_for(ep_it->second.first, tcp_port);
+      auto conn = pool.acquire(ep_it->second.first, tcp_port);
+      if (conn == nullptr)
       {
         std::cerr << "[Proxy][XFERT] " << ts << " proxy_tcp_failed "
                   << fmt_proxy_tcp_route(m_self_cluster_id, dest_cluster_id)
@@ -1082,6 +1078,7 @@ namespace ECProject
       const uint64_t tcp_accept_token = rep.tcp_accept_token();
       if (tcp_accept_token == 0)
       {
+        pool.release(conn, false);
         std::cerr << "[Proxy][XFERT] " << ts << " proxy_tcp_failed "
                   << fmt_proxy_tcp_route(m_self_cluster_id, dest_cluster_id)
                   << " reason=missing_tcp_accept_token append_key=" << placement.key() << std::endl;
@@ -1093,56 +1090,18 @@ namespace ECProject
         }
         return false;
       }
-      asio::error_code route_ec;
-      if (!writeTcpRoutingToken(socket, tcp_accept_token, route_ec))
-      {
-        std::cerr << "[Proxy][XFERT] " << ts << " proxy_tcp_failed "
-                  << fmt_proxy_tcp_route(m_self_cluster_id, dest_cluster_id)
-                  << " reason=tcp_route_write append_key=" << placement.key()
-                  << " token=" << tcp_accept_token << " ec=" << route_ec.message() << std::endl;
-        if (placement.xue_strict_schedule() && gate_strict_schedule_step)
-        {
-          reportXueScheduleStepDoneAfterForward(placement.stripe_id(), placement.key(),
-                                                m_self_cluster_id, dest_cluster_id, false,
-                                                placement.xue_xfer_plan_id());
-        }
-        return false;
-      }
-      asio::error_code write_ec;
-      asio::write(socket, asio::buffer(delta_buf, delta_size), write_ec);
-      if (write_ec)
-      {
-        std::cerr << "[Proxy][XFERT] " << ts << " proxy_tcp_failed "
-                  << fmt_proxy_tcp_route(m_self_cluster_id, dest_cluster_id)
-                  << " reason=tcp_write append_key=" << placement.key() << std::endl;
-        if (placement.xue_strict_schedule() && gate_strict_schedule_step)
-        {
-          reportXueScheduleStepDoneAfterForward(placement.stripe_id(), placement.key(),
-                                                m_self_cluster_id, dest_cluster_id, false,
-                                                placement.xue_xfer_plan_id());
-        }
-        return false;
-      }
-      char ack = 0;
-      {
-        struct timeval tv;
-        tv.tv_sec = 60;
-        tv.tv_usec = 0;
-        setsockopt(socket.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-      }
-      asio::error_code read_ec;
-      asio::read(socket, asio::buffer(&ack, 1), read_ec);
-      asio::error_code ignore_ec;
-      socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
-      socket.close(ignore_ec);
-      const bool ok = !read_ec && ack == 1;
+      asio::error_code xfer_ec;
+      bool conn_reusable = false;
+      const bool ok = tcp_write_token_payload_read_ack(conn->socket, tcp_accept_token, delta_buf,
+                                                       delta_size, 60, xfer_ec, &conn_reusable);
+      pool.release(conn, ok && !xfer_ec && conn_reusable);
       if (!ok)
       {
         std::cerr << "[Proxy][XFERT] " << ts << " proxy_tcp_failed "
                   << fmt_proxy_tcp_route(m_self_cluster_id, dest_cluster_id)
                   << " reason=peer_ack"
                   << " append_mode=" << append_mode << " append_key=" << placement.key()
-                  << " (downstream returned ack=" << static_cast<int>(ack) << ")" << std::endl;
+                  << " ec=" << xfer_ec.message() << std::endl;
       }
       if (placement.xue_strict_schedule() && gate_strict_schedule_step)
       {
@@ -2892,7 +2851,14 @@ namespace ECProject
 
   void ProxyImpl::warm_up_worker_pools()
   {
-    ensure_client_append_workers();
+    if (kXueTcpConnReuse)
+    {
+      ensure_persistent_client_ingress_acceptor();
+    }
+    else
+    {
+      ensure_client_append_workers();
+    }
     ensure_xue_deferred_workers();
   }
 
@@ -2999,70 +2965,152 @@ namespace ECProject
       registerXueGlobalParityIngressExpected(stripe_id, append_stripe_data_placement->key());
     }
 
-    const auto self = lock_self();
-    if (!self)
+    if (!kXueTcpConnReuse)
     {
-      std::cerr << "[Proxy] scheduleAppend2Datanode: self not pinned proxy_cluster="
-                << m_self_cluster_id << std::endl;
-      return grpc::Status(grpc::StatusCode::INTERNAL, "proxy self not pinned");
-    }
-
-    auto append_and_save = [self, this, placement_copy, is_serialized, tcp_accept_token]() mutable
-    {
-      try
+      const auto self = lock_self();
+      if (!self)
       {
-        asio::ip::tcp::socket socket_data(io_context);
-        asio::error_code accept_ec;
+        std::cerr << "[Proxy] scheduleAppend2Datanode: self not pinned proxy_cluster="
+                  << m_self_cluster_id << std::endl;
+        return grpc::Status(grpc::StatusCode::INTERNAL, "proxy self not pinned");
+      }
+      auto append_and_save = [self, this, placement_copy, is_serialized, tcp_accept_token]() mutable
+      {
+        try
         {
-          std::lock_guard<std::mutex> accept_lk(m_client_accept_mutex);
+          asio::ip::tcp::socket socket_data(io_context);
+          asio::error_code accept_ec;
           {
+            std::lock_guard<std::mutex> accept_lk(m_client_accept_mutex);
             struct timeval tv;
             tv.tv_sec = 60;
             tv.tv_usec = 0;
             setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+            acceptor.accept(socket_data, accept_ec);
+            tv.tv_sec = 0;
+            tv.tv_usec = 0;
+            setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
           }
-          acceptor.accept(socket_data, accept_ec);
+          if (accept_ec)
           {
-            struct timeval tv_zero;
-            tv_zero.tv_sec = 0;
-            tv_zero.tv_usec = 0;
-            setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv_zero, sizeof(tv_zero));
+            std::cerr << "[Proxy] accept failed append_key=" << placement_copy->key()
+                      << " proxy_cluster=" << m_self_cluster_id
+                      << " mode=" << placement_copy->append_mode()
+                      << " ec=" << accept_ec.message() << std::endl;
+            releasePendingTcpAppend(tcp_accept_token);
+            return;
           }
+          drainClientIngressSocket(std::move(socket_data));
         }
-        if (accept_ec)
+        catch (std::exception &e)
         {
-          std::cerr << "[Proxy] accept failed append_key=" << placement_copy->key()
-                    << " proxy_cluster=" << m_self_cluster_id
-                    << " mode=" << placement_copy->append_mode()
-                    << " ec=" << accept_ec.message() << std::endl;
+          std::cout << "exception in append_and_save" << std::endl;
+          std::cout << e.what() << std::endl;
           releasePendingTcpAppend(tcp_accept_token);
-          return;
         }
+      };
+      try
+      {
+        if (IF_DEBUG)
+        {
+          std::cout << "[Proxy][APPEND424] Handle append_and_save" << std::endl;
+        }
+        {
+          std::lock_guard<std::mutex> lk(m_client_append_queue_mutex);
+          m_client_append_tasks.push_back(std::move(append_and_save));
+        }
+        m_client_append_queue_cv.notify_one();
+        ensure_client_append_workers();
+      }
+      catch (std::exception &e)
+      {
+        std::cout << "exception" << std::endl;
+        std::cout << e.what() << std::endl;
+      }
+    }
+    else
+    {
+      ensure_persistent_client_ingress_acceptor();
+    }
 
-        std::shared_ptr<proxy_proto::AppendStripeDataPlacement> active_plan = placement_copy;
-        uint64_t route_token = 0;
-        asio::error_code route_ec;
-        if (!readTcpRoutingToken(socket_data, route_token, route_ec))
+    return grpc::Status::OK;
+  }
+
+  void ProxyImpl::ensure_persistent_client_ingress_acceptor()
+  {
+    bool expected = false;
+    if (!m_persistent_client_ingress_started.compare_exchange_strong(expected, true))
+    {
+      return;
+    }
+    const auto self = lock_self();
+    if (!self)
+    {
+      m_persistent_client_ingress_started.store(false);
+      return;
+    }
+    std::thread([self]() { self->persistent_client_ingress_accept_loop(self); }).detach();
+  }
+
+  void ProxyImpl::persistent_client_ingress_accept_loop(std::shared_ptr<ProxyImpl> keepalive)
+  {
+    for (;;)
+    {
+      asio::ip::tcp::socket socket_data(keepalive->io_context);
+      asio::error_code accept_ec;
+      {
+        std::lock_guard<std::mutex> accept_lk(keepalive->m_client_accept_mutex);
+        struct timeval tv;
+        tv.tv_sec = 60;
+        tv.tv_usec = 0;
+        setsockopt(keepalive->acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+        keepalive->acceptor.accept(socket_data, accept_ec);
+        tv.tv_sec = 0;
+        tv.tv_usec = 0;
+        setsockopt(keepalive->acceptor.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+      }
+      if (accept_ec)
+      {
+        continue;
+      }
+      auto self = keepalive;
+      std::thread([self, socket_data = std::move(socket_data)]() mutable {
+        self->drainClientIngressSocket(std::move(socket_data));
+      }).detach();
+    }
+  }
+
+  void ProxyImpl::drainClientIngressSocket(asio::ip::tcp::socket socket_data)
+  {
+    const auto self = lock_self();
+    if (!self)
+    {
+      asio::error_code ignore_ec;
+      socket_data.close(ignore_ec);
+      return;
+    }
+    std::shared_ptr<proxy_proto::AppendStripeDataPlacement> placement_copy;
+    try
+    {
+        for (;;)
         {
-          std::cerr << "[Proxy] tcp route token read failed proxy_cluster=" << m_self_cluster_id
-                    << " append_key=" << placement_copy->key()
-                    << " ec=" << route_ec.message() << std::endl;
-          asio::error_code ignore_ec;
-          socket_data.close(ignore_ec);
-          releasePendingTcpAppend(tcp_accept_token);
-          return;
-        }
-        active_plan = consumePendingTcpAppend(route_token);
-        if (active_plan == nullptr)
-        {
-          std::cerr << "[Proxy] tcp route token unmatched proxy_cluster=" << m_self_cluster_id
-                    << " token=" << route_token << std::endl;
-          asio::error_code ignore_ec;
-          socket_data.close(ignore_ec);
-          releasePendingTcpAppend(tcp_accept_token);
-          return;
-        }
-        placement_copy = active_plan;
+          std::shared_ptr<proxy_proto::AppendStripeDataPlacement> active_plan;
+          uint64_t route_token = 0;
+          asio::error_code route_ec;
+          ECProject::tcp_set_recv_timeout(socket_data, kClientIngressConnIdleSec);
+          if (!readTcpRoutingToken(socket_data, route_token, route_ec))
+          {
+            break;
+          }
+          active_plan = consumePendingTcpAppend(route_token);
+          if (active_plan == nullptr)
+          {
+            std::cerr << "[Proxy] tcp route token unmatched proxy_cluster=" << m_self_cluster_id
+                      << " token=" << route_token << std::endl;
+            break;
+          }
+          placement_copy = active_plan;
+          const bool is_serialized = placement_copy->is_serialized();
 
         const int stripe_id = placement_copy->stripe_id();
         const size_t cluster_append_size = placement_copy->append_size();
@@ -3110,10 +3158,12 @@ namespace ECProject
                     << " slice_sum=" << tcp_payload_sum << " tcp_slices=" << tcp_slice_count
                     << std::endl;
         }
-        auto close_socket = [&socket_data]() {
-          asio::error_code ignore_ec;
-          socket_data.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
-          socket_data.close(ignore_ec);
+        auto finish_ingress_message = [&](bool allow_reuse) -> bool {
+          if (allow_reuse && kXueTcpConnReuse)
+          {
+            return true;
+          }
+          return false;
         };
 
         if (cluster_append_size == 0 || tcp_slice_sizes.empty())
@@ -3121,8 +3171,7 @@ namespace ECProject
           std::cerr << "[Proxy] skip append: zero tcp payload append_key=" << placement_copy->key()
                     << " proxy_cluster=" << m_self_cluster_id
                     << " mode=" << placement_copy->append_mode() << std::endl;
-          close_socket();
-          return;
+          break;
         }
         XueXferScopeTimer xue_xfer_timer;
         xue_xfer_timer.self = this;
@@ -3184,8 +3233,11 @@ namespace ECProject
               asio::error_code ack_ec;
               asio::write(socket_data, asio::buffer(&ack, 1), ack_ec);
             }
-            close_socket();
-            return;
+            if (finish_ingress_message(send_ack))
+            {
+              continue;
+            }
+            break;
           }
           if (!ingress_ok)
           {
@@ -3197,7 +3249,6 @@ namespace ECProject
             asio::error_code ack_ec;
             asio::write(socket_data, asio::buffer(&ack, 1), ack_ec);
           }
-          close_socket();
           coordinator_proto::CommitAbortKey commit_abort_key;
           coordinator_proto::ReplyFromCoordinator result;
           grpc::ClientContext context;
@@ -3209,7 +3260,11 @@ namespace ECProject
               m_coordinator_ptr->reportCommitAbort(&context, commit_abort_key, &result);
           log_append_commit_report(proxy_xfer_timestamp(), m_self_cluster_id, placement_copy->key(),
                                    stripe_id, status.ok() && ingress_ok);
-          return;
+          if (finish_ingress_message(send_ack))
+          {
+            continue;
+          }
+          break;
         }
 
         if (append_mode_str == "XUE_DELTA_TO_RELAY")
@@ -3236,7 +3291,6 @@ namespace ECProject
               asio::error_code ack_ec;
               asio::write(socket_data, asio::buffer(&ack, 1), ack_ec);
             }
-            close_socket();
 
             auto append_shared =
                 std::make_shared<std::vector<char>>(append_buf.begin(), append_buf.end());
@@ -3265,7 +3319,11 @@ namespace ECProject
             {
               deferred_task();
             }
-            return;
+            if (finish_ingress_message(send_ack))
+            {
+              continue;
+            }
+            break;
           }
 
           proxy_proto::AppendStripeDataPlacement fwd_placement = *placement_copy;
@@ -3283,8 +3341,11 @@ namespace ECProject
             asio::error_code ack_ec;
             asio::write(socket_data, asio::buffer(&ack, 1), ack_ec);
           }
-          close_socket();
-          return;
+          if (finish_ingress_message(send_ack))
+          {
+            continue;
+          }
+          break;
         }
 
         if (append_mode_str == "XUE_DELTA_TO_GLOBAL")
@@ -3315,7 +3376,6 @@ namespace ECProject
             asio::error_code ack_ec;
             asio::write(socket_data, asio::buffer(&ack, 1), ack_ec);
           }
-          close_socket();
           if (ok && placement_copy->xue_strict_schedule() &&
               placement_copy->xue_strict_outgoing_size() > 0)
           {
@@ -3333,7 +3393,11 @@ namespace ECProject
               deferred_task();
             }
           }
-          return;
+          if (finish_ingress_message(send_ack))
+          {
+            continue;
+          }
+          break;
         }
 
         if (append_mode_str == "XUE_LOCAL_PARITY_DELTA")
@@ -3359,8 +3423,11 @@ namespace ECProject
             asio::error_code ack_ec;
             asio::write(socket_data, asio::buffer(&ack, 1), ack_ec);
           }
-          close_socket();
-          return;
+          if (finish_ingress_message(send_ack))
+          {
+            continue;
+          }
+          break;
         }
 
         if (append_mode_str == "XUE_COMPUTE_LOCAL_PARITY")
@@ -3381,8 +3448,11 @@ namespace ECProject
             asio::error_code ack_ec;
             asio::write(socket_data, asio::buffer(&ack, 1), ack_ec);
           }
-          close_socket();
-          return;
+          if (finish_ingress_message(send_ack))
+          {
+            continue;
+          }
+          break;
         }
 
         if (!is_layout_stripe_append_mode(append_mode_str) && !is_client_tcp_ingress(append_mode_str, *placement_copy) &&
@@ -3390,13 +3460,6 @@ namespace ECProject
         {
           log_proxy_tcp_hop(proxy_xfer_timestamp(), -1, m_self_cluster_id, placement_copy->key(),
                             cluster_append_size, tcp_slice_count);
-        }
-
-        if (!send_ack)
-        {
-          asio::error_code ignore_ec;
-          socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
-          socket_data.close(ignore_ec);
         }
 
         auto append_to_datanode = [this](const char *block_key, int block_id, size_t slice_size, const char *slice_buf, int slice_offset, const char *ip, int port, bool is_serialized)
@@ -3590,8 +3653,11 @@ namespace ECProject
             asio::error_code ack_ec;
             asio::write(socket_data, asio::buffer(&ack, 1), ack_ec);
           }
-          close_socket();
-          return;
+          if (finish_ingress_message(send_ack))
+          {
+            continue;
+          }
+          break;
         }
 
         if (append_mode_str == "XUE_UPDATE" && azure_like)
@@ -3768,34 +3834,24 @@ namespace ECProject
           std::cout << "[Proxy" << m_self_cluster_id << "][APPEND410]"
                     << " report to coordinator fail!" << std::endl;
         }
-      }
-      catch (std::exception &e)
-      {
-        std::cout << "exception in append_and_save" << std::endl;
-        std::cout << e.what() << std::endl;
-        releasePendingTcpAppend(tcp_accept_token);
-      }
-    };
-    try
-    {
-      if (IF_DEBUG)
-      {
-        std::cout << "[Proxy][APPEND424] Handle append_and_save" << std::endl;
-      }
-      {
-        std::lock_guard<std::mutex> lk(m_client_append_queue_mutex);
-        m_client_append_tasks.push_back(std::move(append_and_save));
-      }
-      m_client_append_queue_cv.notify_one();
-      ensure_client_append_workers();
+        if (finish_ingress_message(send_ack))
+        {
+          continue;
+        }
+        break;
+        }
+
+      asio::error_code ignore_ec;
+      socket_data.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+      socket_data.close(ignore_ec);
     }
     catch (std::exception &e)
     {
-      std::cout << "exception" << std::endl;
+      std::cout << "exception in drainClientIngressSocket" << std::endl;
       std::cout << e.what() << std::endl;
+      asio::error_code ignore_ec;
+      socket_data.close(ignore_ec);
     }
-
-    return grpc::Status::OK;
   }
 
   void ProxyImpl::ensure_client_append_workers()

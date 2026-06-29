@@ -1,4 +1,5 @@
 #include "client.h"
+#include "tcp_conn_pool.h"
 #include "xue_slice_layout.h"
 #include "coordinator.grpc.pb.h"
 
@@ -1127,48 +1128,34 @@ namespace ECProject
       }
     }
     const auto tcp_t0 = std::chrono::high_resolution_clock::now();
-    asio::io_context io_context;
+    auto &pool = TcpEndpointPoolRegistry::pool_for(proxy_ip, proxy_port);
+    auto conn = pool.acquire(proxy_ip, proxy_port);
+    bool healthy = false;
+    bool conn_reusable = false;
     asio::error_code error;
-    asio::ip::tcp::resolver resolver(io_context);
-    asio::ip::tcp::resolver::results_type endpoints =
-        resolver.resolve(proxy_ip, std::to_string(proxy_port));
-    asio::ip::tcp::socket sock_data(io_context);
-    asio::connect(sock_data, endpoints);
-
-    if (tcp_accept_token == 0)
+    const int ack_timeout_sec =
+        std::max(60, 5 + static_cast<int>(static_cast<size_t>(cluster_slice_size) / (512 * 1024)));
+    if (conn != nullptr)
     {
-      std::cerr << "[Client] missing tcp_accept_token append_key=" << append_key << std::endl;
+      if (tcp_accept_token == 0)
+      {
+        std::cerr << "[Client] missing tcp_accept_token append_key=" << append_key << std::endl;
+      }
+      else
+      {
+        healthy = tcp_write_token_payload_read_ack(conn->socket, tcp_accept_token, cluster_slice_data,
+                                                   static_cast<size_t>(cluster_slice_size),
+                                                   ack_timeout_sec, error, &conn_reusable);
+      }
     }
     else
     {
-      asio::write(sock_data, asio::buffer(&tcp_accept_token, sizeof(tcp_accept_token)), error);
+      error = asio::error::connection_refused;
     }
-    if (!error)
+    if (conn != nullptr)
     {
-      asio::write(sock_data, asio::buffer(cluster_slice_data, cluster_slice_size), error);
+      pool.release(conn, healthy && !error && conn_reusable);
     }
-    asio::error_code ignore_ec;
-    if (!error)
-    {
-      sock_data.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
-      // Wait for Proxy to acknowledge receipt: read 1-byte ACK or wait for clean close.
-      // Proxy strict-schedule paths send an explicit ACK byte; non-strict paths
-      // close the connection, which yields EOF on the client read.
-      {
-        struct timeval tv;
-        tv.tv_sec = 5;
-        tv.tv_usec = 0;
-        setsockopt(sock_data.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-      }
-      char ack_byte = 0;
-      asio::error_code read_ec;
-      asio::read(sock_data, asio::buffer(&ack_byte, 1), read_ec);
-      // read_ec == success  → received explicit ACK from Proxy
-      // read_ec == eof      → Proxy closed cleanly without ACK (non-strict path)
-      // read_ec == timeout  → Proxy did not respond within 5 s (network loss / crash)
-      // read_ec == other    → network error
-    }
-    sock_data.close(ignore_ec);
     const auto tcp_t1 = std::chrono::high_resolution_clock::now();
     if (out_timing != nullptr)
     {
@@ -1181,11 +1168,18 @@ namespace ECProject
     }
 
     const auto commit_t0 = std::chrono::high_resolution_clock::now();
-    if (poll_append_commit(append_key))
+    const auto commit_deadline =
+        commit_t0 + std::chrono::seconds(120);
+    while (std::chrono::high_resolution_clock::now() < commit_deadline)
     {
-      if_commit_arr[index] = true;
+      if (poll_append_commit(append_key))
+      {
+        if_commit_arr[index] = true;
+        break;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
-    else
+    if (!if_commit_arr[index])
     {
       std::cout << "[APPEND205] " << append_key << " not commit!!!!!" << " cluster_slice_size: "
                 << cluster_slice_size << " proxy_ip: " << proxy_ip << " proxy_port: " << proxy_port

@@ -13,6 +13,7 @@
 #include <semaphore.h>
 #include <config.h>
 #include <toolbox.h>
+#include "tcp_conn_pool.h"
 #include <queue>
 #include <set>
 #include <deque>
@@ -231,6 +232,10 @@ namespace ECProject
     void attach_self(std::shared_ptr<ProxyImpl> self);
     std::shared_ptr<ProxyImpl> lock_self() const;
     void warm_up_worker_pools();
+    void ensure_persistent_client_ingress_acceptor();
+    void persistent_client_ingress_accept_loop(std::shared_ptr<ProxyImpl> keepalive);
+    /** Read token-framed ingress messages on one TCP connection (reuse when enabled). */
+    void drainClientIngressSocket(asio::ip::tcp::socket socket_data);
     void ensure_client_append_workers();
     void client_append_worker_loop(std::shared_ptr<ProxyImpl> keepalive);
     void ensure_xue_deferred_workers();
@@ -242,6 +247,10 @@ namespace ECProject
     static constexpr int kXueDeferredWorkerCount = 12;
     static constexpr size_t kXueDeferredQueueMax = 512;
     static constexpr int kPendingTcpTokenTtlSec = 120;
+    static constexpr bool kXueTcpConnReuse = true;
+    static constexpr int kTcpConnPoolMaxPerEndpoint = 8;
+    static constexpr int kClientIngressConnIdleSec = 30;
+    std::atomic<bool> m_persistent_client_ingress_started{false};
     std::mutex m_client_accept_mutex;  // serializes acceptor.accept() across workers
     struct PendingTcpEntry
     {
