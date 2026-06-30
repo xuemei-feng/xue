@@ -224,16 +224,16 @@ def patch_main_client(path, client_ip):
     with open(path, "r") as f:
         text = f.read()
     new_text, n = re.subn(
-        r'std::string client_ip = "[^"]*";',
-        'std::string client_ip = "%s";' % client_ip,
+        r'(resolve_client_ip\([^\)]*\)[\s\S]*?return ")[^"]*(";\s*\n\s*\})',
+        r'\g<1>%s\2' % client_ip,
         text,
         count=1,
     )
     if n != 1:
-        raise RuntimeError("client_ip not found in %s" % path)
+        raise RuntimeError("resolve_client_ip fallback not found in %s" % path)
     with open(path, "w") as f:
         f.write(new_text)
-    print("  patched client_ip -> %s in main_client.cpp" % client_ip)
+    print("  patched resolve_client_ip fallback -> %s in main_client.cpp" % client_ip)
 
 
 def apply(sorted_ips, dry_run=False):

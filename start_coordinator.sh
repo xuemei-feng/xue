@@ -7,7 +7,8 @@ REMOTE_COMMAND="cd /root/xue && sh run_coordinator.sh"
 PARALLEL=5
 
 echo "Running command on all nodes..."
-pdsh -R ssh -w 172.16.2.32 -l $USER -f $PARALLEL "$REMOTE_COMMAND"
+# 把 start_coordinator.sh 第 10 行改为：
+pdsh -R ssh -w 172.16.0.114 -l $USER -f $PARALLEL "$REMOTE_COMMAND"
 
 if [ $? -eq 0 ]; then
 	echo "Command executed successfully on all nodes."
