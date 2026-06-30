@@ -1,6 +1,6 @@
 #!/bin/sh
 # 批量 Parix 更新请求文件（改 UPDATE_BATCH_FILE）
-UPDATE_BATCH_FILE="/users/xue/xue/T00-64KB-100-10"
+UPDATE_BATCH_FILE="/users/xue/xue/T00-1MB-1000-10log"
 
 # 预写条带数（main_client 启动时 SET 的条带数量）：改 project/config/parameterConfiguration.xml 里的 ClientStripeNum
 # 有效 stripe_id 范围为 [0, ClientStripeNum)；batch 中 stripe_id >= ClientStripeNum 的更新会失败
