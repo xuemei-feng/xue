@@ -145,14 +145,14 @@ namespace ECProject
   static std::mutex g_cord_plan_exec_mu;
   static std::unordered_map<std::string, std::thread> g_cord_plan_exec_threads;
 
-  /** CoRD local update：同一 datanode endpoint 上 range read/write 串行，不同 endpoint 可并行。 */
-  static std::mutex g_cord_dn_endpoint_map_mu;
-  static std::map<std::string, std::shared_ptr<std::mutex>> g_cord_dn_endpoint_mu;
+  /** CoRD local update：同一 cluster 内 datanode 上 range read/write 串行，不同 cluster 可并行。 */
+  static std::mutex g_cord_cluster_map_mu;
+  static std::map<int, std::shared_ptr<std::mutex>> g_cord_cluster_mu;
 
-  static std::shared_ptr<std::mutex> cord_dn_endpoint_mu_for(const std::string &endpoint)
+  static std::shared_ptr<std::mutex> cord_cluster_mu_for(int cluster_id)
   {
-    std::lock_guard<std::mutex> lk(g_cord_dn_endpoint_map_mu);
-    auto &p = g_cord_dn_endpoint_mu[endpoint];
+    std::lock_guard<std::mutex> lk(g_cord_cluster_map_mu);
+    auto &p = g_cord_cluster_mu[cluster_id];
     if (!p)
       p = std::make_shared<std::mutex>();
     return p;
@@ -2683,10 +2683,9 @@ namespace ECProject
         auto build_delta_for_slice = [&](int j, CordUpdateSliceResult *out) -> bool {
           const size_t slen = sizes[static_cast<size_t>(j)];
           std::vector<char> oldbuf(slen);
-          const std::string ep = placement_copy->datanodeip(j) + ":" + std::to_string(placement_copy->datanodeport(j));
-          const auto endpoint_mu = cord_dn_endpoint_mu_for(ep);
+          const auto cluster_mu = cord_cluster_mu_for(placement_copy->cluster_id());
           {
-            std::lock_guard<std::mutex> dn_lk(*endpoint_mu);
+            std::lock_guard<std::mutex> cluster_lk(*cluster_mu);
             if (!CordRangeReadFromDatanode(placement_copy->blockkeys(j), placement_copy->blockids(j),
                                            static_cast<int>(placement_copy->offsets(j)), oldbuf.data(), slen,
                                            placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j)))
@@ -2725,24 +2724,20 @@ namespace ECProject
         }
         else
         {
-          std::map<std::string, std::vector<int>> slices_by_endpoint;
+          std::map<int, std::vector<int>> slices_by_cluster;
           for (int j = 0; j < slice_num; ++j)
-          {
-            const std::string ep =
-                placement_copy->datanodeip(j) + ":" + std::to_string(placement_copy->datanodeport(j));
-            slices_by_endpoint[ep].push_back(j);
-          }
+            slices_by_cluster[placement_copy->cluster_id()].push_back(j);
           if (IF_DEBUG)
           {
-            std::cout << "[CoRD-DATA][" << proxy_ip_port << "] slice_parallel endpoints=" << slices_by_endpoint.size()
+            std::cout << "[CoRD-DATA][" << proxy_ip_port << "] slice_parallel clusters=" << slices_by_cluster.size()
                       << " slices=" << slice_num << " stripe_id=" << stripe_id << std::endl;
           }
 
           std::vector<CordUpdateSliceResult> slice_results(static_cast<size_t>(slice_num));
           std::atomic<bool> update_failed{false};
           std::vector<std::thread> slice_workers;
-          slice_workers.reserve(slices_by_endpoint.size());
-          for (const auto &entry : slices_by_endpoint)
+          slice_workers.reserve(slices_by_cluster.size());
+          for (const auto &entry : slices_by_cluster)
           {
             const std::vector<int> indices = entry.second;
             slice_workers.emplace_back([&build_delta_for_slice, &slice_results, &update_failed, indices]() {
