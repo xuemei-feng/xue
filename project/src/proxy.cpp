@@ -3114,26 +3114,13 @@ namespace ECProject
                       request->datanode_port(), 0);
     if (ok && request->journal_invalidations_size() > 0)
     {
-      std::vector<std::tuple<int, int, int>> ranges;
-      ranges.reserve(static_cast<size_t>(request->journal_invalidations_size()));
-      for (int i = 0; i < request->journal_invalidations_size(); ++i)
-      {
-        const auto &r = request->journal_invalidations(i);
-        const int len = static_cast<int>(r.range_length());
-        if (len > 0)
-        {
-          ranges.emplace_back(r.data_block_id(), r.range_offset(), len);
-        }
-      }
-      if (!ranges.empty())
-      {
-        m_parix_journal.remove_entries_overlapping_data_ranges(request->stripe_id(), ranges);
-      }
+      m_parix_journal.clear_stripe_journal(request->stripe_id());
     }
     response->set_ifcommit(ok);
     std::cout << "[Parix][Proxy " << m_ip << ":" << m_port << "] parixParityFullOverwrite: stripe=" << request->stripe_id()
               << " parity_block_id=" << request->parity_block_id() << " key=" << request->parity_block_key() << " ifcommit="
-              << (ok ? "true" : "false") << " journal_inv=" << request->journal_invalidations_size() << std::endl;
+              << (ok ? "true" : "false") << " journal_cleared="
+              << (ok && request->journal_invalidations_size() > 0 ? "true" : "false") << std::endl;
     return grpc::Status::OK;
   }
 

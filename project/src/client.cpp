@@ -2068,6 +2068,42 @@ namespace ECProject
       std::cout << "[Client][Parix] planParixFullStripe failed: " << (fst.ok() ? fplan.err() : fst.error_message()) << std::endl;
       return false;
     }
+    if (fplan.data_block_targets_size() != k)
+    {
+      std::cout << "[Client][Parix] full stripe: expected " << k << " data_block_targets, got "
+                << fplan.data_block_targets_size() << std::endl;
+      return false;
+    }
+
+    std::unordered_map<std::string, std::unique_ptr<datanode_proto::datanodeService::Stub>> datanode_stubs;
+    for (int i = 0; i < fplan.data_block_targets_size(); ++i)
+    {
+      const coordinator_proto::ParixDataBlockEndpoint &db = fplan.data_block_targets(i);
+      const int bid = db.data_block_id();
+      if (bid < 0 || bid >= k)
+      {
+        std::cout << "[Client][Parix] full stripe: bad data_block_id " << bid << std::endl;
+        return false;
+      }
+      const std::string dn_ep = db.datanode_ip() + ":" + std::to_string(db.datanode_port());
+      auto dn_it = datanode_stubs.find(dn_ep);
+      if (dn_it == datanode_stubs.end())
+      {
+        dn_it = datanode_stubs
+                    .emplace(dn_ep, datanode_proto::datanodeService::NewStub(
+                                        grpc::CreateChannel(dn_ep, grpc::InsecureChannelCredentials())))
+                    .first;
+      }
+      const char *block_data = new_stripe_data + static_cast<size_t>(bid) * static_cast<size_t>(bs);
+      if (!parix_datanode_write_range_stub(dn_it->second.get(), db.datanode_ip(), db.datanode_port(), db.block_key(), bs,
+                                           0, bs, block_data))
+      {
+        std::cout << "[Client][Parix] full stripe: write data block failed block_id=" << bid << " key=" << db.block_key()
+                  << std::endl;
+        return false;
+      }
+    }
+    std::cout << "[Client][Parix] full stripe data blocks written stripe_id=" << stripe_id << " count=" << k << std::endl;
 
     for (int i = 0; i < fplan.parity_targets_size(); ++i)
     {

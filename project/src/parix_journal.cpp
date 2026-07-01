@@ -453,6 +453,12 @@ namespace ECProject
     }
   }
 
+  void ParixJournal::clear_stripe_journal(int stripe_id)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    stripes_.erase(stripe_id);
+  }
+
   uint64_t ParixJournal::get_write_generation(int stripe_id)
   {
     std::lock_guard<std::mutex> lock(mutex_);

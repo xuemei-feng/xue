@@ -85,6 +85,9 @@ namespace ECProject
     /** Remove journal entries (and last_committed_dr hints) whose data slice intersects any invalidation range. Half-open [off, off+len). */
     void remove_entries_overlapping_data_ranges(int stripe_id, const std::vector<std::tuple<int, int, int>> &ranges_bid_off_len);
 
+    /** Drop all journal state for stripe_id on this proxy (full stripe overwrite). */
+    void clear_stripe_journal(int stripe_id);
+
     uint64_t get_write_generation(int stripe_id);
 
   private:

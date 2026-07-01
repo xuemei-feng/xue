@@ -3183,6 +3183,19 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         fill_ep(pb, reply->add_parity_targets());
       }
     }
+    for (int bid = 0; bid < stripe.k; ++bid)
+    {
+      Block *db = find_block_by_block_id(stripe, bid);
+      if (db == nullptr)
+      {
+        continue;
+      }
+      coordinator_proto::ParixDataBlockEndpoint *dep = reply->add_data_block_targets();
+      dep->set_data_block_id(bid);
+      dep->set_block_key(db->block_key);
+      dep->set_datanode_ip(m_node_table.at(db->map2node).node_ip);
+      dep->set_datanode_port(m_node_table.at(db->map2node).node_port);
+    }
     return grpc::Status::OK;
   }
 
