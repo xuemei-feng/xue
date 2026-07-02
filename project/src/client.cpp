@@ -1259,13 +1259,19 @@ namespace ECProject
       return false;
     }
     const int cord_timeout_sec = g_cord_request_timeout_sec;
+    std::vector<std::thread> upload_threads;
+    upload_threads.reserve(static_cast<size_t>(slice_count));
     for (int i = 0; i < slice_count; ++i)
     {
-      CordThreadDeadlineScope deadline_scope(&cord_deadline, cord_timeout_sec);
-      async_cord_update_to_proxies(cluster_slices[static_cast<size_t>(i)], reply.append_keys(i),
-                                   static_cast<int>(reply.cluster_slice_sizes(i)), reply.proxyips(i),
-                                   reply.proxyports(i), i, if_commit_arr.get());
+      upload_threads.emplace_back([this, i, &cord_deadline, cord_timeout_sec, &cluster_slices, &reply, if_commit_arr = if_commit_arr.get()]() {
+        CordThreadDeadlineScope deadline_scope(&cord_deadline, cord_timeout_sec);
+        async_cord_update_to_proxies(cluster_slices[static_cast<size_t>(i)], reply.append_keys(i),
+                                     static_cast<int>(reply.cluster_slice_sizes(i)), reply.proxyips(i),
+                                     reply.proxyports(i), i, if_commit_arr);
+      });
     }
+    for (auto &t : upload_threads)
+      t.join();
     pending->upload_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - upload_t0).count();
     if (cord_abort_if_timed_out())
     {
