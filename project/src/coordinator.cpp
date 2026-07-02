@@ -1816,18 +1816,64 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   }
 
 
+  bool CoordinatorImpl::cord_try_start_next_xfer_plan_locked(proxy_proto::CordTransferPlan *out_plan)
+  {
+    if (!m_cord_active_xfer_plan_key.empty() || out_plan == nullptr)
+      return false;
+    while (!m_cord_xfer_start_queue.empty())
+    {
+      const std::string pk = m_cord_xfer_start_queue.front();
+      m_cord_xfer_start_queue.pop_front();
+      auto it = m_cord_pending_plans.find(pk);
+      if (it == m_cord_pending_plans.end())
+        continue;
+      *out_plan = it->second;
+      m_cord_pending_plans.erase(it);
+      m_cord_active_xfer_plan_key = pk;
+      return true;
+    }
+    return false;
+  }
+
+  void CoordinatorImpl::cord_finish_active_xfer_plan(const std::string &plan_key)
+  {
+    proxy_proto::CordTransferPlan next_plan;
+    bool should_notify = false;
+    {
+      std::lock_guard<std::mutex> lk(m_cord_pending_mu);
+      if (m_cord_active_xfer_plan_key == plan_key)
+        m_cord_active_xfer_plan_key.clear();
+      should_notify = cord_try_start_next_xfer_plan_locked(&next_plan);
+    }
+    if (should_notify)
+    {
+      std::cout << "[CoRD] start CordTransferPlan (queued): plan_key=" << next_plan.plan_key()
+                << " steps=" << next_plan.steps_size() << " rounds=" << next_plan.total_rounds() << "\n";
+      notify_proxies_cord_transfer_plan(next_plan);
+    }
+  }
+
   bool CoordinatorImpl::cord_start_pending_transfer_plan(const std::string &plan_key)
   {
     proxy_proto::CordTransferPlan plan;
+    bool should_notify = false;
     {
       std::lock_guard<std::mutex> lk(m_cord_pending_mu);
-      auto it = m_cord_pending_plans.find(plan_key);
-      if (it == m_cord_pending_plans.end())
+      if (m_cord_pending_plans.find(plan_key) == m_cord_pending_plans.end())
         return false;
-      plan = it->second;
-      m_cord_pending_plans.erase(it);
+      if (m_cord_active_xfer_plan_key == plan_key)
+        return true;
+      for (const auto &qpk : m_cord_xfer_start_queue)
+      {
+        if (qpk == plan_key)
+          return true;
+      }
+      m_cord_xfer_start_queue.push_back(plan_key);
+      should_notify = cord_try_start_next_xfer_plan_locked(&plan);
     }
-    std::cout << "[CoRD] start CordTransferPlan: plan_key=" << plan_key
+    if (!should_notify)
+      return true;
+    std::cout << "[CoRD] start CordTransferPlan: plan_key=" << plan.plan_key()
               << " steps=" << plan.steps_size() << " rounds=" << plan.total_rounds() << "\n";
     notify_proxies_cord_transfer_plan(plan);
     return true;
@@ -2549,6 +2595,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       m_cord_pending_plan_clusters.erase(pk);
     }
     cord_clear_auto_begin_session(pk);
+    cord_finish_active_xfer_plan(pk);
     const double handler_sec =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - handler_t0).count();
     double pure_xfer_sec = 0.;

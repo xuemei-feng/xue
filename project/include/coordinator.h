@@ -13,6 +13,7 @@
 #include <random>
 #include <string>
 #include <thread>
+#include <deque>
 #include <condition_variable>
 #include <unordered_map>
 #include <unordered_set>
@@ -195,6 +196,8 @@ namespace ECProject
     void notify_proxies_cord_transfer_plan(const proxy_proto::CordTransferPlan &plan);
     /** 若 plan 仍在 pending 表，取出并 notify；已 auto-start 则返回 false。 */
     bool cord_start_pending_transfer_plan(const std::string &plan_key);
+    bool cord_try_start_next_xfer_plan_locked(proxy_proto::CordTransferPlan *out_plan);
+    void cord_finish_active_xfer_plan(const std::string &plan_key);
     void cord_register_auto_begin_session(const std::string &plan_key,
                                           const std::vector<std::string> &delta_append_keys);
     void cord_on_delta_key_committed(const std::string &delta_append_key);
@@ -249,6 +252,8 @@ namespace ECProject
     std::mutex m_cord_pending_mu;
     std::unordered_map<std::string, proxy_proto::CordTransferPlan> m_cord_pending_plans;
     std::unordered_map<std::string, std::vector<int>> m_cord_pending_plan_clusters;
+    std::deque<std::string> m_cord_xfer_start_queue;
+    std::string m_cord_active_xfer_plan_key;
     std::unordered_map<std::string, CordAutoBeginSession> m_cord_auto_begin_sessions;
     std::unordered_map<std::string, std::string> m_cord_append_key_to_plan_key;
     std::condition_variable cv;

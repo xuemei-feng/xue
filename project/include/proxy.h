@@ -185,8 +185,11 @@ namespace ECProject
     bool GetFromDatanode(const std::string &key, char *value, const size_t value_length, const char *ip, const int port, 
       double *disk_io_start_time, double *disk_io_end_time, double *network_start_time, double *network_end_time, double *grpc_notify_time, double *grpc_start_time);
     bool CordRangeReadFromDatanode(const std::string &block_key, int block_id, int range_offset, char *out, size_t length, const char *ip, int port);
+    bool CordRangeReadFromDatanodeUnlocked(const std::string &block_key, int block_id, int range_offset, char *out, size_t length, const char *ip, int port);
     bool CordRangeWriteToDatanode(const std::string &block_key, int block_id, int range_offset, const char *data, size_t length, const char *ip, int port);
+    bool CordRangeWriteToDatanodeUnlocked(const std::string &block_key, int block_id, int range_offset, const char *data, size_t length, const char *ip, int port);
     bool CordDeltaBlobToDatanode(const std::string &blob_key, const char *data, size_t length, const char *ip, int port);
+    bool CordDeltaBlobToDatanodeUnlocked(const std::string &blob_key, const char *data, size_t length, const char *ip, int port);
     /** CoRD：与其它 proxy（ip:port）之间的长连接池，跨 RPC 调用复用 HTTP/2 channel。 */
     proxy_proto::proxyService::Stub *stub_for_peer_proxy(const std::string &endpoint);
     int self_cluster_id() const { return m_self_cluster_id; }
@@ -217,6 +220,7 @@ namespace ECProject
     std::string m_ip;
     int m_port;
     int m_self_cluster_id;
+    std::mutex m_cord_xfer_exec_serial_mu;
     asio::io_context io_context;
     asio::ip::tcp::acceptor acceptor;
     asio::ip::tcp::acceptor m_cord_xfer_acceptor;

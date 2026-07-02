@@ -17,6 +17,7 @@
 #include <atomic>
 #include <unordered_map>
 #include <unordered_set>
+#include <set>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -145,14 +146,19 @@ namespace ECProject
   static std::mutex g_cord_plan_exec_mu;
   static std::unordered_map<std::string, std::thread> g_cord_plan_exec_threads;
 
-  /** CoRD local update：同一 cluster 内 datanode 上 range read/write 串行，不同 cluster 可并行。 */
-  static std::mutex g_cord_cluster_map_mu;
-  static std::map<int, std::shared_ptr<std::mutex>> g_cord_cluster_mu;
+  /** CoRD datanode I/O：同一 datanode endpoint 上 grpc+TCP 串行（upload 与 xfer 共享），不同 endpoint 可并行。 */
+  static std::mutex g_cord_dn_endpoint_map_mu;
+  static std::map<std::string, std::shared_ptr<std::mutex>> g_cord_dn_endpoint_mu;
 
-  static std::shared_ptr<std::mutex> cord_cluster_mu_for(int cluster_id)
+  static std::string cord_dn_endpoint_key(const char *ip, int port)
   {
-    std::lock_guard<std::mutex> lk(g_cord_cluster_map_mu);
-    auto &p = g_cord_cluster_mu[cluster_id];
+    return std::string(ip) + ":" + std::to_string(port);
+  }
+
+  static std::shared_ptr<std::mutex> cord_dn_endpoint_mu_for(const std::string &endpoint)
+  {
+    std::lock_guard<std::mutex> lk(g_cord_dn_endpoint_map_mu);
+    auto &p = g_cord_dn_endpoint_mu[endpoint];
     if (!p)
       p = std::make_shared<std::mutex>();
     return p;
@@ -165,6 +171,23 @@ namespace ECProject
       return true;
     return std::strcmp(env, "0") != 0 && std::strcmp(env, "false") != 0 && std::strcmp(env, "FALSE") != 0;
   }
+
+  static bool cord_xfer_step_parallel_enabled()
+  {
+    const char *env = std::getenv("CORD_XFER_STEP_PARALLEL");
+    if (env == nullptr || env[0] == '\0')
+      return true;
+    return std::strcmp(env, "0") != 0 && std::strcmp(env, "false") != 0 && std::strcmp(env, "FALSE") != 0;
+  }
+
+  /** 跨 cluster 传输轮次 barrier：按 (scheduled_slot, cluster_id) 串行，cluster 内 step 可并行。 */
+  struct CordPlanClusterTurnBarrier {
+    int expected_cluster_count = 0;
+    int done_slot = -1;
+    int done_cluster_id = -1;
+    std::unordered_map<uint64_t, std::unordered_set<int>> turn_acks;
+  };
+  static std::map<std::string, CordPlanClusterTurnBarrier> g_cord_plan_cluster_turn_barrier;
 
   static std::string cord_plan_wall_ts_ms();
 
@@ -611,6 +634,7 @@ namespace ECProject
           ++it;
       }
     }
+    g_cord_plan_cluster_turn_barrier.erase(plan_key);
     cord_pure_xfer_erase_tracker(plan_key);
   }
 
@@ -922,6 +946,8 @@ namespace ECProject
     CORD_XFER_TCP_PARITY_XOR = 2,
     CORD_XFER_TCP_MST_CHUNK = 3,
     CORD_XFER_TCP_COLLECTOR_INGRESS_READY = 4,
+    CORD_XFER_TCP_CLUSTER_TURN_DONE = 5,
+    CORD_XFER_TCP_CLUSTER_TURN_QUERY = 6,
   };
 
   static bool cord_tcp_xfer_send(const std::string &dst_ip, int dst_grpc_port, uint32_t kind,
@@ -955,6 +981,177 @@ namespace ECProject
         return st.src_proxy_cluster_id();
     }
     return -1;
+  }
+
+  static int cord_plan_barrier_cluster_id(const proxy_proto::CordTransferPlan &plan)
+  {
+    const int collector_blk = cord_plan_collector_block_id(plan, 0);
+    if (collector_blk >= 0)
+    {
+      const int cc = cord_plan_collector_cluster_id(plan, collector_blk);
+      if (cc >= 0)
+        return cc;
+    }
+    if (plan.steps_size() > 0)
+      return plan.steps(0).src_proxy_cluster_id();
+    return -1;
+  }
+
+  static std::vector<int> cord_plan_ordered_participating_clusters(const proxy_proto::CordTransferPlan &plan)
+  {
+    std::set<int> clusters;
+    for (int i = 0; i < plan.steps_size(); ++i)
+    {
+      const auto &st = plan.steps(i);
+      if (st.src_proxy_cluster_id() >= 0)
+        clusters.insert(st.src_proxy_cluster_id());
+      if (st.dst_proxy_cluster_id() >= 0)
+        clusters.insert(st.dst_proxy_cluster_id());
+    }
+    return std::vector<int>(clusters.begin(), clusters.end());
+  }
+
+  static uint64_t cord_cluster_turn_key(int slot, int cluster_id)
+  {
+    return (static_cast<uint64_t>(static_cast<uint32_t>(slot)) << 32) |
+           static_cast<uint64_t>(static_cast<uint32_t>(cluster_id));
+  }
+
+  static void cord_cluster_turn_barrier_init_locked(const proxy_proto::CordTransferPlan &plan)
+  {
+    auto &bar = g_cord_plan_cluster_turn_barrier[plan.plan_key()];
+    // 每轮仅 active cluster 上报一次完成；其余 cluster spin 等待。
+    bar.expected_cluster_count = 1;
+    bar.done_slot = -1;
+    bar.done_cluster_id = -1;
+    bar.turn_acks.clear();
+  }
+
+  static bool cord_cluster_turn_done_locked(const std::string &plan_key, int slot, int turn_cluster_id)
+  {
+    auto it = g_cord_plan_cluster_turn_barrier.find(plan_key);
+    if (it == g_cord_plan_cluster_turn_barrier.end())
+      return false;
+    const int ds = it->second.done_slot;
+    const int dc = it->second.done_cluster_id;
+    if (ds < 0)
+      return false;
+    if (ds > slot)
+      return true;
+    if (ds == slot && dc >= turn_cluster_id)
+      return true;
+    return false;
+  }
+
+  static void cord_mark_cluster_turn_ack_locked(const std::string &plan_key, int reporter_cluster_id, int slot,
+                                                int turn_cluster_id)
+  {
+    auto &bar = g_cord_plan_cluster_turn_barrier[plan_key];
+    const uint64_t key = cord_cluster_turn_key(slot, turn_cluster_id);
+    auto &acks = bar.turn_acks[key];
+    acks.insert(reporter_cluster_id);
+    if (static_cast<int>(acks.size()) >= bar.expected_cluster_count)
+    {
+      bar.done_slot = slot;
+      bar.done_cluster_id = turn_cluster_id;
+      bar.turn_acks.erase(key);
+    }
+  }
+
+  static bool cord_cluster_turn_barrier_query(const proxy_proto::CordTransferPlan &plan, int barrier_cc, int slot,
+                                              int turn_cluster_id)
+  {
+    std::string dip;
+    int dport = 0;
+    if (!cord_lookup_cluster_endpoint(plan, barrier_cc, &dip, &dport))
+      return false;
+    proxy_proto::CordPlanCollectorIngestReq req;
+    req.set_plan_key(plan.plan_key());
+    req.set_group_index(slot);
+    req.set_collector_block_id(turn_cluster_id);
+    std::string meta;
+    req.SerializeToString(&meta);
+    return cord_tcp_xfer_send(dip, dport, CORD_XFER_TCP_CLUSTER_TURN_QUERY, meta, nullptr, 0);
+  }
+
+  static void cord_report_cluster_turn_ack(const proxy_proto::CordTransferPlan &plan, int self_cluster_id,
+                                           int barrier_cc, int slot, int turn_cluster_id)
+  {
+    if (barrier_cc < 0)
+      return;
+    if (self_cluster_id == barrier_cc)
+    {
+      std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+      cord_mark_cluster_turn_ack_locked(plan.plan_key(), self_cluster_id, slot, turn_cluster_id);
+      return;
+    }
+    std::string dip;
+    int dport = 0;
+    if (!cord_lookup_cluster_endpoint(plan, barrier_cc, &dip, &dport))
+      return;
+    proxy_proto::CordPlanCollectorIngestReq req;
+    req.set_plan_key(plan.plan_key());
+    req.set_group_index(slot);
+    req.set_collector_block_id(turn_cluster_id);
+    req.set_src_data_block_id(self_cluster_id);
+    std::string meta;
+    req.SerializeToString(&meta);
+    if (!cord_tcp_xfer_send(dip, dport, CORD_XFER_TCP_CLUSTER_TURN_DONE, meta, nullptr, 0))
+    {
+      std::cout << "[CoRD-PLAN] cluster turn ack TCP failed plan=" << plan.plan_key() << " slot=" << slot
+                << " turn_cluster=" << turn_cluster_id << " reporter=c" << self_cluster_id << " barrier=c"
+                << barrier_cc << std::endl;
+    }
+  }
+
+  static bool cord_spin_until_cluster_turn_done(const proxy_proto::CordTransferPlan &plan, int self_cluster_id,
+                                                int barrier_cc, int slot, int turn_cluster_id)
+  {
+    int spins = 0;
+    while (true)
+    {
+      if (barrier_cc >= 0 && self_cluster_id == barrier_cc)
+      {
+        std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+        if (cord_cluster_turn_done_locked(plan.plan_key(), slot, turn_cluster_id))
+          return true;
+      }
+      else if (barrier_cc >= 0)
+      {
+        if (cord_cluster_turn_barrier_query(plan, barrier_cc, slot, turn_cluster_id))
+          return true;
+      }
+      else
+      {
+        return false;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      if (++spins > 120000)
+      {
+        std::cout << "[CoRD-PLAN] cluster turn barrier timeout plan=" << plan.plan_key() << " slot=" << slot
+                  << " cluster=" << turn_cluster_id << std::endl;
+        return false;
+      }
+    }
+  }
+
+  static bool cord_prior_cluster_turn(int slot, int turn_cluster_id, const std::vector<int> &ordered_clusters,
+                                      int *prior_slot, int *prior_cluster_id)
+  {
+    auto it = std::find(ordered_clusters.begin(), ordered_clusters.end(), turn_cluster_id);
+    if (it == ordered_clusters.end())
+      return false;
+    if (it != ordered_clusters.begin())
+    {
+      *prior_slot = slot;
+      *prior_cluster_id = *(it - 1);
+      return true;
+    }
+    if (slot <= 0)
+      return false;
+    *prior_slot = slot - 1;
+    *prior_cluster_id = ordered_clusters.back();
+    return true;
   }
 
   /** 等待收集器上 plan 期望的数据增量（可按 parity_ingest_stripe_group 过滤）到齐。 */
@@ -1522,6 +1719,7 @@ namespace ECProject
       asio::ip::tcp::socket sock(io);
       const int tcp_port = cord_peer_xfer_tcp_port(dst_grpc_port);
       asio::connect(sock, asio::ip::tcp::resolver(io).resolve(dst_ip, std::to_string(tcp_port)));
+      cord_apply_datanode_tcp_timeout(sock, 120);
       const char magic[4] = {'C', 'R', 'D', 'X'};
       asio::write(sock, asio::buffer(magic, 4));
       cord_write_u64_be(sock, xfer_tag);
@@ -1543,7 +1741,7 @@ namespace ECProject
   }
 
   /**
-   * 按 scheduled_slot、step_index 顺序串行执行本 cluster 作为 sender 的各 step。
+   * cluster 间按 (scheduled_slot, cluster_id) 串行轮次；cluster 内同一轮次 local step 可并行。
    * slot0=DATA→collector，slot1=校验扇出（含本地校验）；本地/全局校验须等 collector 收齐全部 ΔD。
    * N>1：STAR 数据增量 -> TCP CRDX collector ingest；收集器再发 TCP parity xor。
    * N=1 MST：全程数据增量 TCP CRDX mst chunk（校验侧矩阵编码或 XOR）。
@@ -1620,6 +1818,7 @@ namespace ECProject
       }
       cord_pure_xfer_peer_stub_preheat(plan, self_cluster_id, proxy);
       cord_seed_collector_local_ingress(proxy, plan, self_cluster_id);
+      const int barrier_cc = cord_plan_barrier_cluster_id(plan);
       cord_pure_xfer_note_loop_start(plan.plan_key());
       const auto wall_t0 = std::chrono::steady_clock::now();
 
@@ -2090,16 +2289,122 @@ namespace ECProject
         failed_steps += s.failed;
       };
 
+      const std::vector<int> ordered_clusters = cord_plan_ordered_participating_clusters(plan);
+      int max_slot = 0;
+      for (int si = 0; si < plan.steps_size(); ++si)
+        max_slot = std::max(max_slot, static_cast<int>(plan.steps(si).scheduled_slot()));
+
+      std::map<int, std::vector<int>> local_steps_by_slot;
       for (int si : local_steps)
+        local_steps_by_slot[plan.steps(si).scheduled_slot()].push_back(si);
+      for (auto &entry : local_steps_by_slot)
       {
-        const auto &st = plan.steps(si);
+        std::sort(entry.second.begin(), entry.second.end(), [&](int a, int b) {
+          return plan.steps(a).step_index() < plan.steps(b).step_index();
+        });
+      }
+
+      const bool step_parallel = cord_xfer_step_parallel_enabled();
+      bool turn_barrier_failed = false;
+
+      auto run_local_steps_for_slot = [&](int slot, const std::vector<int> &steps) {
+        if (steps.empty())
+          return;
+        if (step_parallel && steps.size() > 1)
         {
-          std::ostringstream os;
-          os << "SERIAL step=" << st.step_index() << " slot=" << st.scheduled_slot()
-             << " link=" << cord_transfer_link_kind_name(st.link_kind());
-          plan_log_sync(os.str());
+          std::vector<std::thread> step_workers;
+          step_workers.reserve(steps.size());
+          std::mutex merge_mu;
+          for (int si : steps)
+          {
+            step_workers.emplace_back([&, si]() {
+              CordStepRunStats s = cord_run_one_local_step(si);
+              std::lock_guard<std::mutex> lk(merge_mu);
+              merge_step_stats(s);
+            });
+          }
+          for (auto &w : step_workers)
+            w.join();
         }
-        merge_step_stats(cord_run_one_local_step(si));
+        else
+        {
+          for (int si : steps)
+          {
+            const auto &st = plan.steps(si);
+            {
+              std::ostringstream os;
+              os << "LOCAL step=" << st.step_index() << " slot=" << st.scheduled_slot()
+                 << " link=" << cord_transfer_link_kind_name(st.link_kind());
+              plan_log_sync(os.str());
+            }
+            merge_step_stats(cord_run_one_local_step(si));
+          }
+        }
+      };
+
+      if (barrier_cc >= 0 && !ordered_clusters.empty())
+      {
+        plan_log_both("cluster_turn_barrier host=c" + std::to_string(barrier_cc) + " clusters=" +
+                      std::to_string(ordered_clusters.size()) + " max_slot=" + std::to_string(max_slot) +
+                      " step_parallel=" + (step_parallel ? "1" : "0"));
+        for (int slot = 0; slot <= max_slot && !turn_barrier_failed; ++slot)
+        {
+          for (int turn_cid : ordered_clusters)
+          {
+            int prior_slot = -1;
+            int prior_cid = -1;
+            if (cord_prior_cluster_turn(slot, turn_cid, ordered_clusters, &prior_slot, &prior_cid))
+            {
+              if (!cord_spin_until_cluster_turn_done(plan, self_cluster_id, barrier_cc, prior_slot, prior_cid))
+              {
+                plan_log_both_sync("FAIL cluster turn prior barrier slot=" + std::to_string(prior_slot) +
+                                   " cluster=c" + std::to_string(prior_cid));
+                turn_barrier_failed = true;
+                break;
+              }
+            }
+
+            if (self_cluster_id == turn_cid)
+            {
+              const auto it_steps = local_steps_by_slot.find(slot);
+              const std::vector<int> empty_steps;
+              const std::vector<int> &steps =
+                  (it_steps == local_steps_by_slot.end()) ? empty_steps : it_steps->second;
+              {
+                std::ostringstream os;
+                os << "CLUSTER_TURN slot=" << slot << " cluster=c" << turn_cid
+                   << " local_steps=" << steps.size();
+                plan_log_both_sync(os.str());
+              }
+              run_local_steps_for_slot(slot, steps);
+              cord_report_cluster_turn_ack(plan, self_cluster_id, barrier_cc, slot, turn_cid);
+            }
+
+            if (!cord_spin_until_cluster_turn_done(plan, self_cluster_id, barrier_cc, slot, turn_cid))
+            {
+              plan_log_both_sync("FAIL cluster turn barrier slot=" + std::to_string(slot) + " cluster=c" +
+                                 std::to_string(turn_cid));
+              turn_barrier_failed = true;
+              break;
+            }
+          }
+        }
+        if (turn_barrier_failed)
+          failed_steps = std::max(failed_steps, 1);
+      }
+      else
+      {
+        for (int si : local_steps)
+        {
+          const auto &st = plan.steps(si);
+          {
+            std::ostringstream os;
+            os << "SERIAL step=" << st.step_index() << " slot=" << st.scheduled_slot()
+               << " link=" << cord_transfer_link_kind_name(st.link_kind());
+            plan_log_sync(os.str());
+          }
+          merge_step_stats(cord_run_one_local_step(si));
+        }
       }
 
 
@@ -2224,6 +2529,28 @@ namespace ECProject
             std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
             ok = cord_collector_ingress_ready_locked(*pl, req.group_index(), req.collector_block_id(), -1);
           }
+        }
+        break;
+      }
+      case CORD_XFER_TCP_CLUSTER_TURN_DONE:
+      {
+        proxy_proto::CordPlanCollectorIngestReq req;
+        if (req.ParseFromString(meta))
+        {
+          std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+          cord_mark_cluster_turn_ack_locked(req.plan_key(), req.src_data_block_id(), req.group_index(),
+                                            req.collector_block_id());
+          ok = true;
+        }
+        break;
+      }
+      case CORD_XFER_TCP_CLUSTER_TURN_QUERY:
+      {
+        proxy_proto::CordPlanCollectorIngestReq req;
+        if (req.ParseFromString(meta))
+        {
+          std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+          ok = cord_cluster_turn_done_locked(req.plan_key(), req.group_index(), req.collector_block_id());
         }
         break;
       }
@@ -2816,6 +3143,14 @@ namespace ECProject
   bool ProxyImpl::CordRangeReadFromDatanode(const std::string &block_key, int block_id, int range_offset, char *out,
                                             size_t length, const char *ip, int port)
   {
+    const std::string dn_ep = cord_dn_endpoint_key(ip, port);
+    std::lock_guard<std::mutex> dn_lk(*cord_dn_endpoint_mu_for(dn_ep));
+    return CordRangeReadFromDatanodeUnlocked(block_key, block_id, range_offset, out, length, ip, port);
+  }
+
+  bool ProxyImpl::CordRangeReadFromDatanodeUnlocked(const std::string &block_key, int block_id, int range_offset,
+                                                    char *out, size_t length, const char *ip, int port)
+  {
     try
     {
       grpc::ClientContext context;
@@ -2830,7 +3165,7 @@ namespace ECProject
       std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
       grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleCordRangeRead(&context, info, &result);
       if (!stat.ok() || !result.message())
-    return false;
+        return false;
       const uint64_t xfer_tag = result.cord_tcp_xfer_tag();
       if (xfer_tag == 0)
         return false;
@@ -2857,6 +3192,14 @@ namespace ECProject
   bool ProxyImpl::CordRangeWriteToDatanode(const std::string &block_key, int block_id, int range_offset, const char *data,
                                            size_t length, const char *ip, int port)
   {
+    const std::string dn_ep = cord_dn_endpoint_key(ip, port);
+    std::lock_guard<std::mutex> dn_lk(*cord_dn_endpoint_mu_for(dn_ep));
+    return CordRangeWriteToDatanodeUnlocked(block_key, block_id, range_offset, data, length, ip, port);
+  }
+
+  bool ProxyImpl::CordRangeWriteToDatanodeUnlocked(const std::string &block_key, int block_id, int range_offset,
+                                                   const char *data, size_t length, const char *ip, int port)
+  {
     try
     {
       grpc::ClientContext context;
@@ -2871,7 +3214,7 @@ namespace ECProject
       std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
       grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleCordRangeWrite(&context, info, &result);
       if (!stat.ok() || !result.message())
-    return false;
+        return false;
       const uint64_t xfer_tag = result.cord_tcp_xfer_tag();
       if (xfer_tag == 0)
         return false;
@@ -2898,6 +3241,14 @@ namespace ECProject
   bool ProxyImpl::CordDeltaBlobToDatanode(const std::string &blob_key, const char *data, size_t length, const char *ip,
                                           int port)
   {
+    const std::string dn_ep = cord_dn_endpoint_key(ip, port);
+    std::lock_guard<std::mutex> dn_lk(*cord_dn_endpoint_mu_for(dn_ep));
+    return CordDeltaBlobToDatanodeUnlocked(blob_key, data, length, ip, port);
+  }
+
+  bool ProxyImpl::CordDeltaBlobToDatanodeUnlocked(const std::string &blob_key, const char *data, size_t length,
+                                                  const char *ip, int port)
+  {
     try
     {
       grpc::ClientContext context;
@@ -2910,7 +3261,7 @@ namespace ECProject
       std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
       grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleCordDeltaBlob(&context, info, &result);
       if (!stat.ok() || !result.message())
-    return false;
+        return false;
       const uint64_t xfer_tag = result.cord_tcp_xfer_tag();
       if (xfer_tag == 0)
         return false;
@@ -2985,19 +3336,22 @@ namespace ECProject
         auto build_delta_for_slice = [&](int j, CordUpdateSliceResult *out) -> bool {
           const size_t slen = sizes[static_cast<size_t>(j)];
           std::vector<char> oldbuf(slen);
-          const auto cluster_mu = cord_cluster_mu_for(placement_copy->cluster_id());
+          const std::string dn_ep = cord_dn_endpoint_key(placement_copy->datanodeip(j).c_str(),
+                                                         placement_copy->datanodeport(j));
+          const auto dn_mu = cord_dn_endpoint_mu_for(dn_ep);
           {
-            std::lock_guard<std::mutex> cluster_lk(*cluster_mu);
-            if (!CordRangeReadFromDatanode(placement_copy->blockkeys(j), placement_copy->blockids(j),
-                                           static_cast<int>(placement_copy->offsets(j)), oldbuf.data(), slen,
-                                           placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j)))
+            std::lock_guard<std::mutex> dn_lk(*dn_mu);
+            if (!CordRangeReadFromDatanodeUnlocked(placement_copy->blockkeys(j), placement_copy->blockids(j),
+                                                   static_cast<int>(placement_copy->offsets(j)), oldbuf.data(), slen,
+                                                   placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j)))
             {
               std::cout << "[CoRD][Proxy] range read failed slice " << j << std::endl;
               return false;
             }
-            if (!CordRangeWriteToDatanode(placement_copy->blockkeys(j), placement_copy->blockids(j),
-                                          static_cast<int>(placement_copy->offsets(j)), slices[static_cast<size_t>(j)],
-                                          slen, placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j)))
+            if (!CordRangeWriteToDatanodeUnlocked(placement_copy->blockkeys(j), placement_copy->blockids(j),
+                                                  static_cast<int>(placement_copy->offsets(j)),
+                                                  slices[static_cast<size_t>(j)], slen,
+                                                  placement_copy->datanodeip(j).c_str(), placement_copy->datanodeport(j)))
             {
               std::cout << "[CoRD][Proxy] range write failed slice " << j << std::endl;
               return false;
@@ -3026,20 +3380,24 @@ namespace ECProject
         }
         else
         {
-          std::map<int, std::vector<int>> slices_by_cluster;
+          std::map<std::string, std::vector<int>> slices_by_endpoint;
           for (int j = 0; j < slice_num; ++j)
-            slices_by_cluster[placement_copy->cluster_id()].push_back(j);
+          {
+            const std::string ep = cord_dn_endpoint_key(placement_copy->datanodeip(j).c_str(),
+                                                        placement_copy->datanodeport(j));
+            slices_by_endpoint[ep].push_back(j);
+          }
           if (IF_DEBUG)
           {
-            std::cout << "[CoRD-DATA][" << proxy_ip_port << "] slice_parallel clusters=" << slices_by_cluster.size()
+            std::cout << "[CoRD-DATA][" << proxy_ip_port << "] slice_parallel endpoints=" << slices_by_endpoint.size()
                       << " slices=" << slice_num << " stripe_id=" << stripe_id << std::endl;
           }
 
           std::vector<CordUpdateSliceResult> slice_results(static_cast<size_t>(slice_num));
           std::atomic<bool> update_failed{false};
           std::vector<std::thread> slice_workers;
-          slice_workers.reserve(slices_by_cluster.size());
-          for (const auto &entry : slices_by_cluster)
+          slice_workers.reserve(slices_by_endpoint.size());
+          for (const auto &entry : slices_by_endpoint)
           {
             const std::vector<int> indices = entry.second;
             slice_workers.emplace_back([&build_delta_for_slice, &slice_results, &update_failed, indices]() {
@@ -3118,6 +3476,12 @@ namespace ECProject
       g_cord_plans_by_key[plan_copy->plan_key()] =
           std::shared_ptr<const proxy_proto::CordTransferPlan>(plan_copy);
     }
+    const int barrier_cc = cord_plan_barrier_cluster_id(*plan_copy);
+    if (m_self_cluster_id == barrier_cc)
+    {
+      std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+      cord_cluster_turn_barrier_init_locked(*plan_copy);
+    }
     response->set_ifcommit(true);
     return grpc::Status::OK;
   }
@@ -3137,6 +3501,7 @@ namespace ECProject
     const int self_cid = m_self_cluster_id;
     const std::string tag = proxy_ip_port;
     std::thread th([plan_ptr, self_cid, tag, p = this]() {
+      std::lock_guard<std::mutex> serial_lk(p->m_cord_xfer_exec_serial_mu);
       cord_transfer_plan_execute_async(*plan_ptr, self_cid, p, tag);
     });
     {
