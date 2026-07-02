@@ -828,13 +828,19 @@ namespace ECProject
     return true;
   }
 
+  static void cord_seed_collector_local_ingress(ProxyImpl *proxy, const proxy_proto::CordTransferPlan &plan,
+                                                int self_cluster_id);
+
   /** 等待收集器上 plan 期望的数据增量（可按 parity_ingest_stripe_group 过滤）到齐。 */
-  static bool cord_spin_until_collector_ingress_ready(const proxy_proto::CordTransferPlan &plan, int group,
-                                                      int collector_block_id, int parity_ingest_stripe_group)
+  static bool cord_spin_until_collector_ingress_ready(ProxyImpl *proxy, const proxy_proto::CordTransferPlan &plan,
+                                                      int self_cluster_id, int group, int collector_block_id,
+                                                      int parity_ingest_stripe_group)
   {
     int spins = 0;
     while (true)
     {
+      if (proxy != nullptr)
+        cord_seed_collector_local_ingress(proxy, plan, self_cluster_id);
       {
         std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
         if (cord_collector_ingress_ready_locked(plan, group, collector_block_id, parity_ingest_stripe_group))
@@ -881,8 +887,9 @@ namespace ECProject
     }
   }
 
-  static bool cord_ensure_collector_parity_coded(const proxy_proto::CordTransferPlan &plan, int group,
-                                               int collector_block_id, int parity_ingest_stripe_group)
+  static bool cord_ensure_collector_parity_coded(ProxyImpl *proxy, const proxy_proto::CordTransferPlan &plan,
+                                               int self_cluster_id, int group, int collector_block_id,
+                                               int parity_ingest_stripe_group)
   {
     const std::string ck =
         cord_collector_parity_cache_key(plan.plan_key(), group, collector_block_id, parity_ingest_stripe_group);
@@ -891,7 +898,8 @@ namespace ECProject
       if (g_cord_collector_parity_coded.count(ck))
         return true;
     }
-    if (!cord_spin_until_collector_ingress_ready(plan, group, collector_block_id, parity_ingest_stripe_group))
+    if (!cord_spin_until_collector_ingress_ready(proxy, plan, self_cluster_id, group, collector_block_id,
+                                                 parity_ingest_stripe_group))
       return false;
     std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
     if (g_cord_collector_parity_coded.count(ck))
@@ -1066,6 +1074,130 @@ namespace ECProject
             static_cast<uint8_t>(payload[i]);
     }
     (void)proxy;
+    return true;
+  }
+
+  /** 将本 cluster 上已有 cord delta blob 的块注入 collector ingress（含 collector 自身块，无需网络 ingest）。 */
+  static void cord_seed_collector_local_ingress(ProxyImpl *proxy, const proxy_proto::CordTransferPlan &plan,
+                                                int self_cluster_id)
+  {
+    std::string blob_key, dn_ip;
+    int dn_port = 0;
+    if (!cord_lookup_delta_blob(plan, self_cluster_id, &blob_key, &dn_ip, &dn_port))
+      return;
+
+    for (int ei = 0; ei < plan.cord_collector_expects_size(); ++ei)
+    {
+      const auto &ex = plan.cord_collector_expects(ei);
+      const uint64_t xor_hint = cord_xor_hint_for_group(plan, ex.group_index());
+      for (int si = 0; si < ex.src_data_block_ids_size(); ++si)
+      {
+        const int bid = ex.src_data_block_ids(si);
+        uint64_t base_off = 0, blk_tot = 0;
+        if (!cord_lookup_cluster_delta_layout(plan, self_cluster_id, bid, &base_off, &blk_tot))
+          continue;
+        if (blk_tot == 0)
+          continue;
+
+        const uint64_t required = cord_plan_block_ingress_buffer_end(plan, bid);
+        if (required == 0)
+          continue;
+
+        const std::string bkey =
+            cord_collector_block_buf_key(plan.plan_key(), ex.group_index(), ex.collector_block_id(), bid);
+        {
+          std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+          auto it = g_cord_collector_block_delta.find(bkey);
+          if (it != g_cord_collector_block_delta.end() &&
+              it->second.size() >= static_cast<size_t>(required))
+            continue;
+        }
+
+        std::vector<char> buf(static_cast<size_t>(blk_tot));
+        if (!proxy->CordRangeReadFromDatanode(blob_key, 0, static_cast<int>(base_off), buf.data(),
+                                              static_cast<size_t>(blk_tot), dn_ip.c_str(), dn_port))
+        {
+          std::cout << "[CoRD-PLAN] seed_collector_local read failed blk=" << bid << " cluster=c"
+                    << self_cluster_id << std::endl;
+          continue;
+        }
+
+        int chunk_off = 0;
+        if (required > blk_tot)
+          chunk_off = static_cast<int>(required - blk_tot);
+        else
+        {
+          const std::vector<std::pair<int, int>> segs = cord_plan_sorted_segs_for_block(plan, bid);
+          if (!segs.empty())
+            chunk_off = segs.front().first;
+        }
+
+        proxy_proto::CordPlanCollectorIngestReq req;
+        req.set_plan_key(plan.plan_key());
+        req.set_group_index(ex.group_index());
+        req.set_collector_block_id(ex.collector_block_id());
+        req.set_src_data_block_id(bid);
+        req.set_chunk_byte_offset(static_cast<uint64_t>(chunk_off));
+        req.set_xor_accum_byte_length(xor_hint);
+        req.set_chunk_payload(std::string(buf.data(), buf.size()));
+        if (!cord_apply_collector_ingest(proxy, req, buf.data(), buf.size()))
+          std::cout << "[CoRD-PLAN] seed_collector_local ingest failed blk=" << bid << std::endl;
+      }
+    }
+  }
+
+  /** 分机架本地校验：从本 cluster delta blob 合并 parity_merge 子集，不依赖 collector ingress。 */
+  static bool cord_rack_local_xor_parity_chunk(ProxyImpl *proxy, const proxy_proto::CordTransferPlan &plan,
+                                               int self_cluster_id,
+                                               const proxy_proto::CordTransferStep &parity_st, uint64_t chunk_off,
+                                               size_t chunk_len, char *buf_out)
+  {
+    std::memset(buf_out, 0, chunk_len);
+    const bool have_segs = plan.cord_block_delta_segs_size() > 0;
+    const int group_hull_lo = have_segs ? cord_plan_merge_subset_hull_lo(plan, parity_st) : 0;
+
+    std::string blob_key, dn_ip;
+    int dn_port = 0;
+    if (!cord_lookup_delta_blob(plan, self_cluster_id, &blob_key, &dn_ip, &dn_port))
+      return false;
+
+    auto xor_one_block = [&](int bid) {
+      uint64_t base_off = 0, blk_tot = 0;
+      if (!cord_lookup_cluster_delta_layout(plan, self_cluster_id, bid, &base_off, &blk_tot))
+        return;
+      if (blk_tot == 0)
+        return;
+      std::vector<char> delta(static_cast<size_t>(blk_tot));
+      if (!proxy->CordRangeReadFromDatanode(blob_key, 0, static_cast<int>(base_off), delta.data(),
+                                            static_cast<size_t>(blk_tot), dn_ip.c_str(), dn_port))
+        return;
+      const std::vector<std::pair<int, int>> segs = cord_plan_sorted_segs_for_block(plan, bid);
+      for (size_t u = 0; u < chunk_len; ++u)
+      {
+        if (!have_segs || segs.empty())
+        {
+          const size_t idx = static_cast<size_t>(chunk_off) + u;
+          if (idx >= delta.size())
+            continue;
+          buf_out[u] = static_cast<char>(static_cast<unsigned char>(buf_out[u]) ^
+                                          static_cast<unsigned char>(delta[idx]));
+          continue;
+        }
+        const int strip_logical =
+            group_hull_lo + static_cast<int>(static_cast<int64_t>(chunk_off) + static_cast<int64_t>(u));
+        const int pidx = cord_logical_strip_to_packed_delta_idx(segs, strip_logical);
+        if (pidx < 0 || static_cast<size_t>(pidx) >= delta.size())
+          continue;
+        buf_out[u] = static_cast<char>(static_cast<unsigned char>(buf_out[u]) ^
+                                        static_cast<unsigned char>(delta[static_cast<size_t>(pidx)]));
+      }
+    };
+
+    if (parity_st.parity_merge_data_block_ids_size() > 0)
+    {
+      for (int i = 0; i < parity_st.parity_merge_data_block_ids_size(); ++i)
+        xor_one_block(parity_st.parity_merge_data_block_ids(i));
+    }
     return true;
   }
 
@@ -1330,6 +1462,7 @@ namespace ECProject
         }
       }
       cord_pure_xfer_peer_stub_preheat(plan, self_cluster_id, proxy);
+      cord_seed_collector_local_ingress(proxy, plan, self_cluster_id);
       cord_pure_xfer_note_loop_start(plan.plan_key());
       const auto wall_t0 = std::chrono::steady_clock::now();
 
@@ -1424,7 +1557,7 @@ namespace ECProject
           const auto t_read1 = std::chrono::steady_clock::now();
           const double read_ms = std::chrono::duration<double, std::milli>(t_read1 - t_read0).count();
 
-          // 2) TCP 发送 delta 到 collector proxy（元数据 protobuf，payload 走 side channel）
+          // 2) 发往 collector：同 cluster 直接 ingest，跨 cluster 走 TCP
           const auto t_tcp0 = std::chrono::steady_clock::now();
           proxy_proto::CordPlanCollectorIngestReq req;
           req.set_plan_key(plan.plan_key());
@@ -1433,13 +1566,25 @@ namespace ECProject
           req.set_chunk_byte_offset(st.chunk_byte_offset());
           req.set_xor_accum_byte_length(cord_xor_hint_for_group(plan, st.group_index()));
           req.set_src_data_block_id(st.src_block_id());
-          std::string meta;
-          req.SerializeToString(&meta);
-          const bool ok_xfer = cord_tcp_xfer_send(dst_ip, dst_port, CORD_XFER_TCP_COLLECTOR_INGEST, meta, buf.data(),
-                                                  chunk_len);
+          bool ok = false;
+          double tcp_ms = 0.0;
+          if (st.src_proxy_cluster_id() == st.dst_proxy_cluster_id())
+          {
+            ok = cord_apply_collector_ingest(proxy, req, buf.data(), chunk_len);
+            const auto t_tcp1 = std::chrono::steady_clock::now();
+            tcp_ms = std::chrono::duration<double, std::milli>(t_tcp1 - t_tcp0).count();
+          }
+          else
+          {
+            std::string meta;
+            req.SerializeToString(&meta);
+            const bool ok_xfer = cord_tcp_xfer_send(dst_ip, dst_port, CORD_XFER_TCP_COLLECTOR_INGEST, meta, buf.data(),
+                                                    chunk_len);
+            const auto t_tcp1 = std::chrono::steady_clock::now();
+            tcp_ms = std::chrono::duration<double, std::milli>(t_tcp1 - t_tcp0).count();
+            ok = ok_xfer;
+          }
           const auto t_tcp1 = std::chrono::steady_clock::now();
-          const double tcp_ms = std::chrono::duration<double, std::milli>(t_tcp1 - t_tcp0).count();
-          const bool ok = ok_xfer;
           const double step_ms = std::chrono::duration<double, std::milli>(t_tcp1 - t_step0).count();
           {
             std::ostringstream ob;
@@ -1450,7 +1595,8 @@ namespace ECProject
                << ") → collector_blk" << st.dst_block_id() << "(c" << st.dst_proxy_cluster_id() << ")"
                << " chunk=[" << st.chunk_byte_offset() << "+" << chunk_len << "B]"
                << " dn_read=" << read_ms << "ms"
-               << " tcp=" << tcp_ms << "ms"
+               << " xfer=" << tcp_ms << "ms"
+               << (st.src_proxy_cluster_id() == st.dst_proxy_cluster_id() ? "(local_ingest)" : "(tcp)")
                << " step_total=" << step_ms << "ms"
                << " grp=" << st.group_index()
                << " dst=" << dst_channel;
@@ -1460,11 +1606,15 @@ namespace ECProject
           }
           return stats;        }
 
-        // ---------- N>1：收集器扇出校验增量（矩阵编码 / 退化为 XOR 缓冲） ----------
+        // ---------- 校验增量扇出：全局（collector）或分机架本地 ----------
         if (st.delta_payload_kind() == proxy_proto::CORD_DELTA_PARITY &&
             (st.link_kind() == proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_GLOBAL ||
              st.link_kind() == proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_LOCAL))
         {
+          const bool rack_local_parity =
+              st.link_kind() == proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_LOCAL &&
+              st.src_block_id() < plan.k_datablock();
+
           const auto t_compute0 = std::chrono::steady_clock::now();
           std::vector<char> buf;
           {
@@ -1485,9 +1635,19 @@ namespace ECProject
               static_cast<int64_t>(parity_payload_abs_lo) + static_cast<int64_t>(st.chunk_byte_offset()));
           const int parity_ingest =
               st.has_parity_ingest_stripe_group() ? st.parity_ingest_stripe_group() : -1;
-          if (cord_uses_matrix_encode(plan))
+
+          if (rack_local_parity)
           {
-            if (!cord_ensure_collector_parity_coded(plan, st.group_index(), st.src_block_id(), parity_ingest))
+            cord_rack_local_xor_parity_chunk(proxy, plan, self_cluster_id, st, st.chunk_byte_offset(), chunk_len,
+                                             buf.data());
+            filled = true;
+            parity_compute_src = "rack_local_xor";
+          }
+          else if (cord_uses_matrix_encode(plan))
+          {
+            cord_seed_collector_local_ingress(proxy, plan, self_cluster_id);
+            if (!cord_ensure_collector_parity_coded(proxy, plan, self_cluster_id, st.group_index(), st.src_block_id(),
+                                                    parity_ingest))
             {
               plan_log_both_sync("FAIL PARITY_FANOUT cord_ensure_collector_parity_coded_failed step=" +
                            std::to_string(st.step_index()) + " collector_blk=" + std::to_string(st.src_block_id()));
@@ -1520,12 +1680,13 @@ namespace ECProject
           }
           if (!filled)
           {
+            cord_seed_collector_local_ingress(proxy, plan, self_cluster_id);
             if (st.has_parity_ingest_stripe_group())
             {
               if (!cord_uses_matrix_encode(plan))
               {
-                if (!cord_spin_until_collector_ingress_ready(plan, st.group_index(), st.src_block_id(),
-                                                             st.parity_ingest_stripe_group()))
+                if (!cord_spin_until_collector_ingress_ready(proxy, plan, self_cluster_id, st.group_index(),
+                                                             st.src_block_id(), st.parity_ingest_stripe_group()))
                 {
                   plan_log_both_sync("FAIL PARITY_FANOUT filtered_xor ingress_timeout collector_blk=" +
                                std::to_string(st.src_block_id()) + " step=" + std::to_string(st.step_index()));
@@ -1540,7 +1701,8 @@ namespace ECProject
             }
             else
             {
-              if (!cord_spin_until_collector_ingress_ready(plan, st.group_index(), st.src_block_id(), -1))
+              if (!cord_spin_until_collector_ingress_ready(proxy, plan, self_cluster_id, st.group_index(),
+                                                           st.src_block_id(), -1))
               {
                 plan_log_both_sync("FAIL PARITY_FANOUT collector_xor_acc ingress_timeout collector_blk=" +
                              std::to_string(st.src_block_id()) + " step=" + std::to_string(st.step_index()));
@@ -1608,13 +1770,16 @@ namespace ECProject
           const bool ok = ok_xfer;
           const double step_ms = std::chrono::duration<double, std::milli>(t_tcp1 - t_step0).count();
           {
-            const char *tag = (st.link_kind() == proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_GLOBAL)
-                                  ? "CTR_TO_GLOBAL" : "CTR_TO_LOCAL";
+            const char *tag = rack_local_parity
+                                  ? "RACK_TO_LOCAL"
+                                  : ((st.link_kind() == proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_GLOBAL)
+                                         ? "CTR_TO_GLOBAL"
+                                         : "CTR_TO_LOCAL");
             std::ostringstream ob;
             ob << (ok ? "OK" : "FAIL")
                << " " << tag << " step=" << st.step_index()
                << " slot=" << st.scheduled_slot()
-               << " ΔP collector_blk" << st.src_block_id() << "(c" << st.src_proxy_cluster_id()
+               << " ΔP src_blk" << st.src_block_id() << "(c" << st.src_proxy_cluster_id()
                << ") → " << (st.link_kind() == proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_GLOBAL ? "global_blk" : "local_blk")
                << st.dst_block_id() << "(c" << st.dst_proxy_cluster_id() << ")"
                << " chunk=[" << st.chunk_byte_offset() << "+" << chunk_len

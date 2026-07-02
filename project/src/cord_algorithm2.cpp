@@ -1,18 +1,17 @@
 #include "cord_algorithm2.h"
-#include "cord_algorithm3.h"
 #include "meta_definition.h"
 #include <algorithm>
-#include <cmath>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <queue>
 #include <set>
+#include <utility>
 
 namespace ECProject
 {
   namespace cord_alg2
   {
-    // 合并多个数据块的更新区间，输出最小外包区间 [lo, hi) 的长度（中间可能有空洞）
     int64_t merged_delta_hull_span_bytes(
         const std::map<int, std::vector<std::pair<int, int>>> &block_intervals,
         const std::vector<int> &data_block_ids)
@@ -39,7 +38,6 @@ namespace ECProject
 
     namespace
     {
-      //返回一个数据块的更新区间总长度，比如数据块1的更新区间是[100,200)和[300,400)，则返回200-100+400-300=200
       int64_t delta_bytes_for_block(
           const std::map<int, std::vector<std::pair<int, int>>> &block_intervals,
           int block_id)
@@ -60,11 +58,8 @@ namespace ECProject
         return stripe.blocks[bid]->map2cluster;
       }
 
-      int local_parity_block_for_data_block(const Stripe &stripe, int data_bid)
+      int local_parity_block_for_group(const Stripe &stripe, int gnum)
       {
-        if (data_bid < 0 || data_bid >= stripe.k)
-          return -1;
-        const int gnum = stripe.blocks[data_bid]->map2group;
         for (int i = stripe.k + stripe.r; i < stripe.n; ++i)
         {
           if (stripe.blocks[i]->map2group == gnum && stripe.blocks[i]->block_type == 'L')
@@ -81,37 +76,6 @@ namespace ECProject
         return lat + static_cast<double>(bytes) * tp.inv_bw_sec_per_byte;
       }
 
-      struct DSU
-      {
-        std::vector<int> p;
-        explicit DSU(int n) : p(n)
-        {
-          for (int i = 0; i < n; ++i)
-            p[i] = i;
-        }
-        int find(int x)
-        {
-          return p[x] == x ? x : (p[x] = find(p[x]));
-        }
-        bool unite(int a, int b)
-        {
-          a = find(a);
-          b = find(b);
-          if (a == b)
-            return false;
-          p[a] = b;
-          return true;
-        }
-      };
-
-      struct KruskalEdge
-      {
-        int u, v;
-        double w;
-        bool operator<(KruskalEdge const &o) const { return w < o.w; }
-      };
-
-      // ---------- Dinic（S→L_i cap1，L_i→R_j 来自链路，R_j→T cap1）----------
       struct FlowEdge
       {
         int to, rev, cap;
@@ -189,7 +153,6 @@ namespace ECProject
           return flow;
         }
 
-        // 读出 L→R 上前向边（原 cap=1）上是否流过 1 单位：看反向边 cap
         void collect_used_links(int C, std::vector<int> &out_link_ids)
         {
           for (int c = 0; c < C; ++c)
@@ -199,7 +162,6 @@ namespace ECProject
             {
               if (e.lid < 0)
                 continue;
-              // 初始前向 cap=1，流 1 则前向 cap=0，反向 cap=1
               FlowEdge const &rev = g[e.to][e.rev];
               if (rev.cap > 0)
                 out_link_ids.push_back(e.lid);
@@ -207,47 +169,6 @@ namespace ECProject
           }
         }
       };
-
-      void orient_mst_from_root(
-          const std::vector<std::pair<int, int>> &mst_undirected,
-          int root,
-          int n_nodes,
-          std::vector<std::pair<int, int>> *out_directed)
-      {
-        std::vector<std::vector<int>> adj(n_nodes);
-        for (auto e : mst_undirected)
-        {
-          adj[e.first].push_back(e.second);
-          adj[e.second].push_back(e.first);
-        }
-        std::vector<int> parent(n_nodes, -2);
-        std::queue<int> q;
-        parent[root] = -1;
-        q.push(root);
-        while (!q.empty())
-        {
-          int u = q.front();
-          q.pop();
-          for (int v : adj[u])
-          {
-            if (parent[v] == -2)
-            {
-              parent[v] = u;
-              q.push(v);
-            }
-          }
-        }
-        for (int v = 0; v < n_nodes; ++v)
-        {
-          if (v == root)
-            continue;
-          int p = parent[v];
-          if (p < 0)
-            continue;
-          // 由靠近根一侧指向外侧：p 更近根 => p -> v
-          out_directed->push_back({p, v});
-        }
-      }
 
     } // namespace
 
@@ -273,446 +194,199 @@ namespace ECProject
         int cluster_num,
         const TransferParams &tp)
     {
+      (void)U;
       Algorithm2Result out;
       const int k = stripe.k;
       const int r = stripe.r;
-      if (cluster_num <= 0 || k <= 0)
+      if (cluster_num <= 0 || k <= 0 || r <= 0)
         return out;
 
-      int gi = 0;
-      std::cout << "[CoRD-Alg2] ===== build_algorithm2 start: |U|=" << U.size() << " r=" << r
-                << " k=" << k << " cluster_num=" << cluster_num << " =====\n";
-      for (const std::vector<int> &N : U)
+      std::vector<int> D;
+      D.reserve(block_intervals.size());
+      for (const auto &kv : block_intervals)
       {
-        if (N.empty())
-        {
-          ++gi;
+        if (kv.first < 0 || kv.first >= k)
           continue;
-        }
-        if (r <= 0)
+        if (delta_bytes_for_block(block_intervals, kv.first) > 0)
+          D.push_back(kv.first);
+      }
+      std::sort(D.begin(), D.end());
+      D.erase(std::unique(D.begin(), D.end()), D.end());
+      if (D.empty())
+        return out;
+
+      std::cout << "[CoRD-Alg2] ===== build_algorithm2 (rack-collector) |D|=" << D.size() << " r=" << r
+                << " k=" << k << " cluster_num=" << cluster_num << " =====\n";
+
+      std::map<int, int> rack_update_cnt;
+      for (int d : D)
+      {
+        const int c = block_cluster(stripe, d);
+        if (c >= 0)
+          rack_update_cnt[c]++;
+      }
+      int data_rack = -1;
+      int n_data = -1;
+      for (const auto &rc : rack_update_cnt)
+      {
+        if (rc.second > n_data || (rc.second == n_data && (data_rack < 0 || rc.first < data_rack)))
         {
-          ++gi;
-          continue;
+          n_data = rc.second;
+          data_rack = rc.first;
         }
+      }
+      if (data_rack < 0 || n_data <= 0)
+        return out;
 
-        // 打印组内各 block 所属 cluster
-        std::cout << "[CoRD-Alg2] --- group gi=" << gi << " |N|=" << N.size() << " blocks=[";
-        for (size_t ni = 0; ni < N.size(); ++ni) {
-          if (ni > 0) std::cout << " ";
-          std::cout << N[ni] << "(c" << block_cluster(stripe, N[ni]) << ")";
-        }
-        std::cout << "] ---\n";
-
-        if (static_cast<int>(N.size()) > 1)
+      std::map<int, int> rack_global_cnt;
+      for (int gpar = k; gpar < k + r; ++gpar)
+      {
+        const int gc = block_cluster(stripe, gpar);
+        if (gc >= 0)
+          rack_global_cnt[gc]++;
+      }
+      int global_rack = -1;
+      int n_global = 0;
+      for (const auto &rg : rack_global_cnt)
+      {
+        if (rg.second > n_global || (rg.second == n_global && (global_rack < 0 || rg.first < global_rack)))
         {
-          const int64_t parity_global_b = merged_delta_hull_span_bytes(block_intervals, N);
-          if (parity_global_b <= 0)
-          {
-            std::cout << "[CoRD-Alg2]   skip: parity_global_b=0\n";
-            ++gi;
-            continue;
-          }
-
-          std::vector<int> groups_touched;
-          for (int d : N)
-          {
-            int gnum = stripe.blocks[d]->map2group;
-            if (std::find(groups_touched.begin(), groups_touched.end(), gnum) == groups_touched.end())
-              groups_touched.push_back(gnum);
-          }
-
-          std::cout << "[CoRD-Alg2]   parity_global_hull=" << parity_global_b
-                    << " bytes, local_groups_touched=[";
-          for (size_t ti = 0; ti < groups_touched.size(); ++ti) {
-            if (ti > 0) std::cout << " ";
-            std::cout << groups_touched[ti];
-          }
-          std::cout << "]\n";
-
-          auto emit_star_from_center = [&](int best_c, int cc_center) {
-            std::cout << "[CoRD-Alg2]   >>> STAR center=global_blk" << best_c << " cluster=c" << cc_center << "\n";
-            for (int d : N)
-            {
-              int64_t b = delta_bytes_for_block(block_intervals, d);
-              if (b <= 0)
-                continue;
-              int dc = block_cluster(stripe, d);
-              TrainLink L;
-              L.src_block_id = d;
-              L.dst_block_id = best_c;
-              L.src_cluster = dc;
-              L.dst_cluster = cc_center;
-              L.payload_bytes = b;
-              L.est_transfer_sec = transfer_sec(dc, cc_center, b, tp);
-              L.group_index = gi;
-              L.kind = TrainLinkKind::STAR_DATA_TO_CENTER;
-              L.delta_kind = CordDeltaPayloadKind::DATA_DELTA;
-              std::cout << "[CoRD-Alg2]     DATA_TO_CENTER: blk" << d << "(c" << dc << ") --ΔD "
-                        << b << "B --> global_blk" << best_c << "(c" << cc_center
-                        << ") est=" << L.est_transfer_sec << "s\n";
-              out.train_route.push_back(std::move(L));
-            }
-            for (int g = k; g < k + r; ++g)
-            {
-              if (g == best_c)
-                continue;
-              int gc = block_cluster(stripe, g);
-              TrainLink L;
-              L.src_block_id = best_c;
-              L.dst_block_id = g;
-              L.src_cluster = cc_center;
-              L.dst_cluster = gc;
-              L.payload_bytes = parity_global_b;
-              L.est_transfer_sec = transfer_sec(cc_center, gc, parity_global_b, tp);
-              L.group_index = gi;
-              L.kind = TrainLinkKind::STAR_CENTER_TO_GLOBAL;
-              L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
-              L.parity_merge_data_block_ids.assign(N.begin(), N.end());
-              std::cout << "[CoRD-Alg2]     CTR_TO_GLOBAL:  global_blk" << best_c << "(c" << cc_center
-                        << ") --ΔP " << parity_global_b << "B --> global_blk" << g << "(c" << gc
-                        << ") est=" << L.est_transfer_sec << "s merge_src=" << N.size() << " blocks\n";
-              out.train_route.push_back(std::move(L));
-            }
-            for (int gnum : groups_touched)
-            {
-              int Lb = -1;
-              for (int i = k + r; i < stripe.n; ++i)
-              {
-                if (stripe.blocks[i]->map2group == gnum)
-                {
-                  Lb = i;
-                  break;
-                }
-              }
-              if (Lb < 0)
-                continue;
-              std::vector<int> blocks_same_local_group;
-              for (int d : N)
-              {
-                if (stripe.blocks[d]->map2group == gnum)
-                  blocks_same_local_group.push_back(d);
-              }
-              const int64_t parity_local_b = merged_delta_hull_span_bytes(block_intervals, blocks_same_local_group);
-              if (parity_local_b <= 0)
-                continue;
-              int lc = block_cluster(stripe, Lb);
-              TrainLink L;
-              L.src_block_id = best_c;
-              L.dst_block_id = Lb;
-              L.src_cluster = cc_center;
-              L.dst_cluster = lc;
-              L.payload_bytes = parity_local_b;
-              L.est_transfer_sec = transfer_sec(cc_center, lc, parity_local_b, tp);
-              L.group_index = gi;
-              L.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
-              L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
-              L.parity_merge_data_block_ids = blocks_same_local_group;
-              std::cout << "[CoRD-Alg2]     CTR_TO_LOCAL:   global_blk" << best_c << "(c" << cc_center
-                        << ") --ΔP " << parity_local_b << "B --> local_blk" << Lb << "(c" << lc
-                        << ") group=" << gnum << " est=" << L.est_transfer_sec
-                        << "s merge_src=" << blocks_same_local_group.size() << " blocks\n";
-              out.train_route.push_back(std::move(L));
-            }
-          };
-
-          bool fused_alg3 = false;
-          if (static_cast<int>(N.size()) >= 3)
-          {
-            std::cout << "[CoRD-Alg2]   |N|=" << N.size() << " >= 3, attempting Algorithm3 PDP+DCP fusion...\n";
-            cord_alg3::Algorithm3Result alg3 =
-                cord_alg3::build_algorithm3(stripe, block_intervals, N, cluster_num, tp);
-            if (alg3.applied && alg3.G.size() == alg3.dcp.group_to_collector.size() && !alg3.G.empty())
-            {
-              std::set<int> used_collectors;
-              bool assign_ok = true;
-              for (size_t j = 0; j < alg3.G.size(); ++j)
-              {
-                int cidx = alg3.dcp.group_to_collector[j];
-                if (cidx < 0 || cidx >= r)
-                {
-                  assign_ok = false;
-                  break;
-                }
-                used_collectors.insert(k + cidx);
-              }
-              if (assign_ok && !used_collectors.empty())
-              {
-                fused_alg3 = true;
-                std::cout << "[CoRD] Algorithm 2+3 fused |N|=" << N.size() << " P=" << alg3.G.size()
-                          << " g_col=" << alg3.g << " collectors:";
-                for (int col : used_collectors)
-                  std::cout << " " << col;
-                std::cout << "\n";
-                // 打印 PDP 分组与 DCP 映射
-                for (size_t j = 0; j < alg3.G.size(); ++j) {
-                  const auto &grp = alg3.G[j];
-                  int cidx = alg3.dcp.group_to_collector[j];
-                  std::cout << "[CoRD-Alg2]   PDP group[" << j << "] → collector=global_blk" << (k + cidx)
-                            << " span=" << grp.span_bytes << " sumΔ=" << grp.sum_delta_bytes
-                            << " blocks=[";
-                  for (size_t bi = 0; bi < grp.block_ids.size(); ++bi) {
-                    if (bi > 0) std::cout << " ";
-                    std::cout << grp.block_ids[bi];
-                  }
-                  std::cout << "]\n";
-                }
-
-                for (size_t j = 0; j < alg3.G.size(); ++j)
-                {
-                  const auto &grp = alg3.G[j];
-                  if (grp.block_ids.empty())
-                    continue;
-                  int cidx = alg3.dcp.group_to_collector[j];
-                  int col = k + cidx;
-                  int cc = block_cluster(stripe, col);
-                  std::cout << "[CoRD-Alg2]   >>> PDP group[" << j << "] → collector=global_blk" << col << " (c" << cc << ")\n";
-                  for (int d : grp.block_ids)
-                  {
-                    int64_t b = delta_bytes_for_block(block_intervals, d);
-                    if (b <= 0)
-                      continue;
-                    int dc = block_cluster(stripe, d);
-                    TrainLink L;
-                    L.src_block_id = d;
-                    L.dst_block_id = col;
-                    L.src_cluster = dc;
-                    L.dst_cluster = cc;
-                    L.payload_bytes = b;
-                    L.est_transfer_sec = transfer_sec(dc, cc, b, tp);
-                    L.group_index = gi;
-                    L.kind = TrainLinkKind::STAR_DATA_TO_CENTER;
-                    L.delta_kind = CordDeltaPayloadKind::DATA_DELTA;
-                    std::cout << "[CoRD-Alg2]     DATA_TO_CENTER: blk" << d << "(c" << dc << ") --ΔD "
-                              << b << "B --> global_blk" << col << "(c" << cc
-                              << ") est=" << L.est_transfer_sec << "s\n";
-                    out.train_route.push_back(std::move(L));
-                  }
-                }
-
-                for (int col : used_collectors)
-                {
-                  int cc = block_cluster(stripe, col);
-                  std::vector<int> blocks_to_col;
-                  for (size_t j = 0; j < alg3.G.size(); ++j)
-                  {
-                    if (k + alg3.dcp.group_to_collector[j] != col)
-                      continue;
-                    for (int bid : alg3.G[j].block_ids)
-                      blocks_to_col.push_back(bid);
-                  }
-                  const int64_t parity_at_col =
-                      merged_delta_hull_span_bytes(block_intervals, blocks_to_col);
-                  if (parity_at_col <= 0)
-                    continue;
-                  std::cout << "[CoRD-Alg2]   >>> collector=global_blk" << col << " (c" << cc
-                            << ") fan-out ΔP=" << parity_at_col << "B to other global + local parity blocks\n";
-                  for (int gpar = k; gpar < k + r; ++gpar)
-                  {
-                    if (gpar == col)
-                      continue;
-                    int gc = block_cluster(stripe, gpar);
-                    TrainLink L;
-                    L.src_block_id = col;
-                    L.dst_block_id = gpar;
-                    L.src_cluster = cc;
-                    L.dst_cluster = gc;
-                    L.payload_bytes = parity_at_col;
-                    L.est_transfer_sec = transfer_sec(cc, gc, parity_at_col, tp);
-                    L.group_index = gi;
-                    L.kind = TrainLinkKind::STAR_CENTER_TO_GLOBAL;
-                    L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
-                    L.parity_merge_data_block_ids = blocks_to_col;
-                    std::cout << "[CoRD-Alg2]     CTR_TO_GLOBAL:  global_blk" << col << "(c" << cc
-                              << ") --ΔP " << parity_at_col << "B --> global_blk" << gpar << "(c" << gc
-                              << ") est=" << L.est_transfer_sec << "s\n";
-                    out.train_route.push_back(std::move(L));
-                  }
-                  for (int gnum : groups_touched)
-                  {
-                    int Lb = -1;
-                    for (int i = k + r; i < stripe.n; ++i)
-                    {
-                      if (stripe.blocks[i]->map2group == gnum)
-                      {
-                        Lb = i;
-                        break;
-                      }
-                    }
-                    if (Lb < 0)
-                      continue;
-                    std::vector<int> blocks_local;
-                    for (size_t j = 0; j < alg3.G.size(); ++j)
-                    {
-                      if (k + alg3.dcp.group_to_collector[j] != col)
-                        continue;
-                      for (int bid : alg3.G[j].block_ids)
-                      {
-                        if (stripe.blocks[bid]->map2group == gnum)
-                          blocks_local.push_back(bid);
-                      }
-                    }
-                    const int64_t parity_local_col =
-                        merged_delta_hull_span_bytes(block_intervals, blocks_local);
-                    if (parity_local_col <= 0)
-                      continue;
-                    int lc = block_cluster(stripe, Lb);
-                    TrainLink L;
-                    L.src_block_id = col;
-                    L.dst_block_id = Lb;
-                    L.src_cluster = cc;
-                    L.dst_cluster = lc;
-                    L.payload_bytes = parity_local_col;
-                    L.est_transfer_sec = transfer_sec(cc, lc, parity_local_col, tp);
-                    L.group_index = gi;
-                    L.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
-                    L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
-                    L.parity_merge_data_block_ids = blocks_local;
-                    std::cout << "[CoRD-Alg2]     CTR_TO_LOCAL:   global_blk" << col << "(c" << cc
-                              << ") --ΔP " << parity_local_col << "B --> local_blk" << Lb << "(c" << lc
-                              << ") group=" << gnum << " est=" << L.est_transfer_sec << "s\n";
-                    out.train_route.push_back(std::move(L));
-                  }
-                }
-                out.center_global_block_id = *used_collectors.begin();
-              }
-            }
-          }
-
-          if (!fused_alg3)
-          {
-            if (static_cast<int>(N.size()) >= 3)
-              std::cout << "[CoRD-Alg2]   Algorithm3 not applied, fallback to single-center STAR\n";
-            else
-              std::cout << "[CoRD-Alg2]   |N|=2, using single-center STAR\n";
-            int best_c = k;
-            double best_cost = std::numeric_limits<double>::infinity();
-            // 打印各候选中心的累计传输代价
-            for (int cand = k; cand < k + r; ++cand)
-            {
-              int cc = block_cluster(stripe, cand);
-              if (cc < 0)
-                continue;
-              double sum = 0.0;
-              for (int d : N)
-              {
-                int64_t b = delta_bytes_for_block(block_intervals, d);
-                if (b <= 0)
-                  continue;
-                int dc = block_cluster(stripe, d);
-                if (dc < 0)
-                  continue;
-                sum += transfer_sec(dc, cc, b, tp);
-              }
-              std::cout << "[CoRD-Alg2]   candidate center=global_blk" << cand << "(c" << cc
-                        << ") sum_cost=" << sum << "s\n";
-              if (sum < best_cost)
-              {
-                best_cost = sum;
-                best_c = cand;
-              }
-            }
-            out.center_global_block_id = best_c;
-            int best_cc = block_cluster(stripe, best_c);
-            std::cout << "[CoRD-Alg2]   chosen center=global_blk" << best_c << " c" << best_cc
-                      << " cost=" << best_cost << "s\n";
-            emit_star_from_center(best_c, best_cc);
-          }
+          n_global = rg.second;
+          global_rack = rg.first;
         }
-        else
-        {
-          // ---------- 不相交集：MST ----------
-          int d = N[0];
-          int64_t bd = delta_bytes_for_block(block_intervals, d);
-          if (bd <= 0)
-          {
-            std::cout << "[CoRD-Alg2]   skip MST: ΔD=0 for blk" << d << "\n";
-            ++gi;
-            continue;
-          }
-          int dc_src = block_cluster(stripe, d);
-          const int Lb = local_parity_block_for_data_block(stripe, d);
-          const int numV = 1 + r + (Lb >= 0 ? 1 : 0);
-          std::vector<int> vid(static_cast<size_t>(numV));
-          vid[0] = d;
-          for (int j = 0; j < r; ++j)
-            vid[static_cast<size_t>(1 + j)] = k + j;
-          if (Lb >= 0)
-            vid[static_cast<size_t>(1 + r)] = Lb;
-
-          std::cout << "[CoRD-Alg2]   MST |N|=1 data_blk" << d << "(c" << dc_src
-                    << ") ΔD=" << bd << "B  V={blk" << d;
-          for (int j = 0; j < r; ++j)
-            std::cout << ",G" << (k + j) << "(c" << block_cluster(stripe, k + j) << ")";
-          if (Lb >= 0)
-            std::cout << ",L" << Lb << "(c" << block_cluster(stripe, Lb) << ")";
-          std::cout << "} |V|=" << numV << "\n";
-
-          std::vector<KruskalEdge> edges;
-          edges.reserve(static_cast<size_t>(numV * (numV - 1) / 2));
-          for (int i = 0; i < numV; ++i)
-          {
-            for (int j = i + 1; j < numV; ++j)
-            {
-              int bi = vid[i], bj = vid[j];
-              int ci = block_cluster(stripe, bi);
-              int cj = block_cluster(stripe, bj);
-              double w;
-              if (i == 0 || j == 0)
-              {
-                int dcl = (i == 0) ? ci : cj;
-                int gcl = (i == 0) ? cj : ci;
-                w = transfer_sec(dcl, gcl, bd, tp);
-              }
-              else
-              {
-                w = transfer_sec(ci, cj, bd, tp);
-              }
-              edges.push_back({i, j, w});
-            }
-          }
-          std::sort(edges.begin(), edges.end());
-          DSU dsu(numV);
-          std::vector<std::pair<int, int>> mst;
-          std::cout << "[CoRD-Alg2]   MST Kruskal edges selected:\n";
-          for (const auto &e : edges)
-          {
-            if (dsu.unite(e.u, e.v)) {
-              mst.push_back({e.u, e.v});
-              std::cout << "[CoRD-Alg2]     " << vid[e.u] << " -- " << vid[e.v]
-                        << " (idx " << e.u << "-" << e.v << ") w=" << e.w << "s\n";
-            }
-          }
-          std::vector<std::pair<int, int>> directed;
-          orient_mst_from_root(mst, 0, numV, &directed);
-          std::cout << "[CoRD-Alg2]   MST directed (root=blk" << d << "):\n";
-          for (auto pr : directed)
-          {
-            int sb = vid[pr.first];
-            int db = vid[pr.second];
-            int sc = block_cluster(stripe, sb);
-            int dc = block_cluster(stripe, db);
-            TrainLink L;
-            L.src_block_id = sb;
-            L.dst_block_id = db;
-            L.src_cluster = sc;
-            L.dst_cluster = dc;
-            L.payload_bytes = bd;
-            L.est_transfer_sec = transfer_sec(sc, dc, bd, tp);
-            L.group_index = gi;
-            L.kind = TrainLinkKind::MST_FORWARD;
-            // |N|=1：最小生成树上每跳均传输同一数据块的数据增量 ΔD（非校验增量）
-            L.delta_kind = CordDeltaPayloadKind::DATA_DELTA;
-            L.mst_origin_data_block = d;
-            std::cout << "[CoRD-Alg2]     MST_FORWARD: blk" << sb << "(c" << sc << ") --ΔD "
-                      << bd << "B --> blk" << db << "(c" << dc
-                      << ") est=" << L.est_transfer_sec << "s\n";
-            out.train_route.push_back(std::move(L));
-          }
-        }
-        ++gi;
       }
 
-      // ---------- 时间步调度（每条链路一次性传完 payload；每步 cluster 容量 + 依赖约束） ----------
+      int collector_blk = -1;
+      int collector_rack = -1;
+      bool collector_is_global = false;
+      if (n_global > n_data)
+      {
+        collector_is_global = true;
+        collector_rack = global_rack;
+        for (int gpar = k; gpar < k + r; ++gpar)
+        {
+          if (block_cluster(stripe, gpar) == global_rack)
+          {
+            collector_blk = gpar;
+            break;
+          }
+        }
+      }
+      else
+      {
+        collector_rack = data_rack;
+        for (int d : D)
+        {
+          if (block_cluster(stripe, d) == data_rack)
+          {
+            collector_blk = d;
+            break;
+          }
+        }
+      }
+      if (collector_blk < 0)
+        return out;
+
+      const int collector_cc = block_cluster(stripe, collector_blk);
+      out.collector_block_id = collector_blk;
+      out.center_global_block_id = collector_blk;
+      const int gi = 0;
+
+      std::cout << "[CoRD-Alg2] collector="
+                << (collector_is_global ? "global_blk" : "data_blk") << collector_blk << " cluster=c"
+                << collector_rack << " (data_rack=c" << data_rack << " n_data=" << n_data
+                << " global_rack=c" << global_rack << " n_global=" << n_global << ")\n";
+      std::cout << "[CoRD-Alg2] updated blocks:";
+      for (int d : D)
+        std::cout << " " << d << "(c" << block_cluster(stripe, d) << ")";
+      std::cout << "\n";
+
+      const int64_t parity_global_b = merged_delta_hull_span_bytes(block_intervals, D);
+      if (parity_global_b <= 0)
+        return out;
+
+      for (int d : D)
+      {
+        if (d == collector_blk)
+          continue;
+        int64_t b = delta_bytes_for_block(block_intervals, d);
+        if (b <= 0)
+          continue;
+        int dc = block_cluster(stripe, d);
+        TrainLink L;
+        L.src_block_id = d;
+        L.dst_block_id = collector_blk;
+        L.src_cluster = dc;
+        L.dst_cluster = collector_cc;
+        L.payload_bytes = b;
+        L.est_transfer_sec = transfer_sec(dc, collector_cc, b, tp);
+        L.group_index = gi;
+        L.kind = TrainLinkKind::STAR_DATA_TO_CENTER;
+        L.delta_kind = CordDeltaPayloadKind::DATA_DELTA;
+        std::cout << "[CoRD-Alg2]   DATA_TO_CENTER: blk" << d << "(c" << dc << ") --ΔD " << b
+                  << "B --> collector_blk" << collector_blk << "(c" << collector_cc << ")\n";
+        out.train_route.push_back(std::move(L));
+      }
+
+      for (int gpar = k; gpar < k + r; ++gpar)
+      {
+        if (gpar == collector_blk)
+          continue;
+        int gc = block_cluster(stripe, gpar);
+        TrainLink L;
+        L.src_block_id = collector_blk;
+        L.dst_block_id = gpar;
+        L.src_cluster = collector_cc;
+        L.dst_cluster = gc;
+        L.payload_bytes = parity_global_b;
+        L.est_transfer_sec = transfer_sec(collector_cc, gc, parity_global_b, tp);
+        L.group_index = gi;
+        L.kind = TrainLinkKind::STAR_CENTER_TO_GLOBAL;
+        L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
+        L.parity_merge_data_block_ids = D;
+        std::cout << "[CoRD-Alg2]   CTR_TO_GLOBAL: collector_blk" << collector_blk << "(c" << collector_cc
+                  << ") --ΔP " << parity_global_b << "B --> global_blk" << gpar << "(c" << gc << ")\n";
+        out.train_route.push_back(std::move(L));
+      }
+
+      std::map<std::pair<int, int>, std::vector<int>> rack_local_groups;
+      for (int d : D)
+      {
+        const int rc = block_cluster(stripe, d);
+        const int gnum = stripe.blocks[d]->map2group;
+        rack_local_groups[{rc, gnum}].push_back(d);
+      }
+      for (auto &rlg : rack_local_groups)
+      {
+        const int rc = rlg.first.first;
+        const int gnum = rlg.first.second;
+        std::vector<int> &blocks = rlg.second;
+        std::sort(blocks.begin(), blocks.end());
+        const int Lb = local_parity_block_for_group(stripe, gnum);
+        if (Lb < 0)
+          continue;
+        const int64_t parity_local_b = merged_delta_hull_span_bytes(block_intervals, blocks);
+        if (parity_local_b <= 0)
+          continue;
+        const int lc = block_cluster(stripe, Lb);
+        const int rep = blocks.front();
+        TrainLink L;
+        L.src_block_id = rep;
+        L.dst_block_id = Lb;
+        L.src_cluster = rc;
+        L.dst_cluster = lc;
+        L.payload_bytes = parity_local_b;
+        L.est_transfer_sec = transfer_sec(rc, lc, parity_local_b, tp);
+        L.group_index = gi;
+        L.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
+        L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
+        L.parity_merge_data_block_ids = blocks;
+        std::cout << "[CoRD-Alg2]   RACK_TO_LOCAL: rack=c" << rc << " rep_blk" << rep << " --ΔP " << parity_local_b
+                  << "B --> local_blk" << Lb << "(c" << lc << ") group=" << gnum
+                  << " merge_src=" << blocks.size() << " blocks\n";
+        out.train_route.push_back(std::move(L));
+      }
+
       const int C = cluster_num;
       const int S = 0;
       const int T = 2 + 2 * C;
@@ -720,22 +394,8 @@ namespace ECProject
 
       std::vector<int> remaining;
       remaining.reserve(out.train_route.size());
-      std::cout << "[CoRD-Alg2] ===== Transfer scheduling: " << out.train_route.size()
-                << " links (full payload per link) =====\n";
-      for (size_t li = 0; li < out.train_route.size(); ++li) {
-        const auto &L = out.train_route[li];
-        remaining.push_back(L.payload_bytes > 0 ? 1 : 0);
-        std::cout << "[CoRD-Alg2]   link[" << li << "] " << train_link_kind_name(L.kind)
-                  << " blk" << L.src_block_id << "(c" << L.src_cluster << ")->blk" << L.dst_block_id
-                  << "(c" << L.dst_cluster << ") payload=" << L.payload_bytes
-                  << "B grp=" << L.group_index;
-        if (L.delta_kind == CordDeltaPayloadKind::PARITY_DELTA)
-          std::cout << " [depends on DATA_TO_CENTER ingressing to blk" << L.src_block_id << "]";
-        std::cout << "\n";
-      }
+      std::cout << "[CoRD-Alg2] ===== Transfer scheduling: " << out.train_route.size() << " links =====\n";
 
-      int ts = 0;
-      /** 收集器扇出校验增量前，同组内发往该 collector 的所有数据增量链路须已完成。 */
       auto collector_star_data_ingress_done = [&](int group_idx, int collector_block_id) -> bool {
         for (size_t j = 0; j < out.train_route.size(); ++j)
         {
@@ -749,37 +409,30 @@ namespace ECProject
         }
         return true;
       };
-      /** MST 中继：同 origin 下，指向本链路 src 的入边须先完成。 */
-      auto mst_predecessors_done = [&](size_t i) -> bool {
-        const TrainLink &L = out.train_route[i];
-        if (L.kind != TrainLinkKind::MST_FORWARD)
+
+      auto link_needs_collector_ingress = [](const TrainLink &L) -> bool {
+        if (L.kind == TrainLinkKind::STAR_CENTER_TO_GLOBAL)
           return true;
-        for (size_t j = 0; j < out.train_route.size(); ++j)
+        if (L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL && L.src_block_id >= 0)
         {
-          if (j == i)
-            continue;
-          const TrainLink &J = out.train_route[j];
-          if (J.kind != TrainLinkKind::MST_FORWARD)
-            continue;
-          if (J.mst_origin_data_block != L.mst_origin_data_block)
-            continue;
-          if (J.dst_block_id != L.src_block_id)
-            continue;
-          if (remaining[j] > 0)
-            return false;
+          // rack-local：src 为 data block，不依赖 collector ingress
+          return false;
         }
-        return true;
-      };
-      auto link_eligible_for_step = [&](size_t i) -> bool {
-        const TrainLink &L = out.train_route[i];
-        if (L.kind == TrainLinkKind::STAR_CENTER_TO_GLOBAL || L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL)
-        {
-          if (!collector_star_data_ingress_done(L.group_index, L.src_block_id))
-            return false;
-        }
-        return mst_predecessors_done(i);
+        return false;
       };
 
+      auto link_eligible_for_step = [&](size_t i) -> bool {
+        const TrainLink &L = out.train_route[i];
+        if (link_needs_collector_ingress(L) &&
+            !collector_star_data_ingress_done(L.group_index, out.collector_block_id))
+          return false;
+        return true;
+      };
+
+      for (size_t li = 0; li < out.train_route.size(); ++li)
+        remaining.push_back(out.train_route[li].payload_bytes > 0 ? 1 : 0);
+
+      int ts = 0;
       while (true)
       {
         bool any = false;
@@ -800,25 +453,14 @@ namespace ECProject
         for (int c = 0; c < C; ++c)
           din.add_edge(1 + C + c, T, tp.enforce_one_send_one_recv_per_cluster ? 1 : C, -1);
 
-        // 打印本时间步候选链路
-        std::cout << "[CoRD-Alg2] --- step " << ts << " candidates (pending & eligible):\n";
         for (size_t i = 0; i < out.train_route.size(); ++i)
         {
-          if (remaining[i] <= 0)
+          if (remaining[i] <= 0 || !link_eligible_for_step(i))
             continue;
-          bool eligible = link_eligible_for_step(i);
           const TrainLink &L = out.train_route[i];
-          std::cout << "[CoRD-Alg2]   link[" << i << "] blk" << L.src_block_id << "->blk" << L.dst_block_id
-                    << " c" << L.src_cluster << "->c" << L.dst_cluster
-                    << " pending=" << remaining[i] << " eligible=" << (eligible ? "Y" : "N") << "\n";
-          if (!eligible)
+          if (L.src_cluster < 0 || L.dst_cluster < 0 || L.src_cluster >= C || L.dst_cluster >= C)
             continue;
-          if (L.src_cluster < 0 || L.dst_cluster < 0 ||
-              L.src_cluster >= C || L.dst_cluster >= C)
-            continue;
-          int Lu = 1 + L.src_cluster;
-          int Rv = 1 + C + L.dst_cluster;
-          din.add_edge(Lu, Rv, 1, static_cast<int>(i));
+          din.add_edge(1 + L.src_cluster, 1 + C + L.dst_cluster, 1, static_cast<int>(i));
         }
 
         din.maxflow();
@@ -826,26 +468,15 @@ namespace ECProject
         din.collect_used_links(C, used);
         if (used.empty())
         {
-          // 无匹配：强制推进一条「依赖已满足」的剩余链路，避免死循环
           for (size_t i = 0; i < remaining.size(); ++i)
           {
             if (remaining[i] > 0 && link_eligible_for_step(i))
             {
-              std::cout << "[CoRD-Alg2]   [deadlock-prevention] forcing link[" << i << "]\n";
               used.push_back(static_cast<int>(i));
               break;
             }
           }
         }
-        std::cout << "[CoRD-Alg2]   step " << ts << " selected " << used.size() << " link(s): [";
-        for (size_t ui = 0; ui < used.size(); ++ui) {
-          if (ui > 0) std::cout << ", ";
-          int li = used[ui];
-          const auto &L = out.train_route[static_cast<size_t>(li)];
-          std::cout << li << "(" << train_link_kind_name(L.kind)
-                    << " c" << L.src_cluster << "→c" << L.dst_cluster << ")";
-        }
-        std::cout << "] — these links may run concurrently in this step\n";
 
         TimeslotEntry te;
         te.timeslot = ts++;

@@ -68,19 +68,19 @@ namespace ECProject
     {
       std::vector<TrainLink> train_route;
       std::vector<TimeslotEntry> timeslot_schedule;
-      int center_global_block_id = -1; // 最后一组相交集中心（调试）
+      /** 全局 collector：更新块最多的机架（cluster）中任选一更新 data block */
+      int collector_block_id = -1;
+      int center_global_block_id = -1; // 与 collector_block_id 相同（调试兼容）
     };
 
     /**
-     * 算法二：输入算法一的分组 U、条带与块内更新区间。
-     * |N|≥3 且算法三成功：先做 PDP+DCP，数据仅发往指派的全局校验收集器；各收集器再向其它全局块与局校验扇出（语义对齐原单中心星型的第二、三段）。
-     * |N|=2 或算法三未成功：单全局中心星型（pop_c = argmin_c Σ_i t_{i,c}·b_i）。
-     * |N|=1：MST(Kruskal) 于 V={d}∪{全局校验}。
-     * 调度：每条 train_route 链路一次性传完 payload；按时间步 Dinic 匹配（每 cluster 每步最多 1 发、1 收）。
-     * 数据依赖：STAR_CENTER_TO_* 须等同组 STAR_DATA_TO_CENTER 全部完成；MST_FORWARD 须同 origin 的入边先完成。
-     *
-     * TrainLink.delta_kind：相交集链路上「发往收集器」段为数据增量 ΔD；收集器扇出为校验增量（由 proxy 对 Δ 聚合后再 XOR 落盘）。
-     * |N|=1 的 MST 边均为数据增量在线上传输。
+     * 算法二（rack-collector）：全局唯一 collector + 分机架本地校验。
+     * - 先找更新 data block 数量最多的 cluster；再比较该 cluster 的更新块数 vs 全局校验块最多的
+     *   cluster 上的 global 块数，取更大一侧：更新侧 collector 为最小更新块，global 侧为最小 global 块。
+     * - 所有更新块 STAR_DATA_TO_CENTER 发往 collector（同块跳过网络）
+     * - collector 聚合后 STAR_CENTER_TO_GLOBAL 扇出至其余 global parity
+     * - 各 cluster 内同 local group 更新块合并，STAR_CENTER_TO_LOCAL 发往 local parity（与全局路径可并行）
+     * 调度：STAR_CENTER_TO_GLOBAL 须等 collector ingress 收齐；rack-local STAR_CENTER_TO_LOCAL 无此依赖。
      */
     Algorithm2Result build_algorithm2(
         const Stripe &stripe,

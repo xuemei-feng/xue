@@ -428,6 +428,23 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         proxy_proto::CordTransferPlan *plan)
     {
       plan->clear_group_xor_hints();
+      if (alg2.collector_block_id >= 0)
+      {
+        std::vector<int> ids;
+        const int kblk = plan->k_datablock();
+        for (const auto &kv : block_intervals)
+        {
+          if (kv.first >= 0 && kv.first < kblk)
+            ids.push_back(kv.first);
+        }
+        const int64_t m = cord_alg2::merged_delta_hull_span_bytes(block_intervals, ids);
+        if (m <= 0)
+          return;
+        proxy_proto::CordTransferGroupXorHint *h = plan->add_group_xor_hints();
+        h->set_group_index(0);
+        h->set_xor_accum_byte_length(static_cast<uint64_t>(m));
+        return;
+      }
       std::map<int, std::set<int>> blocks_by_group;
       for (const auto &L : alg2.train_route)
       {
@@ -500,8 +517,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       std::vector<int> order(static_cast<size_t>(n));
       std::iota(order.begin(), order.end(), 0);
-      /** 按算法二 Dinic 时隙顺序执行，使 MST 与星型在满足 cluster 容量与收集器依赖的前提下穿插并行；
-       * 收集器扇出晚于同组 STAR 数据到达已由 build_algorithm2 时间步调度保证。 */
+      /** 按算法二 Dinic 时隙顺序执行；全局校验扇出须等 collector ingress，rack-local 本地校验可并行。 */
       std::stable_sort(order.begin(), order.end(), [&](int a, int b) {
         const auto &sa = plan->steps(a);
         const auto &sb = plan->steps(b);
@@ -1934,18 +1950,34 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
 
     std::map<std::pair<int, int>, std::map<int, uint64_t>> coll_agg;
-    for (const auto &L : alg2.train_route)
+    if (alg2.collector_block_id >= 0)
     {
-      if (L.kind != cord_alg2::TrainLinkKind::STAR_DATA_TO_CENTER)
-        continue;
-      if (L.delta_kind != cord_alg2::CordDeltaPayloadKind::DATA_DELTA)
-        continue;
-      const std::pair<int, int> key(L.group_index, L.dst_block_id);
-      const uint64_t ext = cord_block_delta_ingress_buffer_end(block_intervals, L.src_block_id);
-      auto &m = coll_agg[key];
-      auto it = m.find(L.src_block_id);
-      if (it == m.end() || ext > it->second)
-        m[L.src_block_id] = ext;
+      auto &m = coll_agg[{0, alg2.collector_block_id}];
+      for (const auto &kv : block_intervals)
+      {
+        const int bid = kv.first;
+        if (bid < 0 || bid >= k)
+          continue;
+        const uint64_t ext = cord_block_delta_ingress_buffer_end(block_intervals, bid);
+        if (ext > 0)
+          m[bid] = ext;
+      }
+    }
+    else
+    {
+      for (const auto &L : alg2.train_route)
+      {
+        if (L.kind != cord_alg2::TrainLinkKind::STAR_DATA_TO_CENTER)
+          continue;
+        if (L.delta_kind != cord_alg2::CordDeltaPayloadKind::DATA_DELTA)
+          continue;
+        const std::pair<int, int> key(L.group_index, L.dst_block_id);
+        const uint64_t ext = cord_block_delta_ingress_buffer_end(block_intervals, L.src_block_id);
+        auto &m = coll_agg[key];
+        auto it = m.find(L.src_block_id);
+        if (it == m.end() || ext > it->second)
+          m[L.src_block_id] = ext;
+      }
     }
     for (const auto &kv : coll_agg)
     {
@@ -2161,25 +2193,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       cord_add_logical_range_to_data_blocks(block_size, k, s, e, &block_intervals);
     }
 
-    // Flip offsets for even-numbered data blocks: mirror the update range within the block.
-    // e.g., a range at the last 8 KB of the block → first 8 KB of the block.
-    for (auto &kv : block_intervals)
-    {
-      const int bid = kv.first;
-      if (bid % 2 == 0)
-      {
-        for (auto &seg : kv.second)
-        {
-          const int lo = seg.first;
-          const int hi = seg.second;
-          seg.first  = block_size - hi;
-          seg.second = block_size - lo;
-        }
-        // restore ascending order after flipping
-        std::sort(kv.second.begin(), kv.second.end());
-      }
-    }
-
     // --- CoRD uploadCordUpdate verbose debug ---
     std::cout << "[CoRD] ===== uploadCordUpdate stripe_id=" << stripe_id
               << " k=" << k << " r=" << stripe->r << " z=" << stripe->z
@@ -2199,15 +2212,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
     const auto groups = cord_partition_groups_algorithm1(block_intervals);
 
-    std::cout << "[CoRD] Algorithm 1 partition (intersection closure; singletons = pairwise disjoint from all other "
-                 "updated blocks): |U|=" << groups.size() << "\n";
+    std::cout << "[CoRD] Updated block partition (intersection closure, info only): |U|=" << groups.size() << "\n";
     for (size_t gi = 0; gi < groups.size(); ++gi)
     {
       const auto &g = groups[gi];
-      const char *tag = (g.size() >= 2) ? "intersecting_group" : "disjoint_singleton";
-      std::cout << "  group[" << gi << "] " << tag << " |N|=" << g.size() << " blocks=[";
-      for (size_t bi = 0; bi < g.size(); ++bi) {
-        if (bi > 0) std::cout << " ";
+      std::cout << "  group[" << gi << "] |N|=" << g.size() << " blocks=[";
+      for (size_t bi = 0; bi < g.size(); ++bi)
+      {
+        if (bi > 0)
+          std::cout << " ";
         std::cout << g[bi];
       }
       std::cout << "]\n";
@@ -2216,11 +2229,18 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     cord_alg2::Algorithm2Result alg2_result;
     {
       cord_alg2::TransferParams tp;
-      tp.enforce_one_send_one_recv_per_cluster = false; 
+      tp.enforce_one_send_one_recv_per_cluster = false;
+      std::vector<std::vector<int>> all_as_one;
+      all_as_one.push_back({});
+      for (const auto &kv : block_intervals)
+      {
+        if (kv.first >= 0 && kv.first < k)
+          all_as_one[0].push_back(kv.first);
+      }
       alg2_result =
-          cord_alg2::build_algorithm2(*stripe, block_intervals, groups, m_sys_config->ClusterNum, tp);
-      std::cout << "[CoRD] Algorithm 2 train_route (|U|=" << groups.size() << ", links=" << alg2_result.train_route.size()
-                << "):\n";
+          cord_alg2::build_algorithm2(*stripe, block_intervals, all_as_one, m_sys_config->ClusterNum, tp);
+      std::cout << "[CoRD] Algorithm 2 train_route (rack-collector, links=" << alg2_result.train_route.size()
+                << " collector_blk=" << alg2_result.collector_block_id << "):\n";
       for (size_t i = 0; i < alg2_result.train_route.size(); ++i)
       {
         const auto &L = alg2_result.train_route[i];
@@ -2233,8 +2253,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                   << "\n";
       }
       std::cout << "[CoRD] Algorithm 2 schedule_steps=" << alg2_result.timeslot_schedule.size();
-      if (alg2_result.center_global_block_id >= 0)
-        std::cout << " center_global_blk=" << alg2_result.center_global_block_id;
+      if (alg2_result.collector_block_id >= 0)
+        std::cout << " collector_blk=" << alg2_result.collector_block_id;
       std::cout << "\n";
       for (const auto &ts : alg2_result.timeslot_schedule)
       {
@@ -2245,7 +2265,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
         std::cout << "]  (concurrent transfers within this step)\n";
       }
-      // 算法三已在 build_algorithm2 内与算法二融合（|N|≥3 成功时）；此处不再单独调用以免重复计算。
     }
 
     proxy_proto::CordTransferPlan cord_xfer_plan;

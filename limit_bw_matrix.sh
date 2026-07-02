@@ -5,14 +5,14 @@ fi
 set -euo pipefail
 
 # Real bandwidth shaping by tc/htb (egress + ingress via IFB redirect).
-# Matrix: /root/xue/project/config/BW_limit same — TABLE II MB/s (symmetric from upper triangle + diagonal),
+# Matrix: /users/xue/xue/project/config/BW_limit same — TABLE II MB/s (symmetric from upper triangle + diagonal),
 #   converted to Mbit/s for tc via BW_MATRIX_MB_PER_SEC_TO_TC_MBIT (default ×8).
 # get_bw_mbps(src,dst) is a legacy name: it returns tc rate in Mbit/s (see get_bw_tc_mbit_rate in BW_limit same).
 # Egress: HTB on iface root, match ip dst per remote cluster.
 # Ingress: ingress qdisc mirrors to IFB; HTB on IFB root, match ip src per remote cluster.
 # 输出：默认一行摘要；BW_MATRIX_VERBOSE=1 打印每条 peer；=2 再 dump tc。
 
-BW_FILE="/root/xue/project/config/BW_limitsame"
+BW_FILE="/users/xue/xue/project/config/BW_limitsame"
 if [[ ! -f "$BW_FILE" ]]; then
   echo "Error: bandwidth file not found: $BW_FILE" >&2
   exit 1
@@ -20,8 +20,8 @@ fi
 source "$BW_FILE"
 
 SKIP_BW_LIMIT_IPS=(
-  "172.16.2.31"
-  "172.16.2.32"
+  "10.10.1.1"
+  "10.10.1.2"
 )
 
 skip_bw_limit_this_host() {
@@ -37,12 +37,12 @@ skip_bw_limit_this_host() {
 
 # 与 proxy_hosts / clusterInformation.xml 中 6 个 proxy 一致（一机一角色）
 CLUSTER_IPS=(
-  "172.16.2.33"   # 0: TYO  cluster 0 proxy
-  "172.16.2.42"   # 1: MEL  cluster 1 proxy
-  "172.16.2.51"   # 2: SG  cluster 2 proxy
-  "172.16.2.60"   # 3: SEO  cluster 3 proxy
-  "172.16.2.69"   # 4: JAK  cluster 4 proxy
-  "172.16.2.78"   # 5: HK  cluster 5 proxy
+  "10.10.1.3"   # 0: TYO  cluster 0 proxy
+  "10.10.1.12"   # 1: MEL  cluster 1 proxy
+  "10.10.1.21"   # 2: SG  cluster 2 proxy
+  "10.10.1.30"   # 3: SEO  cluster 3 proxy
+  "10.10.1.39"   # 4: JAK  cluster 4 proxy
+  "10.10.1.48"   # 5: HK  cluster 5 proxy
 )
 
 detect_iface() {
