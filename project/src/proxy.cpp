@@ -367,9 +367,17 @@ namespace ECProject
   }
 
   /** 与 coordinator cord_block_delta_ingress_buffer_end / STAR_DATA ingest 布局一致。 */
+  static int cord_plan_data_block_byte_size(const proxy_proto::CordTransferPlan &plan)
+  {
+    return plan.slot_unit_bytes() > 0 ? plan.slot_unit_bytes() : 0;
+  }
+
   static uint64_t cord_plan_block_ingress_buffer_end(const proxy_proto::CordTransferPlan &plan, int block_id)
   {
+    const int block_size = cord_plan_data_block_byte_size(plan);
     const std::vector<std::pair<int, int>> segs = cord_plan_sorted_segs_for_block(plan, block_id);
+    if (block_size > 0 && !segs.empty())
+      return static_cast<uint64_t>(block_size);
     if (segs.empty())
       return 0;
     int64_t packed = 0;
@@ -457,6 +465,9 @@ namespace ECProject
   static int cord_plan_parity_payload_abs_lo(const proxy_proto::CordTransferPlan &plan,
                                               const proxy_proto::CordTransferStep &st)
   {
+    (void)st;
+    if (cord_plan_data_block_byte_size(plan) > 0)
+      return 0;
     const bool have_segs = plan.cord_block_delta_segs_size() > 0;
     const bool use_merge = st.parity_merge_data_block_ids_size() > 0;
     if (st.has_parity_ingest_stripe_group())
@@ -495,6 +506,19 @@ namespace ECProject
       if (it == g_cord_collector_block_delta.end())
         return;
       const std::vector<uint8_t> &delta = it->second;
+      const int block_size = cord_plan_data_block_byte_size(plan);
+      if (block_size > 0 && static_cast<int>(delta.size()) >= block_size)
+      {
+        for (size_t u = 0; u < chunk_len; ++u)
+        {
+          const size_t idx = static_cast<size_t>(chunk_off) + u;
+          if (idx >= delta.size())
+            continue;
+          buf_out[u] = static_cast<char>(static_cast<unsigned char>(buf_out[u]) ^
+                                          static_cast<unsigned char>(delta[idx]));
+        }
+        return;
+      }
       const std::vector<std::pair<int, int>> segs = cord_plan_sorted_segs_for_block(plan, bid);
       for (size_t u = 0; u < chunk_len; ++u)
       {
@@ -725,6 +749,60 @@ namespace ECProject
       }
     }
     return false;
+  }
+
+  static void cord_scatter_packed_delta_to_full_block(const char *packed, size_t packed_len,
+                                                      const std::vector<std::pair<int, int>> &segs,
+                                                      int block_size, char *full_out)
+  {
+    std::memset(full_out, 0, static_cast<size_t>(block_size));
+    size_t packed_off = 0;
+    for (const auto &seg : segs)
+    {
+      for (int lo = seg.first; lo < seg.second; ++lo)
+      {
+        if (lo < 0 || lo >= block_size)
+          continue;
+        if (packed_off < packed_len)
+        {
+          full_out[lo] = packed[packed_off];
+          ++packed_off;
+        }
+      }
+    }
+  }
+
+  static bool cord_read_full_block_delta_from_cluster_blob(ProxyImpl *proxy,
+                                                           const proxy_proto::CordTransferPlan &plan,
+                                                           int cluster_id, int block_id, char *full_out,
+                                                           size_t full_len)
+  {
+    const int block_size = cord_plan_data_block_byte_size(plan);
+    if (block_size <= 0 || full_len < static_cast<size_t>(block_size))
+      return false;
+    std::string blob_key, dn_ip;
+    int dn_port = 0;
+    if (!cord_lookup_delta_blob(plan, cluster_id, &blob_key, &dn_ip, &dn_port))
+      return false;
+    uint64_t base_off = 0, blk_tot = 0;
+    if (!cord_lookup_cluster_delta_layout(plan, cluster_id, block_id, &base_off, &blk_tot))
+      return false;
+    if (blk_tot == 0)
+      return false;
+    std::vector<char> packed(static_cast<size_t>(blk_tot));
+    if (!proxy->CordRangeReadFromDatanode(blob_key, 0, static_cast<int>(base_off), packed.data(),
+                                          static_cast<size_t>(blk_tot), dn_ip.c_str(), dn_port))
+      return false;
+    const std::vector<std::pair<int, int>> segs = cord_plan_sorted_segs_for_block(plan, block_id);
+    if (segs.empty())
+    {
+      std::memset(full_out, 0, full_len);
+      const size_t copy_n = std::min(full_len, static_cast<size_t>(blk_tot));
+      std::memcpy(full_out, packed.data(), copy_n);
+      return true;
+    }
+    cord_scatter_packed_delta_to_full_block(packed.data(), packed.size(), segs, block_size, full_out);
+    return true;
   }
 
   static uint64_t cord_xor_hint_for_group(const proxy_proto::CordTransferPlan &plan, int group_index)
@@ -1113,23 +1191,15 @@ namespace ECProject
             continue;
         }
 
-        std::vector<char> buf(static_cast<size_t>(blk_tot));
-        if (!proxy->CordRangeReadFromDatanode(blob_key, 0, static_cast<int>(base_off), buf.data(),
-                                              static_cast<size_t>(blk_tot), dn_ip.c_str(), dn_port))
+        const int block_size = cord_plan_data_block_byte_size(plan);
+        const size_t ingest_len =
+            block_size > 0 ? static_cast<size_t>(block_size) : static_cast<size_t>(required);
+        std::vector<char> buf(ingest_len);
+        if (!cord_read_full_block_delta_from_cluster_blob(proxy, plan, self_cluster_id, bid, buf.data(), buf.size()))
         {
           std::cout << "[CoRD-PLAN] seed_collector_local read failed blk=" << bid << " cluster=c"
                     << self_cluster_id << std::endl;
           continue;
-        }
-
-        int chunk_off = 0;
-        if (required > blk_tot)
-          chunk_off = static_cast<int>(required - blk_tot);
-        else
-        {
-          const std::vector<std::pair<int, int>> segs = cord_plan_sorted_segs_for_block(plan, bid);
-          if (!segs.empty())
-            chunk_off = segs.front().first;
         }
 
         proxy_proto::CordPlanCollectorIngestReq req;
@@ -1137,7 +1207,7 @@ namespace ECProject
         req.set_group_index(ex.group_index());
         req.set_collector_block_id(ex.collector_block_id());
         req.set_src_data_block_id(bid);
-        req.set_chunk_byte_offset(static_cast<uint64_t>(chunk_off));
+        req.set_chunk_byte_offset(0);
         req.set_xor_accum_byte_length(xor_hint);
         req.set_chunk_payload(std::string(buf.data(), buf.size()));
         if (!cord_apply_collector_ingest(proxy, req, buf.data(), buf.size()))
@@ -1162,6 +1232,22 @@ namespace ECProject
       return false;
 
     auto xor_one_block = [&](int bid) {
+      const int block_size = cord_plan_data_block_byte_size(plan);
+      if (block_size > 0)
+      {
+        std::vector<char> full(static_cast<size_t>(block_size));
+        if (!cord_read_full_block_delta_from_cluster_blob(proxy, plan, self_cluster_id, bid, full.data(), full.size()))
+          return;
+        for (size_t u = 0; u < chunk_len; ++u)
+        {
+          const size_t idx = static_cast<size_t>(chunk_off) + u;
+          if (idx >= full.size())
+            continue;
+          buf_out[u] = static_cast<char>(static_cast<unsigned char>(buf_out[u]) ^
+                                          static_cast<unsigned char>(full[idx]));
+        }
+        return;
+      }
       uint64_t base_off = 0, blk_tot = 0;
       if (!cord_lookup_cluster_delta_layout(plan, self_cluster_id, bid, &base_off, &blk_tot))
         return;
@@ -1386,8 +1472,8 @@ namespace ECProject
   }
 
   /**
-   * 按 scheduled_slot 分组执行：组内并行（MST 中继读 relay 除外），组间按 slot 顺序保证依赖。
-   * 收集器扇出须晚于同组 STAR 数据到达由算法二时隙依赖保证。
+   * 按 train_route 下发步骤执行：同 cluster 作为 sender 的步骤并行（MST 中继读 relay 除外）。
+   * 全局校验扇出由 collector ingress spin-wait 保证晚于数据增量到达。
    * N>1：STAR 数据增量 -> TCP CRDX collector ingest；收集器再发 TCP parity xor。
    * N=1 MST：全程数据增量 TCP CRDX mst chunk（校验侧矩阵编码或 XOR）。
    * MST 中继读 relay_buffer 前 spin-wait 前继 hop 写入（与 STAR collector ingress 同理）。
@@ -1515,29 +1601,19 @@ namespace ECProject
         if (st.link_kind() == proxy_proto::CORD_TRANSFER_STAR_DATA_TO_CENTER &&
             st.delta_payload_kind() == proxy_proto::CORD_DELTA_DATA)
         {
-          std::string blob_key, dn_ip;
-          int dn_port = 0;
-          if (!cord_lookup_delta_blob(plan, self_cluster_id, &blob_key, &dn_ip, &dn_port))
-          {
-            plan_log_both_sync("FAIL STAR_DATA_TO_CENTER no_delta_blob step=" + std::to_string(st.step_index()) +
-                         " cluster=c" + std::to_string(self_cluster_id));
-            stats.failed = 1;
-          return stats;          }
-          uint64_t base_off = 0, blk_tot = 0;
-          if (!cord_lookup_cluster_delta_layout(plan, self_cluster_id, st.src_block_id(), &base_off, &blk_tot))
+          uint64_t layout_base = 0, layout_len = 0;
+          if (!cord_lookup_cluster_delta_layout(plan, self_cluster_id, st.src_block_id(), &layout_base, &layout_len))
           {
             plan_log_both_sync("FAIL STAR_DATA_TO_CENTER no_cluster_delta_layout step=" + std::to_string(st.step_index()) +
                          " cluster=c" + std::to_string(self_cluster_id) + " data_blk=" + std::to_string(st.src_block_id()));
             stats.failed = 1;
           return stats;          }
-          const uint64_t abs_off = base_off + st.chunk_byte_offset();
 
-          // 1) 从本地 datanode 读 delta blob
           const auto t_read0 = std::chrono::steady_clock::now();
           std::vector<char> buf;
           {
             const std::string buf_ctx = "step=" + std::to_string(st.step_index()) + " STAR_DATA chunk_len=" +
-                                        std::to_string(chunk_len) + " abs_off=" + std::to_string(abs_off);
+                                        std::to_string(chunk_len);
             if (!cord_xfer_safe_resize(buf, chunk_len, "step_star_data_buf", buf_ctx))
             {
               plan_log_both_sync("FAIL STAR_DATA_TO_CENTER buf_alloc step=" + std::to_string(st.step_index()) +
@@ -1546,12 +1622,11 @@ namespace ECProject
               return stats;
             }
           }
-          if (!proxy->CordRangeReadFromDatanode(blob_key, 0, static_cast<int>(abs_off), buf.data(), chunk_len,
-                                                dn_ip.c_str(), dn_port))
+          if (!cord_read_full_block_delta_from_cluster_blob(proxy, plan, self_cluster_id, st.src_block_id(),
+                                                            buf.data(), buf.size()))
           {
             plan_log_both_sync("FAIL STAR_DATA_TO_CENTER datanode_read_failed step=" + std::to_string(st.step_index()) +
-                         " abs_off=" + std::to_string(abs_off) + " bytes=" + std::to_string(chunk_len) +
-                         " datanode=" + dn_ip + ":" + std::to_string(dn_port));
+                         " bytes=" + std::to_string(chunk_len));
             stats.failed = 1;
           return stats;          }
           const auto t_read1 = std::chrono::steady_clock::now();

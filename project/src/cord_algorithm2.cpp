@@ -4,8 +4,6 @@
 #include <iostream>
 #include <limits>
 #include <map>
-#include <queue>
-#include <set>
 #include <utility>
 
 namespace ECProject
@@ -76,100 +74,6 @@ namespace ECProject
         return lat + static_cast<double>(bytes) * tp.inv_bw_sec_per_byte;
       }
 
-      struct FlowEdge
-      {
-        int to, rev, cap;
-        int lid;
-      };
-
-      struct Dinic
-      {
-        int n, s, t;
-        std::vector<std::vector<FlowEdge>> g;
-        std::vector<int> level, it;
-        Dinic(int n_, int s_, int t_) : n(n_), s(s_), t(t_), g(n_) {}
-
-        void add_edge(int fr, int to, int cap, int lid)
-        {
-          int ga = static_cast<int>(g[fr].size());
-          int gb = static_cast<int>(g[to].size());
-          g[fr].push_back({to, gb, cap, lid});
-          g[to].push_back({fr, ga, 0, -1});
-        }
-
-        bool bfs()
-        {
-          level.assign(n, -1);
-          std::queue<int> q;
-          level[s] = 0;
-          q.push(s);
-          while (!q.empty())
-          {
-            int v = q.front();
-            q.pop();
-            for (const FlowEdge &e : g[v])
-            {
-              if (e.cap > 0 && level[e.to] < 0)
-              {
-                level[e.to] = level[v] + 1;
-                q.push(e.to);
-              }
-            }
-          }
-          return level[t] >= 0;
-        }
-
-        int dfs(int v, int f, std::vector<int> &itv)
-        {
-          if (v == t)
-            return f;
-          for (int &i = itv[v]; i < static_cast<int>(g[v].size()); ++i)
-          {
-            FlowEdge &e = g[v][i];
-            if (e.cap > 0 && level[v] < level[e.to])
-            {
-              int d = dfs(e.to, std::min(f, e.cap), itv);
-              if (d > 0)
-              {
-                e.cap -= d;
-                g[e.to][e.rev].cap += d;
-                return d;
-              }
-            }
-          }
-          return 0;
-        }
-
-        int maxflow()
-        {
-          int flow = 0, inf = 1e9;
-          while (bfs())
-          {
-            it.assign(n, 0);
-            int f;
-            while ((f = dfs(s, inf, it)) > 0)
-              flow += f;
-          }
-          return flow;
-        }
-
-        void collect_used_links(int C, std::vector<int> &out_link_ids)
-        {
-          for (int c = 0; c < C; ++c)
-          {
-            int L = 1 + c;
-            for (const FlowEdge &e : g[L])
-            {
-              if (e.lid < 0)
-                continue;
-              FlowEdge const &rev = g[e.to][e.rev];
-              if (rev.cap > 0)
-                out_link_ids.push_back(e.lid);
-            }
-          }
-        }
-      };
-
     } // namespace
 
     std::string train_link_kind_name(TrainLinkKind k)
@@ -195,6 +99,7 @@ namespace ECProject
         const TransferParams &tp)
     {
       (void)U;
+      (void)cluster_num;
       Algorithm2Result out;
       const int k = stripe.k;
       const int r = stripe.r;
@@ -301,17 +206,17 @@ namespace ECProject
         std::cout << " " << d << "(c" << block_cluster(stripe, d) << ")";
       std::cout << "\n";
 
-      const int64_t parity_global_b = merged_delta_hull_span_bytes(block_intervals, D);
-      if (parity_global_b <= 0)
+      const int64_t block_b = tp.block_byte_size > 0 ? tp.block_byte_size : 0;
+      if (block_b <= 0)
         return out;
 
       for (int d : D)
       {
         if (d == collector_blk)
           continue;
-        int64_t b = delta_bytes_for_block(block_intervals, d);
-        if (b <= 0)
+        if (delta_bytes_for_block(block_intervals, d) <= 0)
           continue;
+        const int64_t b = block_b;
         int dc = block_cluster(stripe, d);
         TrainLink L;
         L.src_block_id = d;
@@ -338,14 +243,14 @@ namespace ECProject
         L.dst_block_id = gpar;
         L.src_cluster = collector_cc;
         L.dst_cluster = gc;
-        L.payload_bytes = parity_global_b;
-        L.est_transfer_sec = transfer_sec(collector_cc, gc, parity_global_b, tp);
+        L.payload_bytes = block_b;
+        L.est_transfer_sec = transfer_sec(collector_cc, gc, block_b, tp);
         L.group_index = gi;
         L.kind = TrainLinkKind::STAR_CENTER_TO_GLOBAL;
         L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
         L.parity_merge_data_block_ids = D;
         std::cout << "[CoRD-Alg2]   CTR_TO_GLOBAL: collector_blk" << collector_blk << "(c" << collector_cc
-                  << ") --ΔP " << parity_global_b << "B --> global_blk" << gpar << "(c" << gc << ")\n";
+                  << ") --ΔP " << block_b << "B --> global_blk" << gpar << "(c" << gc << ")\n";
         out.train_route.push_back(std::move(L));
       }
 
@@ -365,9 +270,6 @@ namespace ECProject
         const int Lb = local_parity_block_for_group(stripe, gnum);
         if (Lb < 0)
           continue;
-        const int64_t parity_local_b = merged_delta_hull_span_bytes(block_intervals, blocks);
-        if (parity_local_b <= 0)
-          continue;
         const int lc = block_cluster(stripe, Lb);
         const int rep = blocks.front();
         TrainLink L;
@@ -375,121 +277,20 @@ namespace ECProject
         L.dst_block_id = Lb;
         L.src_cluster = rc;
         L.dst_cluster = lc;
-        L.payload_bytes = parity_local_b;
-        L.est_transfer_sec = transfer_sec(rc, lc, parity_local_b, tp);
+        L.payload_bytes = block_b;
+        L.est_transfer_sec = transfer_sec(rc, lc, block_b, tp);
         L.group_index = gi;
         L.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
         L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
         L.parity_merge_data_block_ids = blocks;
-        std::cout << "[CoRD-Alg2]   RACK_TO_LOCAL: rack=c" << rc << " rep_blk" << rep << " --ΔP " << parity_local_b
+        std::cout << "[CoRD-Alg2]   RACK_TO_LOCAL: rack=c" << rc << " rep_blk" << rep << " --ΔP " << block_b
                   << "B --> local_blk" << Lb << "(c" << lc << ") group=" << gnum
                   << " merge_src=" << blocks.size() << " blocks\n";
         out.train_route.push_back(std::move(L));
       }
 
-      const int C = cluster_num;
-      const int S = 0;
-      const int T = 2 + 2 * C;
-      const int nV = T + 1;
-
-      std::vector<int> remaining;
-      remaining.reserve(out.train_route.size());
-      std::cout << "[CoRD-Alg2] ===== Transfer scheduling: " << out.train_route.size() << " links =====\n";
-
-      auto collector_star_data_ingress_done = [&](int group_idx, int collector_block_id) -> bool {
-        for (size_t j = 0; j < out.train_route.size(); ++j)
-        {
-          const TrainLink &J = out.train_route[j];
-          if (J.kind != TrainLinkKind::STAR_DATA_TO_CENTER)
-            continue;
-          if (J.group_index != group_idx || J.dst_block_id != collector_block_id)
-            continue;
-          if (remaining[j] > 0)
-            return false;
-        }
-        return true;
-      };
-
-      auto link_needs_collector_ingress = [](const TrainLink &L) -> bool {
-        if (L.kind == TrainLinkKind::STAR_CENTER_TO_GLOBAL)
-          return true;
-        if (L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL && L.src_block_id >= 0)
-        {
-          // rack-local：src 为 data block，不依赖 collector ingress
-          return false;
-        }
-        return false;
-      };
-
-      auto link_eligible_for_step = [&](size_t i) -> bool {
-        const TrainLink &L = out.train_route[i];
-        if (link_needs_collector_ingress(L) &&
-            !collector_star_data_ingress_done(L.group_index, out.collector_block_id))
-          return false;
-        return true;
-      };
-
-      for (size_t li = 0; li < out.train_route.size(); ++li)
-        remaining.push_back(out.train_route[li].payload_bytes > 0 ? 1 : 0);
-
-      int ts = 0;
-      while (true)
-      {
-        bool any = false;
-        for (int x : remaining)
-        {
-          if (x > 0)
-          {
-            any = true;
-            break;
-          }
-        }
-        if (!any)
-          break;
-
-        Dinic din(nV, S, T);
-        for (int c = 0; c < C; ++c)
-          din.add_edge(S, 1 + c, tp.enforce_one_send_one_recv_per_cluster ? 1 : C, -1);
-        for (int c = 0; c < C; ++c)
-          din.add_edge(1 + C + c, T, tp.enforce_one_send_one_recv_per_cluster ? 1 : C, -1);
-
-        for (size_t i = 0; i < out.train_route.size(); ++i)
-        {
-          if (remaining[i] <= 0 || !link_eligible_for_step(i))
-            continue;
-          const TrainLink &L = out.train_route[i];
-          if (L.src_cluster < 0 || L.dst_cluster < 0 || L.src_cluster >= C || L.dst_cluster >= C)
-            continue;
-          din.add_edge(1 + L.src_cluster, 1 + C + L.dst_cluster, 1, static_cast<int>(i));
-        }
-
-        din.maxflow();
-        std::vector<int> used;
-        din.collect_used_links(C, used);
-        if (used.empty())
-        {
-          for (size_t i = 0; i < remaining.size(); ++i)
-          {
-            if (remaining[i] > 0 && link_eligible_for_step(i))
-            {
-              used.push_back(static_cast<int>(i));
-              break;
-            }
-          }
-        }
-
-        TimeslotEntry te;
-        te.timeslot = ts++;
-        te.link_indices = std::move(used);
-        for (int id : te.link_indices)
-        {
-          if (id >= 0 && id < static_cast<int>(remaining.size()) && remaining[id] > 0)
-            remaining[id]--;
-        }
-        out.timeslot_schedule.push_back(std::move(te));
-      }
-
-      std::cout << "[CoRD-Alg2] ===== Transfer scheduling done: total_steps=" << ts << " =====\n";
+      std::cout << "[CoRD-Alg2] train_route links=" << out.train_route.size()
+                << " (no timeslot/max-flow scheduling)\n";
       return out;
     }
   } // namespace cord_alg2

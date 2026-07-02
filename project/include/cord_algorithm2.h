@@ -22,8 +22,8 @@ namespace ECProject
       double same_cluster_latency_sec = 1e-4;
       double cross_cluster_latency_sec = 2e-3;
       double inv_bw_sec_per_byte = 1.0 / (100.0 * 1024.0 * 1024.0); // ~100 MiB/s
-      /** 是否在 Dinic 调度中强制「每 cluster 每步最多 1 发 + 1 收」（默认 true，保持原有约束） */
-      bool enforce_one_send_one_recv_per_cluster = true;
+      /** 数据块字节数；>0 时跨 cluster 传输整块（与更新区间大小无关） */
+      int64_t block_byte_size = 0;
     };
 
     enum class TrainLinkKind
@@ -58,16 +58,9 @@ namespace ECProject
       std::vector<int> parity_merge_data_block_ids;
     };
 
-    struct TimeslotEntry
-    {
-      int timeslot = 0;
-      std::vector<int> link_indices;
-    };
-
     struct Algorithm2Result
     {
       std::vector<TrainLink> train_route;
-      std::vector<TimeslotEntry> timeslot_schedule;
       /** 全局 collector：更新块最多的机架（cluster）中任选一更新 data block */
       int collector_block_id = -1;
       int center_global_block_id = -1; // 与 collector_block_id 相同（调试兼容）
@@ -80,7 +73,7 @@ namespace ECProject
      * - 所有更新块 STAR_DATA_TO_CENTER 发往 collector（同块跳过网络）
      * - collector 聚合后 STAR_CENTER_TO_GLOBAL 扇出至其余 global parity
      * - 各 cluster 内同 local group 更新块合并，STAR_CENTER_TO_LOCAL 发往 local parity（与全局路径可并行）
-     * 调度：STAR_CENTER_TO_GLOBAL 须等 collector ingress 收齐；rack-local STAR_CENTER_TO_LOCAL 无此依赖。
+     * 传输计划按 train_route 顺序直接下发，不做时隙/最大流调度；全局扇出由 proxy 侧等待 collector ingress 保证顺序。
      */
     Algorithm2Result build_algorithm2(
         const Stripe &stripe,

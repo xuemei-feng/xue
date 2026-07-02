@@ -425,24 +425,29 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     void fill_group_xor_hints_from_alg2(
         const cord_alg2::Algorithm2Result &alg2,
         const std::map<int, std::vector<std::pair<int, int>>> &block_intervals,
+        int block_size,
         proxy_proto::CordTransferPlan *plan)
     {
       plan->clear_group_xor_hints();
+      if (block_size <= 0)
+        return;
       if (alg2.collector_block_id >= 0)
       {
-        std::vector<int> ids;
+        bool any = false;
         const int kblk = plan->k_datablock();
         for (const auto &kv : block_intervals)
         {
           if (kv.first >= 0 && kv.first < kblk)
-            ids.push_back(kv.first);
+          {
+            any = true;
+            break;
+          }
         }
-        const int64_t m = cord_alg2::merged_delta_hull_span_bytes(block_intervals, ids);
-        if (m <= 0)
+        if (!any)
           return;
         proxy_proto::CordTransferGroupXorHint *h = plan->add_group_xor_hints();
         h->set_group_index(0);
-        h->set_xor_accum_byte_length(static_cast<uint64_t>(m));
+        h->set_xor_accum_byte_length(static_cast<uint64_t>(block_size));
         return;
       }
       std::map<int, std::set<int>> blocks_by_group;
@@ -517,7 +522,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       std::vector<int> order(static_cast<size_t>(n));
       std::iota(order.begin(), order.end(), 0);
-      /** 按算法二 Dinic 时隙顺序执行；全局校验扇出须等 collector ingress，rack-local 本地校验可并行。 */
+      /** 按 train_route 顺序排列 step；全局校验扇出由 proxy 等待 collector ingress 保证顺序。 */
       std::stable_sort(order.begin(), order.end(), [&](int a, int b) {
         const auto &sa = plan->steps(a);
         const auto &sb = plan->steps(b);
@@ -658,13 +663,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
     }
 
-    /** STAR_DATA 一次传 packed ΔD：ingest 从首段 lo 起连续写入 sum(seg.len)；ready 判定须用 lo+packed 而非 max(hi)。 */
+    /** 整块传输：有更新区间的块 ingress 缓冲长度为 block_size。 */
     static uint64_t cord_block_delta_ingress_buffer_end(
-        const std::map<int, std::vector<std::pair<int, int>>> &block_intervals, int block_id)
+        const std::map<int, std::vector<std::pair<int, int>>> &block_intervals, int block_id, int block_size)
     {
       auto it = block_intervals.find(block_id);
       if (it == block_intervals.end() || it->second.empty())
         return 0;
+      if (block_size > 0)
+        return static_cast<uint64_t>(block_size);
       int64_t packed = 0;
       for (const auto &seg : it->second)
         packed += static_cast<int64_t>(seg.second - seg.first);
@@ -672,65 +679,50 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return static_cast<uint64_t>(lo + packed);
     }
 
-    /** 将算法二的 train_route + timeslot_schedule 压平为 CordTransferPlan；每条链路一步传完 payload。 */
+    /** 将算法二的 train_route 直接压平为 CordTransferPlan；每条链路一步传完整 data block。 */
     proxy_proto::CordTransferPlan cord_transfer_plan_from_algorithm2(
         int stripe_id, const std::string &plan_key, const cord_alg2::Algorithm2Result &alg2, int k_datablock,
+        int block_size,
         const std::map<int, std::vector<std::pair<int, int>>> &block_intervals)
     {
+      (void)block_intervals;
       proxy_proto::CordTransferPlan plan;
       plan.set_stripe_id(stripe_id);
       plan.set_plan_key(plan_key);
-      plan.set_slot_unit_bytes(0);
+      plan.set_slot_unit_bytes(block_size);
       plan.set_k_datablock(k_datablock);
-      const auto &sched = alg2.timeslot_schedule;
-      plan.set_total_rounds(static_cast<uint32_t>(sched.size()));
+      plan.set_total_rounds(1);
       int step_idx = 0;
-      for (const auto &ts : sched)
+      for (const cord_alg2::TrainLink &L : alg2.train_route)
       {
-        const uint32_t sched_step = static_cast<uint32_t>(ts.timeslot);
-        for (int li : ts.link_indices)
-        {
-          if (li < 0 || li >= static_cast<int>(alg2.train_route.size()))
-            continue;
-          const cord_alg2::TrainLink &L = alg2.train_route[static_cast<size_t>(li)];
-          const int64_t full = std::max<int64_t>(0, L.payload_bytes);
-          if (full <= 0)
-            continue;
+        const int64_t full = std::max<int64_t>(0, L.payload_bytes);
+        if (full <= 0)
+          continue;
 
-          proxy_proto::CordTransferStep *st = plan.add_steps();
-          st->set_step_index(step_idx++);
-          st->set_src_proxy_cluster_id(L.src_cluster);
-          st->set_dst_proxy_cluster_id(L.dst_cluster);
-          st->set_src_block_id(L.src_block_id);
-          st->set_dst_block_id(L.dst_block_id);
-          st->set_payload_bytes(static_cast<uint64_t>(full));
-          st->set_link_kind(static_cast<proxy_proto::CordTransferLinkKind>(static_cast<int>(L.kind)));
-          st->set_scheduled_slot(sched_step);
-          st->set_depends_on_step_index(-1);
-          st->set_estimated_transfer_sec(L.est_transfer_sec);
-          st->set_group_index(L.group_index);
-          st->set_delta_payload_kind(L.delta_kind == cord_alg2::CordDeltaPayloadKind::PARITY_DELTA
-                                         ? proxy_proto::CORD_DELTA_PARITY
-                                         : proxy_proto::CORD_DELTA_DATA);
-          uint64_t chunk_off = 0;
-          if (L.kind == cord_alg2::TrainLinkKind::STAR_DATA_TO_CENTER &&
-              L.delta_kind == cord_alg2::CordDeltaPayloadKind::DATA_DELTA)
-          {
-            auto bit = block_intervals.find(L.src_block_id);
-            if (bit != block_intervals.end())
-              chunk_off = static_cast<uint64_t>(
-                  cord_packed_offset_to_logical_in_block(bit->second, 0));
-          }
-          st->set_chunk_byte_offset(chunk_off);
-          st->set_chunk_byte_length(static_cast<uint64_t>(full));
-          if (L.mst_origin_data_block >= 0)
-            st->set_mst_origin_data_block_id(L.mst_origin_data_block);
-          else
-            st->clear_mst_origin_data_block_id();
-          st->clear_parity_merge_data_block_ids();
-          for (int pb : L.parity_merge_data_block_ids)
-            st->add_parity_merge_data_block_ids(pb);
-        }
+        proxy_proto::CordTransferStep *st = plan.add_steps();
+        st->set_step_index(step_idx++);
+        st->set_src_proxy_cluster_id(L.src_cluster);
+        st->set_dst_proxy_cluster_id(L.dst_cluster);
+        st->set_src_block_id(L.src_block_id);
+        st->set_dst_block_id(L.dst_block_id);
+        st->set_payload_bytes(static_cast<uint64_t>(full));
+        st->set_link_kind(static_cast<proxy_proto::CordTransferLinkKind>(static_cast<int>(L.kind)));
+        st->set_scheduled_slot(0);
+        st->set_depends_on_step_index(-1);
+        st->set_estimated_transfer_sec(L.est_transfer_sec);
+        st->set_group_index(L.group_index);
+        st->set_delta_payload_kind(L.delta_kind == cord_alg2::CordDeltaPayloadKind::PARITY_DELTA
+                                       ? proxy_proto::CORD_DELTA_PARITY
+                                       : proxy_proto::CORD_DELTA_DATA);
+        st->set_chunk_byte_offset(0);
+        st->set_chunk_byte_length(static_cast<uint64_t>(full));
+        if (L.mst_origin_data_block >= 0)
+          st->set_mst_origin_data_block_id(L.mst_origin_data_block);
+        else
+          st->clear_mst_origin_data_block_id();
+        st->clear_parity_merge_data_block_ids();
+        for (int pb : L.parity_merge_data_block_ids)
+          st->add_parity_merge_data_block_ids(pb);
       }
       return plan;
     }
@@ -1905,48 +1897,37 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     const int block_size = static_cast<int>(m_sys_config->BlockSize);
     int global_lo = std::numeric_limits<int>::max();
     int global_hi_excl = std::numeric_limits<int>::min();
+    bool any_updated = false;
     for (const auto &kv : block_intervals)
     {
       const int bid = kv.first;
       if (bid < 0 || bid >= k)
         continue;
-      for (const auto &seg : kv.second)
-      {
-        const int lo = bid * block_size + seg.first;
-        const int hi_excl = bid * block_size + seg.second;
-        global_lo = std::min(global_lo, lo);
-        global_hi_excl = std::max(global_hi_excl, hi_excl);
-      }
+      any_updated = true;
+      global_lo = std::min(global_lo, bid * block_size);
+      global_hi_excl = std::max(global_hi_excl, (bid + 1) * block_size);
     }
-    if (global_lo >= global_hi_excl)
+    if (!any_updated || global_lo >= global_hi_excl)
       return;
-    const int append_size = global_hi_excl - global_lo;
-    std::map<int, std::pair<int, int>> b2s;
-    int ps = 0, po = 0;
-    bool merge = false;
-    std::string err;
-    if (!build_slice_plan_for_logical_range(stripe, global_lo, append_size, &b2s, &ps, &po, &merge, &err))
-    {
-      std::cout << "[CoRD] enrich_cord_transfer_plan_encoding build_slice failed: " << err << std::endl;
-      return;
-    }
+    (void)global_lo;
+    (void)global_hi_excl;
     proxy_proto::CordTransferEncodeMeta *meta = plan->mutable_cord_encode_meta();
     meta->set_encode_type(static_cast<int32_t>(m_encode_parameters.encodetype));
     meta->set_k(stripe->k);
     meta->set_g_m(stripe->g_m);
     meta->set_l(stripe->l);
-    meta->set_parity_slice_offset(po);
-    meta->set_parity_slice_size(ps);
+    meta->set_parity_slice_offset(0);
+    meta->set_parity_slice_size(block_size);
 
-    for (const auto &kv : b2s)
+    for (const auto &kv : block_intervals)
     {
       const int bid = kv.first;
       if (bid < 0 || bid >= k)
         continue;
       proxy_proto::CordDataStripDesc *d = plan->add_cord_data_strip_descs();
       d->set_block_id(bid);
-      d->set_slice_offset(kv.second.second);
-      d->set_slice_len(kv.second.first);
+      d->set_slice_offset(0);
+      d->set_slice_len(block_size);
     }
 
     std::map<std::pair<int, int>, std::map<int, uint64_t>> coll_agg;
@@ -1958,7 +1939,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         const int bid = kv.first;
         if (bid < 0 || bid >= k)
           continue;
-        const uint64_t ext = cord_block_delta_ingress_buffer_end(block_intervals, bid);
+        const uint64_t ext = cord_block_delta_ingress_buffer_end(block_intervals, bid, block_size);
         if (ext > 0)
           m[bid] = ext;
       }
@@ -1972,7 +1953,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         if (L.delta_kind != cord_alg2::CordDeltaPayloadKind::DATA_DELTA)
           continue;
         const std::pair<int, int> key(L.group_index, L.dst_block_id);
-        const uint64_t ext = cord_block_delta_ingress_buffer_end(block_intervals, L.src_block_id);
+        const uint64_t ext = cord_block_delta_ingress_buffer_end(block_intervals, L.src_block_id, block_size);
         auto &m = coll_agg[key];
         auto it = m.find(L.src_block_id);
         if (it == m.end() || ext > it->second)
@@ -2229,7 +2210,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     cord_alg2::Algorithm2Result alg2_result;
     {
       cord_alg2::TransferParams tp;
-      tp.enforce_one_send_one_recv_per_cluster = false;
+      tp.block_byte_size = block_size;
       std::vector<std::vector<int>> all_as_one;
       all_as_one.push_back({});
       for (const auto &kv : block_intervals)
@@ -2252,19 +2233,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                   << (L.mst_origin_data_block >= 0 ? " mst_origin=" + std::to_string(L.mst_origin_data_block) : "")
                   << "\n";
       }
-      std::cout << "[CoRD] Algorithm 2 schedule_steps=" << alg2_result.timeslot_schedule.size();
+      std::cout << "[CoRD] Algorithm 2 train_route links=" << alg2_result.train_route.size();
       if (alg2_result.collector_block_id >= 0)
         std::cout << " collector_blk=" << alg2_result.collector_block_id;
-      std::cout << "\n";
-      for (const auto &ts : alg2_result.timeslot_schedule)
-      {
-        std::cout << "  step " << ts.timeslot << ": links=[";
-        for (size_t li = 0; li < ts.link_indices.size(); ++li) {
-          if (li > 0) std::cout << " ";
-          std::cout << ts.link_indices[li];
-        }
-        std::cout << "]  (concurrent transfers within this step)\n";
-      }
+      std::cout << " (direct plan, no timeslot scheduling)\n";
     }
 
     proxy_proto::CordTransferPlan cord_xfer_plan;
@@ -2275,11 +2247,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                                               std::chrono::steady_clock::now().time_since_epoch())
                                               .count());
       cord_xfer_plan = cord_transfer_plan_from_algorithm2(stripe_id, cord_xfer_plan_key, alg2_result, stripe->k,
-                                                            block_intervals);
+                                                            block_size, block_intervals);
       std::cout << "[CoRD] CordTransferPlan: steps=" << cord_xfer_plan.steps_size()
-                << " schedule_steps=" << cord_xfer_plan.total_rounds() << "\n";
+                << " schedule_steps=" << cord_xfer_plan.total_rounds()
+                << " full_block_bytes=" << block_size << "\n";
       enrich_cord_transfer_plan_delta_segs(block_intervals, stripe->k, &cord_xfer_plan);
-      fill_group_xor_hints_from_alg2(alg2_result, block_intervals, &cord_xfer_plan);
+      fill_group_xor_hints_from_alg2(alg2_result, block_intervals, block_size, &cord_xfer_plan);
       enrich_cord_transfer_plan_encoding(stripe, block_intervals, alg2_result, &cord_xfer_plan);
       enrich_cord_transfer_plan_block_stripe_groups(stripe, &cord_xfer_plan);
       enrich_cord_transfer_plan_step_parity_filters(stripe, &cord_xfer_plan);
