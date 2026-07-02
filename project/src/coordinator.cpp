@@ -2544,6 +2544,22 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       // }
       (void)pkey;
     }
+    for (int cid : clusters)
+    {
+      if (cid < 0)
+        continue;
+      auto cit = m_cluster_table.find(cid);
+      if (cit == m_cluster_table.end())
+        continue;
+      const std::string pkey = cit->second.proxy_ip + ":" + std::to_string(cit->second.proxy_port);
+      auto pit = m_proxy_ptrs.find(pkey);
+      if (pit == m_proxy_ptrs.end() || !pit->second)
+        continue;
+      grpc::ClientContext ctx;
+      proxy_proto::SetReply rep;
+      (void)pit->second->cordPlanJoinExecution(&ctx, msg, &rep);
+      (void)pkey;
+    }
     {
       std::lock_guard<std::mutex> lk(m_cord_pending_mu);
       m_cord_pending_plan_clusters.erase(pk);

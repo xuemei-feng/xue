@@ -140,6 +140,8 @@ namespace ECProject
   static std::map<std::string, std::vector<uint8_t>> g_cord_mst_stream;
   static std::map<std::string, std::vector<uint8_t>> g_cord_collector_block_delta;
   static std::map<std::string, std::vector<std::vector<uint8_t>>> g_cord_collector_parity_coded;
+  /** 全局串行 barrier：plan_key -> 已完成的最大 step_index（存于 collector cluster proxy）。 */
+  static std::map<std::string, int> g_cord_plan_global_step_done;
   static std::mutex g_cord_plan_reg_mu;
   static std::map<std::string, std::shared_ptr<const proxy_proto::CordTransferPlan>> g_cord_plans_by_key;
   static std::mutex g_cord_plan_exec_mu;
@@ -571,11 +573,18 @@ namespace ECProject
     return et == static_cast<int>(Azure_LRC) || et == static_cast<int>(Optimal_Cauchy_LRC);
   }
 
+  /** 本 proxy 执行线程结束时仅清理本地 MST 中继缓冲（不影响其它集群仍在查询的 barrier/collector 状态）。 */
+  static void cord_xfer_cleanup_local_mst_runtime(const std::string &plan_key)
+  {
+    std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+    g_cord_mst_stream.erase(plan_key);
+  }
+
   /**
-   * plan 线程结束时清理 MST、收集器 XOR、矩阵路径缓冲。
-   * 注意：不得在此处 erase g_cord_plans_by_key。收集器上的本地步骤往往先跑完，若删掉注册表，
-   * 其它集群发来的 cordPlanCollectorIngestDataDelta 仍会到达并依赖 cord_lookup_registered_plan；
-   * 注册项保留至本进程内下一次 scheduleCordTransferPlan 覆盖同 plan_key（一般为新传输）。
+   * 全 plan 运行时状态清理（barrier、收集器 XOR、矩阵缓冲等）。
+   * 须在 coordinator 全部 cordPlanJoinExecution 完成后再调用；不得在单 cluster 执行线程结束时调用，
+   * 否则 barrier 集群先跑完会 erase g_cord_plan_global_step_done，其它集群 GLOBAL_STEP_QUERY 永远失败。
+   * 注意：不得在此处 erase g_cord_plans_by_key。
    */
   static void cord_xfer_cleanup_xfer_plan(const std::string &plan_key)
   {
@@ -603,6 +612,7 @@ namespace ECProject
         else
           ++it;
       }
+      g_cord_plan_global_step_done.erase(plan_key);
     }
     cord_pure_xfer_erase_tracker(plan_key);
   }
@@ -915,6 +925,8 @@ namespace ECProject
     CORD_XFER_TCP_PARITY_XOR = 2,
     CORD_XFER_TCP_MST_CHUNK = 3,
     CORD_XFER_TCP_COLLECTOR_INGRESS_READY = 4,
+    CORD_XFER_TCP_GLOBAL_STEP_DONE = 5,
+    CORD_XFER_TCP_GLOBAL_STEP_QUERY = 6,
   };
 
   static bool cord_tcp_xfer_send(const std::string &dst_ip, int dst_grpc_port, uint32_t kind,
@@ -948,6 +960,107 @@ namespace ECProject
         return st.src_proxy_cluster_id();
     }
     return -1;
+  }
+
+  static int cord_plan_barrier_cluster_id(const proxy_proto::CordTransferPlan &plan)
+  {
+    const int collector_blk = cord_plan_collector_block_id(plan, 0);
+    if (collector_blk >= 0)
+    {
+      const int cc = cord_plan_collector_cluster_id(plan, collector_blk);
+      if (cc >= 0)
+        return cc;
+    }
+    if (plan.steps_size() > 0)
+      return plan.steps(0).src_proxy_cluster_id();
+    return -1;
+  }
+
+  static int cord_global_step_done_locked(const std::string &plan_key)
+  {
+    auto it = g_cord_plan_global_step_done.find(plan_key);
+    if (it == g_cord_plan_global_step_done.end())
+      return -1;
+    return it->second;
+  }
+
+  static void cord_mark_global_step_done_locked(const std::string &plan_key, int step_index)
+  {
+    int &v = g_cord_plan_global_step_done[plan_key];
+    v = std::max(v, step_index);
+  }
+
+  static bool cord_global_step_barrier_query(const proxy_proto::CordTransferPlan &plan, int barrier_cc,
+                                             int min_step_index)
+  {
+    if (min_step_index < 0)
+      return true;
+    std::string dip;
+    int dport = 0;
+    if (!cord_lookup_cluster_endpoint(plan, barrier_cc, &dip, &dport))
+      return false;
+    proxy_proto::CordPlanCollectorIngestReq req;
+    req.set_plan_key(plan.plan_key());
+    req.set_group_index(min_step_index);
+    std::string meta;
+    req.SerializeToString(&meta);
+    return cord_tcp_xfer_send(dip, dport, CORD_XFER_TCP_GLOBAL_STEP_QUERY, meta, nullptr, 0);
+  }
+
+  static void cord_report_global_step_done(const proxy_proto::CordTransferPlan &plan, int self_cluster_id,
+                                           int barrier_cc, int step_index)
+  {
+    if (barrier_cc < 0)
+      return;
+    if (self_cluster_id == barrier_cc)
+    {
+      std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+      cord_mark_global_step_done_locked(plan.plan_key(), step_index);
+      return;
+    }
+    std::string dip;
+    int dport = 0;
+    if (!cord_lookup_cluster_endpoint(plan, barrier_cc, &dip, &dport))
+      return;
+    proxy_proto::CordPlanCollectorIngestReq req;
+    req.set_plan_key(plan.plan_key());
+    req.set_group_index(step_index);
+    std::string meta;
+    req.SerializeToString(&meta);
+    (void)cord_tcp_xfer_send(dip, dport, CORD_XFER_TCP_GLOBAL_STEP_DONE, meta, nullptr, 0);
+  }
+
+  static bool cord_spin_until_global_step_at_least(const proxy_proto::CordTransferPlan &plan, int self_cluster_id,
+                                                   int barrier_cc, int min_step_index)
+  {
+    if (min_step_index < 0)
+      return true;
+    int spins = 0;
+    while (true)
+    {
+      if (barrier_cc >= 0 && self_cluster_id == barrier_cc)
+      {
+        std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+        if (cord_global_step_done_locked(plan.plan_key()) >= min_step_index)
+          return true;
+      }
+      else if (barrier_cc >= 0)
+      {
+        if (cord_global_step_barrier_query(plan, barrier_cc, min_step_index))
+          return true;
+      }
+      else
+      {
+        return false;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      if (++spins > 120000)
+      {
+        std::cout << "[CoRD-PLAN] global step barrier timeout plan=" << plan.plan_key()
+                  << " need_step>=" << min_step_index << std::endl;
+        return false;
+      }
+    }
   }
 
   /** 等待收集器上 plan 期望的数据增量（可按 parity_ingest_stripe_group 过滤）到齐。 */
@@ -1522,8 +1635,8 @@ namespace ECProject
   }
 
   /**
-   * 按 scheduled_slot、step_index 顺序串行执行本 cluster 作为 sender 的各 step。
-   * slot0=DATA→collector，slot1=校验扇出（含本地校验）；本地/全局校验须等 collector 收齐全部 ΔD。
+   * 全局按 step_index 串行：各 cluster proxy 同步逐步执行，barrier 状态由 collector cluster 持有。
+   * slot0=DATA→collector，slot1=校验扇出；本地/全局校验须等 collector 收齐全部 ΔD。
    * N>1：STAR 数据增量 -> TCP CRDX collector ingest；收集器再发 TCP parity xor。
    * N=1 MST：全程数据增量 TCP CRDX mst chunk（校验侧矩阵编码或 XOR）。
    * MST 中继读 relay_buffer 前 spin-wait 前继 hop 写入（与 STAR collector ingress 同理）。
@@ -2048,44 +2161,55 @@ namespace ECProject
         return stats;
       };
 
-      std::vector<int> local_steps;
-      local_steps.reserve(static_cast<size_t>(plan.steps_size()));
-      for (int si = 0; si < plan.steps_size(); ++si)
-      {
-        if (plan.steps(si).src_proxy_cluster_id() == self_cluster_id)
-          local_steps.push_back(si);
-      }
-      std::sort(local_steps.begin(), local_steps.end(), [&](int a, int b) {
-        const auto &sa = plan.steps(a);
-        const auto &sb = plan.steps(b);
-        if (sa.scheduled_slot() != sb.scheduled_slot())
-          return sa.scheduled_slot() < sb.scheduled_slot();
-        return sa.step_index() < sb.step_index();
-      });
-
       auto merge_step_stats = [&](const CordStepRunStats &s) {
         executed_steps += s.executed;
         skipped_steps += s.skipped;
         failed_steps += s.failed;
       };
 
-      for (int si : local_steps)
+      const int barrier_cc = cord_plan_barrier_cluster_id(plan);
+      if (barrier_cc >= 0 && self_cluster_id == barrier_cc)
       {
-        const auto &st = plan.steps(si);
+        std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+        if (g_cord_plan_global_step_done.find(plan.plan_key()) == g_cord_plan_global_step_done.end())
+          g_cord_plan_global_step_done[plan.plan_key()] = -1;
+      }
+
+      for (int g = 0; g < plan.steps_size(); ++g)
+      {
+        const proxy_proto::CordTransferStep &st = plan.steps(g);
+        if (g > 0)
+        {
+          if (!cord_spin_until_global_step_at_least(plan, self_cluster_id, barrier_cc, g - 1))
+          {
+            plan_log_both_sync("FAIL global barrier before step=" + std::to_string(g));
+            failed_steps++;
+            break;
+          }
+        }
+        if (st.src_proxy_cluster_id() == self_cluster_id)
         {
           std::ostringstream os;
-          os << "SERIAL step=" << st.step_index() << " slot=" << st.scheduled_slot()
+          os << "GLOBAL_SERIAL step=" << g << " slot=" << st.scheduled_slot()
+             << " c" << st.src_proxy_cluster_id() << "→c" << st.dst_proxy_cluster_id()
              << " link=" << cord_transfer_link_kind_name(st.link_kind());
           plan_log_sync(os.str());
+          merge_step_stats(cord_run_one_local_step(g));
+          cord_report_global_step_done(plan, self_cluster_id, barrier_cc, g);
         }
-        merge_step_stats(cord_run_one_local_step(si));
+        if (!cord_spin_until_global_step_at_least(plan, self_cluster_id, barrier_cc, g))
+        {
+          plan_log_both_sync("FAIL global barrier after step=" + std::to_string(g));
+          failed_steps++;
+          break;
+        }
       }
 
 
       const auto sender_loop_done = std::chrono::steady_clock::now();
       const auto sender_wall_done = std::chrono::system_clock::now();
       cord_pure_xfer_log_after_sender_loop(plan.plan_key(), proxy_tag, sender_loop_done, sender_wall_done);
-      cord_xfer_cleanup_xfer_plan(plan.plan_key());
+      cord_xfer_cleanup_local_mst_runtime(plan.plan_key());
       const auto wall_t1 = std::chrono::steady_clock::now();
       const double wall_sec = std::chrono::duration<double>(wall_t1 - wall_t0).count();
       plan_log_both("══════ CordTransferPlan EXECUTION DONE ══════");
@@ -2203,6 +2327,27 @@ namespace ECProject
             std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
             ok = cord_collector_ingress_ready_locked(*pl, req.group_index(), req.collector_block_id(), -1);
           }
+        }
+        break;
+      }
+      case CORD_XFER_TCP_GLOBAL_STEP_DONE:
+      {
+        proxy_proto::CordPlanCollectorIngestReq req;
+        if (req.ParseFromString(meta))
+        {
+          std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+          cord_mark_global_step_done_locked(req.plan_key(), req.group_index());
+          ok = true;
+        }
+        break;
+      }
+      case CORD_XFER_TCP_GLOBAL_STEP_QUERY:
+      {
+        proxy_proto::CordPlanCollectorIngestReq req;
+        if (req.ParseFromString(meta))
+        {
+          std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+          ok = cord_global_step_done_locked(req.plan_key()) >= req.group_index();
         }
         break;
       }
@@ -3144,6 +3289,8 @@ namespace ECProject
       auto it = g_cord_plan_exec_threads.find(pk);
       if (it == g_cord_plan_exec_threads.end())
       {
+        // Coordinator 全部 join 完成后的二次调用：释放 barrier/collector 等共享运行时状态。
+        cord_xfer_cleanup_xfer_plan(pk);
         response->set_ifcommit(true);
         return grpc::Status::OK;
       }

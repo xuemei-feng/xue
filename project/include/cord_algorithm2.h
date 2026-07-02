@@ -73,7 +73,7 @@ namespace ECProject
      * - 所有更新块 STAR_DATA_TO_CENTER 发往 collector（同块跳过网络）
      * - collector 聚合后 STAR_CENTER_TO_GLOBAL 扇出至其余 global parity
      * - 各 cluster 内同 local group 更新块合并，STAR_CENTER_TO_LOCAL 发往 local parity（须等 collector 收齐全部 ΔD）
-     * 传输计划分两阶段串行：slot0=DATA→collector，slot1=校验扇出（含本地校验）；proxy 逐步顺序执行。
+     * 传输计划分两阶段、全局 step 串行：slot0=DATA→collector，slot1=校验扇出；barrier 由 collector cluster 协调。
      */
     Algorithm2Result build_algorithm2(
         const Stripe &stripe,
