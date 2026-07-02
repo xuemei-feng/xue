@@ -2,7 +2,7 @@
 [ -n "${BASH_VERSION:-}" ] || exec bash "$0" "$@"
 set -euo pipefail
 
-ROOT_DIR="/users/xue/xue"
+ROOT_DIR="/root/xue"
 USER="root"
 REMOTE_COMMAND="cd $ROOT_DIR && bash kill_all.sh"
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o BatchMode=yes -o ConnectTimeout=10"

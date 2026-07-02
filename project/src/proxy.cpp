@@ -571,11 +571,18 @@ namespace ECProject
     return et == static_cast<int>(Azure_LRC) || et == static_cast<int>(Optimal_Cauchy_LRC);
   }
 
+  /** 本 proxy 执行线程结束时仅清理本地 MST 中继缓冲（不影响其它集群仍在使用的 collector 状态）。 */
+  static void cord_xfer_cleanup_local_mst_runtime(const std::string &plan_key)
+  {
+    std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+    g_cord_mst_stream.erase(plan_key);
+  }
+
   /**
-   * plan 线程结束时清理 MST、收集器 XOR、矩阵路径缓冲。
-   * 注意：不得在此处 erase g_cord_plans_by_key。收集器上的本地步骤往往先跑完，若删掉注册表，
-   * 其它集群发来的 cordPlanCollectorIngestDataDelta 仍会到达并依赖 cord_lookup_registered_plan；
-   * 注册项保留至本进程内下一次 scheduleCordTransferPlan 覆盖同 plan_key（一般为新传输）。
+   * 全 plan 运行时状态清理（收集器 XOR、矩阵缓冲等）。
+   * 须在 coordinator 全部 cordPlanJoinExecution 完成后再调用；不得在单 cluster 执行线程结束时调用，
+   * 否则先跑完的 cluster 会 erase 共享 collector 缓冲，collector cluster 上 matrix encode 仍进行时读到空/脏数据。
+   * 注意：不得在此处 erase g_cord_plans_by_key。
    */
   static void cord_xfer_cleanup_xfer_plan(const std::string &plan_key)
   {
@@ -1042,12 +1049,26 @@ namespace ECProject
     if (g_cord_collector_parity_coded.count(ck))
       return true;
     const auto &meta = plan.cord_encode_meta();
+    if (!plan.has_cord_encode_meta())
+    {
+      std::cerr << "[CoRD-PLAN] matrix encode skipped: missing cord_encode_meta plan=" << plan.plan_key()
+                << std::endl;
+      return false;
+    }
     const int k = meta.k();
+    const int gm = meta.g_m();
+    const int lv = meta.l();
     const int ps = meta.parity_slice_size();
     const int po = meta.parity_slice_offset();
+    if (k <= 0 || ps <= 0 || gm < 0 || lv < 0 || gm + lv <= 0 || gm + lv > 64)
+    {
+      std::cerr << "[CoRD-PLAN] matrix encode skipped: bad_meta plan=" << plan.plan_key() << " k=" << k
+                << " g_m=" << gm << " l=" << lv << " ps=" << ps << std::endl;
+      return false;
+    }
     std::cout << "[CoRD-PLAN][COLLECTOR_ENCODE_BEGIN] plan=" << plan.plan_key() << " grp=" << group
               << " col_blk=" << collector_block_id << " pig=" << parity_ingest_stripe_group << " k=" << k
-              << " ps=" << ps << " po=" << po << std::endl;
+              << " g_m=" << gm << " l=" << lv << " ps=" << ps << " po=" << po << std::endl;
     std::vector<std::vector<char>> strips;
     try
     {
@@ -1087,7 +1108,7 @@ namespace ECProject
     }
     std::vector<std::vector<uint8_t>> coded;
     const ECProject::EncodeType et = static_cast<ECProject::EncodeType>(meta.encode_type());
-    if (!cord_matrix_encode_strips(k, meta.g_m(), meta.l(), et, ps, strips, &coded))
+    if (!cord_matrix_encode_strips(k, gm, lv, et, ps, strips, &coded))
     {
       std::cout << "[CoRD-PLAN] matrix encode failed" << std::endl;
       return false;
@@ -2085,7 +2106,7 @@ namespace ECProject
       const auto sender_loop_done = std::chrono::steady_clock::now();
       const auto sender_wall_done = std::chrono::system_clock::now();
       cord_pure_xfer_log_after_sender_loop(plan.plan_key(), proxy_tag, sender_loop_done, sender_wall_done);
-      cord_xfer_cleanup_xfer_plan(plan.plan_key());
+      cord_xfer_cleanup_local_mst_runtime(plan.plan_key());
       const auto wall_t1 = std::chrono::steady_clock::now();
       const double wall_sec = std::chrono::duration<double>(wall_t1 - wall_t0).count();
       plan_log_both("══════ CordTransferPlan EXECUTION DONE ══════");
@@ -3144,6 +3165,8 @@ namespace ECProject
       auto it = g_cord_plan_exec_threads.find(pk);
       if (it == g_cord_plan_exec_threads.end())
       {
+        // Coordinator 全部 join 完成后的二次调用：释放 collector 等共享运行时状态。
+        cord_xfer_cleanup_xfer_plan(pk);
         response->set_ifcommit(true);
         return grpc::Status::OK;
       }
