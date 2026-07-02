@@ -72,8 +72,8 @@ namespace ECProject
      *   cluster 上的 global 块数，取更大一侧：更新侧 collector 为最小更新块，global 侧为最小 global 块。
      * - 所有更新块 STAR_DATA_TO_CENTER 发往 collector（同块跳过网络）
      * - collector 聚合后 STAR_CENTER_TO_GLOBAL 扇出至其余 global parity
-     * - 各 cluster 内同 local group 更新块合并，STAR_CENTER_TO_LOCAL 发往 local parity（与全局路径可并行）
-     * 传输计划按 train_route 顺序直接下发，不做时隙/最大流调度；全局扇出由 proxy 侧等待 collector ingress 保证顺序。
+     * - 各 cluster 内同 local group 更新块合并，STAR_CENTER_TO_LOCAL 发往 local parity（须等 collector 收齐全部 ΔD）
+     * 传输计划分两阶段串行：slot0=DATA→collector，slot1=校验扇出（含本地校验）；proxy 逐步顺序执行。
      */
     Algorithm2Result build_algorithm2(
         const Stripe &stripe,

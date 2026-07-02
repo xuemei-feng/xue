@@ -909,20 +909,79 @@ namespace ECProject
   static void cord_seed_collector_local_ingress(ProxyImpl *proxy, const proxy_proto::CordTransferPlan &plan,
                                                 int self_cluster_id);
 
+  enum CordXferTcpKind : uint32_t
+  {
+    CORD_XFER_TCP_COLLECTOR_INGEST = 1,
+    CORD_XFER_TCP_PARITY_XOR = 2,
+    CORD_XFER_TCP_MST_CHUNK = 3,
+    CORD_XFER_TCP_COLLECTOR_INGRESS_READY = 4,
+  };
+
+  static bool cord_tcp_xfer_send(const std::string &dst_ip, int dst_grpc_port, uint32_t kind,
+                                 const std::string &meta, const void *payload, size_t payload_len,
+                                 uint64_t xfer_tag = 0);
+
+  static int cord_plan_collector_block_id(const proxy_proto::CordTransferPlan &plan, int group_index)
+  {
+    for (int i = 0; i < plan.cord_collector_expects_size(); ++i)
+    {
+      if (plan.cord_collector_expects(i).group_index() == group_index)
+        return plan.cord_collector_expects(i).collector_block_id();
+    }
+    return -1;
+  }
+
+  static int cord_plan_collector_cluster_id(const proxy_proto::CordTransferPlan &plan, int collector_block_id)
+  {
+    for (int i = 0; i < plan.steps_size(); ++i)
+    {
+      const auto &st = plan.steps(i);
+      if (st.link_kind() == proxy_proto::CORD_TRANSFER_STAR_DATA_TO_CENTER &&
+          st.dst_block_id() == collector_block_id)
+        return st.dst_proxy_cluster_id();
+    }
+    for (int i = 0; i < plan.steps_size(); ++i)
+    {
+      const auto &st = plan.steps(i);
+      if (st.link_kind() == proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_GLOBAL &&
+          st.src_block_id() == collector_block_id)
+        return st.src_proxy_cluster_id();
+    }
+    return -1;
+  }
+
   /** 等待收集器上 plan 期望的数据增量（可按 parity_ingest_stripe_group 过滤）到齐。 */
   static bool cord_spin_until_collector_ingress_ready(ProxyImpl *proxy, const proxy_proto::CordTransferPlan &plan,
                                                       int self_cluster_id, int group, int collector_block_id,
                                                       int parity_ingest_stripe_group)
   {
+    const int collector_cc = cord_plan_collector_cluster_id(plan, collector_block_id);
     int spins = 0;
     while (true)
     {
-      if (proxy != nullptr)
+      if (proxy != nullptr && (collector_cc < 0 || self_cluster_id == collector_cc))
         cord_seed_collector_local_ingress(proxy, plan, self_cluster_id);
+      if (collector_cc < 0 || self_cluster_id == collector_cc)
       {
         std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
         if (cord_collector_ingress_ready_locked(plan, group, collector_block_id, parity_ingest_stripe_group))
           return true;
+      }
+      else
+      {
+        std::string dip;
+        int dport = 0;
+        if (cord_lookup_cluster_endpoint(plan, collector_cc, &dip, &dport))
+        {
+          proxy_proto::CordPlanCollectorIngestReq req;
+          req.set_plan_key(plan.plan_key());
+          req.set_group_index(group);
+          req.set_collector_block_id(collector_block_id);
+          std::string meta;
+          req.SerializeToString(&meta);
+          if (cord_tcp_xfer_send(dip, dport, CORD_XFER_TCP_COLLECTOR_INGRESS_READY, meta, nullptr, 0))
+            return true;
+        }
       }
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
       if (++spins > 120000)
@@ -1039,16 +1098,7 @@ namespace ECProject
 
   // =========================================================================
   // CoRD proxy↔proxy delta TCP side channel (payload); gRPC reserved for control/metadata.
-  // Frame: magic "CRDX" | xfer_tag u64 BE | kind u32 BE | meta_len u32 BE | meta bytes | payload_len u64 BE | payload | ack u8
-  // 每连接一帧；xfer_tag 用于并发连接日志关联与调试（meta 内 plan_key/step 仍作业务校验）。
   static std::atomic<uint64_t> g_cord_crdx_next_tag{1};
-  // =========================================================================
-  enum CordXferTcpKind : uint32_t
-  {
-    CORD_XFER_TCP_COLLECTOR_INGEST = 1,
-    CORD_XFER_TCP_PARITY_XOR = 2,
-    CORD_XFER_TCP_MST_CHUNK = 3,
-  };
 
   static int cord_peer_xfer_tcp_port(int grpc_proxy_port)
   {
@@ -1216,7 +1266,7 @@ namespace ECProject
     }
   }
 
-  /** 分机架本地校验：从本 cluster delta blob 合并 parity_merge 子集，不依赖 collector ingress。 */
+  /** 分机架本地校验：从本 cluster delta blob 合并 parity_merge 子集；执行前须等 collector 收齐全部 ΔD。 */
   static bool cord_rack_local_xor_parity_chunk(ProxyImpl *proxy, const proxy_proto::CordTransferPlan &plan,
                                                int self_cluster_id,
                                                const proxy_proto::CordTransferStep &parity_st, uint64_t chunk_off,
@@ -1441,7 +1491,7 @@ namespace ECProject
 
   static bool cord_tcp_xfer_send(const std::string &dst_ip, int dst_grpc_port, uint32_t kind,
                                  const std::string &meta, const void *payload, size_t payload_len,
-                                 uint64_t xfer_tag = 0)
+                                 uint64_t xfer_tag)
   {
     if (xfer_tag == 0)
       xfer_tag = g_cord_crdx_next_tag.fetch_add(1, std::memory_order_relaxed);
@@ -1472,8 +1522,8 @@ namespace ECProject
   }
 
   /**
-   * 按 train_route 下发步骤执行：同 cluster 作为 sender 的步骤并行（MST 中继读 relay 除外）。
-   * 全局校验扇出由 collector ingress spin-wait 保证晚于数据增量到达。
+   * 按 scheduled_slot、step_index 顺序串行执行本 cluster 作为 sender 的各 step。
+   * slot0=DATA→collector，slot1=校验扇出（含本地校验）；本地/全局校验须等 collector 收齐全部 ΔD。
    * N>1：STAR 数据增量 -> TCP CRDX collector ingest；收集器再发 TCP parity xor。
    * N=1 MST：全程数据增量 TCP CRDX mst chunk（校验侧矩阵编码或 XOR）。
    * MST 中继读 relay_buffer 前 spin-wait 前继 hop 写入（与 STAR collector ingress 同理）。
@@ -1713,6 +1763,18 @@ namespace ECProject
 
           if (rack_local_parity)
           {
+            const int collector_blk = cord_plan_collector_block_id(plan, st.group_index());
+            if (collector_blk >= 0)
+            {
+              if (!cord_spin_until_collector_ingress_ready(proxy, plan, self_cluster_id, st.group_index(),
+                                                             collector_blk, -1))
+              {
+                plan_log_both_sync("FAIL RACK_TO_LOCAL collector ingress_timeout collector_blk=" +
+                             std::to_string(collector_blk) + " step=" + std::to_string(st.step_index()));
+                stats.failed = 1;
+                return stats;
+              }
+            }
             cord_rack_local_xor_parity_chunk(proxy, plan, self_cluster_id, st, st.chunk_byte_offset(), chunk_len,
                                              buf.data());
             filled = true;
@@ -1986,22 +2048,20 @@ namespace ECProject
         return stats;
       };
 
-      std::vector<uint32_t> slot_order;
-      std::map<uint32_t, std::vector<int>> steps_by_slot;
-      uint32_t last_slot = std::numeric_limits<uint32_t>::max();
+      std::vector<int> local_steps;
+      local_steps.reserve(static_cast<size_t>(plan.steps_size()));
       for (int si = 0; si < plan.steps_size(); ++si)
       {
-        const auto &st = plan.steps(si);
-        if (st.src_proxy_cluster_id() != self_cluster_id)
-          continue;
-        const uint32_t sl = st.scheduled_slot();
-        steps_by_slot[sl].push_back(si);
-        if (sl != last_slot)
-        {
-          slot_order.push_back(sl);
-          last_slot = sl;
-        }
+        if (plan.steps(si).src_proxy_cluster_id() == self_cluster_id)
+          local_steps.push_back(si);
       }
+      std::sort(local_steps.begin(), local_steps.end(), [&](int a, int b) {
+        const auto &sa = plan.steps(a);
+        const auto &sb = plan.steps(b);
+        if (sa.scheduled_slot() != sb.scheduled_slot())
+          return sa.scheduled_slot() < sb.scheduled_slot();
+        return sa.step_index() < sb.step_index();
+      });
 
       auto merge_step_stats = [&](const CordStepRunStats &s) {
         executed_steps += s.executed;
@@ -2009,49 +2069,16 @@ namespace ECProject
         failed_steps += s.failed;
       };
 
-      auto run_step_batch = [&](const std::vector<int> &indices, bool parallel) {
-        if (indices.empty())
-          return;
-        if (!parallel || indices.size() == 1u)
-        {
-          for (int si : indices)
-            merge_step_stats(cord_run_one_local_step(si));
-          return;
-        }
-        std::vector<std::thread> workers;
-        std::vector<CordStepRunStats> results(indices.size());
-        workers.reserve(indices.size());
-        for (size_t wi = 0; wi < indices.size(); ++wi)
-        {
-          const int si = indices[static_cast<size_t>(wi)];
-          workers.emplace_back([&, wi, si]() { results[wi] = cord_run_one_local_step(si); });
-        }
-        for (auto &th : workers)
-          th.join();
-        for (const auto &r : results)
-          merge_step_stats(r);
-      };
-
-      for (uint32_t sl : slot_order)
+      for (int si : local_steps)
       {
-        std::vector<int> parallel_steps;
-        std::vector<int> serial_steps;
-        for (int si : steps_by_slot[sl])
-        {
-          const auto &st = plan.steps(si);
-          if (st.link_kind() == proxy_proto::CORD_TRANSFER_MST_FORWARD && st.src_block_id() >= k)
-            serial_steps.push_back(si);
-          else
-            parallel_steps.push_back(si);
-        }
+        const auto &st = plan.steps(si);
         {
           std::ostringstream os;
-          os << "SLOT slot=" << sl << " parallel_steps=" << parallel_steps.size()
-             << " serial_steps=" << serial_steps.size();
+          os << "SERIAL step=" << st.step_index() << " slot=" << st.scheduled_slot()
+             << " link=" << cord_transfer_link_kind_name(st.link_kind());
           plan_log_sync(os.str());
         }
-        run_step_batch(parallel_steps, true);
-        run_step_batch(serial_steps, false);
+        merge_step_stats(cord_run_one_local_step(si));
       }
 
 
@@ -2163,6 +2190,20 @@ namespace ECProject
         proxy_proto::CordPlanMstDataDeltaReq req;
         if (req.ParseFromString(meta))
           ok = cord_apply_mst_data_delta(this, req, payload.data(), payload.size());
+        break;
+      }
+      case CORD_XFER_TCP_COLLECTOR_INGRESS_READY:
+      {
+        proxy_proto::CordPlanCollectorIngestReq req;
+        if (req.ParseFromString(meta))
+        {
+          auto pl = cord_lookup_registered_plan(req.plan_key());
+          if (pl)
+          {
+            std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+            ok = cord_collector_ingress_ready_locked(*pl, req.group_index(), req.collector_block_id(), -1);
+          }
+        }
         break;
       }
       default:

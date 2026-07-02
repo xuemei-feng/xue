@@ -522,7 +522,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       std::vector<int> order(static_cast<size_t>(n));
       std::iota(order.begin(), order.end(), 0);
-      /** 按 train_route 顺序排列 step；全局校验扇出由 proxy 等待 collector ingress 保证顺序。 */
+      /** 按 slot 顺序执行：slot0=DATA→collector，slot1=校验扇出（含本地校验，须等 collector ingress）。 */
       std::stable_sort(order.begin(), order.end(), [&](int a, int b) {
         const auto &sa = plan->steps(a);
         const auto &sb = plan->steps(b);
@@ -691,7 +691,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       plan.set_plan_key(plan_key);
       plan.set_slot_unit_bytes(block_size);
       plan.set_k_datablock(k_datablock);
-      plan.set_total_rounds(1);
+      plan.set_total_rounds(2);
       int step_idx = 0;
       for (const cord_alg2::TrainLink &L : alg2.train_route)
       {
@@ -707,7 +707,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         st->set_dst_block_id(L.dst_block_id);
         st->set_payload_bytes(static_cast<uint64_t>(full));
         st->set_link_kind(static_cast<proxy_proto::CordTransferLinkKind>(static_cast<int>(L.kind)));
-        st->set_scheduled_slot(0);
+        const uint32_t sched_slot =
+            (L.kind == cord_alg2::TrainLinkKind::STAR_DATA_TO_CENTER) ? 0u : 1u;
+        st->set_scheduled_slot(sched_slot);
         st->set_depends_on_step_index(-1);
         st->set_estimated_transfer_sec(L.est_transfer_sec);
         st->set_group_index(L.group_index);
