@@ -111,10 +111,7 @@ namespace ECProject
             std::lock_guard<std::mutex> accept_lk(g_cord_dn_accept_mu);
             acceptor.accept(socket);
           }
-          const uint64_t wire_tag = cord_dn_read_u64_be(socket);
-          std::thread([this, sock = std::move(socket), wire_tag]() mutable {
-            dispatchCordTcpSocket(sock, wire_tag);
-          }).detach();
+          std::thread([this, sock = std::move(socket)]() mutable { cordTcpSessionLoop(std::move(sock)); }).detach();
         }
         catch (const std::exception &e)
         {
@@ -123,7 +120,25 @@ namespace ECProject
       }
     }
 
-    void DatanodeImpl::dispatchCordTcpSocket(asio::ip::tcp::socket &socket, uint64_t wire_tag)
+    void DatanodeImpl::cordTcpSessionLoop(asio::ip::tcp::socket socket)
+    {
+      try
+      {
+        for (;;)
+        {
+          const uint64_t wire_tag = cord_dn_read_u64_be(socket);
+          if (!dispatchCordTcpSocket(socket, wire_tag))
+            break;
+        }
+      }
+      catch (const std::exception &e)
+      {
+        std::cout << "[Datanode" << m_port << "] cordTcpSessionLoop: " << e.what() << std::endl;
+      }
+      cord_dn_close_socket(socket);
+    }
+
+    bool DatanodeImpl::dispatchCordTcpSocket(asio::ip::tcp::socket &socket, uint64_t wire_tag)
     {
       // Range write
       {
@@ -149,7 +164,6 @@ namespace ECProject
             std::vector<char> payload(static_cast<size_t>(range_length));
             asio::error_code ec;
             asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(range_length)), ec);
-            cord_dn_close_socket(socket);
             if (!ec)
             {
               int fd = ::open(pending.writepath.c_str(), O_CREAT | O_RDWR, 0644);
@@ -165,9 +179,8 @@ namespace ECProject
           catch (std::exception &e)
           {
             std::cout << "dispatchCordTcpSocket range write exception: " << e.what() << std::endl;
-            cord_dn_close_socket(socket);
           }
-          return;
+          return false;
         }
       }
 
@@ -191,20 +204,17 @@ namespace ECProject
           {
             asio::error_code error;
             asio::write(socket, asio::buffer(payload.data(), payload.size()), error);
-            cord_dn_close_socket(socket);
           }
           catch (std::exception &e)
           {
             std::cout << "dispatchCordTcpSocket range read exception: " << e.what() << std::endl;
-            cord_dn_close_socket(socket);
           }
-          return;
+          return false;
         }
         if (found)
         {
           std::cout << "[Datanode" << m_port << "] cord range read empty payload tag=" << wire_tag << std::endl;
-          cord_dn_close_socket(socket);
-          return;
+          return false;
         }
       }
 
@@ -232,7 +242,6 @@ namespace ECProject
             std::vector<char> payload(static_cast<size_t>(byte_length));
             asio::error_code ec;
             asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(byte_length)), ec);
-            cord_dn_close_socket(socket);
             if (!ec)
             {
               std::ofstream ofs(pending.writepath, std::ios::binary | std::ios::out | std::ios::trunc);
@@ -244,9 +253,8 @@ namespace ECProject
           catch (std::exception &e)
           {
             std::cout << "dispatchCordTcpSocket delta blob exception: " << e.what() << std::endl;
-            cord_dn_close_socket(socket);
           }
-          return;
+          return false;
         }
       }
 
@@ -272,7 +280,17 @@ namespace ECProject
             std::vector<char> payload(static_cast<size_t>(pending.range_length));
             asio::error_code ec;
             asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(pending.range_length)), ec);
-            if (!ec)
+            if (ec)
+            {
+              try
+              {
+                asio::write(socket, asio::buffer(ack, 2));
+              }
+              catch (...)
+              {
+              }
+              return false;
+            }
             {
               ParityLogAppendResult r = ParityLogStore::instance().append_new_data(
                   pending.stripe_id, pending.parity_block_id, pending.parity_block_key, pending.data_block_id,
@@ -293,9 +311,9 @@ namespace ECProject
             catch (...)
             {
             }
+            return false;
           }
-          cord_dn_close_socket(socket);
-          return;
+          return true;
         }
       }
 
@@ -321,12 +339,28 @@ namespace ECProject
             std::vector<char> payload(static_cast<size_t>(pending.range_length));
             asio::error_code ec;
             asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(pending.range_length)), ec);
-            if (!ec)
+            if (ec)
+            {
+              try
+              {
+                asio::write(socket, asio::buffer(&ack, 1));
+              }
+              catch (...)
+              {
+              }
+              return false;
+            }
             {
               const bool stored = ParityLogStore::instance().store_d0(
                   pending.stripe_id, pending.parity_block_id, pending.data_block_id, pending.range_offset,
                   pending.range_length, payload.data(), pending.range_length);
               ack = stored ? 1 : 0;
+              if (!stored)
+              {
+                std::cout << "[Datanode" << m_port << "] store_d0 miss entry stripe=" << pending.stripe_id
+                          << " parity_blk=" << pending.parity_block_id << " data_blk=" << pending.data_block_id
+                          << " off=" << pending.range_offset << " len=" << pending.range_length << std::endl;
+              }
               if (stored)
                 (void)ParityLogStore::instance().merge_if_full_cached(pending.stripe_id, pending.parity_block_id,
                                                                       pending.datanode_port);
@@ -343,14 +377,14 @@ namespace ECProject
             catch (...)
             {
             }
+            return false;
           }
-          cord_dn_close_socket(socket);
-          return;
+          return true;
         }
       }
 
       std::cout << "[Datanode" << m_port << "] tcp unknown tag=" << wire_tag << std::endl;
-      cord_dn_close_socket(socket);
+      return false;
     }
 
     grpc::Status DatanodeImpl::checkalive(

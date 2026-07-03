@@ -111,7 +111,9 @@ namespace ECProject
     private:
         void startCordTcpAcceptLoopIfNeeded();
         void cordTcpAcceptLoop();
-        void dispatchCordTcpSocket(asio::ip::tcp::socket &socket, uint64_t wire_tag);
+        void cordTcpSessionLoop(asio::ip::tcp::socket socket);
+        /** @return true 保持连接以处理下一 tag（parity）；false 关闭连接 */
+        bool dispatchCordTcpSocket(asio::ip::tcp::socket &socket, uint64_t wire_tag);
 
         std::string datanode_ip_port;
         std::string m_ip;

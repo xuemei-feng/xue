@@ -1023,6 +1023,56 @@ namespace ECProject
     }
   }
 
+  /** proxy↔datanode parity log 单次 TCP（每次 gRPC 注册 tag 后新建连接，避免连接池半开卡住） */
+  static bool cord_dn_parity_tcp_xfer_oneshot(const char *ip, int grpc_port, int timeout_sec, uint64_t xfer_tag,
+                                              const void *payload, size_t payload_len, bool is_append,
+                                              bool *need_d0_out)
+  {
+    if (need_d0_out)
+      *need_d0_out = false;
+    try
+    {
+      asio::io_context io_context;
+      asio::ip::tcp::resolver resolver(io_context);
+      asio::ip::tcp::socket socket(io_context);
+      asio::error_code ec;
+      asio::connect(socket,
+                    resolver.resolve({std::string(ip), std::to_string(grpc_port + ECProject::DATANODE_PORT_SHIFT)}),
+                    ec);
+      if (ec)
+        return false;
+      cord_apply_datanode_tcp_timeout(socket, timeout_sec > 0 ? timeout_sec : 120);
+      cord_write_u64_be(socket, xfer_tag);
+      asio::write(socket, asio::buffer(payload, payload_len), ec);
+      if (ec)
+        return false;
+      if (is_append)
+      {
+        uint8_t ack[2] = {0, 0};
+        asio::read(socket, asio::buffer(ack, 2), ec);
+        asio::error_code ignore_ec;
+        socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+        socket.close(ignore_ec);
+        if (ec || ack[0] == 0)
+          return false;
+        if (need_d0_out)
+          *need_d0_out = ack[1] != 0;
+        return true;
+      }
+      uint8_t ack = 0;
+      asio::read(socket, asio::buffer(&ack, 1), ec);
+      asio::error_code ignore_ec;
+      socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+      socket.close(ignore_ec);
+      return !ec && ack != 0;
+    }
+    catch (const std::exception &e)
+    {
+      std::cout << "[StripeUpdate] parity tcp exception dn=" << ip << ":" << grpc_port << " " << e.what() << std::endl;
+      return false;
+    }
+  }
+
   static bool cord_apply_collector_ingest(ProxyImpl *proxy, const proxy_proto::CordPlanCollectorIngestReq &request,
                                           const char *payload, size_t payload_len)
   {
@@ -2775,29 +2825,12 @@ namespace ECProject
         return false;
       }
       const uint64_t xfer_tag = rep.cord_tcp_xfer_tag();
-      asio::io_context io_context;
-      asio::ip::tcp::resolver resolver(io_context);
-      asio::ip::tcp::socket socket(io_context);
-      asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}));
-      cord_apply_datanode_tcp_timeout(socket, m_sys_config->CordRequestTimeoutSec);
-      cord_write_u64_be(socket, xfer_tag);
-      asio::error_code error;
-      asio::write(socket, asio::buffer(new_data, len), error);
-      if (error)
-        return false;
-      uint8_t ack[2] = {0, 0};
-      asio::read(socket, asio::buffer(ack, 2), error);
-      asio::error_code ignore_ec;
-      socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
-      socket.close(ignore_ec);
-      if (error || ack[0] == 0)
+      const int timeout_sec = m_sys_config->CordRequestTimeoutSec;
+      if (!cord_dn_parity_tcp_xfer_oneshot(ip, port, timeout_sec, xfer_tag, new_data, len, true, need_d0))
       {
-        std::cout << "[StripeUpdate] ParityLogAppend tcp failed dn=" << node_ip_port << " tcp_err=" << error.message()
-                  << " ack_ok=" << static_cast<int>(ack[0]) << std::endl;
+        std::cout << "[StripeUpdate] ParityLogAppend tcp failed dn=" << node_ip_port << std::endl;
         return false;
       }
-      if (need_d0)
-        *need_d0 = ack[1] != 0;
       return true;
     }
     catch (const std::exception &e)
@@ -2830,22 +2863,13 @@ namespace ECProject
         return false;
       }
       const uint64_t xfer_tag = rep.cord_tcp_xfer_tag();
-      asio::io_context io_context;
-      asio::ip::tcp::resolver resolver(io_context);
-      asio::ip::tcp::socket socket(io_context);
-      asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}));
-      cord_apply_datanode_tcp_timeout(socket, m_sys_config->CordRequestTimeoutSec);
-      cord_write_u64_be(socket, xfer_tag);
-      asio::error_code error;
-      asio::write(socket, asio::buffer(d0, len), error);
-      if (error)
+      const int timeout_sec = m_sys_config->CordRequestTimeoutSec;
+      if (!cord_dn_parity_tcp_xfer_oneshot(ip, port, timeout_sec, xfer_tag, d0, len, false, nullptr))
+      {
+        std::cout << "[StripeUpdate] ParityLogStoreD0 tcp failed dn=" << node_ip_port << std::endl;
         return false;
-      uint8_t ack = 0;
-      asio::read(socket, asio::buffer(&ack, 1), error);
-      asio::error_code ignore_ec;
-      socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
-      socket.close(ignore_ec);
-      return !error && ack != 0;
+      }
+      return true;
     }
     catch (const std::exception &e)
     {
@@ -3065,6 +3089,14 @@ namespace ECProject
       catch (std::exception &e)
       {
         std::cout << "[CoRD][Proxy] exception: " << e.what() << std::endl;
+        coordinator_proto::CommitAbortKey commit_abort_key;
+        coordinator_proto::ReplyFromCoordinator result;
+        grpc::ClientContext ctx;
+        commit_abort_key.set_opp(ECProject::CORD_UPDATE);
+        commit_abort_key.set_key(placement_copy->key());
+        commit_abort_key.set_stripe_id(stripe_id);
+        commit_abort_key.set_ifcommitmetadata(false);
+        m_coordinator_ptr->reportCommitAbort(&ctx, commit_abort_key, &result);
       }
     };
     std::thread th(cord_job);

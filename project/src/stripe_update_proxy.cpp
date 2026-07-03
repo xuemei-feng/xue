@@ -218,6 +218,16 @@ namespace ECProject
       std::mutex need_d0_mu;
       std::atomic<bool> failed{false};
 
+      // 推测性 D0 读与 parity append 并行：append 走 parity datanode，D0 读走 data datanode，互不冲突。
+      std::vector<char> d0(static_cast<size_t>(len));
+      std::atomic<bool> d0_read_ok{false};
+      std::thread d0_read_thread([&]() {
+        std::lock_guard<std::mutex> range_lk(*range_mu);
+        const bool ok = CordRangeReadFromDatanode(placement.blockkeys(j), bid, off, d0.data(), static_cast<size_t>(len),
+                                                  placement.datanodeip(j).c_str(), placement.datanodeport(j));
+        d0_read_ok.store(ok);
+      });
+
       std::vector<std::thread> append_threads;
       append_threads.reserve(static_cast<size_t>(parities_per_slice));
       for (int pi = 0; pi < parities_per_slice; ++pi)
@@ -244,21 +254,17 @@ namespace ECProject
 
       for (auto &th : append_threads)
         th.join();
+      d0_read_thread.join();
 
       if (failed.load())
         return false;
 
       if (!need_d0_indices.empty())
       {
-        std::vector<char> d0(static_cast<size_t>(len));
+        if (!d0_read_ok.load())
         {
-          std::lock_guard<std::mutex> range_lk(*range_mu);
-          if (!CordRangeReadFromDatanode(placement.blockkeys(j), bid, off, d0.data(), static_cast<size_t>(len),
-                                         placement.datanodeip(j).c_str(), placement.datanodeport(j)))
-          {
-            std::cout << "[StripeUpdate] read D0 failed data_blk=" << bid << std::endl;
-            return false;
-          }
+          std::cout << "[StripeUpdate] read D0 failed data_blk=" << bid << std::endl;
+          return false;
         }
 
         std::vector<std::thread> store_threads;
@@ -294,10 +300,21 @@ namespace ECProject
       return true;
     };
 
+    if (slice_num > 20)
+    {
+      std::cout << "[StripeUpdate] partial begin cluster=" << placement.cluster_id() << " stripe="
+                << placement.stripe_id() << " slices=" << slice_num << std::endl;
+    }
+
     for (int j = 0; j < slice_num; ++j)
     {
       if (!process_one_slice(j))
         return false;
+      if (slice_num > 20 && ((j + 1) % 10 == 0 || j + 1 == slice_num))
+      {
+        std::cout << "[StripeUpdate] progress cluster=" << placement.cluster_id() << " stripe="
+                  << placement.stripe_id() << " slice " << (j + 1) << "/" << slice_num << std::endl;
+      }
     }
     return true;
   }

@@ -2201,19 +2201,38 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       int off;
       int len;
     };
-    std::map<int, std::vector<SliceRec>> cluster_plan;
+    // 合并同一 data block 上相邻/重叠的 in-block interval，减少 proxy 侧 slice 数
+    std::map<int, std::vector<std::pair<int, int>>> merged_block_intervals;
     for (const auto &kv : block_intervals)
     {
       const int bid = kv.first;
       if (bid < 0 || bid >= k)
         continue;
+      auto segs = kv.second;
+      std::sort(segs.begin(), segs.end());
+      std::vector<std::pair<int, int>> merged;
+      merged.reserve(segs.size());
+      for (const auto &seg : segs)
+      {
+        if (merged.empty() || merged.back().second < seg.first)
+          merged.push_back(seg);
+        else
+          merged.back().second = std::max(merged.back().second, seg.second);
+      }
+      merged_block_intervals[bid] = std::move(merged);
+    }
+
+    std::map<int, std::vector<SliceRec>> cluster_plan;
+    for (const auto &kv : merged_block_intervals)
+    {
+      const int bid = kv.first;
       const int cid = stripe->blocks[bid]->map2cluster;
       for (const auto &seg : kv.second)
         cluster_plan[cid].push_back(SliceRec{bid, seg.first, seg.second - seg.first});
     }
 
     uint64_t sum_bytes = 0;
-    for (const auto &kv : block_intervals)
+    for (const auto &kv : merged_block_intervals)
       for (const auto &seg : kv.second)
         sum_bytes += static_cast<uint64_t>(seg.second - seg.first);
 
@@ -5462,6 +5481,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::string key = key_opp->key();
     ECProject::OpperateType opp = (ECProject::OpperateType)key_opp->opp();
     int stripe_id = key_opp->stripe_id();
+    const auto wait_deadline = context->deadline();
+    const auto wait_remaining = [&wait_deadline]() -> std::chrono::milliseconds {
+      const auto now = std::chrono::system_clock::now();
+      if (wait_deadline <= now)
+        return std::chrono::milliseconds(0);
+      return std::chrono::duration_cast<std::chrono::milliseconds>(wait_deadline - now);
+    };
     if (opp == SET || opp == APPEND || opp == CORD_UPDATE)
     {
       while (m_object_commit_table.find(key) == m_object_commit_table.end())
@@ -5471,7 +5497,17 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           reply->set_ifcommit(false);
           return grpc::Status::OK;
         }
-        cv.wait(lck);
+        const auto rem = wait_remaining();
+        if (rem.count() <= 0)
+        {
+          reply->set_ifcommit(false);
+          return grpc::Status(grpc::StatusCode::DEADLINE_EXCEEDED, "checkCommitAbort timeout");
+        }
+        if (cv.wait_for(lck, rem) == std::cv_status::timeout)
+        {
+          reply->set_ifcommit(false);
+          return grpc::Status(grpc::StatusCode::DEADLINE_EXCEEDED, "checkCommitAbort timeout");
+        }
       }
     }
     else if (opp == DEL)

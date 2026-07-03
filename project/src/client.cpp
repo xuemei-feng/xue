@@ -5,6 +5,7 @@
 #include <thread>
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <assert.h>
 #include <chrono>
 #include <iomanip>
@@ -38,6 +39,7 @@ namespace ECProject
     using CordClock = std::chrono::steady_clock;
     thread_local const CordClock::time_point *g_cord_request_deadline = nullptr;
     thread_local int g_cord_request_timeout_sec = 2;
+    std::mutex g_cord_client_log_mu;
 
     bool cord_request_timed_out()
     {
@@ -418,10 +420,13 @@ namespace ECProject
   {
     if (cord_abort_if_timed_out())
       return;
-    std::cout << "[CoRD][Client " << m_clientID << "] TCP send slice_idx=" << index << " bytes=" << cluster_slice_size
-              << " -> proxy " << proxy_ip << ":" << proxy_port << " cord_key=" << cord_key
-              << " payload_preview=" << cord_client_hex_preview(cluster_slice_data, static_cast<size_t>(cluster_slice_size))
-              << std::endl;
+    {
+      std::lock_guard<std::mutex> log_lk(g_cord_client_log_mu);
+      std::cout << "[CoRD][Client " << m_clientID << "] TCP send slice_idx=" << index << " bytes=" << cluster_slice_size
+                << " -> proxy " << proxy_ip << ":" << proxy_port << " cord_key=" << cord_key
+                << " payload_preview=" << cord_client_hex_preview(cluster_slice_data, static_cast<size_t>(cluster_slice_size))
+                << std::endl;
+    }
     if (cord_abort_if_timed_out())
       return;
     asio::io_context io_context;
@@ -457,6 +462,7 @@ namespace ECProject
     }
     else
     {
+      std::lock_guard<std::mutex> log_lk(g_cord_client_log_mu);
       std::cout << "[CoRD] commit check failed key=" << cord_key << " proxy=" << proxy_ip << ":" << proxy_port << std::endl;
     }
   }
