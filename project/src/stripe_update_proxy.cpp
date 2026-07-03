@@ -55,17 +55,6 @@ namespace ECProject
       std::mutex need_d0_mu;
       std::atomic<bool> failed{false};
 
-      std::vector<char> d0(static_cast<size_t>(len));
-      std::thread d0_thread([&]() {
-        std::lock_guard<std::mutex> range_lk(*range_mu);
-        if (!CordRangeReadFromDatanode(placement.blockkeys(j), bid, off, d0.data(), static_cast<size_t>(len),
-                                       placement.datanodeip(j).c_str(), placement.datanodeport(j)))
-        {
-          failed.store(true);
-          std::cout << "[StripeUpdate] read D0 failed data_blk=" << bid << std::endl;
-        }
-      });
-
       std::vector<std::thread> append_threads;
       append_threads.reserve(static_cast<size_t>(parities_per_slice));
       for (int pi = 0; pi < parities_per_slice; ++pi)
@@ -117,13 +106,23 @@ namespace ECProject
 
       for (auto &th : append_threads)
         th.join();
-      d0_thread.join();
 
       if (failed.load())
         return false;
 
       if (!need_d0_indices.empty())
       {
+        std::vector<char> d0(static_cast<size_t>(len));
+        {
+          std::lock_guard<std::mutex> range_lk(*range_mu);
+          if (!CordRangeReadFromDatanode(placement.blockkeys(j), bid, off, d0.data(), static_cast<size_t>(len),
+                                         placement.datanodeip(j).c_str(), placement.datanodeport(j)))
+          {
+            std::cout << "[StripeUpdate] read D0 failed data_blk=" << bid << std::endl;
+            return false;
+          }
+        }
+
         std::vector<std::thread> store_threads;
         store_threads.reserve(need_d0_indices.size());
         for (int idx : need_d0_indices)
