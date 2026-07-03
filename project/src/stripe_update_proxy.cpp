@@ -2,7 +2,11 @@
 #include "parity_log_store.h"
 #include "stripe_update.h"
 #include "unilrc_encoder.h"
+#include <atomic>
 #include <iostream>
+#include <mutex>
+#include <thread>
+#include <vector>
 
 namespace ECProject
 {
@@ -39,91 +43,141 @@ namespace ECProject
       return false;
     }
 
-    for (int j = 0; j < slice_num; ++j)
-    {
+    const auto range_mu = cord_cluster_range_mu(placement.cluster_id());
+
+    auto process_one_slice = [&](int j) -> bool {
       const int bid = placement.blockids(j);
       const int off = static_cast<int>(placement.offsets(j));
       const int len = static_cast<int>(placement.sizes(j));
       const char *new_data = slices[static_cast<size_t>(j)];
-      std::vector<int> need_d0_indices;
-      for (int pi = 0; pi < parities_per_slice; ++pi)
-      {
-        const int idx = j * parities_per_slice + pi;
-        const int pblk = placement.parity_block_ids(idx);
-        const std::string &pkey = placement.parity_block_keys(idx);
-        const char *pip = placement.parity_datanode_ips(idx).c_str();
-        const int pport = placement.parity_datanode_ports(idx);
-        auto *stub = datanode_stub_for(m_datanode_ptrs, pip, pport);
-        if (stub == nullptr)
-        {
-          std::cout << "[StripeUpdate] no datanode stub for parity " << pblk << std::endl;
-          return false;
-        }
-        grpc::ClientContext ctx;
-        datanode_proto::ParityLogAppendInfo req;
-        datanode_proto::ParityLogAppendReply rep;
-        req.set_stripe_id(placement.stripe_id());
-        req.set_parity_block_id(pblk);
-        req.set_parity_block_key(pkey);
-        req.set_data_block_id(bid);
-        req.set_range_offset(off);
-        req.set_range_length(len);
-        req.set_k(placement.k());
-        req.set_r(placement.r());
-        req.set_z(placement.z());
-        req.set_block_size(placement.block_size());
-        req.set_code_type(placement.code_type());
-        req.set_new_data(new_data, static_cast<size_t>(len));
-        grpc::Status st = stub->handleParityLogAppend(&ctx, req, &rep);
-        if (!st.ok() || !rep.ok())
-        {
-          std::cout << "[StripeUpdate] parity log append failed blk=" << pblk << std::endl;
-          return false;
-        }
-        if (rep.need_d0())
-          need_d0_indices.push_back(idx);
-      }
 
-      if (!need_d0_indices.empty())
-      {
-        std::vector<char> d0(static_cast<size_t>(len));
+      std::vector<int> need_d0_indices;
+      std::mutex need_d0_mu;
+      std::atomic<bool> failed{false};
+
+      std::vector<char> d0(static_cast<size_t>(len));
+      std::thread d0_thread([&]() {
+        std::lock_guard<std::mutex> range_lk(*range_mu);
         if (!CordRangeReadFromDatanode(placement.blockkeys(j), bid, off, d0.data(), static_cast<size_t>(len),
                                        placement.datanodeip(j).c_str(), placement.datanodeport(j)))
         {
+          failed.store(true);
           std::cout << "[StripeUpdate] read D0 failed data_blk=" << bid << std::endl;
-          return false;
         }
-        for (int idx : need_d0_indices)
-        {
+      });
+
+      std::vector<std::thread> append_threads;
+      append_threads.reserve(static_cast<size_t>(parities_per_slice));
+      for (int pi = 0; pi < parities_per_slice; ++pi)
+      {
+        append_threads.emplace_back([&, pi]() {
+          if (failed.load())
+            return;
+          const int idx = j * parities_per_slice + pi;
           const int pblk = placement.parity_block_ids(idx);
-          auto *stub = datanode_stub_for(m_datanode_ptrs, placement.parity_datanode_ips(idx).c_str(),
-                                         placement.parity_datanode_ports(idx));
+          const std::string &pkey = placement.parity_block_keys(idx);
+          const char *pip = placement.parity_datanode_ips(idx).c_str();
+          const int pport = placement.parity_datanode_ports(idx);
+          auto *stub = datanode_stub_for(m_datanode_ptrs, pip, pport);
           if (stub == nullptr)
-            return false;
+          {
+            failed.store(true);
+            std::cout << "[StripeUpdate] no datanode stub for parity " << pblk << std::endl;
+            return;
+          }
           grpc::ClientContext ctx;
-          datanode_proto::ParityLogStoreD0Info req;
-          datanode_proto::RequestResult rep;
+          datanode_proto::ParityLogAppendInfo req;
+          datanode_proto::ParityLogAppendReply rep;
           req.set_stripe_id(placement.stripe_id());
           req.set_parity_block_id(pblk);
+          req.set_parity_block_key(pkey);
           req.set_data_block_id(bid);
           req.set_range_offset(off);
           req.set_range_length(len);
-          req.set_d0(d0.data(), static_cast<size_t>(len));
-          grpc::Status st = stub->handleParityLogStoreD0(&ctx, req, &rep);
-          if (!st.ok() || !rep.message())
+          req.set_k(placement.k());
+          req.set_r(placement.r());
+          req.set_z(placement.z());
+          req.set_block_size(placement.block_size());
+          req.set_code_type(placement.code_type());
+          req.set_new_data(new_data, static_cast<size_t>(len));
+          grpc::Status st = stub->handleParityLogAppend(&ctx, req, &rep);
+          if (!st.ok() || !rep.ok())
           {
-            std::cout << "[StripeUpdate] store D0 failed parity_blk=" << pblk << std::endl;
-            return false;
+            failed.store(true);
+            std::cout << "[StripeUpdate] parity log append failed blk=" << pblk << std::endl;
+            return;
           }
-        }
+          if (rep.need_d0())
+          {
+            std::lock_guard<std::mutex> lk(need_d0_mu);
+            need_d0_indices.push_back(idx);
+          }
+        });
       }
 
-      if (!CordRangeWriteToDatanode(placement.blockkeys(j), bid, off, new_data, static_cast<size_t>(len),
-                                    placement.datanodeip(j).c_str(), placement.datanodeport(j)))
-      {
-        std::cout << "[StripeUpdate] data write failed blk=" << bid << std::endl;
+      for (auto &th : append_threads)
+        th.join();
+      d0_thread.join();
+
+      if (failed.load())
         return false;
+
+      if (!need_d0_indices.empty())
+      {
+        std::vector<std::thread> store_threads;
+        store_threads.reserve(need_d0_indices.size());
+        for (int idx : need_d0_indices)
+        {
+          store_threads.emplace_back([&, idx]() {
+            if (failed.load())
+              return;
+            const int pblk = placement.parity_block_ids(idx);
+            auto *stub = datanode_stub_for(m_datanode_ptrs, placement.parity_datanode_ips(idx).c_str(),
+                                           placement.parity_datanode_ports(idx));
+            if (stub == nullptr)
+            {
+              failed.store(true);
+              return;
+            }
+            grpc::ClientContext ctx;
+            datanode_proto::ParityLogStoreD0Info req;
+            datanode_proto::RequestResult rep;
+            req.set_stripe_id(placement.stripe_id());
+            req.set_parity_block_id(pblk);
+            req.set_data_block_id(bid);
+            req.set_range_offset(off);
+            req.set_range_length(len);
+            req.set_d0(d0.data(), static_cast<size_t>(len));
+            grpc::Status st = stub->handleParityLogStoreD0(&ctx, req, &rep);
+            if (!st.ok() || !rep.message())
+            {
+              failed.store(true);
+              std::cout << "[StripeUpdate] store D0 failed parity_blk=" << pblk << std::endl;
+            }
+          });
+        }
+        for (auto &th : store_threads)
+          th.join();
+        if (failed.load())
+          return false;
       }
+
+      {
+        std::lock_guard<std::mutex> range_lk(*range_mu);
+        if (!CordRangeWriteToDatanode(placement.blockkeys(j), bid, off, new_data, static_cast<size_t>(len),
+                                      placement.datanodeip(j).c_str(), placement.datanodeport(j)))
+        {
+          std::cout << "[StripeUpdate] data write failed blk=" << bid << std::endl;
+          return false;
+        }
+      }
+      return true;
+    };
+
+    for (int j = 0; j < slice_num; ++j)
+    {
+      if (!process_one_slice(j))
+        return false;
     }
     return true;
   }

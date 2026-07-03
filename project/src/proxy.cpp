@@ -158,6 +158,11 @@ namespace ECProject
     return p;
   }
 
+  std::shared_ptr<std::mutex> ProxyImpl::cord_cluster_range_mu(int cluster_id)
+  {
+    return cord_cluster_mu_for(cluster_id);
+  }
+
   static bool cord_update_slice_parallel_enabled()
   {
     const char *env = std::getenv("CORD_UPDATE_SLICE_PARALLEL");

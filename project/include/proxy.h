@@ -186,6 +186,8 @@ namespace ECProject
       double *disk_io_start_time, double *disk_io_end_time, double *network_start_time, double *network_end_time, double *grpc_notify_time, double *grpc_start_time);
     bool CordRangeReadFromDatanode(const std::string &block_key, int block_id, int range_offset, char *out, size_t length, const char *ip, int port);
     bool CordRangeWriteToDatanode(const std::string &block_key, int block_id, int range_offset, const char *data, size_t length, const char *ip, int port);
+    /** Serialize CordRangeRead/Write for one cluster (CoRD TCP xfer tags are not concurrent-safe). */
+    std::shared_ptr<std::mutex> cord_cluster_range_mu(int cluster_id);
     bool CordDeltaBlobToDatanode(const std::string &blob_key, const char *data, size_t length, const char *ip, int port);
     bool execute_stripe_partial_update(const proxy_proto::CordDataUpdatePlacement &placement, const char *buf, size_t payload_size);
     bool execute_stripe_full_update(const proxy_proto::CordDataUpdatePlacement &placement, const char *buf, size_t payload_size);
