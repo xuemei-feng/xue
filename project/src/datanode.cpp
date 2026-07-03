@@ -9,6 +9,7 @@
 #include <atomic>
 #include <map>
 #include <mutex>
+#include <thread>
 #include <vector>
 #include <arpa/inet.h>
 
@@ -31,10 +32,33 @@ namespace
     std::string writepath;
     int byte_length = 0;
   };
+  struct CordDnPendingParityAppend {
+    int stripe_id = 0;
+    int parity_block_id = 0;
+    std::string parity_block_key;
+    int data_block_id = 0;
+    int range_offset = 0;
+    int range_length = 0;
+    int k = 0;
+    int r = 0;
+    int z = 0;
+    int block_size = 0;
+    std::string code_type;
+  };
+  struct CordDnPendingParityD0 {
+    int stripe_id = 0;
+    int parity_block_id = 0;
+    int data_block_id = 0;
+    int range_offset = 0;
+    int range_length = 0;
+    int datanode_port = 0;
+  };
 
   std::map<uint64_t, CordDnPendingRead> g_cord_dn_pending_reads;
   std::map<uint64_t, CordDnPendingWrite> g_cord_dn_pending_writes;
   std::map<uint64_t, CordDnPendingBlob> g_cord_dn_pending_blobs;
+  std::map<uint64_t, CordDnPendingParityAppend> g_cord_dn_pending_parity_append;
+  std::map<uint64_t, CordDnPendingParityD0> g_cord_dn_pending_parity_d0;
 
   static uint64_t cord_dn_alloc_xfer_tag()
   {
@@ -58,10 +82,277 @@ namespace
       b[7 - i] = static_cast<uint8_t>((v >> (8 * i)) & 0xffu);
     asio::write(sock, asio::buffer(b, 8));
   }
+
+  static void cord_dn_close_socket(asio::ip::tcp::socket &socket)
+  {
+    asio::error_code ignore_ec;
+    socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+    socket.close(ignore_ec);
+  }
 }
 
 namespace ECProject
 {
+    void DatanodeImpl::startCordTcpAcceptLoopIfNeeded()
+    {
+      if (m_cord_tcp_accept_loop_started.exchange(true))
+        return;
+      std::thread([this]() { cordTcpAcceptLoop(); }).detach();
+    }
+
+    void DatanodeImpl::cordTcpAcceptLoop()
+    {
+      for (;;)
+      {
+        try
+        {
+          asio::ip::tcp::socket socket(io_context);
+          {
+            std::lock_guard<std::mutex> accept_lk(g_cord_dn_accept_mu);
+            acceptor.accept(socket);
+          }
+          const uint64_t wire_tag = cord_dn_read_u64_be(socket);
+          std::thread([this, sock = std::move(socket), wire_tag]() mutable {
+            dispatchCordTcpSocket(sock, wire_tag);
+          }).detach();
+        }
+        catch (const std::exception &e)
+        {
+          std::cout << "[Datanode" << m_port << "] cordTcpAcceptLoop: " << e.what() << std::endl;
+        }
+      }
+    }
+
+    void DatanodeImpl::dispatchCordTcpSocket(asio::ip::tcp::socket &socket, uint64_t wire_tag)
+    {
+      // Range write
+      {
+        CordDnPendingWrite pending;
+        {
+          std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
+          auto it = g_cord_dn_pending_writes.find(wire_tag);
+          if (it != g_cord_dn_pending_writes.end())
+          {
+            pending = std::move(it->second);
+            g_cord_dn_pending_writes.erase(it);
+          }
+          else
+          {
+            pending.writepath.clear();
+          }
+        }
+        if (!pending.writepath.empty())
+        {
+          try
+          {
+            const int range_length = pending.range_length;
+            std::vector<char> payload(static_cast<size_t>(range_length));
+            asio::error_code ec;
+            asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(range_length)), ec);
+            cord_dn_close_socket(socket);
+            if (!ec)
+            {
+              int fd = ::open(pending.writepath.c_str(), O_CREAT | O_RDWR, 0644);
+              if (fd >= 0)
+              {
+                ssize_t w = ::pwrite(fd, payload.data(), range_length, pending.range_offset);
+                ::fsync(fd);
+                ::close(fd);
+                (void)w;
+              }
+            }
+          }
+          catch (std::exception &e)
+          {
+            std::cout << "dispatchCordTcpSocket range write exception: " << e.what() << std::endl;
+            cord_dn_close_socket(socket);
+          }
+          return;
+        }
+      }
+
+      // Range read
+      {
+        std::vector<char> payload;
+        bool found = false;
+        {
+          std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
+          auto it = g_cord_dn_pending_reads.find(wire_tag);
+          if (it != g_cord_dn_pending_reads.end())
+          {
+            payload = std::move(it->second.data);
+            g_cord_dn_pending_reads.erase(it);
+            found = true;
+          }
+        }
+        if (found && !payload.empty())
+        {
+          try
+          {
+            asio::error_code error;
+            asio::write(socket, asio::buffer(payload.data(), payload.size()), error);
+            cord_dn_close_socket(socket);
+          }
+          catch (std::exception &e)
+          {
+            std::cout << "dispatchCordTcpSocket range read exception: " << e.what() << std::endl;
+            cord_dn_close_socket(socket);
+          }
+          return;
+        }
+        if (found)
+        {
+          std::cout << "[Datanode" << m_port << "] cord range read empty payload tag=" << wire_tag << std::endl;
+          cord_dn_close_socket(socket);
+          return;
+        }
+      }
+
+      // Delta blob
+      {
+        CordDnPendingBlob pending;
+        {
+          std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
+          auto it = g_cord_dn_pending_blobs.find(wire_tag);
+          if (it != g_cord_dn_pending_blobs.end())
+          {
+            pending = std::move(it->second);
+            g_cord_dn_pending_blobs.erase(it);
+          }
+          else
+          {
+            pending.writepath.clear();
+          }
+        }
+        if (!pending.writepath.empty())
+        {
+          try
+          {
+            const int byte_length = pending.byte_length;
+            std::vector<char> payload(static_cast<size_t>(byte_length));
+            asio::error_code ec;
+            asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(byte_length)), ec);
+            cord_dn_close_socket(socket);
+            if (!ec)
+            {
+              std::ofstream ofs(pending.writepath, std::ios::binary | std::ios::out | std::ios::trunc);
+              ofs.write(payload.data(), byte_length);
+              ofs.flush();
+              ofs.close();
+            }
+          }
+          catch (std::exception &e)
+          {
+            std::cout << "dispatchCordTcpSocket delta blob exception: " << e.what() << std::endl;
+            cord_dn_close_socket(socket);
+          }
+          return;
+        }
+      }
+
+      // Parity log append
+      {
+        CordDnPendingParityAppend pending;
+        bool found = false;
+        {
+          std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
+          auto it = g_cord_dn_pending_parity_append.find(wire_tag);
+          if (it != g_cord_dn_pending_parity_append.end())
+          {
+            pending = std::move(it->second);
+            g_cord_dn_pending_parity_append.erase(it);
+            found = true;
+          }
+        }
+        if (found)
+        {
+          uint8_t ack[2] = {0, 0};
+          try
+          {
+            std::vector<char> payload(static_cast<size_t>(pending.range_length));
+            asio::error_code ec;
+            asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(pending.range_length)), ec);
+            if (!ec)
+            {
+              ParityLogAppendResult r = ParityLogStore::instance().append_new_data(
+                  pending.stripe_id, pending.parity_block_id, pending.parity_block_key, pending.data_block_id,
+                  pending.range_offset, pending.range_length, pending.k, pending.r, pending.z, pending.block_size,
+                  pending.code_type, payload.data(), pending.range_length);
+              ack[0] = r.ok ? 1 : 0;
+              ack[1] = r.need_d0 ? 1 : 0;
+            }
+            asio::write(socket, asio::buffer(ack, 2));
+          }
+          catch (std::exception &e)
+          {
+            std::cout << "dispatchCordTcpSocket parity append exception: " << e.what() << std::endl;
+            try
+            {
+              asio::write(socket, asio::buffer(ack, 2));
+            }
+            catch (...)
+            {
+            }
+          }
+          cord_dn_close_socket(socket);
+          return;
+        }
+      }
+
+      // Parity log store D0
+      {
+        CordDnPendingParityD0 pending;
+        bool found = false;
+        {
+          std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
+          auto it = g_cord_dn_pending_parity_d0.find(wire_tag);
+          if (it != g_cord_dn_pending_parity_d0.end())
+          {
+            pending = std::move(it->second);
+            g_cord_dn_pending_parity_d0.erase(it);
+            found = true;
+          }
+        }
+        if (found)
+        {
+          uint8_t ack = 0;
+          try
+          {
+            std::vector<char> payload(static_cast<size_t>(pending.range_length));
+            asio::error_code ec;
+            asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(pending.range_length)), ec);
+            if (!ec)
+            {
+              const bool stored = ParityLogStore::instance().store_d0(
+                  pending.stripe_id, pending.parity_block_id, pending.data_block_id, pending.range_offset,
+                  pending.range_length, payload.data(), pending.range_length);
+              ack = stored ? 1 : 0;
+              if (stored)
+                (void)ParityLogStore::instance().merge_if_full_cached(pending.stripe_id, pending.parity_block_id,
+                                                                      pending.datanode_port);
+            }
+            asio::write(socket, asio::buffer(&ack, 1));
+          }
+          catch (std::exception &e)
+          {
+            std::cout << "dispatchCordTcpSocket parity d0 exception: " << e.what() << std::endl;
+            try
+            {
+              asio::write(socket, asio::buffer(&ack, 1));
+            }
+            catch (...)
+            {
+            }
+          }
+          cord_dn_close_socket(socket);
+          return;
+        }
+      }
+
+      std::cout << "[Datanode" << m_port << "] tcp unknown tag=" << wire_tag << std::endl;
+      cord_dn_close_socket(socket);
+    }
+
     grpc::Status DatanodeImpl::checkalive(
         grpc::ServerContext *context,
         const datanode_proto::CheckaliveCMD *request,
@@ -847,68 +1138,9 @@ namespace ECProject
       std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
       g_cord_dn_pending_reads[xfer_tag] = CordDnPendingRead{std::move(data), range_length};
     }
-    auto handler = [this]() mutable
-    {
-      asio::ip::tcp::socket socket(io_context);
-      try
-      {
-        uint64_t wire_tag = 0;
-        {
-          std::lock_guard<std::mutex> accept_lk(g_cord_dn_accept_mu);
-          acceptor.accept(socket);
-          wire_tag = cord_dn_read_u64_be(socket);
-        }
-        std::vector<char> payload;
-        {
-          std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
-          auto it = g_cord_dn_pending_reads.find(wire_tag);
-          if (it == g_cord_dn_pending_reads.end())
-          {
-            std::cout << "[Datanode] cord range read unknown tag=" << wire_tag << std::endl;
-            asio::error_code ignore_ec;
-            socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
-            socket.close(ignore_ec);
-            return;
-          }
-          payload = std::move(it->second.data);
-          g_cord_dn_pending_reads.erase(it);
-        }
-        if (payload.empty())
-        {
-          std::cout << "[Datanode] cord range read empty payload tag=" << wire_tag << std::endl;
-          asio::error_code ignore_ec;
-          socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
-          socket.close(ignore_ec);
-          return;
-        }
-        asio::error_code error;
-        asio::write(socket, asio::buffer(payload.data(), payload.size()), error);
-        asio::error_code ignore_ec;
-        socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
-        socket.close(ignore_ec);
-      }
-      catch (std::exception &e)
-      {
-        std::cout << "handleCordRangeRead tcp exception: " << e.what() << std::endl;
-        asio::error_code ignore_ec;
-        socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
-        socket.close(ignore_ec);
-      }
-    };
-    try
-    {
-      std::thread my_thread(handler);
-      my_thread.detach();
-      response->set_message(true);
-      response->set_cord_tcp_xfer_tag(xfer_tag);
-    }
-    catch (std::exception &e)
-    {
-      std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
-      g_cord_dn_pending_reads.erase(xfer_tag);
-      std::cout << "handleCordRangeRead exception" << std::endl;
-      std::cout << e.what() << std::endl;
-    }
+    startCordTcpAcceptLoopIfNeeded();
+    response->set_message(true);
+    response->set_cord_tcp_xfer_tag(xfer_tag);
     return grpc::Status::OK;
   }
 
@@ -931,67 +1163,9 @@ namespace ECProject
       std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
       g_cord_dn_pending_writes[xfer_tag] = CordDnPendingWrite{writepath, range_offset, range_length};
     }
-
-    auto handler = [this]() mutable
-    {
-      try
-      {
-        asio::ip::tcp::socket socket(io_context);
-        uint64_t wire_tag = 0;
-        {
-          std::lock_guard<std::mutex> accept_lk(g_cord_dn_accept_mu);
-          acceptor.accept(socket);
-          wire_tag = cord_dn_read_u64_be(socket);
-        }
-        CordDnPendingWrite pending;
-        {
-          std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
-          auto it = g_cord_dn_pending_writes.find(wire_tag);
-          if (it == g_cord_dn_pending_writes.end())
-          {
-            std::cout << "[Datanode] cord range write unknown tag=" << wire_tag << std::endl;
-            return;
-          }
-          pending = std::move(it->second);
-          g_cord_dn_pending_writes.erase(it);
-        }
-        const int range_length = pending.range_length;
-        std::vector<char> payload(static_cast<size_t>(range_length));
-        asio::error_code ec;
-        asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(range_length)), ec);
-        asio::error_code ignore_ec;
-        socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
-        socket.close(ignore_ec);
-        if (ec)
-          return;
-        int fd = ::open(pending.writepath.c_str(), O_CREAT | O_RDWR, 0644);
-        if (fd >= 0)
-        {
-          ssize_t w = ::pwrite(fd, payload.data(), range_length, pending.range_offset);
-          ::fsync(fd);
-          ::close(fd);
-          (void)w;
-        }
-      }
-      catch (std::exception &e)
-      {
-        std::cout << "handleCordRangeWrite tcp exception: " << e.what() << std::endl;
-      }
-    };
-    try
-    {
-      std::thread my_thread(handler);
-      my_thread.detach();
-      response->set_message(true);
-      response->set_cord_tcp_xfer_tag(xfer_tag);
-    }
-    catch (std::exception &e)
-    {
-      std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
-      g_cord_dn_pending_writes.erase(xfer_tag);
-      std::cout << "handleCordRangeWrite exception" << std::endl;
-      std::cout << e.what() << std::endl;
-    }
+    startCordTcpAcceptLoopIfNeeded();
+    response->set_message(true);
+    response->set_cord_tcp_xfer_tag(xfer_tag);
     return grpc::Status::OK;
   }
 
@@ -1013,63 +1187,9 @@ namespace ECProject
       std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
       g_cord_dn_pending_blobs[xfer_tag] = CordDnPendingBlob{writepath, byte_length};
     }
-
-    auto handler = [this]() mutable
-    {
-      try
-      {
-        asio::ip::tcp::socket socket(io_context);
-        uint64_t wire_tag = 0;
-        {
-          std::lock_guard<std::mutex> accept_lk(g_cord_dn_accept_mu);
-          acceptor.accept(socket);
-          wire_tag = cord_dn_read_u64_be(socket);
-        }
-        CordDnPendingBlob pending;
-        {
-          std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
-          auto it = g_cord_dn_pending_blobs.find(wire_tag);
-          if (it == g_cord_dn_pending_blobs.end())
-          {
-            std::cout << "[Datanode] cord delta blob unknown tag=" << wire_tag << std::endl;
-            return;
-          }
-          pending = std::move(it->second);
-          g_cord_dn_pending_blobs.erase(it);
-        }
-        const int byte_length = pending.byte_length;
-        std::vector<char> payload(static_cast<size_t>(byte_length));
-        asio::error_code ec;
-        asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(byte_length)), ec);
-        asio::error_code ignore_ec;
-        socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
-        socket.close(ignore_ec);
-        if (ec)
-          return;
-        std::ofstream ofs(pending.writepath, std::ios::binary | std::ios::out | std::ios::trunc);
-        ofs.write(payload.data(), byte_length);
-        ofs.flush();
-        ofs.close();
-      }
-      catch (std::exception &e)
-      {
-        std::cout << "handleCordDeltaBlob tcp exception: " << e.what() << std::endl;
-      }
-    };
-    try
-    {
-      std::thread my_thread(handler);
-      my_thread.detach();
-      response->set_message(true);
-      response->set_cord_tcp_xfer_tag(xfer_tag);
-    }
-    catch (std::exception &e)
-    {
-      std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
-      g_cord_dn_pending_blobs.erase(xfer_tag);
-      std::cout << "handleCordDeltaBlob exception" << std::endl;
-      std::cout << e.what() << std::endl;
-    }
+    startCordTcpAcceptLoopIfNeeded();
+    response->set_message(true);
+    response->set_cord_tcp_xfer_tag(xfer_tag);
     return grpc::Status::OK;
   }
 
@@ -1080,15 +1200,46 @@ namespace ECProject
     (void)context;
     response->set_ok(false);
     response->set_need_d0(false);
-    const std::string &new_data = info->new_data();
-    if (static_cast<int>(new_data.size()) != info->range_length())
+    response->set_cord_tcp_xfer_tag(0);
+
+    const int range_length = info->range_length();
+    if (range_length <= 0)
       return grpc::Status::OK;
-    ParityLogAppendResult r = ParityLogStore::instance().append_new_data(
-        info->stripe_id(), info->parity_block_id(), info->parity_block_key(), info->data_block_id(),
-        info->range_offset(), info->range_length(), info->k(), info->r(), info->z(), info->block_size(),
-        info->code_type(), new_data.data(), static_cast<int>(new_data.size()));
-    response->set_ok(r.ok);
-    response->set_need_d0(r.need_d0);
+
+    if (!info->new_data().empty())
+    {
+      const std::string &new_data = info->new_data();
+      if (static_cast<int>(new_data.size()) != range_length)
+        return grpc::Status::OK;
+      ParityLogAppendResult r = ParityLogStore::instance().append_new_data(
+          info->stripe_id(), info->parity_block_id(), info->parity_block_key(), info->data_block_id(),
+          info->range_offset(), range_length, info->k(), info->r(), info->z(), info->block_size(),
+          info->code_type(), new_data.data(), static_cast<int>(new_data.size()));
+      response->set_ok(r.ok);
+      response->set_need_d0(r.need_d0);
+      return grpc::Status::OK;
+    }
+
+    const uint64_t xfer_tag = cord_dn_alloc_xfer_tag();
+    {
+      std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
+      CordDnPendingParityAppend pending;
+      pending.stripe_id = info->stripe_id();
+      pending.parity_block_id = info->parity_block_id();
+      pending.parity_block_key = info->parity_block_key();
+      pending.data_block_id = info->data_block_id();
+      pending.range_offset = info->range_offset();
+      pending.range_length = range_length;
+      pending.k = info->k();
+      pending.r = info->r();
+      pending.z = info->z();
+      pending.block_size = info->block_size();
+      pending.code_type = info->code_type();
+      g_cord_dn_pending_parity_append[xfer_tag] = std::move(pending);
+    }
+    startCordTcpAcceptLoopIfNeeded();
+    response->set_cord_tcp_xfer_tag(xfer_tag);
+    response->set_ok(true);
     return grpc::Status::OK;
   }
 
@@ -1098,15 +1249,41 @@ namespace ECProject
   {
     (void)context;
     response->set_message(false);
-    const std::string &d0 = info->d0();
-    if (static_cast<int>(d0.size()) != info->range_length())
+    response->set_cord_tcp_xfer_tag(0);
+
+    const int range_length = info->range_length();
+    if (range_length <= 0)
       return grpc::Status::OK;
-    bool ok = ParityLogStore::instance().store_d0(info->stripe_id(), info->parity_block_id(), info->data_block_id(),
-                                                   info->range_offset(), info->range_length(), d0.data(),
+
+    if (!info->d0().empty())
+    {
+      const std::string &d0 = info->d0();
+      if (static_cast<int>(d0.size()) != range_length)
+        return grpc::Status::OK;
+      bool stored = ParityLogStore::instance().store_d0(info->stripe_id(), info->parity_block_id(), info->data_block_id(),
+                                                   info->range_offset(), range_length, d0.data(),
                                                    static_cast<int>(d0.size()));
-    if (ok)
-      ok = ParityLogStore::instance().merge_if_full_cached(info->stripe_id(), info->parity_block_id(), m_port);
-    response->set_message(ok);
+      if (stored)
+        (void)ParityLogStore::instance().merge_if_full_cached(info->stripe_id(), info->parity_block_id(), m_port);
+      response->set_message(stored);
+      return grpc::Status::OK;
+    }
+
+    const uint64_t xfer_tag = cord_dn_alloc_xfer_tag();
+    {
+      std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
+      CordDnPendingParityD0 pending;
+      pending.stripe_id = info->stripe_id();
+      pending.parity_block_id = info->parity_block_id();
+      pending.data_block_id = info->data_block_id();
+      pending.range_offset = info->range_offset();
+      pending.range_length = range_length;
+      pending.datanode_port = m_port;
+      g_cord_dn_pending_parity_d0[xfer_tag] = std::move(pending);
+    }
+    startCordTcpAcceptLoopIfNeeded();
+    response->set_cord_tcp_xfer_tag(xfer_tag);
+    response->set_message(true);
     return grpc::Status::OK;
   }
 

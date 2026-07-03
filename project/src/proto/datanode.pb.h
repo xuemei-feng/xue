@@ -2049,9 +2049,19 @@ class ParityLogAppendReply final :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kCordTcpXferTagFieldNumber = 3,
     kOkFieldNumber = 1,
     kNeedD0FieldNumber = 2,
   };
+  // uint64 cord_tcp_xfer_tag = 3;
+  void clear_cord_tcp_xfer_tag();
+  uint64_t cord_tcp_xfer_tag() const;
+  void set_cord_tcp_xfer_tag(uint64_t value);
+  private:
+  uint64_t _internal_cord_tcp_xfer_tag() const;
+  void _internal_set_cord_tcp_xfer_tag(uint64_t value);
+  public:
+
   // bool ok = 1;
   void clear_ok();
   bool ok() const;
@@ -2078,6 +2088,7 @@ class ParityLogAppendReply final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    uint64_t cord_tcp_xfer_tag_;
     bool ok_;
     bool need_d0_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -4296,6 +4307,26 @@ inline void ParityLogAppendReply::_internal_set_need_d0(bool value) {
 inline void ParityLogAppendReply::set_need_d0(bool value) {
   _internal_set_need_d0(value);
   // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendReply.need_d0)
+}
+
+// uint64 cord_tcp_xfer_tag = 3;
+inline void ParityLogAppendReply::clear_cord_tcp_xfer_tag() {
+  _impl_.cord_tcp_xfer_tag_ = uint64_t{0u};
+}
+inline uint64_t ParityLogAppendReply::_internal_cord_tcp_xfer_tag() const {
+  return _impl_.cord_tcp_xfer_tag_;
+}
+inline uint64_t ParityLogAppendReply::cord_tcp_xfer_tag() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendReply.cord_tcp_xfer_tag)
+  return _internal_cord_tcp_xfer_tag();
+}
+inline void ParityLogAppendReply::_internal_set_cord_tcp_xfer_tag(uint64_t value) {
+  
+  _impl_.cord_tcp_xfer_tag_ = value;
+}
+inline void ParityLogAppendReply::set_cord_tcp_xfer_tag(uint64_t value) {
+  _internal_set_cord_tcp_xfer_tag(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendReply.cord_tcp_xfer_tag)
 }
 
 // -------------------------------------------------------------------

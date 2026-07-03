@@ -6,6 +6,7 @@
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/grpcpp.h>
 #include <asio.hpp>
+#include <atomic>
 #include <string>
 #include <vector>
 #include "meta_definition.h"
@@ -108,6 +109,10 @@ namespace ECProject
         ECProject::Config *m_sys_config;
 
     private:
+        void startCordTcpAcceptLoopIfNeeded();
+        void cordTcpAcceptLoop();
+        void dispatchCordTcpSocket(asio::ip::tcp::socket &socket, uint64_t wire_tag);
+
         std::string datanode_ip_port;
         std::string m_ip;
         int m_port;
@@ -115,6 +120,7 @@ namespace ECProject
         int m_download_port;
         asio::io_context io_context;
         asio::ip::tcp::acceptor acceptor;
+        std::atomic<bool> m_cord_tcp_accept_loop_started{false};
     };
 
     class DataNode

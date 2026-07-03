@@ -21,6 +21,169 @@ namespace ECProject
         return nullptr;
       return it->second.get();
     }
+
+    bool stripe_parity_is_remote(const proxy_proto::CordDataUpdatePlacement &placement, int parity_idx)
+    {
+      if (placement.parity_cluster_ids_size() <= parity_idx)
+        return false;
+      return placement.parity_cluster_ids(parity_idx) != placement.cluster_id();
+    }
+
+    bool stripe_parity_peer_ready(const proxy_proto::CordDataUpdatePlacement &placement, int parity_idx,
+                                  std::string *out_ip, int *out_port)
+    {
+      if (placement.parity_proxy_ips_size() <= parity_idx || placement.parity_proxy_ports_size() <= parity_idx)
+        return false;
+      *out_ip = placement.parity_proxy_ips(parity_idx);
+      *out_port = placement.parity_proxy_ports(parity_idx);
+      return !out_ip->empty() && *out_port > 0;
+    }
+
+    bool stripe_send_parity_append(ProxyImpl *proxy, const proxy_proto::CordDataUpdatePlacement &placement, int parity_idx,
+                                   int data_block_id, int range_off, int range_len, const char *new_data, bool *need_d0)
+    {
+      const int pblk = placement.parity_block_ids(parity_idx);
+      const std::string &pkey = placement.parity_block_keys(parity_idx);
+      const char *pip = placement.parity_datanode_ips(parity_idx).c_str();
+      const int pport = placement.parity_datanode_ports(parity_idx);
+
+      datanode_proto::ParityLogAppendInfo meta;
+      meta.set_stripe_id(placement.stripe_id());
+      meta.set_parity_block_id(pblk);
+      meta.set_parity_block_key(pkey);
+      meta.set_data_block_id(data_block_id);
+      meta.set_range_offset(range_off);
+      meta.set_range_length(range_len);
+      meta.set_k(placement.k());
+      meta.set_r(placement.r());
+      meta.set_z(placement.z());
+      meta.set_block_size(placement.block_size());
+      meta.set_code_type(placement.code_type());
+
+      if (stripe_parity_is_remote(placement, parity_idx))
+      {
+        std::string peer_ip;
+        int peer_port = 0;
+        if (!stripe_parity_peer_ready(placement, parity_idx, &peer_ip, &peer_port))
+        {
+          std::cout << "[StripeUpdate] parity append missing peer meta blk=" << pblk << std::endl;
+          return false;
+        }
+        proxy_proto::StripeParityLogAppendXfer xfer;
+        xfer.set_stripe_id(placement.stripe_id());
+        xfer.set_parity_block_id(pblk);
+        xfer.set_parity_block_key(pkey);
+        xfer.set_data_block_id(data_block_id);
+        xfer.set_range_offset(range_off);
+        xfer.set_range_length(range_len);
+        xfer.set_k(placement.k());
+        xfer.set_r(placement.r());
+        xfer.set_z(placement.z());
+        xfer.set_block_size(placement.block_size());
+        xfer.set_code_type(placement.code_type());
+        xfer.set_parity_datanode_ip(pip);
+        xfer.set_parity_datanode_port(pport);
+        const std::string meta_bytes = xfer.SerializeAsString();
+        if (proxy->send_stripe_parity_append_peer(peer_ip, peer_port, meta_bytes, new_data,
+                                                  static_cast<size_t>(range_len), need_d0))
+          return true;
+        std::cout << "[StripeUpdate] parity append peer xfer failed blk=" << pblk << " -> proxy " << peer_ip << ":"
+                  << peer_port << " fallback direct dn=" << pip << ":" << pport << std::endl;
+      }
+
+      if (!proxy->has_datanode_stub(pip, pport))
+      {
+        std::cout << "[StripeUpdate] parity append no datanode stub blk=" << pblk << " dn=" << pip << ":" << pport
+                  << std::endl;
+        return false;
+      }
+      return proxy->ParityLogAppendToDatanode(meta, new_data, static_cast<size_t>(range_len), pip, pport, need_d0);
+    }
+
+    bool stripe_send_parity_store_d0(ProxyImpl *proxy, const proxy_proto::CordDataUpdatePlacement &placement,
+                                     int parity_idx, int data_block_id, int range_off, int range_len, const char *d0)
+    {
+      const int pblk = placement.parity_block_ids(parity_idx);
+      const char *pip = placement.parity_datanode_ips(parity_idx).c_str();
+      const int pport = placement.parity_datanode_ports(parity_idx);
+
+      datanode_proto::ParityLogStoreD0Info meta;
+      meta.set_stripe_id(placement.stripe_id());
+      meta.set_parity_block_id(pblk);
+      meta.set_data_block_id(data_block_id);
+      meta.set_range_offset(range_off);
+      meta.set_range_length(range_len);
+
+      if (stripe_parity_is_remote(placement, parity_idx))
+      {
+        std::string peer_ip;
+        int peer_port = 0;
+        if (!stripe_parity_peer_ready(placement, parity_idx, &peer_ip, &peer_port))
+        {
+          std::cout << "[StripeUpdate] store D0 missing peer meta parity_blk=" << pblk << std::endl;
+          return false;
+        }
+        proxy_proto::StripeParityLogStoreD0Xfer xfer;
+        xfer.set_stripe_id(placement.stripe_id());
+        xfer.set_parity_block_id(pblk);
+        xfer.set_data_block_id(data_block_id);
+        xfer.set_range_offset(range_off);
+        xfer.set_range_length(range_len);
+        xfer.set_parity_datanode_ip(pip);
+        xfer.set_parity_datanode_port(pport);
+        const std::string meta_bytes = xfer.SerializeAsString();
+        if (proxy->send_stripe_parity_d0_peer(peer_ip, peer_port, meta_bytes, d0, static_cast<size_t>(range_len)))
+          return true;
+        std::cout << "[StripeUpdate] store D0 peer xfer failed parity_blk=" << pblk << " -> proxy " << peer_ip << ":"
+                  << peer_port << " fallback direct dn=" << pip << ":" << pport << std::endl;
+      }
+
+      if (!proxy->has_datanode_stub(pip, pport))
+      {
+        std::cout << "[StripeUpdate] store D0 no datanode stub parity_blk=" << pblk << " dn=" << pip << ":" << pport
+                  << std::endl;
+        return false;
+      }
+      return proxy->ParityLogStoreD0ToDatanode(meta, d0, static_cast<size_t>(range_len), pip, pport);
+    }
+
+    bool stripe_write_block(ProxyImpl *proxy, const proxy_proto::CordDataUpdatePlacement &placement, int block_idx,
+                            const char *payload, size_t len)
+    {
+      const char *dip = placement.all_datanode_ips(block_idx).c_str();
+      const int dport = placement.all_datanode_ports(block_idx);
+
+      const bool remote_block = placement.all_block_cluster_ids_size() > block_idx &&
+                                placement.all_block_cluster_ids(block_idx) != placement.cluster_id();
+
+      if (!remote_block)
+      {
+        return proxy->CordRangeWriteToDatanode(placement.all_block_keys(block_idx), placement.all_block_ids(block_idx),
+                                               0, payload, len, dip, dport);
+      }
+
+      if (placement.all_proxy_ips_size() <= block_idx || placement.all_proxy_ports_size() <= block_idx)
+        return false;
+
+      proxy_proto::StripeBlockWriteXfer xfer;
+      xfer.set_block_key(placement.all_block_keys(block_idx));
+      xfer.set_block_id(placement.all_block_ids(block_idx));
+      xfer.set_range_offset(0);
+      xfer.set_range_length(static_cast<int32_t>(len));
+      xfer.set_datanode_ip(dip);
+      xfer.set_datanode_port(dport);
+
+      const std::string meta_bytes = xfer.SerializeAsString();
+      const std::string &peer_ip = placement.all_proxy_ips(block_idx);
+      const int peer_port = placement.all_proxy_ports(block_idx);
+      if (proxy->send_stripe_block_write_peer(peer_ip, peer_port, meta_bytes, payload, len))
+        return true;
+      std::cout << "[StripeUpdate] full block peer xfer failed blk=" << placement.all_block_ids(block_idx)
+                << " -> proxy " << peer_ip << ":" << peer_port << " fallback direct dn=" << dip << ":" << dport
+                << std::endl;
+      return proxy->CordRangeWriteToDatanode(placement.all_block_keys(block_idx), placement.all_block_ids(block_idx), 0,
+                                             payload, len, dip, dport);
+    }
   } // namespace
 
   bool ProxyImpl::execute_stripe_partial_update(const proxy_proto::CordDataUpdatePlacement &placement, const char *buf,
@@ -63,40 +226,15 @@ namespace ECProject
           if (failed.load())
             return;
           const int idx = j * parities_per_slice + pi;
-          const int pblk = placement.parity_block_ids(idx);
-          const std::string &pkey = placement.parity_block_keys(idx);
-          const char *pip = placement.parity_datanode_ips(idx).c_str();
-          const int pport = placement.parity_datanode_ports(idx);
-          auto *stub = datanode_stub_for(m_datanode_ptrs, pip, pport);
-          if (stub == nullptr)
+          bool need_d0 = false;
+          if (!stripe_send_parity_append(this, placement, idx, bid, off, len, new_data, &need_d0))
           {
             failed.store(true);
-            std::cout << "[StripeUpdate] no datanode stub for parity " << pblk << std::endl;
+            std::cout << "[StripeUpdate] parity log append failed blk=" << placement.parity_block_ids(idx)
+                      << " cluster=" << placement.cluster_id() << std::endl;
             return;
           }
-          grpc::ClientContext ctx;
-          datanode_proto::ParityLogAppendInfo req;
-          datanode_proto::ParityLogAppendReply rep;
-          req.set_stripe_id(placement.stripe_id());
-          req.set_parity_block_id(pblk);
-          req.set_parity_block_key(pkey);
-          req.set_data_block_id(bid);
-          req.set_range_offset(off);
-          req.set_range_length(len);
-          req.set_k(placement.k());
-          req.set_r(placement.r());
-          req.set_z(placement.z());
-          req.set_block_size(placement.block_size());
-          req.set_code_type(placement.code_type());
-          req.set_new_data(new_data, static_cast<size_t>(len));
-          grpc::Status st = stub->handleParityLogAppend(&ctx, req, &rep);
-          if (!st.ok() || !rep.ok())
-          {
-            failed.store(true);
-            std::cout << "[StripeUpdate] parity log append failed blk=" << pblk << std::endl;
-            return;
-          }
-          if (rep.need_d0())
+          if (need_d0)
           {
             std::lock_guard<std::mutex> lk(need_d0_mu);
             need_d0_indices.push_back(idx);
@@ -130,28 +268,11 @@ namespace ECProject
           store_threads.emplace_back([&, idx]() {
             if (failed.load())
               return;
-            const int pblk = placement.parity_block_ids(idx);
-            auto *stub = datanode_stub_for(m_datanode_ptrs, placement.parity_datanode_ips(idx).c_str(),
-                                           placement.parity_datanode_ports(idx));
-            if (stub == nullptr)
+            if (!stripe_send_parity_store_d0(this, placement, idx, bid, off, len, d0.data()))
             {
               failed.store(true);
-              return;
-            }
-            grpc::ClientContext ctx;
-            datanode_proto::ParityLogStoreD0Info req;
-            datanode_proto::RequestResult rep;
-            req.set_stripe_id(placement.stripe_id());
-            req.set_parity_block_id(pblk);
-            req.set_data_block_id(bid);
-            req.set_range_offset(off);
-            req.set_range_length(len);
-            req.set_d0(d0.data(), static_cast<size_t>(len));
-            grpc::Status st = stub->handleParityLogStoreD0(&ctx, req, &rep);
-            if (!st.ok() || !rep.message())
-            {
-              failed.store(true);
-              std::cout << "[StripeUpdate] store D0 failed parity_blk=" << pblk << std::endl;
+              std::cout << "[StripeUpdate] store D0 failed parity_blk=" << placement.parity_block_ids(idx)
+                        << " cluster=" << placement.cluster_id() << std::endl;
             }
           });
         }
@@ -219,21 +340,36 @@ namespace ECProject
     else
       encode_azure_lrc(k, r, z, up_data.data(), parity_ptrs.data(), block_size);
 
+    std::cout << "[StripeUpdate] full stripe: primary cluster=" << placement.cluster_id()
+              << " distributing " << n << " blocks (local + cross-rack proxy)\n";
+
+    std::atomic<bool> failed{false};
+    std::vector<std::thread> write_threads;
+    write_threads.reserve(static_cast<size_t>(n));
+
     for (int i = 0; i < n; ++i)
     {
-      const char *payload = nullptr;
-      if (i < k)
-        payload = data_ptrs[static_cast<size_t>(i)];
-      else
-        payload = parity_bufs[static_cast<size_t>(i - k)].data();
-      if (!CordRangeWriteToDatanode(placement.all_block_keys(i), placement.all_block_ids(i), 0, payload,
-                                    static_cast<size_t>(block_size), placement.all_datanode_ips(i).c_str(),
-                                    placement.all_datanode_ports(i)))
-      {
-        std::cout << "[StripeUpdate] full write failed blk=" << placement.all_block_ids(i) << std::endl;
-        return false;
-      }
+      write_threads.emplace_back([&, i]() {
+        if (failed.load())
+          return;
+        const char *payload = nullptr;
+        if (i < k)
+          payload = data_ptrs[static_cast<size_t>(i)];
+        else
+          payload = parity_bufs[static_cast<size_t>(i - k)].data();
+        if (!stripe_write_block(this, placement, i, payload, static_cast<size_t>(block_size)))
+        {
+          failed.store(true);
+          std::cout << "[StripeUpdate] full write failed blk=" << placement.all_block_ids(i) << std::endl;
+        }
+      });
     }
+
+    for (auto &th : write_threads)
+      th.join();
+
+    if (failed.load())
+      return false;
 
     for (int p = k; p < n; ++p)
     {

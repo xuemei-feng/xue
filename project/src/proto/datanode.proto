@@ -127,6 +127,8 @@ message ParityLogAppendInfo {
 message ParityLogAppendReply {
     bool ok = 1;
     bool need_d0 = 2;
+    /** 非零时 payload 走 TCP 侧信道；proxy 发完数据后读 2 字节 ack：[ok][need_d0] */
+    uint64 cord_tcp_xfer_tag = 3;
 }
 
 message ParityLogStoreD0Info {

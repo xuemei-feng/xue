@@ -745,6 +745,16 @@ PROTOBUF_CONSTEXPR CordDataUpdatePlacement::CordDataUpdatePlacement(
   , /*decltype(_impl_.all_datanode_ips_)*/{}
   , /*decltype(_impl_.all_datanode_ports_)*/{}
   , /*decltype(_impl_._all_datanode_ports_cached_byte_size_)*/{0}
+  , /*decltype(_impl_.all_block_cluster_ids_)*/{}
+  , /*decltype(_impl_._all_block_cluster_ids_cached_byte_size_)*/{0}
+  , /*decltype(_impl_.all_proxy_ips_)*/{}
+  , /*decltype(_impl_.all_proxy_ports_)*/{}
+  , /*decltype(_impl_._all_proxy_ports_cached_byte_size_)*/{0}
+  , /*decltype(_impl_.parity_cluster_ids_)*/{}
+  , /*decltype(_impl_._parity_cluster_ids_cached_byte_size_)*/{0}
+  , /*decltype(_impl_.parity_proxy_ips_)*/{}
+  , /*decltype(_impl_.parity_proxy_ports_)*/{}
+  , /*decltype(_impl_._parity_proxy_ports_cached_byte_size_)*/{0}
   , /*decltype(_impl_.key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.delta_blob_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.delta_datanode_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
@@ -769,6 +779,68 @@ struct CordDataUpdatePlacementDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 CordDataUpdatePlacementDefaultTypeInternal _CordDataUpdatePlacement_default_instance_;
+PROTOBUF_CONSTEXPR StripeBlockWriteXfer::StripeBlockWriteXfer(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.datanode_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.block_id_)*/0
+  , /*decltype(_impl_.range_offset_)*/0
+  , /*decltype(_impl_.range_length_)*/0
+  , /*decltype(_impl_.datanode_port_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct StripeBlockWriteXferDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR StripeBlockWriteXferDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~StripeBlockWriteXferDefaultTypeInternal() {}
+  union {
+    StripeBlockWriteXfer _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StripeBlockWriteXferDefaultTypeInternal _StripeBlockWriteXfer_default_instance_;
+PROTOBUF_CONSTEXPR StripeParityLogAppendXfer::StripeParityLogAppendXfer(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.parity_block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.code_type_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.parity_datanode_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_.parity_block_id_)*/0
+  , /*decltype(_impl_.data_block_id_)*/0
+  , /*decltype(_impl_.range_offset_)*/0
+  , /*decltype(_impl_.range_length_)*/0
+  , /*decltype(_impl_.k_)*/0
+  , /*decltype(_impl_.r_)*/0
+  , /*decltype(_impl_.z_)*/0
+  , /*decltype(_impl_.block_size_)*/0
+  , /*decltype(_impl_.parity_datanode_port_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct StripeParityLogAppendXferDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR StripeParityLogAppendXferDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~StripeParityLogAppendXferDefaultTypeInternal() {}
+  union {
+    StripeParityLogAppendXfer _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StripeParityLogAppendXferDefaultTypeInternal _StripeParityLogAppendXfer_default_instance_;
+PROTOBUF_CONSTEXPR StripeParityLogStoreD0Xfer::StripeParityLogStoreD0Xfer(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.parity_datanode_ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_.parity_block_id_)*/0
+  , /*decltype(_impl_.data_block_id_)*/0
+  , /*decltype(_impl_.range_offset_)*/0
+  , /*decltype(_impl_.range_length_)*/0
+  , /*decltype(_impl_.parity_datanode_port_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct StripeParityLogStoreD0XferDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR StripeParityLogStoreD0XferDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~StripeParityLogStoreD0XferDefaultTypeInternal() {}
+  union {
+    StripeParityLogStoreD0Xfer _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StripeParityLogStoreD0XferDefaultTypeInternal _StripeParityLogStoreD0Xfer_default_instance_;
 PROTOBUF_CONSTEXPR CordLpDeltaFetch::CordLpDeltaFetch(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.blob_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
@@ -952,7 +1024,7 @@ struct StripeAndBlockIDsDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StripeAndBlockIDsDefaultTypeInternal _StripeAndBlockIDs_default_instance_;
 }  // namespace proxy_proto
-static ::_pb::Metadata file_level_metadata_proxy_2eproto[47];
+static ::_pb::Metadata file_level_metadata_proxy_2eproto[50];
 static const ::_pb::EnumDescriptor* file_level_enum_descriptors_proxy_2eproto[2];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_proxy_2eproto = nullptr;
 
@@ -1460,6 +1532,56 @@ const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   PROTOBUF_FIELD_OFFSET(::proxy_proto::CordDataUpdatePlacement, _impl_.all_block_keys_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::CordDataUpdatePlacement, _impl_.all_datanode_ips_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::CordDataUpdatePlacement, _impl_.all_datanode_ports_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::CordDataUpdatePlacement, _impl_.all_block_cluster_ids_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::CordDataUpdatePlacement, _impl_.all_proxy_ips_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::CordDataUpdatePlacement, _impl_.all_proxy_ports_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::CordDataUpdatePlacement, _impl_.parity_cluster_ids_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::CordDataUpdatePlacement, _impl_.parity_proxy_ips_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::CordDataUpdatePlacement, _impl_.parity_proxy_ports_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeBlockWriteXfer, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeBlockWriteXfer, _impl_.block_key_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeBlockWriteXfer, _impl_.block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeBlockWriteXfer, _impl_.range_offset_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeBlockWriteXfer, _impl_.range_length_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeBlockWriteXfer, _impl_.datanode_ip_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeBlockWriteXfer, _impl_.datanode_port_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogAppendXfer, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogAppendXfer, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogAppendXfer, _impl_.parity_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogAppendXfer, _impl_.parity_block_key_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogAppendXfer, _impl_.data_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogAppendXfer, _impl_.range_offset_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogAppendXfer, _impl_.range_length_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogAppendXfer, _impl_.k_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogAppendXfer, _impl_.r_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogAppendXfer, _impl_.z_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogAppendXfer, _impl_.block_size_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogAppendXfer, _impl_.code_type_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogAppendXfer, _impl_.parity_datanode_ip_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogAppendXfer, _impl_.parity_datanode_port_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogStoreD0Xfer, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogStoreD0Xfer, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogStoreD0Xfer, _impl_.parity_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogStoreD0Xfer, _impl_.data_block_id_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogStoreD0Xfer, _impl_.range_offset_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogStoreD0Xfer, _impl_.range_length_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogStoreD0Xfer, _impl_.parity_datanode_ip_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::StripeParityLogStoreD0Xfer, _impl_.parity_datanode_port_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::CordLpDeltaFetch, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -1619,16 +1741,19 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 438, -1, -1, sizeof(::proxy_proto::CordPlanApplyParityXorReq)},
   { 452, -1, -1, sizeof(::proxy_proto::CordPlanMstDataDeltaReq)},
   { 469, -1, -1, sizeof(::proxy_proto::CordDataUpdatePlacement)},
-  { 503, -1, -1, sizeof(::proxy_proto::CordLpDeltaFetch)},
-  { 515, -1, -1, sizeof(::proxy_proto::CordLpWorkItem)},
-  { 528, -1, -1, sizeof(::proxy_proto::CordLocalParityBundle)},
-  { 537, -1, -1, sizeof(::proxy_proto::CordLpHubSessionBegin)},
-  { 555, -1, -1, sizeof(::proxy_proto::CordLpHubPartialPush)},
-  { 563, -1, -1, sizeof(::proxy_proto::CordLpComputePartialAndPush)},
-  { 577, -1, -1, sizeof(::proxy_proto::CordLpParityApplyDelta)},
-  { 591, -1, -1, sizeof(::proxy_proto::SetReply)},
-  { 602, -1, -1, sizeof(::proxy_proto::GetReply)},
-  { 609, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
+  { 509, -1, -1, sizeof(::proxy_proto::StripeBlockWriteXfer)},
+  { 521, -1, -1, sizeof(::proxy_proto::StripeParityLogAppendXfer)},
+  { 540, -1, -1, sizeof(::proxy_proto::StripeParityLogStoreD0Xfer)},
+  { 553, -1, -1, sizeof(::proxy_proto::CordLpDeltaFetch)},
+  { 565, -1, -1, sizeof(::proxy_proto::CordLpWorkItem)},
+  { 578, -1, -1, sizeof(::proxy_proto::CordLocalParityBundle)},
+  { 587, -1, -1, sizeof(::proxy_proto::CordLpHubSessionBegin)},
+  { 605, -1, -1, sizeof(::proxy_proto::CordLpHubPartialPush)},
+  { 613, -1, -1, sizeof(::proxy_proto::CordLpComputePartialAndPush)},
+  { 627, -1, -1, sizeof(::proxy_proto::CordLpParityApplyDelta)},
+  { 641, -1, -1, sizeof(::proxy_proto::SetReply)},
+  { 652, -1, -1, sizeof(::proxy_proto::GetReply)},
+  { 659, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -1669,6 +1794,9 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::proxy_proto::_CordPlanApplyParityXorReq_default_instance_._instance,
   &::proxy_proto::_CordPlanMstDataDeltaReq_default_instance_._instance,
   &::proxy_proto::_CordDataUpdatePlacement_default_instance_._instance,
+  &::proxy_proto::_StripeBlockWriteXfer_default_instance_._instance,
+  &::proxy_proto::_StripeParityLogAppendXfer_default_instance_._instance,
+  &::proxy_proto::_StripeParityLogStoreD0Xfer_default_instance_._instance,
   &::proxy_proto::_CordLpDeltaFetch_default_instance_._instance,
   &::proxy_proto::_CordLpWorkItem_default_instance_._instance,
   &::proxy_proto::_CordLocalParityBundle_default_instance_._instance,
@@ -1852,7 +1980,7 @@ const char descriptor_table_protodef_proxy_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "yload\030\006 \001(\014\022\034\n\024total_expected_bytes\030\007 \001("
   "\004\022\030\n\020parity_block_key\030\010 \001(\t\022\032\n\022parity_da"
   "tanode_ip\030\t \001(\t\022\034\n\024parity_datanode_port\030"
-  "\n \001(\005\022\031\n\021src_data_block_id\030\013 \001(\005\"\202\005\n\027Cor"
+  "\n \001(\005\022\031\n\021src_data_block_id\030\013 \001(\005\"\243\006\n\027Cor"
   "dDataUpdatePlacement\022\013\n\003key\030\001 \001(\t\022\022\n\nclu"
   "ster_id\030\002 \001(\005\022\021\n\tstripe_id\030\003 \001(\005\022\033\n\023upda"
   "te_payload_size\030\004 \001(\004\022\022\n\ndatanodeip\030\005 \003("
@@ -1868,121 +1996,141 @@ const char descriptor_table_protodef_proxy_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "parity_datanode_ips\030\027 \003(\t\022\035\n\025parity_data"
   "node_ports\030\030 \003(\005\022\025\n\rall_block_ids\030\031 \003(\005\022"
   "\026\n\016all_block_keys\030\032 \003(\t\022\030\n\020all_datanode_"
-  "ips\030\033 \003(\t\022\032\n\022all_datanode_ports\030\034 \003(\005\"\213\001"
-  "\n\020CordLpDeltaFetch\022\020\n\010blob_key\030\001 \001(\t\022\023\n\013"
-  "datanode_ip\030\002 \001(\t\022\025\n\rdatanode_port\030\003 \001(\005"
-  "\022\023\n\013blob_offset\030\004 \001(\004\022\020\n\010read_len\030\005 \001(\004\022"
-  "\022\n\nacc_offset\030\006 \001(\005\"\341\001\n\016CordLpWorkItem\022\026"
-  "\n\016local_block_id\030\001 \001(\005\022\027\n\017local_block_ke"
-  "y\030\002 \001(\t\022\031\n\021local_datanode_ip\030\003 \001(\t\022\033\n\023lo"
-  "cal_datanode_port\030\004 \001(\005\022\033\n\023parity_slice_"
-  "offset\030\005 \001(\005\022\031\n\021parity_slice_size\030\006 \001(\005\022"
-  ".\n\007fetches\030\007 \003(\0132\035.proxy_proto.CordLpDel"
-  "taFetch\"c\n\025CordLocalParityBundle\022\013\n\003key\030"
-  "\001 \001(\t\022\021\n\tstripe_id\030\002 \001(\005\022*\n\005items\030\003 \003(\0132"
-  "\033.proxy_proto.CordLpWorkItem\"\316\002\n\025CordLpH"
-  "ubSessionBegin\022\023\n\013session_key\030\001 \001(\t\022\031\n\021e"
-  "xpected_partials\030\002 \001(\005\022\031\n\021parity_slice_s"
-  "ize\030\003 \001(\005\022\033\n\023parity_slice_offset\030\004 \001(\005\022\026"
-  "\n\016local_block_id\030\005 \001(\005\022\027\n\017local_block_ke"
-  "y\030\006 \001(\t\022\031\n\021local_datanode_ip\030\007 \001(\t\022\033\n\023lo"
-  "cal_datanode_port\030\010 \001(\005\022\030\n\020dest_lp_proxy"
-  "_ip\030\t \001(\t\022\032\n\022dest_lp_proxy_port\030\n \001(\005\022\021\n"
-  "\tstripe_id\030\013 \001(\005\022\033\n\023hub_global_block_id\030"
-  "\014 \001(\005\"D\n\024CordLpHubPartialPush\022\023\n\013session"
-  "_key\030\001 \001(\t\022\027\n\017partial_payload\030\002 \001(\014\"\373\001\n\033"
-  "CordLpComputePartialAndPush\022\023\n\013session_k"
-  "ey\030\001 \001(\t\022\024\n\014hub_proxy_ip\030\002 \001(\t\022\026\n\016hub_pr"
-  "oxy_port\030\003 \001(\005\022\026\n\016delta_blob_key\030\004 \001(\t\022\031"
-  "\n\021delta_datanode_ip\030\005 \001(\t\022\033\n\023delta_datan"
-  "ode_port\030\006 \001(\005\022\031\n\021parity_slice_size\030\007 \001("
-  "\005\022.\n\007fetches\030\010 \003(\0132\035.proxy_proto.CordLpD"
-  "eltaFetch\"\343\001\n\026CordLpParityApplyDelta\022\021\n\t"
-  "stripe_id\030\001 \001(\005\022\026\n\016local_block_id\030\002 \001(\005\022"
-  "\027\n\017local_block_key\030\003 \001(\t\022\031\n\021local_datano"
-  "de_ip\030\004 \001(\t\022\033\n\023local_datanode_port\030\005 \001(\005"
-  "\022\033\n\023parity_slice_offset\030\006 \001(\005\022\031\n\021parity_"
-  "slice_size\030\007 \001(\005\022\025\n\rdelta_payload\030\010 \001(\014\""
-  "\270\001\n\010SetReply\022\020\n\010ifcommit\030\001 \001(\010\022%\n\035cord_j"
-  "oin_xfer_timing_present\030\002 \001(\010\022\037\n\027cord_jo"
-  "in_pure_xfer_sec\030\003 \001(\001\022)\n!cord_join_pure"
-  "_xfer_start_unix_ms\030\004 \001(\003\022\'\n\037cord_join_p"
-  "ure_xfer_end_unix_ms\030\005 \001(\003\"\036\n\010GetReply\022\022"
-  "\n\ngetsuccess\030\001 \001(\010\"\261\001\n\021StripeAndBlockIDs"
-  "\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010group_id\030\002 \001(\005\022\020\n"
-  "\010clientip\030\003 \001(\t\022\022\n\nclientport\030\004 \001(\005\022\021\n\tb"
-  "lock_ids\030\005 \003(\005\022\022\n\nblock_keys\030\006 \003(\t\022\023\n\013da"
-  "tanodeips\030\007 \003(\t\022\025\n\rdatanodeports\030\010 \003(\005*\255"
-  "\001\n\024CordTransferLinkKind\022%\n!CORD_TRANSFER"
-  "_STAR_DATA_TO_CENTER\020\000\022\'\n#CORD_TRANSFER_"
-  "STAR_CENTER_TO_GLOBAL\020\001\022&\n\"CORD_TRANSFER"
-  "_STAR_CENTER_TO_LOCAL\020\002\022\035\n\031CORD_TRANSFER"
-  "_MST_FORWARD\020\003*B\n\024CordDeltaPayloadKind\022\023"
-  "\n\017CORD_DELTA_DATA\020\000\022\025\n\021CORD_DELTA_PARITY"
-  "\020\0012\336\021\n\014proxyService\022D\n\ncheckalive\022\032.prox"
-  "y_proto.CheckaliveCMD\032\032.proxy_proto.Requ"
-  "estResult\022L\n\022encodeAndSetObject\022\037.proxy_"
-  "proto.ObjectAndPlacement\032\025.proxy_proto.S"
-  "etReply\022L\n\022decodeAndGetObject\022\037.proxy_pr"
-  "oto.ObjectAndPlacement\032\025.proxy_proto.Get"
-  "Reply\022P\n\014degradedRead\022 .proxy_proto.Degr"
-  "adedReadRequest\032\036.proxy_proto.DegradedRe"
-  "adReply\022S\n\023degradedRead2Client\022\034.proxy_p"
-  "roto.RecoveryRequest\032\036.proxy_proto.Degra"
-  "dedReadReply\022Y\n\025degradedReadBreakdown\022 ."
-  "proxy_proto.DegradedReadRequest\032\036.proxy_"
-  "proto.DegradedReadReply\022\\\n\034degradedRead2"
-  "ClientBreakdown\022\034.proxy_proto.RecoveryRe"
-  "quest\032\036.proxy_proto.DegradedReadReply\022X\n"
-  "\035degradedReadWithBlockStripeID\022 .proxy_p"
-  "roto.DegradedReadRequest\032\025.proxy_proto.G"
-  "etReply\022V\n\017partialDecoding\022#.proxy_proto"
-  ".PartialDecodingRequest\032\036.proxy_proto.De"
-  "gradedReadReply\022D\n\010recovery\022\034.proxy_prot"
-  "o.RecoveryRequest\032\032.proxy_proto.Recovery"
-  "Reply\022M\n\021recoveryBreakdown\022\034.proxy_proto"
-  ".RecoveryRequest\032\032.proxy_proto.RecoveryR"
-  "eply\022O\n\020multipleRecovery\022$.proxy_proto.M"
-  "ultipleRecoveryRequest\032\025.proxy_proto.Get"
-  "Reply\022\?\n\013deleteBlock\022\031.proxy_proto.NodeA"
-  "ndBlock\032\025.proxy_proto.DelReply\022X\n\027schedu"
-  "leAppend2Datanode\022&.proxy_proto.AppendSt"
-  "ripeDataPlacement\032\025.proxy_proto.SetReply"
-  "\022U\n\026scheduleCordDataUpdate\022$.proxy_proto"
-  ".CordDataUpdatePlacement\032\025.proxy_proto.S"
-  "etReply\022Y\n\034scheduleCordLocalParityApply\022"
-  "\".proxy_proto.CordLocalParityBundle\032\025.pr"
-  "oxy_proto.SetReply\022R\n\025cordLpHubSessionBe"
-  "gin\022\".proxy_proto.CordLpHubSessionBegin\032"
-  "\025.proxy_proto.SetReply\022P\n\024cordLpHubParti"
-  "alPush\022!.proxy_proto.CordLpHubPartialPus"
-  "h\032\025.proxy_proto.SetReply\022^\n\033cordLpComput"
-  "ePartialAndPush\022(.proxy_proto.CordLpComp"
-  "utePartialAndPush\032\025.proxy_proto.SetReply"
-  "\022T\n\026cordLpApplyParityDelta\022#.proxy_proto"
-  ".CordLpParityApplyDelta\032\025.proxy_proto.Se"
-  "tReply\022P\n\030scheduleCordTransferPlan\022\035.pro"
-  "xy_proto.CordTransferPlan\032\025.proxy_proto."
-  "SetReply\022L\n\026cordPlanStartExecution\022\033.pro"
-  "xy_proto.CordPlanKeyMsg\032\025.proxy_proto.Se"
-  "tReply\022K\n\025cordPlanJoinExecution\022\033.proxy_"
-  "proto.CordPlanKeyMsg\032\025.proxy_proto.SetRe"
-  "ply\022b\n cordPlanCollectorIngestDataDelta\022"
-  "\'.proxy_proto.CordPlanCollectorIngestReq"
-  "\032\025.proxy_proto.SetReply\022\\\n\033cordPlanApply"
-  "ParityXorDelta\022&.proxy_proto.CordPlanApp"
-  "lyParityXorReq\032\025.proxy_proto.SetReply\022X\n"
-  "\031cordPlanMstDataDeltaChunk\022$.proxy_proto"
-  ".CordPlanMstDataDeltaReq\032\025.proxy_proto.S"
-  "etReply\022B\n\tgetBlocks\022\036.proxy_proto.Strip"
-  "eAndBlockIDs\032\025.proxy_proto.GetReplyb\006pro"
-  "to3"
+  "ips\030\033 \003(\t\022\032\n\022all_datanode_ports\030\034 \003(\005\022\035\n"
+  "\025all_block_cluster_ids\030\035 \003(\005\022\025\n\rall_prox"
+  "y_ips\030\036 \003(\t\022\027\n\017all_proxy_ports\030\037 \003(\005\022\032\n\022"
+  "parity_cluster_ids\030  \003(\005\022\030\n\020parity_proxy"
+  "_ips\030! \003(\t\022\032\n\022parity_proxy_ports\030\" \003(\005\"\223"
+  "\001\n\024StripeBlockWriteXfer\022\021\n\tblock_key\030\001 \001"
+  "(\t\022\020\n\010block_id\030\002 \001(\005\022\024\n\014range_offset\030\003 \001"
+  "(\005\022\024\n\014range_length\030\004 \001(\005\022\023\n\013datanode_ip\030"
+  "\005 \001(\t\022\025\n\rdatanode_port\030\006 \001(\005\"\246\002\n\031StripeP"
+  "arityLogAppendXfer\022\021\n\tstripe_id\030\001 \001(\005\022\027\n"
+  "\017parity_block_id\030\002 \001(\005\022\030\n\020parity_block_k"
+  "ey\030\003 \001(\t\022\025\n\rdata_block_id\030\004 \001(\005\022\024\n\014range"
+  "_offset\030\005 \001(\005\022\024\n\014range_length\030\006 \001(\005\022\t\n\001k"
+  "\030\007 \001(\005\022\t\n\001r\030\010 \001(\005\022\t\n\001z\030\t \001(\005\022\022\n\nblock_si"
+  "ze\030\n \001(\005\022\021\n\tcode_type\030\013 \001(\t\022\032\n\022parity_da"
+  "tanode_ip\030\014 \001(\t\022\034\n\024parity_datanode_port\030"
+  "\r \001(\005\"\305\001\n\032StripeParityLogStoreD0Xfer\022\021\n\t"
+  "stripe_id\030\001 \001(\005\022\027\n\017parity_block_id\030\002 \001(\005"
+  "\022\025\n\rdata_block_id\030\003 \001(\005\022\024\n\014range_offset\030"
+  "\004 \001(\005\022\024\n\014range_length\030\005 \001(\005\022\032\n\022parity_da"
+  "tanode_ip\030\006 \001(\t\022\034\n\024parity_datanode_port\030"
+  "\007 \001(\005\"\213\001\n\020CordLpDeltaFetch\022\020\n\010blob_key\030\001"
+  " \001(\t\022\023\n\013datanode_ip\030\002 \001(\t\022\025\n\rdatanode_po"
+  "rt\030\003 \001(\005\022\023\n\013blob_offset\030\004 \001(\004\022\020\n\010read_le"
+  "n\030\005 \001(\004\022\022\n\nacc_offset\030\006 \001(\005\"\341\001\n\016CordLpWo"
+  "rkItem\022\026\n\016local_block_id\030\001 \001(\005\022\027\n\017local_"
+  "block_key\030\002 \001(\t\022\031\n\021local_datanode_ip\030\003 \001"
+  "(\t\022\033\n\023local_datanode_port\030\004 \001(\005\022\033\n\023parit"
+  "y_slice_offset\030\005 \001(\005\022\031\n\021parity_slice_siz"
+  "e\030\006 \001(\005\022.\n\007fetches\030\007 \003(\0132\035.proxy_proto.C"
+  "ordLpDeltaFetch\"c\n\025CordLocalParityBundle"
+  "\022\013\n\003key\030\001 \001(\t\022\021\n\tstripe_id\030\002 \001(\005\022*\n\005item"
+  "s\030\003 \003(\0132\033.proxy_proto.CordLpWorkItem\"\316\002\n"
+  "\025CordLpHubSessionBegin\022\023\n\013session_key\030\001 "
+  "\001(\t\022\031\n\021expected_partials\030\002 \001(\005\022\031\n\021parity"
+  "_slice_size\030\003 \001(\005\022\033\n\023parity_slice_offset"
+  "\030\004 \001(\005\022\026\n\016local_block_id\030\005 \001(\005\022\027\n\017local_"
+  "block_key\030\006 \001(\t\022\031\n\021local_datanode_ip\030\007 \001"
+  "(\t\022\033\n\023local_datanode_port\030\010 \001(\005\022\030\n\020dest_"
+  "lp_proxy_ip\030\t \001(\t\022\032\n\022dest_lp_proxy_port\030"
+  "\n \001(\005\022\021\n\tstripe_id\030\013 \001(\005\022\033\n\023hub_global_b"
+  "lock_id\030\014 \001(\005\"D\n\024CordLpHubPartialPush\022\023\n"
+  "\013session_key\030\001 \001(\t\022\027\n\017partial_payload\030\002 "
+  "\001(\014\"\373\001\n\033CordLpComputePartialAndPush\022\023\n\013s"
+  "ession_key\030\001 \001(\t\022\024\n\014hub_proxy_ip\030\002 \001(\t\022\026"
+  "\n\016hub_proxy_port\030\003 \001(\005\022\026\n\016delta_blob_key"
+  "\030\004 \001(\t\022\031\n\021delta_datanode_ip\030\005 \001(\t\022\033\n\023del"
+  "ta_datanode_port\030\006 \001(\005\022\031\n\021parity_slice_s"
+  "ize\030\007 \001(\005\022.\n\007fetches\030\010 \003(\0132\035.proxy_proto"
+  ".CordLpDeltaFetch\"\343\001\n\026CordLpParityApplyD"
+  "elta\022\021\n\tstripe_id\030\001 \001(\005\022\026\n\016local_block_i"
+  "d\030\002 \001(\005\022\027\n\017local_block_key\030\003 \001(\t\022\031\n\021loca"
+  "l_datanode_ip\030\004 \001(\t\022\033\n\023local_datanode_po"
+  "rt\030\005 \001(\005\022\033\n\023parity_slice_offset\030\006 \001(\005\022\031\n"
+  "\021parity_slice_size\030\007 \001(\005\022\025\n\rdelta_payloa"
+  "d\030\010 \001(\014\"\270\001\n\010SetReply\022\020\n\010ifcommit\030\001 \001(\010\022%"
+  "\n\035cord_join_xfer_timing_present\030\002 \001(\010\022\037\n"
+  "\027cord_join_pure_xfer_sec\030\003 \001(\001\022)\n!cord_j"
+  "oin_pure_xfer_start_unix_ms\030\004 \001(\003\022\'\n\037cor"
+  "d_join_pure_xfer_end_unix_ms\030\005 \001(\003\"\036\n\010Ge"
+  "tReply\022\022\n\ngetsuccess\030\001 \001(\010\"\261\001\n\021StripeAnd"
+  "BlockIDs\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010group_id\030"
+  "\002 \001(\005\022\020\n\010clientip\030\003 \001(\t\022\022\n\nclientport\030\004 "
+  "\001(\005\022\021\n\tblock_ids\030\005 \003(\005\022\022\n\nblock_keys\030\006 \003"
+  "(\t\022\023\n\013datanodeips\030\007 \003(\t\022\025\n\rdatanodeports"
+  "\030\010 \003(\005*\255\001\n\024CordTransferLinkKind\022%\n!CORD_"
+  "TRANSFER_STAR_DATA_TO_CENTER\020\000\022\'\n#CORD_T"
+  "RANSFER_STAR_CENTER_TO_GLOBAL\020\001\022&\n\"CORD_"
+  "TRANSFER_STAR_CENTER_TO_LOCAL\020\002\022\035\n\031CORD_"
+  "TRANSFER_MST_FORWARD\020\003*B\n\024CordDeltaPaylo"
+  "adKind\022\023\n\017CORD_DELTA_DATA\020\000\022\025\n\021CORD_DELT"
+  "A_PARITY\020\0012\336\021\n\014proxyService\022D\n\ncheckaliv"
+  "e\022\032.proxy_proto.CheckaliveCMD\032\032.proxy_pr"
+  "oto.RequestResult\022L\n\022encodeAndSetObject\022"
+  "\037.proxy_proto.ObjectAndPlacement\032\025.proxy"
+  "_proto.SetReply\022L\n\022decodeAndGetObject\022\037."
+  "proxy_proto.ObjectAndPlacement\032\025.proxy_p"
+  "roto.GetReply\022P\n\014degradedRead\022 .proxy_pr"
+  "oto.DegradedReadRequest\032\036.proxy_proto.De"
+  "gradedReadReply\022S\n\023degradedRead2Client\022\034"
+  ".proxy_proto.RecoveryRequest\032\036.proxy_pro"
+  "to.DegradedReadReply\022Y\n\025degradedReadBrea"
+  "kdown\022 .proxy_proto.DegradedReadRequest\032"
+  "\036.proxy_proto.DegradedReadReply\022\\\n\034degra"
+  "dedRead2ClientBreakdown\022\034.proxy_proto.Re"
+  "coveryRequest\032\036.proxy_proto.DegradedRead"
+  "Reply\022X\n\035degradedReadWithBlockStripeID\022 "
+  ".proxy_proto.DegradedReadRequest\032\025.proxy"
+  "_proto.GetReply\022V\n\017partialDecoding\022#.pro"
+  "xy_proto.PartialDecodingRequest\032\036.proxy_"
+  "proto.DegradedReadReply\022D\n\010recovery\022\034.pr"
+  "oxy_proto.RecoveryRequest\032\032.proxy_proto."
+  "RecoveryReply\022M\n\021recoveryBreakdown\022\034.pro"
+  "xy_proto.RecoveryRequest\032\032.proxy_proto.R"
+  "ecoveryReply\022O\n\020multipleRecovery\022$.proxy"
+  "_proto.MultipleRecoveryRequest\032\025.proxy_p"
+  "roto.GetReply\022\?\n\013deleteBlock\022\031.proxy_pro"
+  "to.NodeAndBlock\032\025.proxy_proto.DelReply\022X"
+  "\n\027scheduleAppend2Datanode\022&.proxy_proto."
+  "AppendStripeDataPlacement\032\025.proxy_proto."
+  "SetReply\022U\n\026scheduleCordDataUpdate\022$.pro"
+  "xy_proto.CordDataUpdatePlacement\032\025.proxy"
+  "_proto.SetReply\022Y\n\034scheduleCordLocalPari"
+  "tyApply\022\".proxy_proto.CordLocalParityBun"
+  "dle\032\025.proxy_proto.SetReply\022R\n\025cordLpHubS"
+  "essionBegin\022\".proxy_proto.CordLpHubSessi"
+  "onBegin\032\025.proxy_proto.SetReply\022P\n\024cordLp"
+  "HubPartialPush\022!.proxy_proto.CordLpHubPa"
+  "rtialPush\032\025.proxy_proto.SetReply\022^\n\033cord"
+  "LpComputePartialAndPush\022(.proxy_proto.Co"
+  "rdLpComputePartialAndPush\032\025.proxy_proto."
+  "SetReply\022T\n\026cordLpApplyParityDelta\022#.pro"
+  "xy_proto.CordLpParityApplyDelta\032\025.proxy_"
+  "proto.SetReply\022P\n\030scheduleCordTransferPl"
+  "an\022\035.proxy_proto.CordTransferPlan\032\025.prox"
+  "y_proto.SetReply\022L\n\026cordPlanStartExecuti"
+  "on\022\033.proxy_proto.CordPlanKeyMsg\032\025.proxy_"
+  "proto.SetReply\022K\n\025cordPlanJoinExecution\022"
+  "\033.proxy_proto.CordPlanKeyMsg\032\025.proxy_pro"
+  "to.SetReply\022b\n cordPlanCollectorIngestDa"
+  "taDelta\022\'.proxy_proto.CordPlanCollectorI"
+  "ngestReq\032\025.proxy_proto.SetReply\022\\\n\033cordP"
+  "lanApplyParityXorDelta\022&.proxy_proto.Cor"
+  "dPlanApplyParityXorReq\032\025.proxy_proto.Set"
+  "Reply\022X\n\031cordPlanMstDataDeltaChunk\022$.pro"
+  "xy_proto.CordPlanMstDataDeltaReq\032\025.proxy"
+  "_proto.SetReply\022B\n\tgetBlocks\022\036.proxy_pro"
+  "to.StripeAndBlockIDs\032\025.proxy_proto.GetRe"
+  "plyb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_proxy_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_proxy_2eproto = {
-    false, false, 11763, descriptor_table_protodef_proxy_2eproto,
+    false, false, 12571, descriptor_table_protodef_proxy_2eproto,
     "proxy.proto",
-    &descriptor_table_proxy_2eproto_once, nullptr, 0, 47,
+    &descriptor_table_proxy_2eproto_once, nullptr, 0, 50,
     schemas, file_default_instances, TableStruct_proxy_2eproto::offsets,
     file_level_metadata_proxy_2eproto, file_level_enum_descriptors_proxy_2eproto,
     file_level_service_descriptors_proxy_2eproto,
@@ -15774,6 +15922,16 @@ CordDataUpdatePlacement::CordDataUpdatePlacement(const CordDataUpdatePlacement& 
     , decltype(_impl_.all_datanode_ips_){from._impl_.all_datanode_ips_}
     , decltype(_impl_.all_datanode_ports_){from._impl_.all_datanode_ports_}
     , /*decltype(_impl_._all_datanode_ports_cached_byte_size_)*/{0}
+    , decltype(_impl_.all_block_cluster_ids_){from._impl_.all_block_cluster_ids_}
+    , /*decltype(_impl_._all_block_cluster_ids_cached_byte_size_)*/{0}
+    , decltype(_impl_.all_proxy_ips_){from._impl_.all_proxy_ips_}
+    , decltype(_impl_.all_proxy_ports_){from._impl_.all_proxy_ports_}
+    , /*decltype(_impl_._all_proxy_ports_cached_byte_size_)*/{0}
+    , decltype(_impl_.parity_cluster_ids_){from._impl_.parity_cluster_ids_}
+    , /*decltype(_impl_._parity_cluster_ids_cached_byte_size_)*/{0}
+    , decltype(_impl_.parity_proxy_ips_){from._impl_.parity_proxy_ips_}
+    , decltype(_impl_.parity_proxy_ports_){from._impl_.parity_proxy_ports_}
+    , /*decltype(_impl_._parity_proxy_ports_cached_byte_size_)*/{0}
     , decltype(_impl_.key_){}
     , decltype(_impl_.delta_blob_key_){}
     , decltype(_impl_.delta_datanode_ip_){}
@@ -15856,6 +16014,16 @@ inline void CordDataUpdatePlacement::SharedCtor(
     , decltype(_impl_.all_datanode_ips_){arena}
     , decltype(_impl_.all_datanode_ports_){arena}
     , /*decltype(_impl_._all_datanode_ports_cached_byte_size_)*/{0}
+    , decltype(_impl_.all_block_cluster_ids_){arena}
+    , /*decltype(_impl_._all_block_cluster_ids_cached_byte_size_)*/{0}
+    , decltype(_impl_.all_proxy_ips_){arena}
+    , decltype(_impl_.all_proxy_ports_){arena}
+    , /*decltype(_impl_._all_proxy_ports_cached_byte_size_)*/{0}
+    , decltype(_impl_.parity_cluster_ids_){arena}
+    , /*decltype(_impl_._parity_cluster_ids_cached_byte_size_)*/{0}
+    , decltype(_impl_.parity_proxy_ips_){arena}
+    , decltype(_impl_.parity_proxy_ports_){arena}
+    , /*decltype(_impl_._parity_proxy_ports_cached_byte_size_)*/{0}
     , decltype(_impl_.key_){}
     , decltype(_impl_.delta_blob_key_){}
     , decltype(_impl_.delta_datanode_ip_){}
@@ -15915,6 +16083,12 @@ inline void CordDataUpdatePlacement::SharedDtor() {
   _impl_.all_block_keys_.~RepeatedPtrField();
   _impl_.all_datanode_ips_.~RepeatedPtrField();
   _impl_.all_datanode_ports_.~RepeatedField();
+  _impl_.all_block_cluster_ids_.~RepeatedField();
+  _impl_.all_proxy_ips_.~RepeatedPtrField();
+  _impl_.all_proxy_ports_.~RepeatedField();
+  _impl_.parity_cluster_ids_.~RepeatedField();
+  _impl_.parity_proxy_ips_.~RepeatedPtrField();
+  _impl_.parity_proxy_ports_.~RepeatedField();
   _impl_.key_.Destroy();
   _impl_.delta_blob_key_.Destroy();
   _impl_.delta_datanode_ip_.Destroy();
@@ -15945,6 +16119,12 @@ void CordDataUpdatePlacement::Clear() {
   _impl_.all_block_keys_.Clear();
   _impl_.all_datanode_ips_.Clear();
   _impl_.all_datanode_ports_.Clear();
+  _impl_.all_block_cluster_ids_.Clear();
+  _impl_.all_proxy_ips_.Clear();
+  _impl_.all_proxy_ports_.Clear();
+  _impl_.parity_cluster_ids_.Clear();
+  _impl_.parity_proxy_ips_.Clear();
+  _impl_.parity_proxy_ports_.Clear();
   _impl_.key_.ClearToEmpty();
   _impl_.delta_blob_key_.ClearToEmpty();
   _impl_.delta_datanode_ip_.ClearToEmpty();
@@ -16259,6 +16439,80 @@ const char* CordDataUpdatePlacement::_InternalParse(const char* ptr, ::_pbi::Par
         } else
           goto handle_unusual;
         continue;
+      // repeated int32 all_block_cluster_ids = 29;
+      case 29:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 234)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_all_block_cluster_ids(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<uint8_t>(tag) == 232) {
+          _internal_add_all_block_cluster_ids(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated string all_proxy_ips = 30;
+      case 30:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 242)) {
+          ptr -= 2;
+          do {
+            ptr += 2;
+            auto str = _internal_add_all_proxy_ips();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.CordDataUpdatePlacement.all_proxy_ips"));
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<242>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated int32 all_proxy_ports = 31;
+      case 31:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 250)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_all_proxy_ports(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<uint8_t>(tag) == 248) {
+          _internal_add_all_proxy_ports(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated int32 parity_cluster_ids = 32;
+      case 32:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 2)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_parity_cluster_ids(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<uint8_t>(tag) == 0) {
+          _internal_add_parity_cluster_ids(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated string parity_proxy_ips = 33;
+      case 33:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          ptr -= 2;
+          do {
+            ptr += 2;
+            auto str = _internal_add_parity_proxy_ips();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.CordDataUpdatePlacement.parity_proxy_ips"));
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<266>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated int32 parity_proxy_ports = 34;
+      case 34:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_parity_proxy_ports(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<uint8_t>(tag) == 16) {
+          _internal_add_parity_proxy_ports(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
       default:
         goto handle_unusual;
     }  // switch
@@ -16520,6 +16774,62 @@ uint8_t* CordDataUpdatePlacement::_InternalSerialize(
     }
   }
 
+  // repeated int32 all_block_cluster_ids = 29;
+  {
+    int byte_size = _impl_._all_block_cluster_ids_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt32Packed(
+          29, _internal_all_block_cluster_ids(), byte_size, target);
+    }
+  }
+
+  // repeated string all_proxy_ips = 30;
+  for (int i = 0, n = this->_internal_all_proxy_ips_size(); i < n; i++) {
+    const auto& s = this->_internal_all_proxy_ips(i);
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      s.data(), static_cast<int>(s.length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.CordDataUpdatePlacement.all_proxy_ips");
+    target = stream->WriteString(30, s, target);
+  }
+
+  // repeated int32 all_proxy_ports = 31;
+  {
+    int byte_size = _impl_._all_proxy_ports_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt32Packed(
+          31, _internal_all_proxy_ports(), byte_size, target);
+    }
+  }
+
+  // repeated int32 parity_cluster_ids = 32;
+  {
+    int byte_size = _impl_._parity_cluster_ids_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt32Packed(
+          32, _internal_parity_cluster_ids(), byte_size, target);
+    }
+  }
+
+  // repeated string parity_proxy_ips = 33;
+  for (int i = 0, n = this->_internal_parity_proxy_ips_size(); i < n; i++) {
+    const auto& s = this->_internal_parity_proxy_ips(i);
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      s.data(), static_cast<int>(s.length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.CordDataUpdatePlacement.parity_proxy_ips");
+    target = stream->WriteString(33, s, target);
+  }
+
+  // repeated int32 parity_proxy_ports = 34;
+  {
+    int byte_size = _impl_._parity_proxy_ports_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt32Packed(
+          34, _internal_parity_proxy_ports(), byte_size, target);
+    }
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -16696,6 +17006,78 @@ size_t CordDataUpdatePlacement::ByteSizeLong() const {
     total_size += data_size;
   }
 
+  // repeated int32 all_block_cluster_ids = 29;
+  {
+    size_t data_size = ::_pbi::WireFormatLite::
+      Int32Size(this->_impl_.all_block_cluster_ids_);
+    if (data_size > 0) {
+      total_size += 2 +
+        ::_pbi::WireFormatLite::Int32Size(static_cast<int32_t>(data_size));
+    }
+    int cached_size = ::_pbi::ToCachedSize(data_size);
+    _impl_._all_block_cluster_ids_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
+  // repeated string all_proxy_ips = 30;
+  total_size += 2 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.all_proxy_ips_.size());
+  for (int i = 0, n = _impl_.all_proxy_ips_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      _impl_.all_proxy_ips_.Get(i));
+  }
+
+  // repeated int32 all_proxy_ports = 31;
+  {
+    size_t data_size = ::_pbi::WireFormatLite::
+      Int32Size(this->_impl_.all_proxy_ports_);
+    if (data_size > 0) {
+      total_size += 2 +
+        ::_pbi::WireFormatLite::Int32Size(static_cast<int32_t>(data_size));
+    }
+    int cached_size = ::_pbi::ToCachedSize(data_size);
+    _impl_._all_proxy_ports_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
+  // repeated int32 parity_cluster_ids = 32;
+  {
+    size_t data_size = ::_pbi::WireFormatLite::
+      Int32Size(this->_impl_.parity_cluster_ids_);
+    if (data_size > 0) {
+      total_size += 2 +
+        ::_pbi::WireFormatLite::Int32Size(static_cast<int32_t>(data_size));
+    }
+    int cached_size = ::_pbi::ToCachedSize(data_size);
+    _impl_._parity_cluster_ids_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
+  // repeated string parity_proxy_ips = 33;
+  total_size += 2 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.parity_proxy_ips_.size());
+  for (int i = 0, n = _impl_.parity_proxy_ips_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      _impl_.parity_proxy_ips_.Get(i));
+  }
+
+  // repeated int32 parity_proxy_ports = 34;
+  {
+    size_t data_size = ::_pbi::WireFormatLite::
+      Int32Size(this->_impl_.parity_proxy_ports_);
+    if (data_size > 0) {
+      total_size += 2 +
+        ::_pbi::WireFormatLite::Int32Size(static_cast<int32_t>(data_size));
+    }
+    int cached_size = ::_pbi::ToCachedSize(data_size);
+    _impl_._parity_proxy_ports_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
   // string key = 1;
   if (!this->_internal_key().empty()) {
     total_size += 1 +
@@ -16814,6 +17196,12 @@ void CordDataUpdatePlacement::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg
   _this->_impl_.all_block_keys_.MergeFrom(from._impl_.all_block_keys_);
   _this->_impl_.all_datanode_ips_.MergeFrom(from._impl_.all_datanode_ips_);
   _this->_impl_.all_datanode_ports_.MergeFrom(from._impl_.all_datanode_ports_);
+  _this->_impl_.all_block_cluster_ids_.MergeFrom(from._impl_.all_block_cluster_ids_);
+  _this->_impl_.all_proxy_ips_.MergeFrom(from._impl_.all_proxy_ips_);
+  _this->_impl_.all_proxy_ports_.MergeFrom(from._impl_.all_proxy_ports_);
+  _this->_impl_.parity_cluster_ids_.MergeFrom(from._impl_.parity_cluster_ids_);
+  _this->_impl_.parity_proxy_ips_.MergeFrom(from._impl_.parity_proxy_ips_);
+  _this->_impl_.parity_proxy_ports_.MergeFrom(from._impl_.parity_proxy_ports_);
   if (!from._internal_key().empty()) {
     _this->_internal_set_key(from._internal_key());
   }
@@ -16889,6 +17277,12 @@ void CordDataUpdatePlacement::InternalSwap(CordDataUpdatePlacement* other) {
   _impl_.all_block_keys_.InternalSwap(&other->_impl_.all_block_keys_);
   _impl_.all_datanode_ips_.InternalSwap(&other->_impl_.all_datanode_ips_);
   _impl_.all_datanode_ports_.InternalSwap(&other->_impl_.all_datanode_ports_);
+  _impl_.all_block_cluster_ids_.InternalSwap(&other->_impl_.all_block_cluster_ids_);
+  _impl_.all_proxy_ips_.InternalSwap(&other->_impl_.all_proxy_ips_);
+  _impl_.all_proxy_ports_.InternalSwap(&other->_impl_.all_proxy_ports_);
+  _impl_.parity_cluster_ids_.InternalSwap(&other->_impl_.parity_cluster_ids_);
+  _impl_.parity_proxy_ips_.InternalSwap(&other->_impl_.parity_proxy_ips_);
+  _impl_.parity_proxy_ports_.InternalSwap(&other->_impl_.parity_proxy_ports_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.key_, lhs_arena,
       &other->_impl_.key_, rhs_arena
@@ -16917,6 +17311,1281 @@ void CordDataUpdatePlacement::InternalSwap(CordDataUpdatePlacement* other) {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
       file_level_metadata_proxy_2eproto[36]);
+}
+
+// ===================================================================
+
+class StripeBlockWriteXfer::_Internal {
+ public:
+};
+
+StripeBlockWriteXfer::StripeBlockWriteXfer(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.StripeBlockWriteXfer)
+}
+StripeBlockWriteXfer::StripeBlockWriteXfer(const StripeBlockWriteXfer& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  StripeBlockWriteXfer* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.block_key_){}
+    , decltype(_impl_.datanode_ip_){}
+    , decltype(_impl_.block_id_){}
+    , decltype(_impl_.range_offset_){}
+    , decltype(_impl_.range_length_){}
+    , decltype(_impl_.datanode_port_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_block_key().empty()) {
+    _this->_impl_.block_key_.Set(from._internal_block_key(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_datanode_ip().empty()) {
+    _this->_impl_.datanode_ip_.Set(from._internal_datanode_ip(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.block_id_, &from._impl_.block_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.datanode_port_) -
+    reinterpret_cast<char*>(&_impl_.block_id_)) + sizeof(_impl_.datanode_port_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.StripeBlockWriteXfer)
+}
+
+inline void StripeBlockWriteXfer::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.block_key_){}
+    , decltype(_impl_.datanode_ip_){}
+    , decltype(_impl_.block_id_){0}
+    , decltype(_impl_.range_offset_){0}
+    , decltype(_impl_.range_length_){0}
+    , decltype(_impl_.datanode_port_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+StripeBlockWriteXfer::~StripeBlockWriteXfer() {
+  // @@protoc_insertion_point(destructor:proxy_proto.StripeBlockWriteXfer)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void StripeBlockWriteXfer::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.block_key_.Destroy();
+  _impl_.datanode_ip_.Destroy();
+}
+
+void StripeBlockWriteXfer::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void StripeBlockWriteXfer::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.StripeBlockWriteXfer)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.block_key_.ClearToEmpty();
+  _impl_.datanode_ip_.ClearToEmpty();
+  ::memset(&_impl_.block_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.datanode_port_) -
+      reinterpret_cast<char*>(&_impl_.block_id_)) + sizeof(_impl_.datanode_port_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* StripeBlockWriteXfer::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // string block_key = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          auto str = _internal_mutable_block_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.StripeBlockWriteXfer.block_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 block_id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_offset = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.range_offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_length = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.range_length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string datanode_ip = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+          auto str = _internal_mutable_datanode_ip();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.StripeBlockWriteXfer.datanode_ip"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 datanode_port = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
+          _impl_.datanode_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* StripeBlockWriteXfer::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.StripeBlockWriteXfer)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string block_key = 1;
+  if (!this->_internal_block_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_block_key().data(), static_cast<int>(this->_internal_block_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.StripeBlockWriteXfer.block_key");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_block_key(), target);
+  }
+
+  // int32 block_id = 2;
+  if (this->_internal_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_block_id(), target);
+  }
+
+  // int32 range_offset = 3;
+  if (this->_internal_range_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_range_offset(), target);
+  }
+
+  // int32 range_length = 4;
+  if (this->_internal_range_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_range_length(), target);
+  }
+
+  // string datanode_ip = 5;
+  if (!this->_internal_datanode_ip().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_datanode_ip().data(), static_cast<int>(this->_internal_datanode_ip().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.StripeBlockWriteXfer.datanode_ip");
+    target = stream->WriteStringMaybeAliased(
+        5, this->_internal_datanode_ip(), target);
+  }
+
+  // int32 datanode_port = 6;
+  if (this->_internal_datanode_port() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(6, this->_internal_datanode_port(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.StripeBlockWriteXfer)
+  return target;
+}
+
+size_t StripeBlockWriteXfer::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.StripeBlockWriteXfer)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string block_key = 1;
+  if (!this->_internal_block_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_block_key());
+  }
+
+  // string datanode_ip = 5;
+  if (!this->_internal_datanode_ip().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_datanode_ip());
+  }
+
+  // int32 block_id = 2;
+  if (this->_internal_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_block_id());
+  }
+
+  // int32 range_offset = 3;
+  if (this->_internal_range_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_offset());
+  }
+
+  // int32 range_length = 4;
+  if (this->_internal_range_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_length());
+  }
+
+  // int32 datanode_port = 6;
+  if (this->_internal_datanode_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_datanode_port());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData StripeBlockWriteXfer::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    StripeBlockWriteXfer::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*StripeBlockWriteXfer::GetClassData() const { return &_class_data_; }
+
+
+void StripeBlockWriteXfer::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<StripeBlockWriteXfer*>(&to_msg);
+  auto& from = static_cast<const StripeBlockWriteXfer&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.StripeBlockWriteXfer)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_block_key().empty()) {
+    _this->_internal_set_block_key(from._internal_block_key());
+  }
+  if (!from._internal_datanode_ip().empty()) {
+    _this->_internal_set_datanode_ip(from._internal_datanode_ip());
+  }
+  if (from._internal_block_id() != 0) {
+    _this->_internal_set_block_id(from._internal_block_id());
+  }
+  if (from._internal_range_offset() != 0) {
+    _this->_internal_set_range_offset(from._internal_range_offset());
+  }
+  if (from._internal_range_length() != 0) {
+    _this->_internal_set_range_length(from._internal_range_length());
+  }
+  if (from._internal_datanode_port() != 0) {
+    _this->_internal_set_datanode_port(from._internal_datanode_port());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void StripeBlockWriteXfer::CopyFrom(const StripeBlockWriteXfer& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.StripeBlockWriteXfer)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool StripeBlockWriteXfer::IsInitialized() const {
+  return true;
+}
+
+void StripeBlockWriteXfer::InternalSwap(StripeBlockWriteXfer* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.block_key_, lhs_arena,
+      &other->_impl_.block_key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.datanode_ip_, lhs_arena,
+      &other->_impl_.datanode_ip_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(StripeBlockWriteXfer, _impl_.datanode_port_)
+      + sizeof(StripeBlockWriteXfer::_impl_.datanode_port_)
+      - PROTOBUF_FIELD_OFFSET(StripeBlockWriteXfer, _impl_.block_id_)>(
+          reinterpret_cast<char*>(&_impl_.block_id_),
+          reinterpret_cast<char*>(&other->_impl_.block_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata StripeBlockWriteXfer::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[37]);
+}
+
+// ===================================================================
+
+class StripeParityLogAppendXfer::_Internal {
+ public:
+};
+
+StripeParityLogAppendXfer::StripeParityLogAppendXfer(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.StripeParityLogAppendXfer)
+}
+StripeParityLogAppendXfer::StripeParityLogAppendXfer(const StripeParityLogAppendXfer& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  StripeParityLogAppendXfer* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_block_key_){}
+    , decltype(_impl_.code_type_){}
+    , decltype(_impl_.parity_datanode_ip_){}
+    , decltype(_impl_.stripe_id_){}
+    , decltype(_impl_.parity_block_id_){}
+    , decltype(_impl_.data_block_id_){}
+    , decltype(_impl_.range_offset_){}
+    , decltype(_impl_.range_length_){}
+    , decltype(_impl_.k_){}
+    , decltype(_impl_.r_){}
+    , decltype(_impl_.z_){}
+    , decltype(_impl_.block_size_){}
+    , decltype(_impl_.parity_datanode_port_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.parity_block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_parity_block_key().empty()) {
+    _this->_impl_.parity_block_key_.Set(from._internal_parity_block_key(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.code_type_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.code_type_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_code_type().empty()) {
+    _this->_impl_.code_type_.Set(from._internal_code_type(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.parity_datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_parity_datanode_ip().empty()) {
+    _this->_impl_.parity_datanode_ip_.Set(from._internal_parity_datanode_ip(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.stripe_id_, &from._impl_.stripe_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.parity_datanode_port_) -
+    reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.parity_datanode_port_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.StripeParityLogAppendXfer)
+}
+
+inline void StripeParityLogAppendXfer::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_block_key_){}
+    , decltype(_impl_.code_type_){}
+    , decltype(_impl_.parity_datanode_ip_){}
+    , decltype(_impl_.stripe_id_){0}
+    , decltype(_impl_.parity_block_id_){0}
+    , decltype(_impl_.data_block_id_){0}
+    , decltype(_impl_.range_offset_){0}
+    , decltype(_impl_.range_length_){0}
+    , decltype(_impl_.k_){0}
+    , decltype(_impl_.r_){0}
+    , decltype(_impl_.z_){0}
+    , decltype(_impl_.block_size_){0}
+    , decltype(_impl_.parity_datanode_port_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.parity_block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.code_type_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.code_type_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.parity_datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+StripeParityLogAppendXfer::~StripeParityLogAppendXfer() {
+  // @@protoc_insertion_point(destructor:proxy_proto.StripeParityLogAppendXfer)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void StripeParityLogAppendXfer::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.parity_block_key_.Destroy();
+  _impl_.code_type_.Destroy();
+  _impl_.parity_datanode_ip_.Destroy();
+}
+
+void StripeParityLogAppendXfer::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void StripeParityLogAppendXfer::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.StripeParityLogAppendXfer)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.parity_block_key_.ClearToEmpty();
+  _impl_.code_type_.ClearToEmpty();
+  _impl_.parity_datanode_ip_.ClearToEmpty();
+  ::memset(&_impl_.stripe_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.parity_datanode_port_) -
+      reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.parity_datanode_port_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* StripeParityLogAppendXfer::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_block_id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.parity_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string parity_block_key = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          auto str = _internal_mutable_parity_block_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.StripeParityLogAppendXfer.parity_block_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 data_block_id = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.data_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_offset = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          _impl_.range_offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_length = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
+          _impl_.range_length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 k = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
+          _impl_.k_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 r = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 64)) {
+          _impl_.r_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 z = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 72)) {
+          _impl_.z_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 block_size = 10;
+      case 10:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 80)) {
+          _impl_.block_size_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string code_type = 11;
+      case 11:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 90)) {
+          auto str = _internal_mutable_code_type();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.StripeParityLogAppendXfer.code_type"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string parity_datanode_ip = 12;
+      case 12:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 98)) {
+          auto str = _internal_mutable_parity_datanode_ip();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.StripeParityLogAppendXfer.parity_datanode_ip"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_datanode_port = 13;
+      case 13:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 104)) {
+          _impl_.parity_datanode_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* StripeParityLogAppendXfer::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.StripeParityLogAppendXfer)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // int32 parity_block_id = 2;
+  if (this->_internal_parity_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_parity_block_id(), target);
+  }
+
+  // string parity_block_key = 3;
+  if (!this->_internal_parity_block_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_parity_block_key().data(), static_cast<int>(this->_internal_parity_block_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.StripeParityLogAppendXfer.parity_block_key");
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_parity_block_key(), target);
+  }
+
+  // int32 data_block_id = 4;
+  if (this->_internal_data_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_data_block_id(), target);
+  }
+
+  // int32 range_offset = 5;
+  if (this->_internal_range_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_range_offset(), target);
+  }
+
+  // int32 range_length = 6;
+  if (this->_internal_range_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(6, this->_internal_range_length(), target);
+  }
+
+  // int32 k = 7;
+  if (this->_internal_k() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(7, this->_internal_k(), target);
+  }
+
+  // int32 r = 8;
+  if (this->_internal_r() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(8, this->_internal_r(), target);
+  }
+
+  // int32 z = 9;
+  if (this->_internal_z() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(9, this->_internal_z(), target);
+  }
+
+  // int32 block_size = 10;
+  if (this->_internal_block_size() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(10, this->_internal_block_size(), target);
+  }
+
+  // string code_type = 11;
+  if (!this->_internal_code_type().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_code_type().data(), static_cast<int>(this->_internal_code_type().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.StripeParityLogAppendXfer.code_type");
+    target = stream->WriteStringMaybeAliased(
+        11, this->_internal_code_type(), target);
+  }
+
+  // string parity_datanode_ip = 12;
+  if (!this->_internal_parity_datanode_ip().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_parity_datanode_ip().data(), static_cast<int>(this->_internal_parity_datanode_ip().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.StripeParityLogAppendXfer.parity_datanode_ip");
+    target = stream->WriteStringMaybeAliased(
+        12, this->_internal_parity_datanode_ip(), target);
+  }
+
+  // int32 parity_datanode_port = 13;
+  if (this->_internal_parity_datanode_port() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(13, this->_internal_parity_datanode_port(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.StripeParityLogAppendXfer)
+  return target;
+}
+
+size_t StripeParityLogAppendXfer::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.StripeParityLogAppendXfer)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string parity_block_key = 3;
+  if (!this->_internal_parity_block_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_parity_block_key());
+  }
+
+  // string code_type = 11;
+  if (!this->_internal_code_type().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_code_type());
+  }
+
+  // string parity_datanode_ip = 12;
+  if (!this->_internal_parity_datanode_ip().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_parity_datanode_ip());
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  // int32 parity_block_id = 2;
+  if (this->_internal_parity_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_block_id());
+  }
+
+  // int32 data_block_id = 4;
+  if (this->_internal_data_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_data_block_id());
+  }
+
+  // int32 range_offset = 5;
+  if (this->_internal_range_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_offset());
+  }
+
+  // int32 range_length = 6;
+  if (this->_internal_range_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_length());
+  }
+
+  // int32 k = 7;
+  if (this->_internal_k() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_k());
+  }
+
+  // int32 r = 8;
+  if (this->_internal_r() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_r());
+  }
+
+  // int32 z = 9;
+  if (this->_internal_z() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_z());
+  }
+
+  // int32 block_size = 10;
+  if (this->_internal_block_size() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_block_size());
+  }
+
+  // int32 parity_datanode_port = 13;
+  if (this->_internal_parity_datanode_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_datanode_port());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData StripeParityLogAppendXfer::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    StripeParityLogAppendXfer::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*StripeParityLogAppendXfer::GetClassData() const { return &_class_data_; }
+
+
+void StripeParityLogAppendXfer::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<StripeParityLogAppendXfer*>(&to_msg);
+  auto& from = static_cast<const StripeParityLogAppendXfer&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.StripeParityLogAppendXfer)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_parity_block_key().empty()) {
+    _this->_internal_set_parity_block_key(from._internal_parity_block_key());
+  }
+  if (!from._internal_code_type().empty()) {
+    _this->_internal_set_code_type(from._internal_code_type());
+  }
+  if (!from._internal_parity_datanode_ip().empty()) {
+    _this->_internal_set_parity_datanode_ip(from._internal_parity_datanode_ip());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  if (from._internal_parity_block_id() != 0) {
+    _this->_internal_set_parity_block_id(from._internal_parity_block_id());
+  }
+  if (from._internal_data_block_id() != 0) {
+    _this->_internal_set_data_block_id(from._internal_data_block_id());
+  }
+  if (from._internal_range_offset() != 0) {
+    _this->_internal_set_range_offset(from._internal_range_offset());
+  }
+  if (from._internal_range_length() != 0) {
+    _this->_internal_set_range_length(from._internal_range_length());
+  }
+  if (from._internal_k() != 0) {
+    _this->_internal_set_k(from._internal_k());
+  }
+  if (from._internal_r() != 0) {
+    _this->_internal_set_r(from._internal_r());
+  }
+  if (from._internal_z() != 0) {
+    _this->_internal_set_z(from._internal_z());
+  }
+  if (from._internal_block_size() != 0) {
+    _this->_internal_set_block_size(from._internal_block_size());
+  }
+  if (from._internal_parity_datanode_port() != 0) {
+    _this->_internal_set_parity_datanode_port(from._internal_parity_datanode_port());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void StripeParityLogAppendXfer::CopyFrom(const StripeParityLogAppendXfer& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.StripeParityLogAppendXfer)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool StripeParityLogAppendXfer::IsInitialized() const {
+  return true;
+}
+
+void StripeParityLogAppendXfer::InternalSwap(StripeParityLogAppendXfer* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.parity_block_key_, lhs_arena,
+      &other->_impl_.parity_block_key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.code_type_, lhs_arena,
+      &other->_impl_.code_type_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.parity_datanode_ip_, lhs_arena,
+      &other->_impl_.parity_datanode_ip_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(StripeParityLogAppendXfer, _impl_.parity_datanode_port_)
+      + sizeof(StripeParityLogAppendXfer::_impl_.parity_datanode_port_)
+      - PROTOBUF_FIELD_OFFSET(StripeParityLogAppendXfer, _impl_.stripe_id_)>(
+          reinterpret_cast<char*>(&_impl_.stripe_id_),
+          reinterpret_cast<char*>(&other->_impl_.stripe_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata StripeParityLogAppendXfer::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[38]);
+}
+
+// ===================================================================
+
+class StripeParityLogStoreD0Xfer::_Internal {
+ public:
+};
+
+StripeParityLogStoreD0Xfer::StripeParityLogStoreD0Xfer(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proxy_proto.StripeParityLogStoreD0Xfer)
+}
+StripeParityLogStoreD0Xfer::StripeParityLogStoreD0Xfer(const StripeParityLogStoreD0Xfer& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  StripeParityLogStoreD0Xfer* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_datanode_ip_){}
+    , decltype(_impl_.stripe_id_){}
+    , decltype(_impl_.parity_block_id_){}
+    , decltype(_impl_.data_block_id_){}
+    , decltype(_impl_.range_offset_){}
+    , decltype(_impl_.range_length_){}
+    , decltype(_impl_.parity_datanode_port_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.parity_datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_parity_datanode_ip().empty()) {
+    _this->_impl_.parity_datanode_ip_.Set(from._internal_parity_datanode_ip(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.stripe_id_, &from._impl_.stripe_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.parity_datanode_port_) -
+    reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.parity_datanode_port_));
+  // @@protoc_insertion_point(copy_constructor:proxy_proto.StripeParityLogStoreD0Xfer)
+}
+
+inline void StripeParityLogStoreD0Xfer::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_datanode_ip_){}
+    , decltype(_impl_.stripe_id_){0}
+    , decltype(_impl_.parity_block_id_){0}
+    , decltype(_impl_.data_block_id_){0}
+    , decltype(_impl_.range_offset_){0}
+    , decltype(_impl_.range_length_){0}
+    , decltype(_impl_.parity_datanode_port_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.parity_datanode_ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+StripeParityLogStoreD0Xfer::~StripeParityLogStoreD0Xfer() {
+  // @@protoc_insertion_point(destructor:proxy_proto.StripeParityLogStoreD0Xfer)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void StripeParityLogStoreD0Xfer::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.parity_datanode_ip_.Destroy();
+}
+
+void StripeParityLogStoreD0Xfer::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void StripeParityLogStoreD0Xfer::Clear() {
+// @@protoc_insertion_point(message_clear_start:proxy_proto.StripeParityLogStoreD0Xfer)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.parity_datanode_ip_.ClearToEmpty();
+  ::memset(&_impl_.stripe_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.parity_datanode_port_) -
+      reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.parity_datanode_port_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* StripeParityLogStoreD0Xfer::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_block_id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.parity_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 data_block_id = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.data_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_offset = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.range_offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_length = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          _impl_.range_length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string parity_datanode_ip = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
+          auto str = _internal_mutable_parity_datanode_ip();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proxy_proto.StripeParityLogStoreD0Xfer.parity_datanode_ip"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_datanode_port = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
+          _impl_.parity_datanode_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* StripeParityLogStoreD0Xfer::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proxy_proto.StripeParityLogStoreD0Xfer)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // int32 parity_block_id = 2;
+  if (this->_internal_parity_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_parity_block_id(), target);
+  }
+
+  // int32 data_block_id = 3;
+  if (this->_internal_data_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_data_block_id(), target);
+  }
+
+  // int32 range_offset = 4;
+  if (this->_internal_range_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_range_offset(), target);
+  }
+
+  // int32 range_length = 5;
+  if (this->_internal_range_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_range_length(), target);
+  }
+
+  // string parity_datanode_ip = 6;
+  if (!this->_internal_parity_datanode_ip().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_parity_datanode_ip().data(), static_cast<int>(this->_internal_parity_datanode_ip().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proxy_proto.StripeParityLogStoreD0Xfer.parity_datanode_ip");
+    target = stream->WriteStringMaybeAliased(
+        6, this->_internal_parity_datanode_ip(), target);
+  }
+
+  // int32 parity_datanode_port = 7;
+  if (this->_internal_parity_datanode_port() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(7, this->_internal_parity_datanode_port(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proxy_proto.StripeParityLogStoreD0Xfer)
+  return target;
+}
+
+size_t StripeParityLogStoreD0Xfer::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proxy_proto.StripeParityLogStoreD0Xfer)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string parity_datanode_ip = 6;
+  if (!this->_internal_parity_datanode_ip().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_parity_datanode_ip());
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  // int32 parity_block_id = 2;
+  if (this->_internal_parity_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_block_id());
+  }
+
+  // int32 data_block_id = 3;
+  if (this->_internal_data_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_data_block_id());
+  }
+
+  // int32 range_offset = 4;
+  if (this->_internal_range_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_offset());
+  }
+
+  // int32 range_length = 5;
+  if (this->_internal_range_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_length());
+  }
+
+  // int32 parity_datanode_port = 7;
+  if (this->_internal_parity_datanode_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_datanode_port());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData StripeParityLogStoreD0Xfer::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    StripeParityLogStoreD0Xfer::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*StripeParityLogStoreD0Xfer::GetClassData() const { return &_class_data_; }
+
+
+void StripeParityLogStoreD0Xfer::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<StripeParityLogStoreD0Xfer*>(&to_msg);
+  auto& from = static_cast<const StripeParityLogStoreD0Xfer&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proxy_proto.StripeParityLogStoreD0Xfer)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_parity_datanode_ip().empty()) {
+    _this->_internal_set_parity_datanode_ip(from._internal_parity_datanode_ip());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  if (from._internal_parity_block_id() != 0) {
+    _this->_internal_set_parity_block_id(from._internal_parity_block_id());
+  }
+  if (from._internal_data_block_id() != 0) {
+    _this->_internal_set_data_block_id(from._internal_data_block_id());
+  }
+  if (from._internal_range_offset() != 0) {
+    _this->_internal_set_range_offset(from._internal_range_offset());
+  }
+  if (from._internal_range_length() != 0) {
+    _this->_internal_set_range_length(from._internal_range_length());
+  }
+  if (from._internal_parity_datanode_port() != 0) {
+    _this->_internal_set_parity_datanode_port(from._internal_parity_datanode_port());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void StripeParityLogStoreD0Xfer::CopyFrom(const StripeParityLogStoreD0Xfer& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proxy_proto.StripeParityLogStoreD0Xfer)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool StripeParityLogStoreD0Xfer::IsInitialized() const {
+  return true;
+}
+
+void StripeParityLogStoreD0Xfer::InternalSwap(StripeParityLogStoreD0Xfer* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.parity_datanode_ip_, lhs_arena,
+      &other->_impl_.parity_datanode_ip_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(StripeParityLogStoreD0Xfer, _impl_.parity_datanode_port_)
+      + sizeof(StripeParityLogStoreD0Xfer::_impl_.parity_datanode_port_)
+      - PROTOBUF_FIELD_OFFSET(StripeParityLogStoreD0Xfer, _impl_.stripe_id_)>(
+          reinterpret_cast<char*>(&_impl_.stripe_id_),
+          reinterpret_cast<char*>(&other->_impl_.stripe_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata StripeParityLogStoreD0Xfer::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
+      file_level_metadata_proxy_2eproto[39]);
 }
 
 // ===================================================================
@@ -17277,7 +18946,7 @@ void CordLpDeltaFetch::InternalSwap(CordLpDeltaFetch* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata CordLpDeltaFetch::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[37]);
+      file_level_metadata_proxy_2eproto[40]);
 }
 
 // ===================================================================
@@ -17672,7 +19341,7 @@ void CordLpWorkItem::InternalSwap(CordLpWorkItem* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata CordLpWorkItem::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[38]);
+      file_level_metadata_proxy_2eproto[41]);
 }
 
 // ===================================================================
@@ -17936,7 +19605,7 @@ void CordLocalParityBundle::InternalSwap(CordLocalParityBundle* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata CordLocalParityBundle::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[39]);
+      file_level_metadata_proxy_2eproto[42]);
 }
 
 // ===================================================================
@@ -18493,7 +20162,7 @@ void CordLpHubSessionBegin::InternalSwap(CordLpHubSessionBegin* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata CordLpHubSessionBegin::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[40]);
+      file_level_metadata_proxy_2eproto[43]);
 }
 
 // ===================================================================
@@ -18741,7 +20410,7 @@ void CordLpHubPartialPush::InternalSwap(CordLpHubPartialPush* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata CordLpHubPartialPush::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[41]);
+      file_level_metadata_proxy_2eproto[44]);
 }
 
 // ===================================================================
@@ -19212,7 +20881,7 @@ void CordLpComputePartialAndPush::InternalSwap(CordLpComputePartialAndPush* othe
 ::PROTOBUF_NAMESPACE_ID::Metadata CordLpComputePartialAndPush::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[42]);
+      file_level_metadata_proxy_2eproto[45]);
 }
 
 // ===================================================================
@@ -19642,7 +21311,7 @@ void CordLpParityApplyDelta::InternalSwap(CordLpParityApplyDelta* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata CordLpParityApplyDelta::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[43]);
+      file_level_metadata_proxy_2eproto[46]);
 }
 
 // ===================================================================
@@ -19937,7 +21606,7 @@ void SetReply::InternalSwap(SetReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SetReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[44]);
+      file_level_metadata_proxy_2eproto[47]);
 }
 
 // ===================================================================
@@ -20115,7 +21784,7 @@ void GetReply::InternalSwap(GetReply* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata GetReply::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[45]);
+      file_level_metadata_proxy_2eproto[48]);
 }
 
 // ===================================================================
@@ -20564,7 +22233,7 @@ void StripeAndBlockIDs::InternalSwap(StripeAndBlockIDs* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata StripeAndBlockIDs::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_proxy_2eproto_getter, &descriptor_table_proxy_2eproto_once,
-      file_level_metadata_proxy_2eproto[46]);
+      file_level_metadata_proxy_2eproto[49]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -20717,6 +22386,18 @@ Arena::CreateMaybeMessage< ::proxy_proto::CordPlanMstDataDeltaReq >(Arena* arena
 template<> PROTOBUF_NOINLINE ::proxy_proto::CordDataUpdatePlacement*
 Arena::CreateMaybeMessage< ::proxy_proto::CordDataUpdatePlacement >(Arena* arena) {
   return Arena::CreateMessageInternal< ::proxy_proto::CordDataUpdatePlacement >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::StripeBlockWriteXfer*
+Arena::CreateMaybeMessage< ::proxy_proto::StripeBlockWriteXfer >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::StripeBlockWriteXfer >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::StripeParityLogAppendXfer*
+Arena::CreateMaybeMessage< ::proxy_proto::StripeParityLogAppendXfer >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::StripeParityLogAppendXfer >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proxy_proto::StripeParityLogStoreD0Xfer*
+Arena::CreateMaybeMessage< ::proxy_proto::StripeParityLogStoreD0Xfer >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proxy_proto::StripeParityLogStoreD0Xfer >(arena);
 }
 template<> PROTOBUF_NOINLINE ::proxy_proto::CordLpDeltaFetch*
 Arena::CreateMaybeMessage< ::proxy_proto::CordLpDeltaFetch >(Arena* arena) {

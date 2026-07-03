@@ -172,6 +172,15 @@ extern SetReplyDefaultTypeInternal _SetReply_default_instance_;
 class StripeAndBlockIDs;
 struct StripeAndBlockIDsDefaultTypeInternal;
 extern StripeAndBlockIDsDefaultTypeInternal _StripeAndBlockIDs_default_instance_;
+class StripeBlockWriteXfer;
+struct StripeBlockWriteXferDefaultTypeInternal;
+extern StripeBlockWriteXferDefaultTypeInternal _StripeBlockWriteXfer_default_instance_;
+class StripeParityLogAppendXfer;
+struct StripeParityLogAppendXferDefaultTypeInternal;
+extern StripeParityLogAppendXferDefaultTypeInternal _StripeParityLogAppendXfer_default_instance_;
+class StripeParityLogStoreD0Xfer;
+struct StripeParityLogStoreD0XferDefaultTypeInternal;
+extern StripeParityLogStoreD0XferDefaultTypeInternal _StripeParityLogStoreD0Xfer_default_instance_;
 class blockRelocPlan;
 struct blockRelocPlanDefaultTypeInternal;
 extern blockRelocPlanDefaultTypeInternal _blockRelocPlan_default_instance_;
@@ -231,6 +240,9 @@ template<> ::proxy_proto::RepIfSuccess* Arena::CreateMaybeMessage<::proxy_proto:
 template<> ::proxy_proto::RequestResult* Arena::CreateMaybeMessage<::proxy_proto::RequestResult>(Arena*);
 template<> ::proxy_proto::SetReply* Arena::CreateMaybeMessage<::proxy_proto::SetReply>(Arena*);
 template<> ::proxy_proto::StripeAndBlockIDs* Arena::CreateMaybeMessage<::proxy_proto::StripeAndBlockIDs>(Arena*);
+template<> ::proxy_proto::StripeBlockWriteXfer* Arena::CreateMaybeMessage<::proxy_proto::StripeBlockWriteXfer>(Arena*);
+template<> ::proxy_proto::StripeParityLogAppendXfer* Arena::CreateMaybeMessage<::proxy_proto::StripeParityLogAppendXfer>(Arena*);
+template<> ::proxy_proto::StripeParityLogStoreD0Xfer* Arena::CreateMaybeMessage<::proxy_proto::StripeParityLogStoreD0Xfer>(Arena*);
 template<> ::proxy_proto::blockRelocPlan* Arena::CreateMaybeMessage<::proxy_proto::blockRelocPlan>(Arena*);
 template<> ::proxy_proto::blockRelocReply* Arena::CreateMaybeMessage<::proxy_proto::blockRelocReply>(Arena*);
 template<> ::proxy_proto::helpRecalPlan* Arena::CreateMaybeMessage<::proxy_proto::helpRecalPlan>(Arena*);
@@ -9037,6 +9049,12 @@ class CordDataUpdatePlacement final :
     kAllBlockKeysFieldNumber = 26,
     kAllDatanodeIpsFieldNumber = 27,
     kAllDatanodePortsFieldNumber = 28,
+    kAllBlockClusterIdsFieldNumber = 29,
+    kAllProxyIpsFieldNumber = 30,
+    kAllProxyPortsFieldNumber = 31,
+    kParityClusterIdsFieldNumber = 32,
+    kParityProxyIpsFieldNumber = 33,
+    kParityProxyPortsFieldNumber = 34,
     kKeyFieldNumber = 1,
     kDeltaBlobKeyFieldNumber = 11,
     kDeltaDatanodeIpFieldNumber = 12,
@@ -9372,6 +9390,142 @@ class CordDataUpdatePlacement final :
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
       mutable_all_datanode_ports();
 
+  // repeated int32 all_block_cluster_ids = 29;
+  int all_block_cluster_ids_size() const;
+  private:
+  int _internal_all_block_cluster_ids_size() const;
+  public:
+  void clear_all_block_cluster_ids();
+  private:
+  int32_t _internal_all_block_cluster_ids(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_all_block_cluster_ids() const;
+  void _internal_add_all_block_cluster_ids(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_all_block_cluster_ids();
+  public:
+  int32_t all_block_cluster_ids(int index) const;
+  void set_all_block_cluster_ids(int index, int32_t value);
+  void add_all_block_cluster_ids(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      all_block_cluster_ids() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_all_block_cluster_ids();
+
+  // repeated string all_proxy_ips = 30;
+  int all_proxy_ips_size() const;
+  private:
+  int _internal_all_proxy_ips_size() const;
+  public:
+  void clear_all_proxy_ips();
+  const std::string& all_proxy_ips(int index) const;
+  std::string* mutable_all_proxy_ips(int index);
+  void set_all_proxy_ips(int index, const std::string& value);
+  void set_all_proxy_ips(int index, std::string&& value);
+  void set_all_proxy_ips(int index, const char* value);
+  void set_all_proxy_ips(int index, const char* value, size_t size);
+  std::string* add_all_proxy_ips();
+  void add_all_proxy_ips(const std::string& value);
+  void add_all_proxy_ips(std::string&& value);
+  void add_all_proxy_ips(const char* value);
+  void add_all_proxy_ips(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& all_proxy_ips() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_all_proxy_ips();
+  private:
+  const std::string& _internal_all_proxy_ips(int index) const;
+  std::string* _internal_add_all_proxy_ips();
+  public:
+
+  // repeated int32 all_proxy_ports = 31;
+  int all_proxy_ports_size() const;
+  private:
+  int _internal_all_proxy_ports_size() const;
+  public:
+  void clear_all_proxy_ports();
+  private:
+  int32_t _internal_all_proxy_ports(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_all_proxy_ports() const;
+  void _internal_add_all_proxy_ports(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_all_proxy_ports();
+  public:
+  int32_t all_proxy_ports(int index) const;
+  void set_all_proxy_ports(int index, int32_t value);
+  void add_all_proxy_ports(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      all_proxy_ports() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_all_proxy_ports();
+
+  // repeated int32 parity_cluster_ids = 32;
+  int parity_cluster_ids_size() const;
+  private:
+  int _internal_parity_cluster_ids_size() const;
+  public:
+  void clear_parity_cluster_ids();
+  private:
+  int32_t _internal_parity_cluster_ids(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_parity_cluster_ids() const;
+  void _internal_add_parity_cluster_ids(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_parity_cluster_ids();
+  public:
+  int32_t parity_cluster_ids(int index) const;
+  void set_parity_cluster_ids(int index, int32_t value);
+  void add_parity_cluster_ids(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      parity_cluster_ids() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_parity_cluster_ids();
+
+  // repeated string parity_proxy_ips = 33;
+  int parity_proxy_ips_size() const;
+  private:
+  int _internal_parity_proxy_ips_size() const;
+  public:
+  void clear_parity_proxy_ips();
+  const std::string& parity_proxy_ips(int index) const;
+  std::string* mutable_parity_proxy_ips(int index);
+  void set_parity_proxy_ips(int index, const std::string& value);
+  void set_parity_proxy_ips(int index, std::string&& value);
+  void set_parity_proxy_ips(int index, const char* value);
+  void set_parity_proxy_ips(int index, const char* value, size_t size);
+  std::string* add_parity_proxy_ips();
+  void add_parity_proxy_ips(const std::string& value);
+  void add_parity_proxy_ips(std::string&& value);
+  void add_parity_proxy_ips(const char* value);
+  void add_parity_proxy_ips(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& parity_proxy_ips() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_parity_proxy_ips();
+  private:
+  const std::string& _internal_parity_proxy_ips(int index) const;
+  std::string* _internal_add_parity_proxy_ips();
+  public:
+
+  // repeated int32 parity_proxy_ports = 34;
+  int parity_proxy_ports_size() const;
+  private:
+  int _internal_parity_proxy_ports_size() const;
+  public:
+  void clear_parity_proxy_ports();
+  private:
+  int32_t _internal_parity_proxy_ports(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_parity_proxy_ports() const;
+  void _internal_add_parity_proxy_ports(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_parity_proxy_ports();
+  public:
+  int32_t parity_proxy_ports(int index) const;
+  void set_parity_proxy_ports(int index, int32_t value);
+  void add_parity_proxy_ports(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      parity_proxy_ports() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_parity_proxy_ports();
+
   // string key = 1;
   void clear_key();
   const std::string& key() const;
@@ -9548,6 +9702,16 @@ class CordDataUpdatePlacement final :
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> all_datanode_ips_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > all_datanode_ports_;
     mutable std::atomic<int> _all_datanode_ports_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > all_block_cluster_ids_;
+    mutable std::atomic<int> _all_block_cluster_ids_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> all_proxy_ips_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > all_proxy_ports_;
+    mutable std::atomic<int> _all_proxy_ports_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > parity_cluster_ids_;
+    mutable std::atomic<int> _parity_cluster_ids_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> parity_proxy_ips_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > parity_proxy_ports_;
+    mutable std::atomic<int> _parity_proxy_ports_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr delta_blob_key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr delta_datanode_ip_;
@@ -9562,6 +9726,733 @@ class CordDataUpdatePlacement final :
     int32_t r_;
     int32_t z_;
     int32_t block_size_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class StripeBlockWriteXfer final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.StripeBlockWriteXfer) */ {
+ public:
+  inline StripeBlockWriteXfer() : StripeBlockWriteXfer(nullptr) {}
+  ~StripeBlockWriteXfer() override;
+  explicit PROTOBUF_CONSTEXPR StripeBlockWriteXfer(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  StripeBlockWriteXfer(const StripeBlockWriteXfer& from);
+  StripeBlockWriteXfer(StripeBlockWriteXfer&& from) noexcept
+    : StripeBlockWriteXfer() {
+    *this = ::std::move(from);
+  }
+
+  inline StripeBlockWriteXfer& operator=(const StripeBlockWriteXfer& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline StripeBlockWriteXfer& operator=(StripeBlockWriteXfer&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const StripeBlockWriteXfer& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const StripeBlockWriteXfer* internal_default_instance() {
+    return reinterpret_cast<const StripeBlockWriteXfer*>(
+               &_StripeBlockWriteXfer_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    37;
+
+  friend void swap(StripeBlockWriteXfer& a, StripeBlockWriteXfer& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(StripeBlockWriteXfer* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(StripeBlockWriteXfer* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  StripeBlockWriteXfer* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<StripeBlockWriteXfer>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const StripeBlockWriteXfer& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const StripeBlockWriteXfer& from) {
+    StripeBlockWriteXfer::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(StripeBlockWriteXfer* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.StripeBlockWriteXfer";
+  }
+  protected:
+  explicit StripeBlockWriteXfer(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kBlockKeyFieldNumber = 1,
+    kDatanodeIpFieldNumber = 5,
+    kBlockIdFieldNumber = 2,
+    kRangeOffsetFieldNumber = 3,
+    kRangeLengthFieldNumber = 4,
+    kDatanodePortFieldNumber = 6,
+  };
+  // string block_key = 1;
+  void clear_block_key();
+  const std::string& block_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_block_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_block_key();
+  PROTOBUF_NODISCARD std::string* release_block_key();
+  void set_allocated_block_key(std::string* block_key);
+  private:
+  const std::string& _internal_block_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_block_key(const std::string& value);
+  std::string* _internal_mutable_block_key();
+  public:
+
+  // string datanode_ip = 5;
+  void clear_datanode_ip();
+  const std::string& datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_datanode_ip();
+  void set_allocated_datanode_ip(std::string* datanode_ip);
+  private:
+  const std::string& _internal_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_datanode_ip();
+  public:
+
+  // int32 block_id = 2;
+  void clear_block_id();
+  int32_t block_id() const;
+  void set_block_id(int32_t value);
+  private:
+  int32_t _internal_block_id() const;
+  void _internal_set_block_id(int32_t value);
+  public:
+
+  // int32 range_offset = 3;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // int32 range_length = 4;
+  void clear_range_length();
+  int32_t range_length() const;
+  void set_range_length(int32_t value);
+  private:
+  int32_t _internal_range_length() const;
+  void _internal_set_range_length(int32_t value);
+  public:
+
+  // int32 datanode_port = 6;
+  void clear_datanode_port();
+  int32_t datanode_port() const;
+  void set_datanode_port(int32_t value);
+  private:
+  int32_t _internal_datanode_port() const;
+  void _internal_set_datanode_port(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.StripeBlockWriteXfer)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr block_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr datanode_ip_;
+    int32_t block_id_;
+    int32_t range_offset_;
+    int32_t range_length_;
+    int32_t datanode_port_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class StripeParityLogAppendXfer final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.StripeParityLogAppendXfer) */ {
+ public:
+  inline StripeParityLogAppendXfer() : StripeParityLogAppendXfer(nullptr) {}
+  ~StripeParityLogAppendXfer() override;
+  explicit PROTOBUF_CONSTEXPR StripeParityLogAppendXfer(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  StripeParityLogAppendXfer(const StripeParityLogAppendXfer& from);
+  StripeParityLogAppendXfer(StripeParityLogAppendXfer&& from) noexcept
+    : StripeParityLogAppendXfer() {
+    *this = ::std::move(from);
+  }
+
+  inline StripeParityLogAppendXfer& operator=(const StripeParityLogAppendXfer& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline StripeParityLogAppendXfer& operator=(StripeParityLogAppendXfer&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const StripeParityLogAppendXfer& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const StripeParityLogAppendXfer* internal_default_instance() {
+    return reinterpret_cast<const StripeParityLogAppendXfer*>(
+               &_StripeParityLogAppendXfer_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    38;
+
+  friend void swap(StripeParityLogAppendXfer& a, StripeParityLogAppendXfer& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(StripeParityLogAppendXfer* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(StripeParityLogAppendXfer* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  StripeParityLogAppendXfer* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<StripeParityLogAppendXfer>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const StripeParityLogAppendXfer& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const StripeParityLogAppendXfer& from) {
+    StripeParityLogAppendXfer::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(StripeParityLogAppendXfer* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.StripeParityLogAppendXfer";
+  }
+  protected:
+  explicit StripeParityLogAppendXfer(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kParityBlockKeyFieldNumber = 3,
+    kCodeTypeFieldNumber = 11,
+    kParityDatanodeIpFieldNumber = 12,
+    kStripeIdFieldNumber = 1,
+    kParityBlockIdFieldNumber = 2,
+    kDataBlockIdFieldNumber = 4,
+    kRangeOffsetFieldNumber = 5,
+    kRangeLengthFieldNumber = 6,
+    kKFieldNumber = 7,
+    kRFieldNumber = 8,
+    kZFieldNumber = 9,
+    kBlockSizeFieldNumber = 10,
+    kParityDatanodePortFieldNumber = 13,
+  };
+  // string parity_block_key = 3;
+  void clear_parity_block_key();
+  const std::string& parity_block_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_parity_block_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_parity_block_key();
+  PROTOBUF_NODISCARD std::string* release_parity_block_key();
+  void set_allocated_parity_block_key(std::string* parity_block_key);
+  private:
+  const std::string& _internal_parity_block_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_parity_block_key(const std::string& value);
+  std::string* _internal_mutable_parity_block_key();
+  public:
+
+  // string code_type = 11;
+  void clear_code_type();
+  const std::string& code_type() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_code_type(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_code_type();
+  PROTOBUF_NODISCARD std::string* release_code_type();
+  void set_allocated_code_type(std::string* code_type);
+  private:
+  const std::string& _internal_code_type() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_code_type(const std::string& value);
+  std::string* _internal_mutable_code_type();
+  public:
+
+  // string parity_datanode_ip = 12;
+  void clear_parity_datanode_ip();
+  const std::string& parity_datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_parity_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_parity_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_parity_datanode_ip();
+  void set_allocated_parity_datanode_ip(std::string* parity_datanode_ip);
+  private:
+  const std::string& _internal_parity_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_parity_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_parity_datanode_ip();
+  public:
+
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // int32 parity_block_id = 2;
+  void clear_parity_block_id();
+  int32_t parity_block_id() const;
+  void set_parity_block_id(int32_t value);
+  private:
+  int32_t _internal_parity_block_id() const;
+  void _internal_set_parity_block_id(int32_t value);
+  public:
+
+  // int32 data_block_id = 4;
+  void clear_data_block_id();
+  int32_t data_block_id() const;
+  void set_data_block_id(int32_t value);
+  private:
+  int32_t _internal_data_block_id() const;
+  void _internal_set_data_block_id(int32_t value);
+  public:
+
+  // int32 range_offset = 5;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // int32 range_length = 6;
+  void clear_range_length();
+  int32_t range_length() const;
+  void set_range_length(int32_t value);
+  private:
+  int32_t _internal_range_length() const;
+  void _internal_set_range_length(int32_t value);
+  public:
+
+  // int32 k = 7;
+  void clear_k();
+  int32_t k() const;
+  void set_k(int32_t value);
+  private:
+  int32_t _internal_k() const;
+  void _internal_set_k(int32_t value);
+  public:
+
+  // int32 r = 8;
+  void clear_r();
+  int32_t r() const;
+  void set_r(int32_t value);
+  private:
+  int32_t _internal_r() const;
+  void _internal_set_r(int32_t value);
+  public:
+
+  // int32 z = 9;
+  void clear_z();
+  int32_t z() const;
+  void set_z(int32_t value);
+  private:
+  int32_t _internal_z() const;
+  void _internal_set_z(int32_t value);
+  public:
+
+  // int32 block_size = 10;
+  void clear_block_size();
+  int32_t block_size() const;
+  void set_block_size(int32_t value);
+  private:
+  int32_t _internal_block_size() const;
+  void _internal_set_block_size(int32_t value);
+  public:
+
+  // int32 parity_datanode_port = 13;
+  void clear_parity_datanode_port();
+  int32_t parity_datanode_port() const;
+  void set_parity_datanode_port(int32_t value);
+  private:
+  int32_t _internal_parity_datanode_port() const;
+  void _internal_set_parity_datanode_port(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.StripeParityLogAppendXfer)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parity_block_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr code_type_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parity_datanode_ip_;
+    int32_t stripe_id_;
+    int32_t parity_block_id_;
+    int32_t data_block_id_;
+    int32_t range_offset_;
+    int32_t range_length_;
+    int32_t k_;
+    int32_t r_;
+    int32_t z_;
+    int32_t block_size_;
+    int32_t parity_datanode_port_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class StripeParityLogStoreD0Xfer final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.StripeParityLogStoreD0Xfer) */ {
+ public:
+  inline StripeParityLogStoreD0Xfer() : StripeParityLogStoreD0Xfer(nullptr) {}
+  ~StripeParityLogStoreD0Xfer() override;
+  explicit PROTOBUF_CONSTEXPR StripeParityLogStoreD0Xfer(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  StripeParityLogStoreD0Xfer(const StripeParityLogStoreD0Xfer& from);
+  StripeParityLogStoreD0Xfer(StripeParityLogStoreD0Xfer&& from) noexcept
+    : StripeParityLogStoreD0Xfer() {
+    *this = ::std::move(from);
+  }
+
+  inline StripeParityLogStoreD0Xfer& operator=(const StripeParityLogStoreD0Xfer& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline StripeParityLogStoreD0Xfer& operator=(StripeParityLogStoreD0Xfer&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const StripeParityLogStoreD0Xfer& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const StripeParityLogStoreD0Xfer* internal_default_instance() {
+    return reinterpret_cast<const StripeParityLogStoreD0Xfer*>(
+               &_StripeParityLogStoreD0Xfer_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    39;
+
+  friend void swap(StripeParityLogStoreD0Xfer& a, StripeParityLogStoreD0Xfer& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(StripeParityLogStoreD0Xfer* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(StripeParityLogStoreD0Xfer* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  StripeParityLogStoreD0Xfer* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<StripeParityLogStoreD0Xfer>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const StripeParityLogStoreD0Xfer& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const StripeParityLogStoreD0Xfer& from) {
+    StripeParityLogStoreD0Xfer::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(StripeParityLogStoreD0Xfer* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.StripeParityLogStoreD0Xfer";
+  }
+  protected:
+  explicit StripeParityLogStoreD0Xfer(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kParityDatanodeIpFieldNumber = 6,
+    kStripeIdFieldNumber = 1,
+    kParityBlockIdFieldNumber = 2,
+    kDataBlockIdFieldNumber = 3,
+    kRangeOffsetFieldNumber = 4,
+    kRangeLengthFieldNumber = 5,
+    kParityDatanodePortFieldNumber = 7,
+  };
+  // string parity_datanode_ip = 6;
+  void clear_parity_datanode_ip();
+  const std::string& parity_datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_parity_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_parity_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_parity_datanode_ip();
+  void set_allocated_parity_datanode_ip(std::string* parity_datanode_ip);
+  private:
+  const std::string& _internal_parity_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_parity_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_parity_datanode_ip();
+  public:
+
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // int32 parity_block_id = 2;
+  void clear_parity_block_id();
+  int32_t parity_block_id() const;
+  void set_parity_block_id(int32_t value);
+  private:
+  int32_t _internal_parity_block_id() const;
+  void _internal_set_parity_block_id(int32_t value);
+  public:
+
+  // int32 data_block_id = 3;
+  void clear_data_block_id();
+  int32_t data_block_id() const;
+  void set_data_block_id(int32_t value);
+  private:
+  int32_t _internal_data_block_id() const;
+  void _internal_set_data_block_id(int32_t value);
+  public:
+
+  // int32 range_offset = 4;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // int32 range_length = 5;
+  void clear_range_length();
+  int32_t range_length() const;
+  void set_range_length(int32_t value);
+  private:
+  int32_t _internal_range_length() const;
+  void _internal_set_range_length(int32_t value);
+  public:
+
+  // int32 parity_datanode_port = 7;
+  void clear_parity_datanode_port();
+  int32_t parity_datanode_port() const;
+  void set_parity_datanode_port(int32_t value);
+  private:
+  int32_t _internal_parity_datanode_port() const;
+  void _internal_set_parity_datanode_port(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.StripeParityLogStoreD0Xfer)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parity_datanode_ip_;
+    int32_t stripe_id_;
+    int32_t parity_block_id_;
+    int32_t data_block_id_;
+    int32_t range_offset_;
+    int32_t range_length_;
+    int32_t parity_datanode_port_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -9617,7 +10508,7 @@ class CordLpDeltaFetch final :
                &_CordLpDeltaFetch_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    37;
+    40;
 
   friend void swap(CordLpDeltaFetch& a, CordLpDeltaFetch& b) {
     a.Swap(&b);
@@ -9830,7 +10721,7 @@ class CordLpWorkItem final :
                &_CordLpWorkItem_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    38;
+    41;
 
   friend void swap(CordLpWorkItem& a, CordLpWorkItem& b) {
     a.Swap(&b);
@@ -10063,7 +10954,7 @@ class CordLocalParityBundle final :
                &_CordLocalParityBundle_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    39;
+    42;
 
   friend void swap(CordLocalParityBundle& a, CordLocalParityBundle& b) {
     a.Swap(&b);
@@ -10247,7 +11138,7 @@ class CordLpHubSessionBegin final :
                &_CordLpHubSessionBegin_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    40;
+    43;
 
   friend void swap(CordLpHubSessionBegin& a, CordLpHubSessionBegin& b) {
     a.Swap(&b);
@@ -10536,7 +11427,7 @@ class CordLpHubPartialPush final :
                &_CordLpHubPartialPush_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    41;
+    44;
 
   friend void swap(CordLpHubPartialPush& a, CordLpHubPartialPush& b) {
     a.Swap(&b);
@@ -10705,7 +11596,7 @@ class CordLpComputePartialAndPush final :
                &_CordLpComputePartialAndPush_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    42;
+    45;
 
   friend void swap(CordLpComputePartialAndPush& a, CordLpComputePartialAndPush& b) {
     a.Swap(&b);
@@ -10959,7 +11850,7 @@ class CordLpParityApplyDelta final :
                &_CordLpParityApplyDelta_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    43;
+    46;
 
   friend void swap(CordLpParityApplyDelta& a, CordLpParityApplyDelta& b) {
     a.Swap(&b);
@@ -11199,7 +12090,7 @@ class SetReply final :
                &_SetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    44;
+    47;
 
   friend void swap(SetReply& a, SetReply& b) {
     a.Swap(&b);
@@ -11391,7 +12282,7 @@ class GetReply final :
                &_GetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    45;
+    48;
 
   friend void swap(GetReply& a, GetReply& b) {
     a.Swap(&b);
@@ -11539,7 +12430,7 @@ class StripeAndBlockIDs final :
                &_StripeAndBlockIDs_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    46;
+    49;
 
   friend void swap(StripeAndBlockIDs& a, StripeAndBlockIDs& b) {
     a.Swap(&b);
@@ -21361,6 +22252,1056 @@ CordDataUpdatePlacement::mutable_all_datanode_ports() {
   return _internal_mutable_all_datanode_ports();
 }
 
+// repeated int32 all_block_cluster_ids = 29;
+inline int CordDataUpdatePlacement::_internal_all_block_cluster_ids_size() const {
+  return _impl_.all_block_cluster_ids_.size();
+}
+inline int CordDataUpdatePlacement::all_block_cluster_ids_size() const {
+  return _internal_all_block_cluster_ids_size();
+}
+inline void CordDataUpdatePlacement::clear_all_block_cluster_ids() {
+  _impl_.all_block_cluster_ids_.Clear();
+}
+inline int32_t CordDataUpdatePlacement::_internal_all_block_cluster_ids(int index) const {
+  return _impl_.all_block_cluster_ids_.Get(index);
+}
+inline int32_t CordDataUpdatePlacement::all_block_cluster_ids(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.all_block_cluster_ids)
+  return _internal_all_block_cluster_ids(index);
+}
+inline void CordDataUpdatePlacement::set_all_block_cluster_ids(int index, int32_t value) {
+  _impl_.all_block_cluster_ids_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.all_block_cluster_ids)
+}
+inline void CordDataUpdatePlacement::_internal_add_all_block_cluster_ids(int32_t value) {
+  _impl_.all_block_cluster_ids_.Add(value);
+}
+inline void CordDataUpdatePlacement::add_all_block_cluster_ids(int32_t value) {
+  _internal_add_all_block_cluster_ids(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.all_block_cluster_ids)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::_internal_all_block_cluster_ids() const {
+  return _impl_.all_block_cluster_ids_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::all_block_cluster_ids() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.all_block_cluster_ids)
+  return _internal_all_block_cluster_ids();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::_internal_mutable_all_block_cluster_ids() {
+  return &_impl_.all_block_cluster_ids_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::mutable_all_block_cluster_ids() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.all_block_cluster_ids)
+  return _internal_mutable_all_block_cluster_ids();
+}
+
+// repeated string all_proxy_ips = 30;
+inline int CordDataUpdatePlacement::_internal_all_proxy_ips_size() const {
+  return _impl_.all_proxy_ips_.size();
+}
+inline int CordDataUpdatePlacement::all_proxy_ips_size() const {
+  return _internal_all_proxy_ips_size();
+}
+inline void CordDataUpdatePlacement::clear_all_proxy_ips() {
+  _impl_.all_proxy_ips_.Clear();
+}
+inline std::string* CordDataUpdatePlacement::add_all_proxy_ips() {
+  std::string* _s = _internal_add_all_proxy_ips();
+  // @@protoc_insertion_point(field_add_mutable:proxy_proto.CordDataUpdatePlacement.all_proxy_ips)
+  return _s;
+}
+inline const std::string& CordDataUpdatePlacement::_internal_all_proxy_ips(int index) const {
+  return _impl_.all_proxy_ips_.Get(index);
+}
+inline const std::string& CordDataUpdatePlacement::all_proxy_ips(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.all_proxy_ips)
+  return _internal_all_proxy_ips(index);
+}
+inline std::string* CordDataUpdatePlacement::mutable_all_proxy_ips(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.CordDataUpdatePlacement.all_proxy_ips)
+  return _impl_.all_proxy_ips_.Mutable(index);
+}
+inline void CordDataUpdatePlacement::set_all_proxy_ips(int index, const std::string& value) {
+  _impl_.all_proxy_ips_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.all_proxy_ips)
+}
+inline void CordDataUpdatePlacement::set_all_proxy_ips(int index, std::string&& value) {
+  _impl_.all_proxy_ips_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.all_proxy_ips)
+}
+inline void CordDataUpdatePlacement::set_all_proxy_ips(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.all_proxy_ips_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:proxy_proto.CordDataUpdatePlacement.all_proxy_ips)
+}
+inline void CordDataUpdatePlacement::set_all_proxy_ips(int index, const char* value, size_t size) {
+  _impl_.all_proxy_ips_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:proxy_proto.CordDataUpdatePlacement.all_proxy_ips)
+}
+inline std::string* CordDataUpdatePlacement::_internal_add_all_proxy_ips() {
+  return _impl_.all_proxy_ips_.Add();
+}
+inline void CordDataUpdatePlacement::add_all_proxy_ips(const std::string& value) {
+  _impl_.all_proxy_ips_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.all_proxy_ips)
+}
+inline void CordDataUpdatePlacement::add_all_proxy_ips(std::string&& value) {
+  _impl_.all_proxy_ips_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.all_proxy_ips)
+}
+inline void CordDataUpdatePlacement::add_all_proxy_ips(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.all_proxy_ips_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:proxy_proto.CordDataUpdatePlacement.all_proxy_ips)
+}
+inline void CordDataUpdatePlacement::add_all_proxy_ips(const char* value, size_t size) {
+  _impl_.all_proxy_ips_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:proxy_proto.CordDataUpdatePlacement.all_proxy_ips)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+CordDataUpdatePlacement::all_proxy_ips() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.all_proxy_ips)
+  return _impl_.all_proxy_ips_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+CordDataUpdatePlacement::mutable_all_proxy_ips() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.all_proxy_ips)
+  return &_impl_.all_proxy_ips_;
+}
+
+// repeated int32 all_proxy_ports = 31;
+inline int CordDataUpdatePlacement::_internal_all_proxy_ports_size() const {
+  return _impl_.all_proxy_ports_.size();
+}
+inline int CordDataUpdatePlacement::all_proxy_ports_size() const {
+  return _internal_all_proxy_ports_size();
+}
+inline void CordDataUpdatePlacement::clear_all_proxy_ports() {
+  _impl_.all_proxy_ports_.Clear();
+}
+inline int32_t CordDataUpdatePlacement::_internal_all_proxy_ports(int index) const {
+  return _impl_.all_proxy_ports_.Get(index);
+}
+inline int32_t CordDataUpdatePlacement::all_proxy_ports(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.all_proxy_ports)
+  return _internal_all_proxy_ports(index);
+}
+inline void CordDataUpdatePlacement::set_all_proxy_ports(int index, int32_t value) {
+  _impl_.all_proxy_ports_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.all_proxy_ports)
+}
+inline void CordDataUpdatePlacement::_internal_add_all_proxy_ports(int32_t value) {
+  _impl_.all_proxy_ports_.Add(value);
+}
+inline void CordDataUpdatePlacement::add_all_proxy_ports(int32_t value) {
+  _internal_add_all_proxy_ports(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.all_proxy_ports)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::_internal_all_proxy_ports() const {
+  return _impl_.all_proxy_ports_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::all_proxy_ports() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.all_proxy_ports)
+  return _internal_all_proxy_ports();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::_internal_mutable_all_proxy_ports() {
+  return &_impl_.all_proxy_ports_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::mutable_all_proxy_ports() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.all_proxy_ports)
+  return _internal_mutable_all_proxy_ports();
+}
+
+// repeated int32 parity_cluster_ids = 32;
+inline int CordDataUpdatePlacement::_internal_parity_cluster_ids_size() const {
+  return _impl_.parity_cluster_ids_.size();
+}
+inline int CordDataUpdatePlacement::parity_cluster_ids_size() const {
+  return _internal_parity_cluster_ids_size();
+}
+inline void CordDataUpdatePlacement::clear_parity_cluster_ids() {
+  _impl_.parity_cluster_ids_.Clear();
+}
+inline int32_t CordDataUpdatePlacement::_internal_parity_cluster_ids(int index) const {
+  return _impl_.parity_cluster_ids_.Get(index);
+}
+inline int32_t CordDataUpdatePlacement::parity_cluster_ids(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.parity_cluster_ids)
+  return _internal_parity_cluster_ids(index);
+}
+inline void CordDataUpdatePlacement::set_parity_cluster_ids(int index, int32_t value) {
+  _impl_.parity_cluster_ids_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.parity_cluster_ids)
+}
+inline void CordDataUpdatePlacement::_internal_add_parity_cluster_ids(int32_t value) {
+  _impl_.parity_cluster_ids_.Add(value);
+}
+inline void CordDataUpdatePlacement::add_parity_cluster_ids(int32_t value) {
+  _internal_add_parity_cluster_ids(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.parity_cluster_ids)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::_internal_parity_cluster_ids() const {
+  return _impl_.parity_cluster_ids_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::parity_cluster_ids() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.parity_cluster_ids)
+  return _internal_parity_cluster_ids();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::_internal_mutable_parity_cluster_ids() {
+  return &_impl_.parity_cluster_ids_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::mutable_parity_cluster_ids() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.parity_cluster_ids)
+  return _internal_mutable_parity_cluster_ids();
+}
+
+// repeated string parity_proxy_ips = 33;
+inline int CordDataUpdatePlacement::_internal_parity_proxy_ips_size() const {
+  return _impl_.parity_proxy_ips_.size();
+}
+inline int CordDataUpdatePlacement::parity_proxy_ips_size() const {
+  return _internal_parity_proxy_ips_size();
+}
+inline void CordDataUpdatePlacement::clear_parity_proxy_ips() {
+  _impl_.parity_proxy_ips_.Clear();
+}
+inline std::string* CordDataUpdatePlacement::add_parity_proxy_ips() {
+  std::string* _s = _internal_add_parity_proxy_ips();
+  // @@protoc_insertion_point(field_add_mutable:proxy_proto.CordDataUpdatePlacement.parity_proxy_ips)
+  return _s;
+}
+inline const std::string& CordDataUpdatePlacement::_internal_parity_proxy_ips(int index) const {
+  return _impl_.parity_proxy_ips_.Get(index);
+}
+inline const std::string& CordDataUpdatePlacement::parity_proxy_ips(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.parity_proxy_ips)
+  return _internal_parity_proxy_ips(index);
+}
+inline std::string* CordDataUpdatePlacement::mutable_parity_proxy_ips(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.CordDataUpdatePlacement.parity_proxy_ips)
+  return _impl_.parity_proxy_ips_.Mutable(index);
+}
+inline void CordDataUpdatePlacement::set_parity_proxy_ips(int index, const std::string& value) {
+  _impl_.parity_proxy_ips_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.parity_proxy_ips)
+}
+inline void CordDataUpdatePlacement::set_parity_proxy_ips(int index, std::string&& value) {
+  _impl_.parity_proxy_ips_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.parity_proxy_ips)
+}
+inline void CordDataUpdatePlacement::set_parity_proxy_ips(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.parity_proxy_ips_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:proxy_proto.CordDataUpdatePlacement.parity_proxy_ips)
+}
+inline void CordDataUpdatePlacement::set_parity_proxy_ips(int index, const char* value, size_t size) {
+  _impl_.parity_proxy_ips_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:proxy_proto.CordDataUpdatePlacement.parity_proxy_ips)
+}
+inline std::string* CordDataUpdatePlacement::_internal_add_parity_proxy_ips() {
+  return _impl_.parity_proxy_ips_.Add();
+}
+inline void CordDataUpdatePlacement::add_parity_proxy_ips(const std::string& value) {
+  _impl_.parity_proxy_ips_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.parity_proxy_ips)
+}
+inline void CordDataUpdatePlacement::add_parity_proxy_ips(std::string&& value) {
+  _impl_.parity_proxy_ips_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.parity_proxy_ips)
+}
+inline void CordDataUpdatePlacement::add_parity_proxy_ips(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.parity_proxy_ips_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:proxy_proto.CordDataUpdatePlacement.parity_proxy_ips)
+}
+inline void CordDataUpdatePlacement::add_parity_proxy_ips(const char* value, size_t size) {
+  _impl_.parity_proxy_ips_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:proxy_proto.CordDataUpdatePlacement.parity_proxy_ips)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+CordDataUpdatePlacement::parity_proxy_ips() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.parity_proxy_ips)
+  return _impl_.parity_proxy_ips_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+CordDataUpdatePlacement::mutable_parity_proxy_ips() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.parity_proxy_ips)
+  return &_impl_.parity_proxy_ips_;
+}
+
+// repeated int32 parity_proxy_ports = 34;
+inline int CordDataUpdatePlacement::_internal_parity_proxy_ports_size() const {
+  return _impl_.parity_proxy_ports_.size();
+}
+inline int CordDataUpdatePlacement::parity_proxy_ports_size() const {
+  return _internal_parity_proxy_ports_size();
+}
+inline void CordDataUpdatePlacement::clear_parity_proxy_ports() {
+  _impl_.parity_proxy_ports_.Clear();
+}
+inline int32_t CordDataUpdatePlacement::_internal_parity_proxy_ports(int index) const {
+  return _impl_.parity_proxy_ports_.Get(index);
+}
+inline int32_t CordDataUpdatePlacement::parity_proxy_ports(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.parity_proxy_ports)
+  return _internal_parity_proxy_ports(index);
+}
+inline void CordDataUpdatePlacement::set_parity_proxy_ports(int index, int32_t value) {
+  _impl_.parity_proxy_ports_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.parity_proxy_ports)
+}
+inline void CordDataUpdatePlacement::_internal_add_parity_proxy_ports(int32_t value) {
+  _impl_.parity_proxy_ports_.Add(value);
+}
+inline void CordDataUpdatePlacement::add_parity_proxy_ports(int32_t value) {
+  _internal_add_parity_proxy_ports(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.parity_proxy_ports)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::_internal_parity_proxy_ports() const {
+  return _impl_.parity_proxy_ports_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::parity_proxy_ports() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.parity_proxy_ports)
+  return _internal_parity_proxy_ports();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::_internal_mutable_parity_proxy_ports() {
+  return &_impl_.parity_proxy_ports_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::mutable_parity_proxy_ports() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.parity_proxy_ports)
+  return _internal_mutable_parity_proxy_ports();
+}
+
+// -------------------------------------------------------------------
+
+// StripeBlockWriteXfer
+
+// string block_key = 1;
+inline void StripeBlockWriteXfer::clear_block_key() {
+  _impl_.block_key_.ClearToEmpty();
+}
+inline const std::string& StripeBlockWriteXfer::block_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeBlockWriteXfer.block_key)
+  return _internal_block_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void StripeBlockWriteXfer::set_block_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeBlockWriteXfer.block_key)
+}
+inline std::string* StripeBlockWriteXfer::mutable_block_key() {
+  std::string* _s = _internal_mutable_block_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.StripeBlockWriteXfer.block_key)
+  return _s;
+}
+inline const std::string& StripeBlockWriteXfer::_internal_block_key() const {
+  return _impl_.block_key_.Get();
+}
+inline void StripeBlockWriteXfer::_internal_set_block_key(const std::string& value) {
+  
+  _impl_.block_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* StripeBlockWriteXfer::_internal_mutable_block_key() {
+  
+  return _impl_.block_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* StripeBlockWriteXfer::release_block_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.StripeBlockWriteXfer.block_key)
+  return _impl_.block_key_.Release();
+}
+inline void StripeBlockWriteXfer::set_allocated_block_key(std::string* block_key) {
+  if (block_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.block_key_.SetAllocated(block_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.block_key_.IsDefault()) {
+    _impl_.block_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.StripeBlockWriteXfer.block_key)
+}
+
+// int32 block_id = 2;
+inline void StripeBlockWriteXfer::clear_block_id() {
+  _impl_.block_id_ = 0;
+}
+inline int32_t StripeBlockWriteXfer::_internal_block_id() const {
+  return _impl_.block_id_;
+}
+inline int32_t StripeBlockWriteXfer::block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeBlockWriteXfer.block_id)
+  return _internal_block_id();
+}
+inline void StripeBlockWriteXfer::_internal_set_block_id(int32_t value) {
+  
+  _impl_.block_id_ = value;
+}
+inline void StripeBlockWriteXfer::set_block_id(int32_t value) {
+  _internal_set_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeBlockWriteXfer.block_id)
+}
+
+// int32 range_offset = 3;
+inline void StripeBlockWriteXfer::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t StripeBlockWriteXfer::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t StripeBlockWriteXfer::range_offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeBlockWriteXfer.range_offset)
+  return _internal_range_offset();
+}
+inline void StripeBlockWriteXfer::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void StripeBlockWriteXfer::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeBlockWriteXfer.range_offset)
+}
+
+// int32 range_length = 4;
+inline void StripeBlockWriteXfer::clear_range_length() {
+  _impl_.range_length_ = 0;
+}
+inline int32_t StripeBlockWriteXfer::_internal_range_length() const {
+  return _impl_.range_length_;
+}
+inline int32_t StripeBlockWriteXfer::range_length() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeBlockWriteXfer.range_length)
+  return _internal_range_length();
+}
+inline void StripeBlockWriteXfer::_internal_set_range_length(int32_t value) {
+  
+  _impl_.range_length_ = value;
+}
+inline void StripeBlockWriteXfer::set_range_length(int32_t value) {
+  _internal_set_range_length(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeBlockWriteXfer.range_length)
+}
+
+// string datanode_ip = 5;
+inline void StripeBlockWriteXfer::clear_datanode_ip() {
+  _impl_.datanode_ip_.ClearToEmpty();
+}
+inline const std::string& StripeBlockWriteXfer::datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeBlockWriteXfer.datanode_ip)
+  return _internal_datanode_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void StripeBlockWriteXfer::set_datanode_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeBlockWriteXfer.datanode_ip)
+}
+inline std::string* StripeBlockWriteXfer::mutable_datanode_ip() {
+  std::string* _s = _internal_mutable_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.StripeBlockWriteXfer.datanode_ip)
+  return _s;
+}
+inline const std::string& StripeBlockWriteXfer::_internal_datanode_ip() const {
+  return _impl_.datanode_ip_.Get();
+}
+inline void StripeBlockWriteXfer::_internal_set_datanode_ip(const std::string& value) {
+  
+  _impl_.datanode_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* StripeBlockWriteXfer::_internal_mutable_datanode_ip() {
+  
+  return _impl_.datanode_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* StripeBlockWriteXfer::release_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.StripeBlockWriteXfer.datanode_ip)
+  return _impl_.datanode_ip_.Release();
+}
+inline void StripeBlockWriteXfer::set_allocated_datanode_ip(std::string* datanode_ip) {
+  if (datanode_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.datanode_ip_.SetAllocated(datanode_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.datanode_ip_.IsDefault()) {
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.StripeBlockWriteXfer.datanode_ip)
+}
+
+// int32 datanode_port = 6;
+inline void StripeBlockWriteXfer::clear_datanode_port() {
+  _impl_.datanode_port_ = 0;
+}
+inline int32_t StripeBlockWriteXfer::_internal_datanode_port() const {
+  return _impl_.datanode_port_;
+}
+inline int32_t StripeBlockWriteXfer::datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeBlockWriteXfer.datanode_port)
+  return _internal_datanode_port();
+}
+inline void StripeBlockWriteXfer::_internal_set_datanode_port(int32_t value) {
+  
+  _impl_.datanode_port_ = value;
+}
+inline void StripeBlockWriteXfer::set_datanode_port(int32_t value) {
+  _internal_set_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeBlockWriteXfer.datanode_port)
+}
+
+// -------------------------------------------------------------------
+
+// StripeParityLogAppendXfer
+
+// int32 stripe_id = 1;
+inline void StripeParityLogAppendXfer::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t StripeParityLogAppendXfer::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t StripeParityLogAppendXfer::stripe_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogAppendXfer.stripe_id)
+  return _internal_stripe_id();
+}
+inline void StripeParityLogAppendXfer::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void StripeParityLogAppendXfer::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogAppendXfer.stripe_id)
+}
+
+// int32 parity_block_id = 2;
+inline void StripeParityLogAppendXfer::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
+}
+inline int32_t StripeParityLogAppendXfer::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
+}
+inline int32_t StripeParityLogAppendXfer::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogAppendXfer.parity_block_id)
+  return _internal_parity_block_id();
+}
+inline void StripeParityLogAppendXfer::_internal_set_parity_block_id(int32_t value) {
+  
+  _impl_.parity_block_id_ = value;
+}
+inline void StripeParityLogAppendXfer::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogAppendXfer.parity_block_id)
+}
+
+// string parity_block_key = 3;
+inline void StripeParityLogAppendXfer::clear_parity_block_key() {
+  _impl_.parity_block_key_.ClearToEmpty();
+}
+inline const std::string& StripeParityLogAppendXfer::parity_block_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogAppendXfer.parity_block_key)
+  return _internal_parity_block_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void StripeParityLogAppendXfer::set_parity_block_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.parity_block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogAppendXfer.parity_block_key)
+}
+inline std::string* StripeParityLogAppendXfer::mutable_parity_block_key() {
+  std::string* _s = _internal_mutable_parity_block_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.StripeParityLogAppendXfer.parity_block_key)
+  return _s;
+}
+inline const std::string& StripeParityLogAppendXfer::_internal_parity_block_key() const {
+  return _impl_.parity_block_key_.Get();
+}
+inline void StripeParityLogAppendXfer::_internal_set_parity_block_key(const std::string& value) {
+  
+  _impl_.parity_block_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* StripeParityLogAppendXfer::_internal_mutable_parity_block_key() {
+  
+  return _impl_.parity_block_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* StripeParityLogAppendXfer::release_parity_block_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.StripeParityLogAppendXfer.parity_block_key)
+  return _impl_.parity_block_key_.Release();
+}
+inline void StripeParityLogAppendXfer::set_allocated_parity_block_key(std::string* parity_block_key) {
+  if (parity_block_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.parity_block_key_.SetAllocated(parity_block_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.parity_block_key_.IsDefault()) {
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.StripeParityLogAppendXfer.parity_block_key)
+}
+
+// int32 data_block_id = 4;
+inline void StripeParityLogAppendXfer::clear_data_block_id() {
+  _impl_.data_block_id_ = 0;
+}
+inline int32_t StripeParityLogAppendXfer::_internal_data_block_id() const {
+  return _impl_.data_block_id_;
+}
+inline int32_t StripeParityLogAppendXfer::data_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogAppendXfer.data_block_id)
+  return _internal_data_block_id();
+}
+inline void StripeParityLogAppendXfer::_internal_set_data_block_id(int32_t value) {
+  
+  _impl_.data_block_id_ = value;
+}
+inline void StripeParityLogAppendXfer::set_data_block_id(int32_t value) {
+  _internal_set_data_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogAppendXfer.data_block_id)
+}
+
+// int32 range_offset = 5;
+inline void StripeParityLogAppendXfer::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t StripeParityLogAppendXfer::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t StripeParityLogAppendXfer::range_offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogAppendXfer.range_offset)
+  return _internal_range_offset();
+}
+inline void StripeParityLogAppendXfer::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void StripeParityLogAppendXfer::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogAppendXfer.range_offset)
+}
+
+// int32 range_length = 6;
+inline void StripeParityLogAppendXfer::clear_range_length() {
+  _impl_.range_length_ = 0;
+}
+inline int32_t StripeParityLogAppendXfer::_internal_range_length() const {
+  return _impl_.range_length_;
+}
+inline int32_t StripeParityLogAppendXfer::range_length() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogAppendXfer.range_length)
+  return _internal_range_length();
+}
+inline void StripeParityLogAppendXfer::_internal_set_range_length(int32_t value) {
+  
+  _impl_.range_length_ = value;
+}
+inline void StripeParityLogAppendXfer::set_range_length(int32_t value) {
+  _internal_set_range_length(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogAppendXfer.range_length)
+}
+
+// int32 k = 7;
+inline void StripeParityLogAppendXfer::clear_k() {
+  _impl_.k_ = 0;
+}
+inline int32_t StripeParityLogAppendXfer::_internal_k() const {
+  return _impl_.k_;
+}
+inline int32_t StripeParityLogAppendXfer::k() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogAppendXfer.k)
+  return _internal_k();
+}
+inline void StripeParityLogAppendXfer::_internal_set_k(int32_t value) {
+  
+  _impl_.k_ = value;
+}
+inline void StripeParityLogAppendXfer::set_k(int32_t value) {
+  _internal_set_k(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogAppendXfer.k)
+}
+
+// int32 r = 8;
+inline void StripeParityLogAppendXfer::clear_r() {
+  _impl_.r_ = 0;
+}
+inline int32_t StripeParityLogAppendXfer::_internal_r() const {
+  return _impl_.r_;
+}
+inline int32_t StripeParityLogAppendXfer::r() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogAppendXfer.r)
+  return _internal_r();
+}
+inline void StripeParityLogAppendXfer::_internal_set_r(int32_t value) {
+  
+  _impl_.r_ = value;
+}
+inline void StripeParityLogAppendXfer::set_r(int32_t value) {
+  _internal_set_r(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogAppendXfer.r)
+}
+
+// int32 z = 9;
+inline void StripeParityLogAppendXfer::clear_z() {
+  _impl_.z_ = 0;
+}
+inline int32_t StripeParityLogAppendXfer::_internal_z() const {
+  return _impl_.z_;
+}
+inline int32_t StripeParityLogAppendXfer::z() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogAppendXfer.z)
+  return _internal_z();
+}
+inline void StripeParityLogAppendXfer::_internal_set_z(int32_t value) {
+  
+  _impl_.z_ = value;
+}
+inline void StripeParityLogAppendXfer::set_z(int32_t value) {
+  _internal_set_z(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogAppendXfer.z)
+}
+
+// int32 block_size = 10;
+inline void StripeParityLogAppendXfer::clear_block_size() {
+  _impl_.block_size_ = 0;
+}
+inline int32_t StripeParityLogAppendXfer::_internal_block_size() const {
+  return _impl_.block_size_;
+}
+inline int32_t StripeParityLogAppendXfer::block_size() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogAppendXfer.block_size)
+  return _internal_block_size();
+}
+inline void StripeParityLogAppendXfer::_internal_set_block_size(int32_t value) {
+  
+  _impl_.block_size_ = value;
+}
+inline void StripeParityLogAppendXfer::set_block_size(int32_t value) {
+  _internal_set_block_size(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogAppendXfer.block_size)
+}
+
+// string code_type = 11;
+inline void StripeParityLogAppendXfer::clear_code_type() {
+  _impl_.code_type_.ClearToEmpty();
+}
+inline const std::string& StripeParityLogAppendXfer::code_type() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogAppendXfer.code_type)
+  return _internal_code_type();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void StripeParityLogAppendXfer::set_code_type(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.code_type_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogAppendXfer.code_type)
+}
+inline std::string* StripeParityLogAppendXfer::mutable_code_type() {
+  std::string* _s = _internal_mutable_code_type();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.StripeParityLogAppendXfer.code_type)
+  return _s;
+}
+inline const std::string& StripeParityLogAppendXfer::_internal_code_type() const {
+  return _impl_.code_type_.Get();
+}
+inline void StripeParityLogAppendXfer::_internal_set_code_type(const std::string& value) {
+  
+  _impl_.code_type_.Set(value, GetArenaForAllocation());
+}
+inline std::string* StripeParityLogAppendXfer::_internal_mutable_code_type() {
+  
+  return _impl_.code_type_.Mutable(GetArenaForAllocation());
+}
+inline std::string* StripeParityLogAppendXfer::release_code_type() {
+  // @@protoc_insertion_point(field_release:proxy_proto.StripeParityLogAppendXfer.code_type)
+  return _impl_.code_type_.Release();
+}
+inline void StripeParityLogAppendXfer::set_allocated_code_type(std::string* code_type) {
+  if (code_type != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.code_type_.SetAllocated(code_type, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.code_type_.IsDefault()) {
+    _impl_.code_type_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.StripeParityLogAppendXfer.code_type)
+}
+
+// string parity_datanode_ip = 12;
+inline void StripeParityLogAppendXfer::clear_parity_datanode_ip() {
+  _impl_.parity_datanode_ip_.ClearToEmpty();
+}
+inline const std::string& StripeParityLogAppendXfer::parity_datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogAppendXfer.parity_datanode_ip)
+  return _internal_parity_datanode_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void StripeParityLogAppendXfer::set_parity_datanode_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.parity_datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogAppendXfer.parity_datanode_ip)
+}
+inline std::string* StripeParityLogAppendXfer::mutable_parity_datanode_ip() {
+  std::string* _s = _internal_mutable_parity_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.StripeParityLogAppendXfer.parity_datanode_ip)
+  return _s;
+}
+inline const std::string& StripeParityLogAppendXfer::_internal_parity_datanode_ip() const {
+  return _impl_.parity_datanode_ip_.Get();
+}
+inline void StripeParityLogAppendXfer::_internal_set_parity_datanode_ip(const std::string& value) {
+  
+  _impl_.parity_datanode_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* StripeParityLogAppendXfer::_internal_mutable_parity_datanode_ip() {
+  
+  return _impl_.parity_datanode_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* StripeParityLogAppendXfer::release_parity_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.StripeParityLogAppendXfer.parity_datanode_ip)
+  return _impl_.parity_datanode_ip_.Release();
+}
+inline void StripeParityLogAppendXfer::set_allocated_parity_datanode_ip(std::string* parity_datanode_ip) {
+  if (parity_datanode_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.parity_datanode_ip_.SetAllocated(parity_datanode_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.parity_datanode_ip_.IsDefault()) {
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.StripeParityLogAppendXfer.parity_datanode_ip)
+}
+
+// int32 parity_datanode_port = 13;
+inline void StripeParityLogAppendXfer::clear_parity_datanode_port() {
+  _impl_.parity_datanode_port_ = 0;
+}
+inline int32_t StripeParityLogAppendXfer::_internal_parity_datanode_port() const {
+  return _impl_.parity_datanode_port_;
+}
+inline int32_t StripeParityLogAppendXfer::parity_datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogAppendXfer.parity_datanode_port)
+  return _internal_parity_datanode_port();
+}
+inline void StripeParityLogAppendXfer::_internal_set_parity_datanode_port(int32_t value) {
+  
+  _impl_.parity_datanode_port_ = value;
+}
+inline void StripeParityLogAppendXfer::set_parity_datanode_port(int32_t value) {
+  _internal_set_parity_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogAppendXfer.parity_datanode_port)
+}
+
+// -------------------------------------------------------------------
+
+// StripeParityLogStoreD0Xfer
+
+// int32 stripe_id = 1;
+inline void StripeParityLogStoreD0Xfer::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t StripeParityLogStoreD0Xfer::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t StripeParityLogStoreD0Xfer::stripe_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogStoreD0Xfer.stripe_id)
+  return _internal_stripe_id();
+}
+inline void StripeParityLogStoreD0Xfer::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void StripeParityLogStoreD0Xfer::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogStoreD0Xfer.stripe_id)
+}
+
+// int32 parity_block_id = 2;
+inline void StripeParityLogStoreD0Xfer::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
+}
+inline int32_t StripeParityLogStoreD0Xfer::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
+}
+inline int32_t StripeParityLogStoreD0Xfer::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogStoreD0Xfer.parity_block_id)
+  return _internal_parity_block_id();
+}
+inline void StripeParityLogStoreD0Xfer::_internal_set_parity_block_id(int32_t value) {
+  
+  _impl_.parity_block_id_ = value;
+}
+inline void StripeParityLogStoreD0Xfer::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogStoreD0Xfer.parity_block_id)
+}
+
+// int32 data_block_id = 3;
+inline void StripeParityLogStoreD0Xfer::clear_data_block_id() {
+  _impl_.data_block_id_ = 0;
+}
+inline int32_t StripeParityLogStoreD0Xfer::_internal_data_block_id() const {
+  return _impl_.data_block_id_;
+}
+inline int32_t StripeParityLogStoreD0Xfer::data_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogStoreD0Xfer.data_block_id)
+  return _internal_data_block_id();
+}
+inline void StripeParityLogStoreD0Xfer::_internal_set_data_block_id(int32_t value) {
+  
+  _impl_.data_block_id_ = value;
+}
+inline void StripeParityLogStoreD0Xfer::set_data_block_id(int32_t value) {
+  _internal_set_data_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogStoreD0Xfer.data_block_id)
+}
+
+// int32 range_offset = 4;
+inline void StripeParityLogStoreD0Xfer::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t StripeParityLogStoreD0Xfer::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t StripeParityLogStoreD0Xfer::range_offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogStoreD0Xfer.range_offset)
+  return _internal_range_offset();
+}
+inline void StripeParityLogStoreD0Xfer::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void StripeParityLogStoreD0Xfer::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogStoreD0Xfer.range_offset)
+}
+
+// int32 range_length = 5;
+inline void StripeParityLogStoreD0Xfer::clear_range_length() {
+  _impl_.range_length_ = 0;
+}
+inline int32_t StripeParityLogStoreD0Xfer::_internal_range_length() const {
+  return _impl_.range_length_;
+}
+inline int32_t StripeParityLogStoreD0Xfer::range_length() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogStoreD0Xfer.range_length)
+  return _internal_range_length();
+}
+inline void StripeParityLogStoreD0Xfer::_internal_set_range_length(int32_t value) {
+  
+  _impl_.range_length_ = value;
+}
+inline void StripeParityLogStoreD0Xfer::set_range_length(int32_t value) {
+  _internal_set_range_length(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogStoreD0Xfer.range_length)
+}
+
+// string parity_datanode_ip = 6;
+inline void StripeParityLogStoreD0Xfer::clear_parity_datanode_ip() {
+  _impl_.parity_datanode_ip_.ClearToEmpty();
+}
+inline const std::string& StripeParityLogStoreD0Xfer::parity_datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogStoreD0Xfer.parity_datanode_ip)
+  return _internal_parity_datanode_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void StripeParityLogStoreD0Xfer::set_parity_datanode_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.parity_datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogStoreD0Xfer.parity_datanode_ip)
+}
+inline std::string* StripeParityLogStoreD0Xfer::mutable_parity_datanode_ip() {
+  std::string* _s = _internal_mutable_parity_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.StripeParityLogStoreD0Xfer.parity_datanode_ip)
+  return _s;
+}
+inline const std::string& StripeParityLogStoreD0Xfer::_internal_parity_datanode_ip() const {
+  return _impl_.parity_datanode_ip_.Get();
+}
+inline void StripeParityLogStoreD0Xfer::_internal_set_parity_datanode_ip(const std::string& value) {
+  
+  _impl_.parity_datanode_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* StripeParityLogStoreD0Xfer::_internal_mutable_parity_datanode_ip() {
+  
+  return _impl_.parity_datanode_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* StripeParityLogStoreD0Xfer::release_parity_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.StripeParityLogStoreD0Xfer.parity_datanode_ip)
+  return _impl_.parity_datanode_ip_.Release();
+}
+inline void StripeParityLogStoreD0Xfer::set_allocated_parity_datanode_ip(std::string* parity_datanode_ip) {
+  if (parity_datanode_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.parity_datanode_ip_.SetAllocated(parity_datanode_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.parity_datanode_ip_.IsDefault()) {
+    _impl_.parity_datanode_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.StripeParityLogStoreD0Xfer.parity_datanode_ip)
+}
+
+// int32 parity_datanode_port = 7;
+inline void StripeParityLogStoreD0Xfer::clear_parity_datanode_port() {
+  _impl_.parity_datanode_port_ = 0;
+}
+inline int32_t StripeParityLogStoreD0Xfer::_internal_parity_datanode_port() const {
+  return _impl_.parity_datanode_port_;
+}
+inline int32_t StripeParityLogStoreD0Xfer::parity_datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.StripeParityLogStoreD0Xfer.parity_datanode_port)
+  return _internal_parity_datanode_port();
+}
+inline void StripeParityLogStoreD0Xfer::_internal_set_parity_datanode_port(int32_t value) {
+  
+  _impl_.parity_datanode_port_ = value;
+}
+inline void StripeParityLogStoreD0Xfer::set_parity_datanode_port(int32_t value) {
+  _internal_set_parity_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.StripeParityLogStoreD0Xfer.parity_datanode_port)
+}
+
 // -------------------------------------------------------------------
 
 // CordLpDeltaFetch
@@ -23398,6 +25339,12 @@ StripeAndBlockIDs::mutable_datanodeports() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

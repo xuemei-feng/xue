@@ -967,6 +967,9 @@ namespace ECProject
     CORD_XFER_TCP_COLLECTOR_INGEST = 1,
     CORD_XFER_TCP_PARITY_XOR = 2,
     CORD_XFER_TCP_MST_CHUNK = 3,
+    CORD_XFER_TCP_STRIPE_BLOCK_WRITE = 4,
+    CORD_XFER_TCP_STRIPE_PARITY_APPEND = 5,
+    CORD_XFER_TCP_STRIPE_PARITY_D0 = 6,
   };
 
   static int cord_peer_xfer_tcp_port(int grpc_proxy_port)
@@ -1226,12 +1229,64 @@ namespace ECProject
     return true;
   }
 
+  static bool cord_apply_stripe_block_write(ProxyImpl *proxy, const proxy_proto::StripeBlockWriteXfer &request,
+                                            const char *payload, size_t payload_len)
+  {
+    if (request.range_length() <= 0 || static_cast<size_t>(request.range_length()) != payload_len)
+      return false;
+    return proxy->CordRangeWriteToDatanode(request.block_key(), request.block_id(), request.range_offset(), payload,
+                                           payload_len, request.datanode_ip().c_str(), request.datanode_port());
+  }
+
+  static bool cord_apply_stripe_parity_log_append(ProxyImpl *proxy,
+                                                  const proxy_proto::StripeParityLogAppendXfer &request,
+                                                  const char *payload, size_t payload_len, bool *need_d0_out)
+  {
+    if (request.range_length() <= 0 || static_cast<size_t>(request.range_length()) != payload_len)
+      return false;
+    datanode_proto::ParityLogAppendInfo meta;
+    meta.set_stripe_id(request.stripe_id());
+    meta.set_parity_block_id(request.parity_block_id());
+    meta.set_parity_block_key(request.parity_block_key());
+    meta.set_data_block_id(request.data_block_id());
+    meta.set_range_offset(request.range_offset());
+    meta.set_range_length(request.range_length());
+    meta.set_k(request.k());
+    meta.set_r(request.r());
+    meta.set_z(request.z());
+    meta.set_block_size(request.block_size());
+    meta.set_code_type(request.code_type());
+    bool need_d0 = false;
+    const bool ok = proxy->ParityLogAppendToDatanode(meta, payload, payload_len, request.parity_datanode_ip().c_str(),
+                                                     request.parity_datanode_port(), &need_d0);
+    if (need_d0_out)
+      *need_d0_out = need_d0;
+    return ok;
+  }
+
+  static bool cord_apply_stripe_parity_log_d0(ProxyImpl *proxy, const proxy_proto::StripeParityLogStoreD0Xfer &request,
+                                              const char *payload, size_t payload_len)
+  {
+    if (request.range_length() <= 0 || static_cast<size_t>(request.range_length()) != payload_len)
+      return false;
+    datanode_proto::ParityLogStoreD0Info meta;
+    meta.set_stripe_id(request.stripe_id());
+    meta.set_parity_block_id(request.parity_block_id());
+    meta.set_data_block_id(request.data_block_id());
+    meta.set_range_offset(request.range_offset());
+    meta.set_range_length(request.range_length());
+    return proxy->ParityLogStoreD0ToDatanode(meta, payload, payload_len, request.parity_datanode_ip().c_str(),
+                                             request.parity_datanode_port());
+  }
+
   static bool cord_tcp_xfer_send(const std::string &dst_ip, int dst_grpc_port, uint32_t kind,
                                  const std::string &meta, const void *payload, size_t payload_len,
-                                 uint64_t xfer_tag = 0)
+                                 uint64_t xfer_tag = 0, bool *parity_need_d0_out = nullptr)
   {
     if (xfer_tag == 0)
       xfer_tag = g_cord_crdx_next_tag.fetch_add(1, std::memory_order_relaxed);
+    if (parity_need_d0_out)
+      *parity_need_d0_out = false;
     try
     {
       asio::io_context io;
@@ -1248,6 +1303,14 @@ namespace ECProject
       cord_write_u64_be(sock, static_cast<uint64_t>(payload_len));
       if (payload_len > 0)
         asio::write(sock, asio::buffer(payload, payload_len));
+      if (kind == CORD_XFER_TCP_STRIPE_PARITY_APPEND)
+      {
+        uint8_t ack2[2] = {0xff, 0};
+        asio::read(sock, asio::buffer(ack2, 2));
+        if (parity_need_d0_out)
+          *parity_need_d0_out = ack2[1] != 0;
+        return ack2[0] == 0;
+      }
       uint8_t ack = 0xff;
       asio::read(sock, asio::buffer(&ack, 1));
       return ack == 0;
@@ -1862,6 +1925,8 @@ namespace ECProject
   void ProxyImpl::cord_handle_xfer_tcp_connection(asio::ip::tcp::socket socket)
   {
     uint8_t ack = 1;
+    bool custom_ack = false;
+    uint8_t ack2[2] = {1, 0};
     try
     {
       char magic[4];
@@ -1930,20 +1995,58 @@ namespace ECProject
           ok = cord_apply_mst_data_delta(this, req, payload.data(), payload.size());
         break;
       }
+      case CORD_XFER_TCP_STRIPE_BLOCK_WRITE:
+      {
+        proxy_proto::StripeBlockWriteXfer req;
+        if (req.ParseFromString(meta))
+          ok = cord_apply_stripe_block_write(this, req, payload.data(), payload.size());
+        break;
+      }
+      case CORD_XFER_TCP_STRIPE_PARITY_APPEND:
+      {
+        proxy_proto::StripeParityLogAppendXfer req;
+        bool need_d0 = false;
+        if (req.ParseFromString(meta))
+          ok = cord_apply_stripe_parity_log_append(this, req, payload.data(), payload.size(), &need_d0);
+        ack2[0] = ok ? 0 : 1;
+        ack2[1] = need_d0 ? 1 : 0;
+        custom_ack = true;
+        break;
+      }
+      case CORD_XFER_TCP_STRIPE_PARITY_D0:
+      {
+        proxy_proto::StripeParityLogStoreD0Xfer req;
+        if (req.ParseFromString(meta))
+          ok = cord_apply_stripe_parity_log_d0(this, req, payload.data(), payload.size());
+        break;
+      }
       default:
         (void)xfer_tag;
         break;
       }
-      ack = ok ? 0 : 1;
-      asio::write(socket, asio::buffer(&ack, 1));
+      if (custom_ack)
+        asio::write(socket, asio::buffer(ack2, 2));
+      else
+      {
+        ack = ok ? 0 : 1;
+        asio::write(socket, asio::buffer(&ack, 1));
+      }
     }
     catch (const std::bad_alloc &e)
     {
       std::cerr << "[CoRD-PLAN][BAD_ALLOC] cord_handle_xfer_tcp_connection err=" << e.what() << std::endl;
       try
       {
-        ack = 1;
-        asio::write(socket, asio::buffer(&ack, 1));
+        if (custom_ack)
+        {
+          ack2[0] = 1;
+          asio::write(socket, asio::buffer(ack2, 2));
+        }
+        else
+        {
+          ack = 1;
+          asio::write(socket, asio::buffer(&ack, 1));
+        }
       }
       catch (...)
       {
@@ -1953,8 +2056,16 @@ namespace ECProject
     {
       try
       {
-        ack = 1;
-        asio::write(socket, asio::buffer(&ack, 1));
+        if (custom_ack)
+        {
+          ack2[0] = 1;
+          asio::write(socket, asio::buffer(ack2, 2));
+        }
+        else
+        {
+          ack = 1;
+          asio::write(socket, asio::buffer(&ack, 1));
+        }
       }
       catch (...)
       {
@@ -2637,6 +2748,137 @@ namespace ECProject
     }
   }
 
+  bool ProxyImpl::ParityLogAppendToDatanode(const datanode_proto::ParityLogAppendInfo &meta, const char *new_data,
+                                            size_t len, const char *ip, int port, bool *need_d0)
+  {
+    if (need_d0)
+      *need_d0 = false;
+    try
+    {
+      const std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
+      auto it = m_datanode_ptrs.find(node_ip_port);
+      if (it == m_datanode_ptrs.end())
+      {
+        std::cout << "[StripeUpdate] ParityLogAppend: no datanode stub for " << node_ip_port << std::endl;
+        return false;
+      }
+      grpc::ClientContext context;
+      datanode_proto::ParityLogAppendInfo req(meta);
+      req.clear_new_data();
+      datanode_proto::ParityLogAppendReply rep;
+      grpc::Status stat = it->second->handleParityLogAppend(&context, req, &rep);
+      if (!stat.ok() || !rep.ok() || rep.cord_tcp_xfer_tag() == 0)
+      {
+        std::cout << "[StripeUpdate] ParityLogAppend grpc failed dn=" << node_ip_port
+                  << " grpc_ok=" << stat.ok() << " rep_ok=" << rep.ok() << " tag=" << rep.cord_tcp_xfer_tag()
+                  << std::endl;
+        return false;
+      }
+      const uint64_t xfer_tag = rep.cord_tcp_xfer_tag();
+      asio::io_context io_context;
+      asio::ip::tcp::resolver resolver(io_context);
+      asio::ip::tcp::socket socket(io_context);
+      asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}));
+      cord_apply_datanode_tcp_timeout(socket, m_sys_config->CordRequestTimeoutSec);
+      cord_write_u64_be(socket, xfer_tag);
+      asio::error_code error;
+      asio::write(socket, asio::buffer(new_data, len), error);
+      if (error)
+        return false;
+      uint8_t ack[2] = {0, 0};
+      asio::read(socket, asio::buffer(ack, 2), error);
+      asio::error_code ignore_ec;
+      socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+      socket.close(ignore_ec);
+      if (error || ack[0] == 0)
+      {
+        std::cout << "[StripeUpdate] ParityLogAppend tcp failed dn=" << node_ip_port << " tcp_err=" << error.message()
+                  << " ack_ok=" << static_cast<int>(ack[0]) << std::endl;
+        return false;
+      }
+      if (need_d0)
+        *need_d0 = ack[1] != 0;
+      return true;
+    }
+    catch (const std::exception &e)
+    {
+      std::cerr << e.what() << '\n';
+      return false;
+    }
+  }
+
+  bool ProxyImpl::ParityLogStoreD0ToDatanode(const datanode_proto::ParityLogStoreD0Info &meta, const char *d0, size_t len,
+                                             const char *ip, int port)
+  {
+    try
+    {
+      const std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
+      auto it = m_datanode_ptrs.find(node_ip_port);
+      if (it == m_datanode_ptrs.end())
+      {
+        std::cout << "[StripeUpdate] ParityLogStoreD0: no datanode stub for " << node_ip_port << std::endl;
+        return false;
+      }
+      grpc::ClientContext context;
+      datanode_proto::ParityLogStoreD0Info req(meta);
+      req.clear_d0();
+      datanode_proto::RequestResult rep;
+      grpc::Status stat = it->second->handleParityLogStoreD0(&context, req, &rep);
+      if (!stat.ok() || !rep.message() || rep.cord_tcp_xfer_tag() == 0)
+      {
+        std::cout << "[StripeUpdate] ParityLogStoreD0 grpc failed dn=" << node_ip_port << std::endl;
+        return false;
+      }
+      const uint64_t xfer_tag = rep.cord_tcp_xfer_tag();
+      asio::io_context io_context;
+      asio::ip::tcp::resolver resolver(io_context);
+      asio::ip::tcp::socket socket(io_context);
+      asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}));
+      cord_apply_datanode_tcp_timeout(socket, m_sys_config->CordRequestTimeoutSec);
+      cord_write_u64_be(socket, xfer_tag);
+      asio::error_code error;
+      asio::write(socket, asio::buffer(d0, len), error);
+      if (error)
+        return false;
+      uint8_t ack = 0;
+      asio::read(socket, asio::buffer(&ack, 1), error);
+      asio::error_code ignore_ec;
+      socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+      socket.close(ignore_ec);
+      return !error && ack != 0;
+    }
+    catch (const std::exception &e)
+    {
+      std::cerr << "[StripeUpdate] ParityLogStoreD0 exception: " << e.what() << '\n';
+      return false;
+    }
+  }
+
+  bool ProxyImpl::send_stripe_block_write_peer(const std::string &dst_ip, int dst_grpc_port, const std::string &meta,
+                                               const void *payload, size_t payload_len)
+  {
+    return cord_tcp_xfer_send(dst_ip, dst_grpc_port, CORD_XFER_TCP_STRIPE_BLOCK_WRITE, meta, payload, payload_len);
+  }
+
+  bool ProxyImpl::send_stripe_parity_append_peer(const std::string &dst_ip, int dst_grpc_port, const std::string &meta,
+                                                 const void *payload, size_t payload_len, bool *need_d0)
+  {
+    return cord_tcp_xfer_send(dst_ip, dst_grpc_port, CORD_XFER_TCP_STRIPE_PARITY_APPEND, meta, payload, payload_len, 0,
+                              need_d0);
+  }
+
+  bool ProxyImpl::send_stripe_parity_d0_peer(const std::string &dst_ip, int dst_grpc_port, const std::string &meta,
+                                           const void *payload, size_t payload_len)
+  {
+    return cord_tcp_xfer_send(dst_ip, dst_grpc_port, CORD_XFER_TCP_STRIPE_PARITY_D0, meta, payload, payload_len);
+  }
+
+  bool ProxyImpl::has_datanode_stub(const char *ip, int port) const
+  {
+    const std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
+    return m_datanode_ptrs.find(node_ip_port) != m_datanode_ptrs.end();
+  }
+
   grpc::Status ProxyImpl::scheduleCordDataUpdate(
       grpc::ServerContext *context,
       const proxy_proto::CordDataUpdatePlacement *placement,
@@ -2654,7 +2896,10 @@ namespace ECProject
       try
       {
         asio::ip::tcp::socket socket_data(io_context);
-        acceptor.accept(socket_data);
+        {
+          std::lock_guard<std::mutex> accept_lk(m_cord_data_accept_mu);
+          acceptor.accept(socket_data);
+        }
         asio::error_code error;
         std::vector<char> buf(static_cast<size_t>(payload_size));
         asio::read(socket_data, asio::buffer(buf.data(), static_cast<size_t>(payload_size)), error);

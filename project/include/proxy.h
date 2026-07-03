@@ -189,6 +189,17 @@ namespace ECProject
     /** Serialize CordRangeRead/Write for one cluster (CoRD TCP xfer tags are not concurrent-safe). */
     std::shared_ptr<std::mutex> cord_cluster_range_mu(int cluster_id);
     bool CordDeltaBlobToDatanode(const std::string &blob_key, const char *data, size_t length, const char *ip, int port);
+    bool ParityLogAppendToDatanode(const datanode_proto::ParityLogAppendInfo &meta, const char *new_data, size_t len,
+                                   const char *ip, int port, bool *need_d0);
+    bool ParityLogStoreD0ToDatanode(const datanode_proto::ParityLogStoreD0Info &meta, const char *d0, size_t len,
+                                    const char *ip, int port);
+    bool send_stripe_block_write_peer(const std::string &dst_ip, int dst_grpc_port, const std::string &meta,
+                                      const void *payload, size_t payload_len);
+    bool send_stripe_parity_append_peer(const std::string &dst_ip, int dst_grpc_port, const std::string &meta,
+                                        const void *payload, size_t payload_len, bool *need_d0);
+    bool send_stripe_parity_d0_peer(const std::string &dst_ip, int dst_grpc_port, const std::string &meta,
+                                    const void *payload, size_t payload_len);
+    bool has_datanode_stub(const char *ip, int port) const;
     bool execute_stripe_partial_update(const proxy_proto::CordDataUpdatePlacement &placement, const char *buf, size_t payload_size);
     bool execute_stripe_full_update(const proxy_proto::CordDataUpdatePlacement &placement, const char *buf, size_t payload_size);
     /** CoRD：与其它 proxy（ip:port）之间的长连接池，跨 RPC 调用复用 HTTP/2 channel。 */
@@ -207,6 +218,8 @@ namespace ECProject
     };
     std::mutex m_peer_proxy_stub_mu;
     std::map<std::string, std::unique_ptr<PeerProxyGrpcEntry>> m_peer_proxy_stub_pool;
+    /** 串行化 scheduleCordDataUpdate 的 client TCP accept，避免并发 cord_job 抢连接。 */
+    std::mutex m_cord_data_accept_mu;
 
     std::mutex m_mutex;
     std::condition_variable cv;

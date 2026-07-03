@@ -4,7 +4,7 @@ HOSTS_FILE="hosts"
 
 USER="root"
 
-REMOTE_COMMAND="cd /users/xue/xue && sh unlimit.sh"
+REMOTE_COMMAND="cd /root/xue && sh unlimit.sh"
 
 PARALLEL=5
 

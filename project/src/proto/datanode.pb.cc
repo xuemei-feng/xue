@@ -178,7 +178,8 @@ struct ParityLogAppendInfoDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParityLogAppendInfoDefaultTypeInternal _ParityLogAppendInfo_default_instance_;
 PROTOBUF_CONSTEXPR ParityLogAppendReply::ParityLogAppendReply(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.ok_)*/false
+    /*decltype(_impl_.cord_tcp_xfer_tag_)*/uint64_t{0u}
+  , /*decltype(_impl_.ok_)*/false
   , /*decltype(_impl_.need_d0_)*/false
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct ParityLogAppendReplyDefaultTypeInternal {
@@ -371,6 +372,7 @@ const uint32_t TableStruct_datanode_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendReply, _impl_.ok_),
   PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendReply, _impl_.need_d0_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendReply, _impl_.cord_tcp_xfer_tag_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogStoreD0Info, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -425,10 +427,10 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 73, -1, -1, sizeof(::datanode_proto::CordDeltaBlobInfo)},
   { 83, -1, -1, sizeof(::datanode_proto::ParityLogAppendInfo)},
   { 101, -1, -1, sizeof(::datanode_proto::ParityLogAppendReply)},
-  { 109, -1, -1, sizeof(::datanode_proto::ParityLogStoreD0Info)},
-  { 121, -1, -1, sizeof(::datanode_proto::ParityLogClearStripeInfo)},
-  { 130, -1, -1, sizeof(::datanode_proto::ParityLogMergeIfFullInfo)},
-  { 144, -1, -1, sizeof(::datanode_proto::DelInfo)},
+  { 110, -1, -1, sizeof(::datanode_proto::ParityLogStoreD0Info)},
+  { 122, -1, -1, sizeof(::datanode_proto::ParityLogClearStripeInfo)},
+  { 131, -1, -1, sizeof(::datanode_proto::ParityLogMergeIfFullInfo)},
+  { 145, -1, -1, sizeof(::datanode_proto::DelInfo)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -476,61 +478,61 @@ const char descriptor_table_protodef_datanode_2eproto[] PROTOBUF_SECTION_VARIABL
   "\t\022\025\n\rdata_block_id\030\004 \001(\005\022\024\n\014range_offset"
   "\030\005 \001(\005\022\024\n\014range_length\030\006 \001(\005\022\t\n\001k\030\007 \001(\005\022"
   "\t\n\001r\030\010 \001(\005\022\t\n\001z\030\t \001(\005\022\022\n\nblock_size\030\n \001("
-  "\005\022\021\n\tcode_type\030\013 \001(\t\022\020\n\010new_data\030\014 \001(\014\"3"
+  "\005\022\021\n\tcode_type\030\013 \001(\t\022\020\n\010new_data\030\014 \001(\014\"N"
   "\n\024ParityLogAppendReply\022\n\n\002ok\030\001 \001(\010\022\017\n\007ne"
-  "ed_d0\030\002 \001(\010\"\221\001\n\024ParityLogStoreD0Info\022\021\n\t"
-  "stripe_id\030\001 \001(\005\022\027\n\017parity_block_id\030\002 \001(\005"
-  "\022\025\n\rdata_block_id\030\003 \001(\005\022\024\n\014range_offset\030"
-  "\004 \001(\005\022\024\n\014range_length\030\005 \001(\005\022\n\n\002d0\030\006 \001(\014\""
-  "W\n\030ParityLogClearStripeInfo\022\021\n\tstripe_id"
-  "\030\001 \001(\005\022\024\n\014parity_begin\030\002 \001(\005\022\022\n\nparity_e"
-  "nd\030\003 \001(\005\"\250\001\n\030ParityLogMergeIfFullInfo\022\021\n"
-  "\tstripe_id\030\001 \001(\005\022\027\n\017parity_block_id\030\002 \001("
-  "\005\022\030\n\020parity_block_key\030\003 \001(\t\022\t\n\001k\030\004 \001(\005\022\t"
-  "\n\001r\030\005 \001(\005\022\t\n\001z\030\006 \001(\005\022\022\n\nblock_size\030\007 \001(\005"
-  "\022\021\n\tcode_type\030\010 \001(\t\"\034\n\007DelInfo\022\021\n\tblock_"
-  "key\030\001 \001(\t2\277\013\n\017datanodeService\022J\n\ncheckal"
-  "ive\022\035.datanode_proto.CheckaliveCMD\032\035.dat"
-  "anode_proto.RequestResult\022C\n\thandleSet\022\027"
-  ".datanode_proto.SetInfo\032\035.datanode_proto"
-  ".RequestResult\022I\n\014handleAppend\022\032.datanod"
-  "e_proto.AppendInfo\032\035.datanode_proto.Requ"
-  "estResult\022S\n\021handleMergeParity\022\037.datanod"
-  "e_proto.MergeParityInfo\032\035.datanode_proto"
-  ".RequestResult\022Z\n\030handleMergeParityWithR"
-  "ep\022\037.datanode_proto.MergeParityInfo\032\035.da"
-  "tanode_proto.RequestResult\022P\n\016handleReco"
-  "very\022\037.datanode_proto.MergeParityInfo\032\035."
-  "datanode_proto.RequestResult\022Y\n\027handleRe"
-  "coveryBreakdown\022\037.datanode_proto.MergePa"
-  "rityInfo\032\035.datanode_proto.RequestResult\022"
-  "C\n\thandleGet\022\027.datanode_proto.GetInfo\032\035."
-  "datanode_proto.RequestResult\022L\n\022handleGe"
-  "tBreakdown\022\027.datanode_proto.GetInfo\032\035.da"
-  "tanode_proto.RequestResult\022U\n\023handleCord"
-  "RangeRead\022\037.datanode_proto.CordRangeRWIn"
-  "fo\032\035.datanode_proto.RequestResult\022V\n\024han"
-  "dleCordRangeWrite\022\037.datanode_proto.CordR"
-  "angeRWInfo\032\035.datanode_proto.RequestResul"
-  "t\022W\n\023handleCordDeltaBlob\022!.datanode_prot"
-  "o.CordDeltaBlobInfo\032\035.datanode_proto.Req"
-  "uestResult\022b\n\025handleParityLogAppend\022#.da"
-  "tanode_proto.ParityLogAppendInfo\032$.datan"
-  "ode_proto.ParityLogAppendReply\022]\n\026handle"
-  "ParityLogStoreD0\022$.datanode_proto.Parity"
-  "LogStoreD0Info\032\035.datanode_proto.RequestR"
-  "esult\022e\n\032handleParityLogClearStripe\022(.da"
-  "tanode_proto.ParityLogClearStripeInfo\032\035."
-  "datanode_proto.RequestResult\022e\n\032handlePa"
-  "rityLogMergeIfFull\022(.datanode_proto.Pari"
-  "tyLogMergeIfFullInfo\032\035.datanode_proto.Re"
-  "questResult\022F\n\014handleDelete\022\027.datanode_p"
-  "roto.DelInfo\032\035.datanode_proto.RequestRes"
-  "ultb\006proto3"
+  "ed_d0\030\002 \001(\010\022\031\n\021cord_tcp_xfer_tag\030\003 \001(\004\"\221"
+  "\001\n\024ParityLogStoreD0Info\022\021\n\tstripe_id\030\001 \001"
+  "(\005\022\027\n\017parity_block_id\030\002 \001(\005\022\025\n\rdata_bloc"
+  "k_id\030\003 \001(\005\022\024\n\014range_offset\030\004 \001(\005\022\024\n\014rang"
+  "e_length\030\005 \001(\005\022\n\n\002d0\030\006 \001(\014\"W\n\030ParityLogC"
+  "learStripeInfo\022\021\n\tstripe_id\030\001 \001(\005\022\024\n\014par"
+  "ity_begin\030\002 \001(\005\022\022\n\nparity_end\030\003 \001(\005\"\250\001\n\030"
+  "ParityLogMergeIfFullInfo\022\021\n\tstripe_id\030\001 "
+  "\001(\005\022\027\n\017parity_block_id\030\002 \001(\005\022\030\n\020parity_b"
+  "lock_key\030\003 \001(\t\022\t\n\001k\030\004 \001(\005\022\t\n\001r\030\005 \001(\005\022\t\n\001"
+  "z\030\006 \001(\005\022\022\n\nblock_size\030\007 \001(\005\022\021\n\tcode_type"
+  "\030\010 \001(\t\"\034\n\007DelInfo\022\021\n\tblock_key\030\001 \001(\t2\277\013\n"
+  "\017datanodeService\022J\n\ncheckalive\022\035.datanod"
+  "e_proto.CheckaliveCMD\032\035.datanode_proto.R"
+  "equestResult\022C\n\thandleSet\022\027.datanode_pro"
+  "to.SetInfo\032\035.datanode_proto.RequestResul"
+  "t\022I\n\014handleAppend\022\032.datanode_proto.Appen"
+  "dInfo\032\035.datanode_proto.RequestResult\022S\n\021"
+  "handleMergeParity\022\037.datanode_proto.Merge"
+  "ParityInfo\032\035.datanode_proto.RequestResul"
+  "t\022Z\n\030handleMergeParityWithRep\022\037.datanode"
+  "_proto.MergeParityInfo\032\035.datanode_proto."
+  "RequestResult\022P\n\016handleRecovery\022\037.datano"
+  "de_proto.MergeParityInfo\032\035.datanode_prot"
+  "o.RequestResult\022Y\n\027handleRecoveryBreakdo"
+  "wn\022\037.datanode_proto.MergeParityInfo\032\035.da"
+  "tanode_proto.RequestResult\022C\n\thandleGet\022"
+  "\027.datanode_proto.GetInfo\032\035.datanode_prot"
+  "o.RequestResult\022L\n\022handleGetBreakdown\022\027."
+  "datanode_proto.GetInfo\032\035.datanode_proto."
+  "RequestResult\022U\n\023handleCordRangeRead\022\037.d"
+  "atanode_proto.CordRangeRWInfo\032\035.datanode"
+  "_proto.RequestResult\022V\n\024handleCordRangeW"
+  "rite\022\037.datanode_proto.CordRangeRWInfo\032\035."
+  "datanode_proto.RequestResult\022W\n\023handleCo"
+  "rdDeltaBlob\022!.datanode_proto.CordDeltaBl"
+  "obInfo\032\035.datanode_proto.RequestResult\022b\n"
+  "\025handleParityLogAppend\022#.datanode_proto."
+  "ParityLogAppendInfo\032$.datanode_proto.Par"
+  "ityLogAppendReply\022]\n\026handleParityLogStor"
+  "eD0\022$.datanode_proto.ParityLogStoreD0Inf"
+  "o\032\035.datanode_proto.RequestResult\022e\n\032hand"
+  "leParityLogClearStripe\022(.datanode_proto."
+  "ParityLogClearStripeInfo\032\035.datanode_prot"
+  "o.RequestResult\022e\n\032handleParityLogMergeI"
+  "fFull\022(.datanode_proto.ParityLogMergeIfF"
+  "ullInfo\032\035.datanode_proto.RequestResult\022F"
+  "\n\014handleDelete\022\027.datanode_proto.DelInfo\032"
+  "\035.datanode_proto.RequestResultb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_datanode_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_datanode_2eproto = {
-    false, false, 3091, descriptor_table_protodef_datanode_2eproto,
+    false, false, 3118, descriptor_table_protodef_datanode_2eproto,
     "datanode.proto",
     &descriptor_table_datanode_2eproto_once, nullptr, 0, 14,
     schemas, file_default_instances, TableStruct_datanode_2eproto::offsets,
@@ -3546,14 +3548,15 @@ ParityLogAppendReply::ParityLogAppendReply(const ParityLogAppendReply& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   ParityLogAppendReply* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.ok_){}
+      decltype(_impl_.cord_tcp_xfer_tag_){}
+    , decltype(_impl_.ok_){}
     , decltype(_impl_.need_d0_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  ::memcpy(&_impl_.ok_, &from._impl_.ok_,
+  ::memcpy(&_impl_.cord_tcp_xfer_tag_, &from._impl_.cord_tcp_xfer_tag_,
     static_cast<size_t>(reinterpret_cast<char*>(&_impl_.need_d0_) -
-    reinterpret_cast<char*>(&_impl_.ok_)) + sizeof(_impl_.need_d0_));
+    reinterpret_cast<char*>(&_impl_.cord_tcp_xfer_tag_)) + sizeof(_impl_.need_d0_));
   // @@protoc_insertion_point(copy_constructor:datanode_proto.ParityLogAppendReply)
 }
 
@@ -3562,7 +3565,8 @@ inline void ParityLogAppendReply::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.ok_){false}
+      decltype(_impl_.cord_tcp_xfer_tag_){uint64_t{0u}}
+    , decltype(_impl_.ok_){false}
     , decltype(_impl_.need_d0_){false}
     , /*decltype(_impl_._cached_size_)*/{}
   };
@@ -3591,9 +3595,9 @@ void ParityLogAppendReply::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  ::memset(&_impl_.ok_, 0, static_cast<size_t>(
+  ::memset(&_impl_.cord_tcp_xfer_tag_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&_impl_.need_d0_) -
-      reinterpret_cast<char*>(&_impl_.ok_)) + sizeof(_impl_.need_d0_));
+      reinterpret_cast<char*>(&_impl_.cord_tcp_xfer_tag_)) + sizeof(_impl_.need_d0_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -3615,6 +3619,14 @@ const char* ParityLogAppendReply::_InternalParse(const char* ptr, ::_pbi::ParseC
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
           _impl_.need_d0_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 cord_tcp_xfer_tag = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.cord_tcp_xfer_tag_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -3660,6 +3672,12 @@ uint8_t* ParityLogAppendReply::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteBoolToArray(2, this->_internal_need_d0(), target);
   }
 
+  // uint64 cord_tcp_xfer_tag = 3;
+  if (this->_internal_cord_tcp_xfer_tag() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(3, this->_internal_cord_tcp_xfer_tag(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -3675,6 +3693,11 @@ size_t ParityLogAppendReply::ByteSizeLong() const {
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
+
+  // uint64 cord_tcp_xfer_tag = 3;
+  if (this->_internal_cord_tcp_xfer_tag() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_cord_tcp_xfer_tag());
+  }
 
   // bool ok = 1;
   if (this->_internal_ok() != 0) {
@@ -3704,6 +3727,9 @@ void ParityLogAppendReply::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, c
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
+  if (from._internal_cord_tcp_xfer_tag() != 0) {
+    _this->_internal_set_cord_tcp_xfer_tag(from._internal_cord_tcp_xfer_tag());
+  }
   if (from._internal_ok() != 0) {
     _this->_internal_set_ok(from._internal_ok());
   }
@@ -3730,9 +3756,9 @@ void ParityLogAppendReply::InternalSwap(ParityLogAppendReply* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(ParityLogAppendReply, _impl_.need_d0_)
       + sizeof(ParityLogAppendReply::_impl_.need_d0_)
-      - PROTOBUF_FIELD_OFFSET(ParityLogAppendReply, _impl_.ok_)>(
-          reinterpret_cast<char*>(&_impl_.ok_),
-          reinterpret_cast<char*>(&other->_impl_.ok_));
+      - PROTOBUF_FIELD_OFFSET(ParityLogAppendReply, _impl_.cord_tcp_xfer_tag_)>(
+          reinterpret_cast<char*>(&_impl_.cord_tcp_xfer_tag_),
+          reinterpret_cast<char*>(&other->_impl_.cord_tcp_xfer_tag_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata ParityLogAppendReply::GetMetadata() const {

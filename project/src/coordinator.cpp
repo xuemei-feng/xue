@@ -2159,10 +2159,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       {
         Block *bp = stripe->blocks[i];
         const Node &n = m_node_table[bp->map2node];
+        const int cid = bp->map2cluster;
         plan.add_all_block_ids(bp->block_id);
         plan.add_all_block_keys(bp->block_key);
         plan.add_all_datanode_ips(n.node_ip);
         plan.add_all_datanode_ports(n.node_port);
+        plan.add_all_block_cluster_ids(cid);
+        plan.add_all_proxy_ips(m_cluster_table[cid].proxy_ip);
+        plan.add_all_proxy_ports(m_cluster_table[cid].proxy_port);
       }
       for (int i = 0; i < k; ++i)
       {
@@ -2254,20 +2258,28 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         {
           Block *pbp = stripe->blocks[g];
           const Node &pn = m_node_table[pbp->map2node];
+          const int pcid = pbp->map2cluster;
           plan.add_parity_block_ids(g);
           plan.add_parity_block_keys(pbp->block_key);
           plan.add_parity_datanode_ips(pn.node_ip);
           plan.add_parity_datanode_ports(pn.node_port);
+          plan.add_parity_cluster_ids(pcid);
+          plan.add_parity_proxy_ips(m_cluster_table[pcid].proxy_ip);
+          plan.add_parity_proxy_ports(m_cluster_table[pcid].proxy_port);
         }
         const int lp = stripe_local_parity_block_id(stripe, s.block_id);
         if (lp >= 0)
         {
           Block *pbp = stripe->blocks[lp];
           const Node &pn = m_node_table[pbp->map2node];
+          const int pcid = pbp->map2cluster;
           plan.add_parity_block_ids(lp);
           plan.add_parity_block_keys(pbp->block_key);
           plan.add_parity_datanode_ips(pn.node_ip);
           plan.add_parity_datanode_ports(pn.node_port);
+          plan.add_parity_cluster_ids(pcid);
+          plan.add_parity_proxy_ips(m_cluster_table[pcid].proxy_ip);
+          plan.add_parity_proxy_ports(m_cluster_table[pcid].proxy_port);
         }
       }
       plan.set_update_payload_size(cluster_payload);
@@ -5430,6 +5442,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       else
       {
         m_object_updating_table.erase(key);
+        cv.notify_all();
       }
     }
     catch (std::exception &e)
@@ -5453,6 +5466,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       while (m_object_commit_table.find(key) == m_object_commit_table.end())
       {
+        if (m_object_updating_table.find(key) == m_object_updating_table.end())
+        {
+          reply->set_ifcommit(false);
+          return grpc::Status::OK;
+        }
         cv.wait(lck);
       }
     }
