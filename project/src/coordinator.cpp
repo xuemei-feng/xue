@@ -2213,11 +2213,22 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       for (const auto &seg : kv.second)
         sum_bytes += static_cast<uint64_t>(seg.second - seg.first);
 
+    struct StripeUpdateNotifyJob
+    {
+      proxy_proto::CordDataUpdatePlacement plan;
+      int cid = -1;
+      uint64_t cluster_payload = 0;
+      bool ok = false;
+    };
+    std::vector<StripeUpdateNotifyJob> notify_jobs;
+    notify_jobs.reserve(cluster_plan.size());
     for (const auto &entry : cluster_plan)
     {
       const int cid = entry.first;
       const auto &slices = entry.second;
-      proxy_proto::CordDataUpdatePlacement plan;
+      StripeUpdateNotifyJob job;
+      job.cid = cid;
+      proxy_proto::CordDataUpdatePlacement &plan = job.plan;
       plan.set_key(m_toolbox->gen_cord_key(stripe_id, cid));
       plan.set_cluster_id(cid);
       plan.set_stripe_id(stripe_id);
@@ -2260,19 +2271,38 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
       }
       plan.set_update_payload_size(cluster_payload);
+      job.cluster_payload = cluster_payload;
 
       m_mutex.lock();
       m_object_commit_table.erase(plan.key());
       m_mutex.unlock();
-      if (!notify_proxies_cord_ready(plan))
-        return grpc::Status(grpc::StatusCode::INTERNAL,
-                            "scheduleCordDataUpdate failed for cluster " + std::to_string(cid));
 
-      proxyIPPort->add_append_keys(plan.key());
-      proxyIPPort->add_proxyips(m_cluster_table[cid].proxy_ip);
-      proxyIPPort->add_proxyports(m_cluster_table[cid].proxy_port + ECProject::PROXY_PORT_SHIFT);
-      proxyIPPort->add_cluster_slice_sizes(cluster_payload);
-      proxyIPPort->add_group_ids(cid);
+      notify_jobs.push_back(std::move(job));
+    }
+
+    std::cout << "[StripeUpdate] dispatch: " << notify_jobs.size() << " clusters (parallel notify)\n";
+    std::vector<std::thread> notify_threads;
+    notify_threads.reserve(notify_jobs.size());
+    for (auto &job : notify_jobs)
+    {
+      notify_threads.emplace_back([this, &job]() { job.ok = notify_proxies_cord_ready(job.plan); });
+    }
+    for (auto &th : notify_threads)
+      th.join();
+
+    for (const auto &job : notify_jobs)
+    {
+      if (!job.ok)
+      {
+        return grpc::Status(grpc::StatusCode::INTERNAL,
+                            "scheduleCordDataUpdate failed for cluster " + std::to_string(job.cid) +
+                                " key=" + job.plan.key());
+      }
+      proxyIPPort->add_append_keys(job.plan.key());
+      proxyIPPort->add_proxyips(m_cluster_table[job.cid].proxy_ip);
+      proxyIPPort->add_proxyports(m_cluster_table[job.cid].proxy_port + ECProject::PROXY_PORT_SHIFT);
+      proxyIPPort->add_cluster_slice_sizes(job.cluster_payload);
+      proxyIPPort->add_group_ids(job.cid);
     }
     proxyIPPort->set_sum_append_size(sum_bytes);
     return grpc::Status::OK;
