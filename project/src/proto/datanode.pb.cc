@@ -152,6 +152,97 @@ struct CordDeltaBlobInfoDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 CordDeltaBlobInfoDefaultTypeInternal _CordDeltaBlobInfo_default_instance_;
+PROTOBUF_CONSTEXPR ParityLogAppendInfo::ParityLogAppendInfo(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.parity_block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.code_type_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.new_data_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_.parity_block_id_)*/0
+  , /*decltype(_impl_.data_block_id_)*/0
+  , /*decltype(_impl_.range_offset_)*/0
+  , /*decltype(_impl_.range_length_)*/0
+  , /*decltype(_impl_.k_)*/0
+  , /*decltype(_impl_.r_)*/0
+  , /*decltype(_impl_.z_)*/0
+  , /*decltype(_impl_.block_size_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParityLogAppendInfoDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParityLogAppendInfoDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParityLogAppendInfoDefaultTypeInternal() {}
+  union {
+    ParityLogAppendInfo _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParityLogAppendInfoDefaultTypeInternal _ParityLogAppendInfo_default_instance_;
+PROTOBUF_CONSTEXPR ParityLogAppendReply::ParityLogAppendReply(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.ok_)*/false
+  , /*decltype(_impl_.need_d0_)*/false
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParityLogAppendReplyDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParityLogAppendReplyDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParityLogAppendReplyDefaultTypeInternal() {}
+  union {
+    ParityLogAppendReply _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParityLogAppendReplyDefaultTypeInternal _ParityLogAppendReply_default_instance_;
+PROTOBUF_CONSTEXPR ParityLogStoreD0Info::ParityLogStoreD0Info(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.d0_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_.parity_block_id_)*/0
+  , /*decltype(_impl_.data_block_id_)*/0
+  , /*decltype(_impl_.range_offset_)*/0
+  , /*decltype(_impl_.range_length_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParityLogStoreD0InfoDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParityLogStoreD0InfoDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParityLogStoreD0InfoDefaultTypeInternal() {}
+  union {
+    ParityLogStoreD0Info _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParityLogStoreD0InfoDefaultTypeInternal _ParityLogStoreD0Info_default_instance_;
+PROTOBUF_CONSTEXPR ParityLogClearStripeInfo::ParityLogClearStripeInfo(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_.parity_begin_)*/0
+  , /*decltype(_impl_.parity_end_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParityLogClearStripeInfoDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParityLogClearStripeInfoDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParityLogClearStripeInfoDefaultTypeInternal() {}
+  union {
+    ParityLogClearStripeInfo _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParityLogClearStripeInfoDefaultTypeInternal _ParityLogClearStripeInfo_default_instance_;
+PROTOBUF_CONSTEXPR ParityLogMergeIfFullInfo::ParityLogMergeIfFullInfo(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.parity_block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.code_type_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.stripe_id_)*/0
+  , /*decltype(_impl_.parity_block_id_)*/0
+  , /*decltype(_impl_.k_)*/0
+  , /*decltype(_impl_.r_)*/0
+  , /*decltype(_impl_.z_)*/0
+  , /*decltype(_impl_.block_size_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ParityLogMergeIfFullInfoDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ParityLogMergeIfFullInfoDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ParityLogMergeIfFullInfoDefaultTypeInternal() {}
+  union {
+    ParityLogMergeIfFullInfo _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ParityLogMergeIfFullInfoDefaultTypeInternal _ParityLogMergeIfFullInfo_default_instance_;
 PROTOBUF_CONSTEXPR DelInfo::DelInfo(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.block_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
@@ -166,7 +257,7 @@ struct DelInfoDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 DelInfoDefaultTypeInternal _DelInfo_default_instance_;
 }  // namespace datanode_proto
-static ::_pb::Metadata file_level_metadata_datanode_2eproto[9];
+static ::_pb::Metadata file_level_metadata_datanode_2eproto[14];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_datanode_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_datanode_2eproto = nullptr;
 
@@ -255,6 +346,67 @@ const uint32_t TableStruct_datanode_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE
   PROTOBUF_FIELD_OFFSET(::datanode_proto::CordDeltaBlobInfo, _impl_.proxy_ip_),
   PROTOBUF_FIELD_OFFSET(::datanode_proto::CordDeltaBlobInfo, _impl_.proxy_port_),
   ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendInfo, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendInfo, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendInfo, _impl_.parity_block_id_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendInfo, _impl_.parity_block_key_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendInfo, _impl_.data_block_id_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendInfo, _impl_.range_offset_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendInfo, _impl_.range_length_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendInfo, _impl_.k_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendInfo, _impl_.r_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendInfo, _impl_.z_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendInfo, _impl_.block_size_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendInfo, _impl_.code_type_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendInfo, _impl_.new_data_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendReply, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendReply, _impl_.ok_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogAppendReply, _impl_.need_d0_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogStoreD0Info, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogStoreD0Info, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogStoreD0Info, _impl_.parity_block_id_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogStoreD0Info, _impl_.data_block_id_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogStoreD0Info, _impl_.range_offset_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogStoreD0Info, _impl_.range_length_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogStoreD0Info, _impl_.d0_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogClearStripeInfo, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogClearStripeInfo, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogClearStripeInfo, _impl_.parity_begin_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogClearStripeInfo, _impl_.parity_end_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogMergeIfFullInfo, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogMergeIfFullInfo, _impl_.stripe_id_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogMergeIfFullInfo, _impl_.parity_block_id_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogMergeIfFullInfo, _impl_.parity_block_key_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogMergeIfFullInfo, _impl_.k_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogMergeIfFullInfo, _impl_.r_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogMergeIfFullInfo, _impl_.z_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogMergeIfFullInfo, _impl_.block_size_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::ParityLogMergeIfFullInfo, _impl_.code_type_),
+  ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::datanode_proto::DelInfo, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -271,7 +423,12 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 50, -1, -1, sizeof(::datanode_proto::GetInfo)},
   { 61, -1, -1, sizeof(::datanode_proto::CordRangeRWInfo)},
   { 73, -1, -1, sizeof(::datanode_proto::CordDeltaBlobInfo)},
-  { 83, -1, -1, sizeof(::datanode_proto::DelInfo)},
+  { 83, -1, -1, sizeof(::datanode_proto::ParityLogAppendInfo)},
+  { 101, -1, -1, sizeof(::datanode_proto::ParityLogAppendReply)},
+  { 109, -1, -1, sizeof(::datanode_proto::ParityLogStoreD0Info)},
+  { 121, -1, -1, sizeof(::datanode_proto::ParityLogClearStripeInfo)},
+  { 130, -1, -1, sizeof(::datanode_proto::ParityLogMergeIfFullInfo)},
+  { 144, -1, -1, sizeof(::datanode_proto::DelInfo)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -283,6 +440,11 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::datanode_proto::_GetInfo_default_instance_._instance,
   &::datanode_proto::_CordRangeRWInfo_default_instance_._instance,
   &::datanode_proto::_CordDeltaBlobInfo_default_instance_._instance,
+  &::datanode_proto::_ParityLogAppendInfo_default_instance_._instance,
+  &::datanode_proto::_ParityLogAppendReply_default_instance_._instance,
+  &::datanode_proto::_ParityLogStoreD0Info_default_instance_._instance,
+  &::datanode_proto::_ParityLogClearStripeInfo_default_instance_._instance,
+  &::datanode_proto::_ParityLogMergeIfFullInfo_default_instance_._instance,
   &::datanode_proto::_DelInfo_default_instance_._instance,
 };
 
@@ -308,41 +470,69 @@ const char descriptor_table_protodef_datanode_2eproto[] PROTOBUF_SECTION_VARIABL
   "ength\030\004 \001(\005\022\020\n\010proxy_ip\030\005 \001(\t\022\022\n\nproxy_p"
   "ort\030\006 \001(\005\"`\n\021CordDeltaBlobInfo\022\020\n\010blob_k"
   "ey\030\001 \001(\t\022\023\n\013byte_length\030\002 \001(\005\022\020\n\010proxy_i"
-  "p\030\003 \001(\t\022\022\n\nproxy_port\030\004 \001(\005\"\034\n\007DelInfo\022\021"
-  "\n\tblock_key\030\001 \001(\t2\256\010\n\017datanodeService\022J\n"
-  "\ncheckalive\022\035.datanode_proto.CheckaliveC"
-  "MD\032\035.datanode_proto.RequestResult\022C\n\than"
-  "dleSet\022\027.datanode_proto.SetInfo\032\035.datano"
-  "de_proto.RequestResult\022I\n\014handleAppend\022\032"
-  ".datanode_proto.AppendInfo\032\035.datanode_pr"
-  "oto.RequestResult\022S\n\021handleMergeParity\022\037"
-  ".datanode_proto.MergeParityInfo\032\035.datano"
-  "de_proto.RequestResult\022Z\n\030handleMergePar"
-  "ityWithRep\022\037.datanode_proto.MergeParityI"
-  "nfo\032\035.datanode_proto.RequestResult\022P\n\016ha"
-  "ndleRecovery\022\037.datanode_proto.MergeParit"
-  "yInfo\032\035.datanode_proto.RequestResult\022Y\n\027"
-  "handleRecoveryBreakdown\022\037.datanode_proto"
-  ".MergeParityInfo\032\035.datanode_proto.Reques"
-  "tResult\022C\n\thandleGet\022\027.datanode_proto.Ge"
-  "tInfo\032\035.datanode_proto.RequestResult\022L\n\022"
-  "handleGetBreakdown\022\027.datanode_proto.GetI"
-  "nfo\032\035.datanode_proto.RequestResult\022U\n\023ha"
-  "ndleCordRangeRead\022\037.datanode_proto.CordR"
+  "p\030\003 \001(\t\022\022\n\nproxy_port\030\004 \001(\005\"\370\001\n\023ParityLo"
+  "gAppendInfo\022\021\n\tstripe_id\030\001 \001(\005\022\027\n\017parity"
+  "_block_id\030\002 \001(\005\022\030\n\020parity_block_key\030\003 \001("
+  "\t\022\025\n\rdata_block_id\030\004 \001(\005\022\024\n\014range_offset"
+  "\030\005 \001(\005\022\024\n\014range_length\030\006 \001(\005\022\t\n\001k\030\007 \001(\005\022"
+  "\t\n\001r\030\010 \001(\005\022\t\n\001z\030\t \001(\005\022\022\n\nblock_size\030\n \001("
+  "\005\022\021\n\tcode_type\030\013 \001(\t\022\020\n\010new_data\030\014 \001(\014\"3"
+  "\n\024ParityLogAppendReply\022\n\n\002ok\030\001 \001(\010\022\017\n\007ne"
+  "ed_d0\030\002 \001(\010\"\221\001\n\024ParityLogStoreD0Info\022\021\n\t"
+  "stripe_id\030\001 \001(\005\022\027\n\017parity_block_id\030\002 \001(\005"
+  "\022\025\n\rdata_block_id\030\003 \001(\005\022\024\n\014range_offset\030"
+  "\004 \001(\005\022\024\n\014range_length\030\005 \001(\005\022\n\n\002d0\030\006 \001(\014\""
+  "W\n\030ParityLogClearStripeInfo\022\021\n\tstripe_id"
+  "\030\001 \001(\005\022\024\n\014parity_begin\030\002 \001(\005\022\022\n\nparity_e"
+  "nd\030\003 \001(\005\"\250\001\n\030ParityLogMergeIfFullInfo\022\021\n"
+  "\tstripe_id\030\001 \001(\005\022\027\n\017parity_block_id\030\002 \001("
+  "\005\022\030\n\020parity_block_key\030\003 \001(\t\022\t\n\001k\030\004 \001(\005\022\t"
+  "\n\001r\030\005 \001(\005\022\t\n\001z\030\006 \001(\005\022\022\n\nblock_size\030\007 \001(\005"
+  "\022\021\n\tcode_type\030\010 \001(\t\"\034\n\007DelInfo\022\021\n\tblock_"
+  "key\030\001 \001(\t2\277\013\n\017datanodeService\022J\n\ncheckal"
+  "ive\022\035.datanode_proto.CheckaliveCMD\032\035.dat"
+  "anode_proto.RequestResult\022C\n\thandleSet\022\027"
+  ".datanode_proto.SetInfo\032\035.datanode_proto"
+  ".RequestResult\022I\n\014handleAppend\022\032.datanod"
+  "e_proto.AppendInfo\032\035.datanode_proto.Requ"
+  "estResult\022S\n\021handleMergeParity\022\037.datanod"
+  "e_proto.MergeParityInfo\032\035.datanode_proto"
+  ".RequestResult\022Z\n\030handleMergeParityWithR"
+  "ep\022\037.datanode_proto.MergeParityInfo\032\035.da"
+  "tanode_proto.RequestResult\022P\n\016handleReco"
+  "very\022\037.datanode_proto.MergeParityInfo\032\035."
+  "datanode_proto.RequestResult\022Y\n\027handleRe"
+  "coveryBreakdown\022\037.datanode_proto.MergePa"
+  "rityInfo\032\035.datanode_proto.RequestResult\022"
+  "C\n\thandleGet\022\027.datanode_proto.GetInfo\032\035."
+  "datanode_proto.RequestResult\022L\n\022handleGe"
+  "tBreakdown\022\027.datanode_proto.GetInfo\032\035.da"
+  "tanode_proto.RequestResult\022U\n\023handleCord"
+  "RangeRead\022\037.datanode_proto.CordRangeRWIn"
+  "fo\032\035.datanode_proto.RequestResult\022V\n\024han"
+  "dleCordRangeWrite\022\037.datanode_proto.CordR"
   "angeRWInfo\032\035.datanode_proto.RequestResul"
-  "t\022V\n\024handleCordRangeWrite\022\037.datanode_pro"
-  "to.CordRangeRWInfo\032\035.datanode_proto.Requ"
-  "estResult\022W\n\023handleCordDeltaBlob\022!.datan"
-  "ode_proto.CordDeltaBlobInfo\032\035.datanode_p"
-  "roto.RequestResult\022F\n\014handleDelete\022\027.dat"
-  "anode_proto.DelInfo\032\035.datanode_proto.Req"
-  "uestResultb\006proto3"
+  "t\022W\n\023handleCordDeltaBlob\022!.datanode_prot"
+  "o.CordDeltaBlobInfo\032\035.datanode_proto.Req"
+  "uestResult\022b\n\025handleParityLogAppend\022#.da"
+  "tanode_proto.ParityLogAppendInfo\032$.datan"
+  "ode_proto.ParityLogAppendReply\022]\n\026handle"
+  "ParityLogStoreD0\022$.datanode_proto.Parity"
+  "LogStoreD0Info\032\035.datanode_proto.RequestR"
+  "esult\022e\n\032handleParityLogClearStripe\022(.da"
+  "tanode_proto.ParityLogClearStripeInfo\032\035."
+  "datanode_proto.RequestResult\022e\n\032handlePa"
+  "rityLogMergeIfFull\022(.datanode_proto.Pari"
+  "tyLogMergeIfFullInfo\032\035.datanode_proto.Re"
+  "questResult\022F\n\014handleDelete\022\027.datanode_p"
+  "roto.DelInfo\032\035.datanode_proto.RequestRes"
+  "ultb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_datanode_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_datanode_2eproto = {
-    false, false, 1978, descriptor_table_protodef_datanode_2eproto,
+    false, false, 3091, descriptor_table_protodef_datanode_2eproto,
     "datanode.proto",
-    &descriptor_table_datanode_2eproto_once, nullptr, 0, 9,
+    &descriptor_table_datanode_2eproto_once, nullptr, 0, 14,
     schemas, file_default_instances, TableStruct_datanode_2eproto::offsets,
     file_level_metadata_datanode_2eproto, file_level_enum_descriptors_datanode_2eproto,
     file_level_service_descriptors_datanode_2eproto,
@@ -2816,6 +3006,1717 @@ void CordDeltaBlobInfo::InternalSwap(CordDeltaBlobInfo* other) {
 
 // ===================================================================
 
+class ParityLogAppendInfo::_Internal {
+ public:
+};
+
+ParityLogAppendInfo::ParityLogAppendInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:datanode_proto.ParityLogAppendInfo)
+}
+ParityLogAppendInfo::ParityLogAppendInfo(const ParityLogAppendInfo& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParityLogAppendInfo* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_block_key_){}
+    , decltype(_impl_.code_type_){}
+    , decltype(_impl_.new_data_){}
+    , decltype(_impl_.stripe_id_){}
+    , decltype(_impl_.parity_block_id_){}
+    , decltype(_impl_.data_block_id_){}
+    , decltype(_impl_.range_offset_){}
+    , decltype(_impl_.range_length_){}
+    , decltype(_impl_.k_){}
+    , decltype(_impl_.r_){}
+    , decltype(_impl_.z_){}
+    , decltype(_impl_.block_size_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.parity_block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_parity_block_key().empty()) {
+    _this->_impl_.parity_block_key_.Set(from._internal_parity_block_key(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.code_type_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.code_type_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_code_type().empty()) {
+    _this->_impl_.code_type_.Set(from._internal_code_type(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.new_data_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.new_data_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_new_data().empty()) {
+    _this->_impl_.new_data_.Set(from._internal_new_data(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.stripe_id_, &from._impl_.stripe_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.block_size_) -
+    reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.block_size_));
+  // @@protoc_insertion_point(copy_constructor:datanode_proto.ParityLogAppendInfo)
+}
+
+inline void ParityLogAppendInfo::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_block_key_){}
+    , decltype(_impl_.code_type_){}
+    , decltype(_impl_.new_data_){}
+    , decltype(_impl_.stripe_id_){0}
+    , decltype(_impl_.parity_block_id_){0}
+    , decltype(_impl_.data_block_id_){0}
+    , decltype(_impl_.range_offset_){0}
+    , decltype(_impl_.range_length_){0}
+    , decltype(_impl_.k_){0}
+    , decltype(_impl_.r_){0}
+    , decltype(_impl_.z_){0}
+    , decltype(_impl_.block_size_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.parity_block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.code_type_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.code_type_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.new_data_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.new_data_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+ParityLogAppendInfo::~ParityLogAppendInfo() {
+  // @@protoc_insertion_point(destructor:datanode_proto.ParityLogAppendInfo)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParityLogAppendInfo::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.parity_block_key_.Destroy();
+  _impl_.code_type_.Destroy();
+  _impl_.new_data_.Destroy();
+}
+
+void ParityLogAppendInfo::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParityLogAppendInfo::Clear() {
+// @@protoc_insertion_point(message_clear_start:datanode_proto.ParityLogAppendInfo)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.parity_block_key_.ClearToEmpty();
+  _impl_.code_type_.ClearToEmpty();
+  _impl_.new_data_.ClearToEmpty();
+  ::memset(&_impl_.stripe_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.block_size_) -
+      reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.block_size_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParityLogAppendInfo::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_block_id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.parity_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string parity_block_key = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          auto str = _internal_mutable_parity_block_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "datanode_proto.ParityLogAppendInfo.parity_block_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 data_block_id = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.data_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_offset = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          _impl_.range_offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_length = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
+          _impl_.range_length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 k = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
+          _impl_.k_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 r = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 64)) {
+          _impl_.r_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 z = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 72)) {
+          _impl_.z_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 block_size = 10;
+      case 10:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 80)) {
+          _impl_.block_size_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string code_type = 11;
+      case 11:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 90)) {
+          auto str = _internal_mutable_code_type();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "datanode_proto.ParityLogAppendInfo.code_type"));
+        } else
+          goto handle_unusual;
+        continue;
+      // bytes new_data = 12;
+      case 12:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 98)) {
+          auto str = _internal_mutable_new_data();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParityLogAppendInfo::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:datanode_proto.ParityLogAppendInfo)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // int32 parity_block_id = 2;
+  if (this->_internal_parity_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_parity_block_id(), target);
+  }
+
+  // string parity_block_key = 3;
+  if (!this->_internal_parity_block_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_parity_block_key().data(), static_cast<int>(this->_internal_parity_block_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "datanode_proto.ParityLogAppendInfo.parity_block_key");
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_parity_block_key(), target);
+  }
+
+  // int32 data_block_id = 4;
+  if (this->_internal_data_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_data_block_id(), target);
+  }
+
+  // int32 range_offset = 5;
+  if (this->_internal_range_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_range_offset(), target);
+  }
+
+  // int32 range_length = 6;
+  if (this->_internal_range_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(6, this->_internal_range_length(), target);
+  }
+
+  // int32 k = 7;
+  if (this->_internal_k() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(7, this->_internal_k(), target);
+  }
+
+  // int32 r = 8;
+  if (this->_internal_r() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(8, this->_internal_r(), target);
+  }
+
+  // int32 z = 9;
+  if (this->_internal_z() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(9, this->_internal_z(), target);
+  }
+
+  // int32 block_size = 10;
+  if (this->_internal_block_size() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(10, this->_internal_block_size(), target);
+  }
+
+  // string code_type = 11;
+  if (!this->_internal_code_type().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_code_type().data(), static_cast<int>(this->_internal_code_type().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "datanode_proto.ParityLogAppendInfo.code_type");
+    target = stream->WriteStringMaybeAliased(
+        11, this->_internal_code_type(), target);
+  }
+
+  // bytes new_data = 12;
+  if (!this->_internal_new_data().empty()) {
+    target = stream->WriteBytesMaybeAliased(
+        12, this->_internal_new_data(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:datanode_proto.ParityLogAppendInfo)
+  return target;
+}
+
+size_t ParityLogAppendInfo::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:datanode_proto.ParityLogAppendInfo)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string parity_block_key = 3;
+  if (!this->_internal_parity_block_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_parity_block_key());
+  }
+
+  // string code_type = 11;
+  if (!this->_internal_code_type().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_code_type());
+  }
+
+  // bytes new_data = 12;
+  if (!this->_internal_new_data().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+        this->_internal_new_data());
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  // int32 parity_block_id = 2;
+  if (this->_internal_parity_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_block_id());
+  }
+
+  // int32 data_block_id = 4;
+  if (this->_internal_data_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_data_block_id());
+  }
+
+  // int32 range_offset = 5;
+  if (this->_internal_range_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_offset());
+  }
+
+  // int32 range_length = 6;
+  if (this->_internal_range_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_length());
+  }
+
+  // int32 k = 7;
+  if (this->_internal_k() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_k());
+  }
+
+  // int32 r = 8;
+  if (this->_internal_r() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_r());
+  }
+
+  // int32 z = 9;
+  if (this->_internal_z() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_z());
+  }
+
+  // int32 block_size = 10;
+  if (this->_internal_block_size() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_block_size());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParityLogAppendInfo::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParityLogAppendInfo::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParityLogAppendInfo::GetClassData() const { return &_class_data_; }
+
+
+void ParityLogAppendInfo::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParityLogAppendInfo*>(&to_msg);
+  auto& from = static_cast<const ParityLogAppendInfo&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:datanode_proto.ParityLogAppendInfo)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_parity_block_key().empty()) {
+    _this->_internal_set_parity_block_key(from._internal_parity_block_key());
+  }
+  if (!from._internal_code_type().empty()) {
+    _this->_internal_set_code_type(from._internal_code_type());
+  }
+  if (!from._internal_new_data().empty()) {
+    _this->_internal_set_new_data(from._internal_new_data());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  if (from._internal_parity_block_id() != 0) {
+    _this->_internal_set_parity_block_id(from._internal_parity_block_id());
+  }
+  if (from._internal_data_block_id() != 0) {
+    _this->_internal_set_data_block_id(from._internal_data_block_id());
+  }
+  if (from._internal_range_offset() != 0) {
+    _this->_internal_set_range_offset(from._internal_range_offset());
+  }
+  if (from._internal_range_length() != 0) {
+    _this->_internal_set_range_length(from._internal_range_length());
+  }
+  if (from._internal_k() != 0) {
+    _this->_internal_set_k(from._internal_k());
+  }
+  if (from._internal_r() != 0) {
+    _this->_internal_set_r(from._internal_r());
+  }
+  if (from._internal_z() != 0) {
+    _this->_internal_set_z(from._internal_z());
+  }
+  if (from._internal_block_size() != 0) {
+    _this->_internal_set_block_size(from._internal_block_size());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParityLogAppendInfo::CopyFrom(const ParityLogAppendInfo& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:datanode_proto.ParityLogAppendInfo)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParityLogAppendInfo::IsInitialized() const {
+  return true;
+}
+
+void ParityLogAppendInfo::InternalSwap(ParityLogAppendInfo* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.parity_block_key_, lhs_arena,
+      &other->_impl_.parity_block_key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.code_type_, lhs_arena,
+      &other->_impl_.code_type_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.new_data_, lhs_arena,
+      &other->_impl_.new_data_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParityLogAppendInfo, _impl_.block_size_)
+      + sizeof(ParityLogAppendInfo::_impl_.block_size_)
+      - PROTOBUF_FIELD_OFFSET(ParityLogAppendInfo, _impl_.stripe_id_)>(
+          reinterpret_cast<char*>(&_impl_.stripe_id_),
+          reinterpret_cast<char*>(&other->_impl_.stripe_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParityLogAppendInfo::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_datanode_2eproto_getter, &descriptor_table_datanode_2eproto_once,
+      file_level_metadata_datanode_2eproto[8]);
+}
+
+// ===================================================================
+
+class ParityLogAppendReply::_Internal {
+ public:
+};
+
+ParityLogAppendReply::ParityLogAppendReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:datanode_proto.ParityLogAppendReply)
+}
+ParityLogAppendReply::ParityLogAppendReply(const ParityLogAppendReply& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParityLogAppendReply* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.ok_){}
+    , decltype(_impl_.need_d0_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.ok_, &from._impl_.ok_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.need_d0_) -
+    reinterpret_cast<char*>(&_impl_.ok_)) + sizeof(_impl_.need_d0_));
+  // @@protoc_insertion_point(copy_constructor:datanode_proto.ParityLogAppendReply)
+}
+
+inline void ParityLogAppendReply::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.ok_){false}
+    , decltype(_impl_.need_d0_){false}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+ParityLogAppendReply::~ParityLogAppendReply() {
+  // @@protoc_insertion_point(destructor:datanode_proto.ParityLogAppendReply)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParityLogAppendReply::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void ParityLogAppendReply::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParityLogAppendReply::Clear() {
+// @@protoc_insertion_point(message_clear_start:datanode_proto.ParityLogAppendReply)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&_impl_.ok_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.need_d0_) -
+      reinterpret_cast<char*>(&_impl_.ok_)) + sizeof(_impl_.need_d0_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParityLogAppendReply::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // bool ok = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.ok_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bool need_d0 = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.need_d0_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParityLogAppendReply::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:datanode_proto.ParityLogAppendReply)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // bool ok = 1;
+  if (this->_internal_ok() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(1, this->_internal_ok(), target);
+  }
+
+  // bool need_d0 = 2;
+  if (this->_internal_need_d0() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(2, this->_internal_need_d0(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:datanode_proto.ParityLogAppendReply)
+  return target;
+}
+
+size_t ParityLogAppendReply::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:datanode_proto.ParityLogAppendReply)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // bool ok = 1;
+  if (this->_internal_ok() != 0) {
+    total_size += 1 + 1;
+  }
+
+  // bool need_d0 = 2;
+  if (this->_internal_need_d0() != 0) {
+    total_size += 1 + 1;
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParityLogAppendReply::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParityLogAppendReply::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParityLogAppendReply::GetClassData() const { return &_class_data_; }
+
+
+void ParityLogAppendReply::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParityLogAppendReply*>(&to_msg);
+  auto& from = static_cast<const ParityLogAppendReply&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:datanode_proto.ParityLogAppendReply)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_ok() != 0) {
+    _this->_internal_set_ok(from._internal_ok());
+  }
+  if (from._internal_need_d0() != 0) {
+    _this->_internal_set_need_d0(from._internal_need_d0());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParityLogAppendReply::CopyFrom(const ParityLogAppendReply& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:datanode_proto.ParityLogAppendReply)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParityLogAppendReply::IsInitialized() const {
+  return true;
+}
+
+void ParityLogAppendReply::InternalSwap(ParityLogAppendReply* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParityLogAppendReply, _impl_.need_d0_)
+      + sizeof(ParityLogAppendReply::_impl_.need_d0_)
+      - PROTOBUF_FIELD_OFFSET(ParityLogAppendReply, _impl_.ok_)>(
+          reinterpret_cast<char*>(&_impl_.ok_),
+          reinterpret_cast<char*>(&other->_impl_.ok_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParityLogAppendReply::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_datanode_2eproto_getter, &descriptor_table_datanode_2eproto_once,
+      file_level_metadata_datanode_2eproto[9]);
+}
+
+// ===================================================================
+
+class ParityLogStoreD0Info::_Internal {
+ public:
+};
+
+ParityLogStoreD0Info::ParityLogStoreD0Info(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:datanode_proto.ParityLogStoreD0Info)
+}
+ParityLogStoreD0Info::ParityLogStoreD0Info(const ParityLogStoreD0Info& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParityLogStoreD0Info* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.d0_){}
+    , decltype(_impl_.stripe_id_){}
+    , decltype(_impl_.parity_block_id_){}
+    , decltype(_impl_.data_block_id_){}
+    , decltype(_impl_.range_offset_){}
+    , decltype(_impl_.range_length_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.d0_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.d0_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_d0().empty()) {
+    _this->_impl_.d0_.Set(from._internal_d0(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.stripe_id_, &from._impl_.stripe_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.range_length_) -
+    reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.range_length_));
+  // @@protoc_insertion_point(copy_constructor:datanode_proto.ParityLogStoreD0Info)
+}
+
+inline void ParityLogStoreD0Info::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.d0_){}
+    , decltype(_impl_.stripe_id_){0}
+    , decltype(_impl_.parity_block_id_){0}
+    , decltype(_impl_.data_block_id_){0}
+    , decltype(_impl_.range_offset_){0}
+    , decltype(_impl_.range_length_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.d0_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.d0_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+ParityLogStoreD0Info::~ParityLogStoreD0Info() {
+  // @@protoc_insertion_point(destructor:datanode_proto.ParityLogStoreD0Info)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParityLogStoreD0Info::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.d0_.Destroy();
+}
+
+void ParityLogStoreD0Info::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParityLogStoreD0Info::Clear() {
+// @@protoc_insertion_point(message_clear_start:datanode_proto.ParityLogStoreD0Info)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.d0_.ClearToEmpty();
+  ::memset(&_impl_.stripe_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.range_length_) -
+      reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.range_length_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParityLogStoreD0Info::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_block_id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.parity_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 data_block_id = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.data_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_offset = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.range_offset_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 range_length = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          _impl_.range_length_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bytes d0 = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
+          auto str = _internal_mutable_d0();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParityLogStoreD0Info::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:datanode_proto.ParityLogStoreD0Info)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // int32 parity_block_id = 2;
+  if (this->_internal_parity_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_parity_block_id(), target);
+  }
+
+  // int32 data_block_id = 3;
+  if (this->_internal_data_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_data_block_id(), target);
+  }
+
+  // int32 range_offset = 4;
+  if (this->_internal_range_offset() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_range_offset(), target);
+  }
+
+  // int32 range_length = 5;
+  if (this->_internal_range_length() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_range_length(), target);
+  }
+
+  // bytes d0 = 6;
+  if (!this->_internal_d0().empty()) {
+    target = stream->WriteBytesMaybeAliased(
+        6, this->_internal_d0(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:datanode_proto.ParityLogStoreD0Info)
+  return target;
+}
+
+size_t ParityLogStoreD0Info::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:datanode_proto.ParityLogStoreD0Info)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // bytes d0 = 6;
+  if (!this->_internal_d0().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+        this->_internal_d0());
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  // int32 parity_block_id = 2;
+  if (this->_internal_parity_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_block_id());
+  }
+
+  // int32 data_block_id = 3;
+  if (this->_internal_data_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_data_block_id());
+  }
+
+  // int32 range_offset = 4;
+  if (this->_internal_range_offset() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_offset());
+  }
+
+  // int32 range_length = 5;
+  if (this->_internal_range_length() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_range_length());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParityLogStoreD0Info::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParityLogStoreD0Info::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParityLogStoreD0Info::GetClassData() const { return &_class_data_; }
+
+
+void ParityLogStoreD0Info::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParityLogStoreD0Info*>(&to_msg);
+  auto& from = static_cast<const ParityLogStoreD0Info&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:datanode_proto.ParityLogStoreD0Info)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_d0().empty()) {
+    _this->_internal_set_d0(from._internal_d0());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  if (from._internal_parity_block_id() != 0) {
+    _this->_internal_set_parity_block_id(from._internal_parity_block_id());
+  }
+  if (from._internal_data_block_id() != 0) {
+    _this->_internal_set_data_block_id(from._internal_data_block_id());
+  }
+  if (from._internal_range_offset() != 0) {
+    _this->_internal_set_range_offset(from._internal_range_offset());
+  }
+  if (from._internal_range_length() != 0) {
+    _this->_internal_set_range_length(from._internal_range_length());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParityLogStoreD0Info::CopyFrom(const ParityLogStoreD0Info& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:datanode_proto.ParityLogStoreD0Info)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParityLogStoreD0Info::IsInitialized() const {
+  return true;
+}
+
+void ParityLogStoreD0Info::InternalSwap(ParityLogStoreD0Info* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.d0_, lhs_arena,
+      &other->_impl_.d0_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParityLogStoreD0Info, _impl_.range_length_)
+      + sizeof(ParityLogStoreD0Info::_impl_.range_length_)
+      - PROTOBUF_FIELD_OFFSET(ParityLogStoreD0Info, _impl_.stripe_id_)>(
+          reinterpret_cast<char*>(&_impl_.stripe_id_),
+          reinterpret_cast<char*>(&other->_impl_.stripe_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParityLogStoreD0Info::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_datanode_2eproto_getter, &descriptor_table_datanode_2eproto_once,
+      file_level_metadata_datanode_2eproto[10]);
+}
+
+// ===================================================================
+
+class ParityLogClearStripeInfo::_Internal {
+ public:
+};
+
+ParityLogClearStripeInfo::ParityLogClearStripeInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:datanode_proto.ParityLogClearStripeInfo)
+}
+ParityLogClearStripeInfo::ParityLogClearStripeInfo(const ParityLogClearStripeInfo& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParityLogClearStripeInfo* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.stripe_id_){}
+    , decltype(_impl_.parity_begin_){}
+    , decltype(_impl_.parity_end_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.stripe_id_, &from._impl_.stripe_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.parity_end_) -
+    reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.parity_end_));
+  // @@protoc_insertion_point(copy_constructor:datanode_proto.ParityLogClearStripeInfo)
+}
+
+inline void ParityLogClearStripeInfo::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.stripe_id_){0}
+    , decltype(_impl_.parity_begin_){0}
+    , decltype(_impl_.parity_end_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+ParityLogClearStripeInfo::~ParityLogClearStripeInfo() {
+  // @@protoc_insertion_point(destructor:datanode_proto.ParityLogClearStripeInfo)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParityLogClearStripeInfo::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void ParityLogClearStripeInfo::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParityLogClearStripeInfo::Clear() {
+// @@protoc_insertion_point(message_clear_start:datanode_proto.ParityLogClearStripeInfo)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&_impl_.stripe_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.parity_end_) -
+      reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.parity_end_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParityLogClearStripeInfo::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_begin = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.parity_begin_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_end = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.parity_end_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParityLogClearStripeInfo::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:datanode_proto.ParityLogClearStripeInfo)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // int32 parity_begin = 2;
+  if (this->_internal_parity_begin() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_parity_begin(), target);
+  }
+
+  // int32 parity_end = 3;
+  if (this->_internal_parity_end() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_parity_end(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:datanode_proto.ParityLogClearStripeInfo)
+  return target;
+}
+
+size_t ParityLogClearStripeInfo::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:datanode_proto.ParityLogClearStripeInfo)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  // int32 parity_begin = 2;
+  if (this->_internal_parity_begin() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_begin());
+  }
+
+  // int32 parity_end = 3;
+  if (this->_internal_parity_end() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_end());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParityLogClearStripeInfo::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParityLogClearStripeInfo::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParityLogClearStripeInfo::GetClassData() const { return &_class_data_; }
+
+
+void ParityLogClearStripeInfo::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParityLogClearStripeInfo*>(&to_msg);
+  auto& from = static_cast<const ParityLogClearStripeInfo&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:datanode_proto.ParityLogClearStripeInfo)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  if (from._internal_parity_begin() != 0) {
+    _this->_internal_set_parity_begin(from._internal_parity_begin());
+  }
+  if (from._internal_parity_end() != 0) {
+    _this->_internal_set_parity_end(from._internal_parity_end());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParityLogClearStripeInfo::CopyFrom(const ParityLogClearStripeInfo& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:datanode_proto.ParityLogClearStripeInfo)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParityLogClearStripeInfo::IsInitialized() const {
+  return true;
+}
+
+void ParityLogClearStripeInfo::InternalSwap(ParityLogClearStripeInfo* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParityLogClearStripeInfo, _impl_.parity_end_)
+      + sizeof(ParityLogClearStripeInfo::_impl_.parity_end_)
+      - PROTOBUF_FIELD_OFFSET(ParityLogClearStripeInfo, _impl_.stripe_id_)>(
+          reinterpret_cast<char*>(&_impl_.stripe_id_),
+          reinterpret_cast<char*>(&other->_impl_.stripe_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParityLogClearStripeInfo::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_datanode_2eproto_getter, &descriptor_table_datanode_2eproto_once,
+      file_level_metadata_datanode_2eproto[11]);
+}
+
+// ===================================================================
+
+class ParityLogMergeIfFullInfo::_Internal {
+ public:
+};
+
+ParityLogMergeIfFullInfo::ParityLogMergeIfFullInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:datanode_proto.ParityLogMergeIfFullInfo)
+}
+ParityLogMergeIfFullInfo::ParityLogMergeIfFullInfo(const ParityLogMergeIfFullInfo& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ParityLogMergeIfFullInfo* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_block_key_){}
+    , decltype(_impl_.code_type_){}
+    , decltype(_impl_.stripe_id_){}
+    , decltype(_impl_.parity_block_id_){}
+    , decltype(_impl_.k_){}
+    , decltype(_impl_.r_){}
+    , decltype(_impl_.z_){}
+    , decltype(_impl_.block_size_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.parity_block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_parity_block_key().empty()) {
+    _this->_impl_.parity_block_key_.Set(from._internal_parity_block_key(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.code_type_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.code_type_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_code_type().empty()) {
+    _this->_impl_.code_type_.Set(from._internal_code_type(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.stripe_id_, &from._impl_.stripe_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.block_size_) -
+    reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.block_size_));
+  // @@protoc_insertion_point(copy_constructor:datanode_proto.ParityLogMergeIfFullInfo)
+}
+
+inline void ParityLogMergeIfFullInfo::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.parity_block_key_){}
+    , decltype(_impl_.code_type_){}
+    , decltype(_impl_.stripe_id_){0}
+    , decltype(_impl_.parity_block_id_){0}
+    , decltype(_impl_.k_){0}
+    , decltype(_impl_.r_){0}
+    , decltype(_impl_.z_){0}
+    , decltype(_impl_.block_size_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.parity_block_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.code_type_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.code_type_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+ParityLogMergeIfFullInfo::~ParityLogMergeIfFullInfo() {
+  // @@protoc_insertion_point(destructor:datanode_proto.ParityLogMergeIfFullInfo)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ParityLogMergeIfFullInfo::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.parity_block_key_.Destroy();
+  _impl_.code_type_.Destroy();
+}
+
+void ParityLogMergeIfFullInfo::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ParityLogMergeIfFullInfo::Clear() {
+// @@protoc_insertion_point(message_clear_start:datanode_proto.ParityLogMergeIfFullInfo)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.parity_block_key_.ClearToEmpty();
+  _impl_.code_type_.ClearToEmpty();
+  ::memset(&_impl_.stripe_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.block_size_) -
+      reinterpret_cast<char*>(&_impl_.stripe_id_)) + sizeof(_impl_.block_size_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ParityLogMergeIfFullInfo::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 stripe_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.stripe_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 parity_block_id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.parity_block_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string parity_block_key = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          auto str = _internal_mutable_parity_block_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "datanode_proto.ParityLogMergeIfFullInfo.parity_block_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 k = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.k_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 r = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          _impl_.r_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 z = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
+          _impl_.z_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 block_size = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
+          _impl_.block_size_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string code_type = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
+          auto str = _internal_mutable_code_type();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "datanode_proto.ParityLogMergeIfFullInfo.code_type"));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ParityLogMergeIfFullInfo::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:datanode_proto.ParityLogMergeIfFullInfo)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_stripe_id(), target);
+  }
+
+  // int32 parity_block_id = 2;
+  if (this->_internal_parity_block_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_parity_block_id(), target);
+  }
+
+  // string parity_block_key = 3;
+  if (!this->_internal_parity_block_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_parity_block_key().data(), static_cast<int>(this->_internal_parity_block_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "datanode_proto.ParityLogMergeIfFullInfo.parity_block_key");
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_parity_block_key(), target);
+  }
+
+  // int32 k = 4;
+  if (this->_internal_k() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_k(), target);
+  }
+
+  // int32 r = 5;
+  if (this->_internal_r() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_r(), target);
+  }
+
+  // int32 z = 6;
+  if (this->_internal_z() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(6, this->_internal_z(), target);
+  }
+
+  // int32 block_size = 7;
+  if (this->_internal_block_size() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(7, this->_internal_block_size(), target);
+  }
+
+  // string code_type = 8;
+  if (!this->_internal_code_type().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_code_type().data(), static_cast<int>(this->_internal_code_type().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "datanode_proto.ParityLogMergeIfFullInfo.code_type");
+    target = stream->WriteStringMaybeAliased(
+        8, this->_internal_code_type(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:datanode_proto.ParityLogMergeIfFullInfo)
+  return target;
+}
+
+size_t ParityLogMergeIfFullInfo::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:datanode_proto.ParityLogMergeIfFullInfo)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string parity_block_key = 3;
+  if (!this->_internal_parity_block_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_parity_block_key());
+  }
+
+  // string code_type = 8;
+  if (!this->_internal_code_type().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_code_type());
+  }
+
+  // int32 stripe_id = 1;
+  if (this->_internal_stripe_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_stripe_id());
+  }
+
+  // int32 parity_block_id = 2;
+  if (this->_internal_parity_block_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_block_id());
+  }
+
+  // int32 k = 4;
+  if (this->_internal_k() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_k());
+  }
+
+  // int32 r = 5;
+  if (this->_internal_r() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_r());
+  }
+
+  // int32 z = 6;
+  if (this->_internal_z() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_z());
+  }
+
+  // int32 block_size = 7;
+  if (this->_internal_block_size() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_block_size());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ParityLogMergeIfFullInfo::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ParityLogMergeIfFullInfo::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ParityLogMergeIfFullInfo::GetClassData() const { return &_class_data_; }
+
+
+void ParityLogMergeIfFullInfo::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ParityLogMergeIfFullInfo*>(&to_msg);
+  auto& from = static_cast<const ParityLogMergeIfFullInfo&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:datanode_proto.ParityLogMergeIfFullInfo)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_parity_block_key().empty()) {
+    _this->_internal_set_parity_block_key(from._internal_parity_block_key());
+  }
+  if (!from._internal_code_type().empty()) {
+    _this->_internal_set_code_type(from._internal_code_type());
+  }
+  if (from._internal_stripe_id() != 0) {
+    _this->_internal_set_stripe_id(from._internal_stripe_id());
+  }
+  if (from._internal_parity_block_id() != 0) {
+    _this->_internal_set_parity_block_id(from._internal_parity_block_id());
+  }
+  if (from._internal_k() != 0) {
+    _this->_internal_set_k(from._internal_k());
+  }
+  if (from._internal_r() != 0) {
+    _this->_internal_set_r(from._internal_r());
+  }
+  if (from._internal_z() != 0) {
+    _this->_internal_set_z(from._internal_z());
+  }
+  if (from._internal_block_size() != 0) {
+    _this->_internal_set_block_size(from._internal_block_size());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ParityLogMergeIfFullInfo::CopyFrom(const ParityLogMergeIfFullInfo& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:datanode_proto.ParityLogMergeIfFullInfo)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ParityLogMergeIfFullInfo::IsInitialized() const {
+  return true;
+}
+
+void ParityLogMergeIfFullInfo::InternalSwap(ParityLogMergeIfFullInfo* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.parity_block_key_, lhs_arena,
+      &other->_impl_.parity_block_key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.code_type_, lhs_arena,
+      &other->_impl_.code_type_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ParityLogMergeIfFullInfo, _impl_.block_size_)
+      + sizeof(ParityLogMergeIfFullInfo::_impl_.block_size_)
+      - PROTOBUF_FIELD_OFFSET(ParityLogMergeIfFullInfo, _impl_.stripe_id_)>(
+          reinterpret_cast<char*>(&_impl_.stripe_id_),
+          reinterpret_cast<char*>(&other->_impl_.stripe_id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ParityLogMergeIfFullInfo::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_datanode_2eproto_getter, &descriptor_table_datanode_2eproto_once,
+      file_level_metadata_datanode_2eproto[12]);
+}
+
+// ===================================================================
+
 class DelInfo::_Internal {
  public:
 };
@@ -3014,7 +4915,7 @@ void DelInfo::InternalSwap(DelInfo* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata DelInfo::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_datanode_2eproto_getter, &descriptor_table_datanode_2eproto_once,
-      file_level_metadata_datanode_2eproto[8]);
+      file_level_metadata_datanode_2eproto[13]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -3051,6 +4952,26 @@ Arena::CreateMaybeMessage< ::datanode_proto::CordRangeRWInfo >(Arena* arena) {
 template<> PROTOBUF_NOINLINE ::datanode_proto::CordDeltaBlobInfo*
 Arena::CreateMaybeMessage< ::datanode_proto::CordDeltaBlobInfo >(Arena* arena) {
   return Arena::CreateMessageInternal< ::datanode_proto::CordDeltaBlobInfo >(arena);
+}
+template<> PROTOBUF_NOINLINE ::datanode_proto::ParityLogAppendInfo*
+Arena::CreateMaybeMessage< ::datanode_proto::ParityLogAppendInfo >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::datanode_proto::ParityLogAppendInfo >(arena);
+}
+template<> PROTOBUF_NOINLINE ::datanode_proto::ParityLogAppendReply*
+Arena::CreateMaybeMessage< ::datanode_proto::ParityLogAppendReply >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::datanode_proto::ParityLogAppendReply >(arena);
+}
+template<> PROTOBUF_NOINLINE ::datanode_proto::ParityLogStoreD0Info*
+Arena::CreateMaybeMessage< ::datanode_proto::ParityLogStoreD0Info >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::datanode_proto::ParityLogStoreD0Info >(arena);
+}
+template<> PROTOBUF_NOINLINE ::datanode_proto::ParityLogClearStripeInfo*
+Arena::CreateMaybeMessage< ::datanode_proto::ParityLogClearStripeInfo >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::datanode_proto::ParityLogClearStripeInfo >(arena);
+}
+template<> PROTOBUF_NOINLINE ::datanode_proto::ParityLogMergeIfFullInfo*
+Arena::CreateMaybeMessage< ::datanode_proto::ParityLogMergeIfFullInfo >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::datanode_proto::ParityLogMergeIfFullInfo >(arena);
 }
 template<> PROTOBUF_NOINLINE ::datanode_proto::DelInfo*
 Arena::CreateMaybeMessage< ::datanode_proto::DelInfo >(Arena* arena) {

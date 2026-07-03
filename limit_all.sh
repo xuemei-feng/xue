@@ -6,7 +6,7 @@ USER="root"
 
 INPUT_GB=$1
 
-REMOTE_COMMAND="cd /root/xue && sh limit_${INPUT_GB}Gb.sh"
+REMOTE_COMMAND="cd /users/xue/xue && sh limit_${INPUT_GB}Gb.sh"
 
 PARALLEL=5
 

@@ -9029,13 +9029,28 @@ class CordDataUpdatePlacement final :
     kBlockidsFieldNumber = 8,
     kOffsetsFieldNumber = 9,
     kSizesFieldNumber = 10,
+    kParityBlockIdsFieldNumber = 21,
+    kParityBlockKeysFieldNumber = 22,
+    kParityDatanodeIpsFieldNumber = 23,
+    kParityDatanodePortsFieldNumber = 24,
+    kAllBlockIdsFieldNumber = 25,
+    kAllBlockKeysFieldNumber = 26,
+    kAllDatanodeIpsFieldNumber = 27,
+    kAllDatanodePortsFieldNumber = 28,
     kKeyFieldNumber = 1,
     kDeltaBlobKeyFieldNumber = 11,
     kDeltaDatanodeIpFieldNumber = 12,
+    kCodeTypeFieldNumber = 19,
     kClusterIdFieldNumber = 2,
     kStripeIdFieldNumber = 3,
     kUpdatePayloadSizeFieldNumber = 4,
     kDeltaDatanodePortFieldNumber = 13,
+    kStripeUpdateModeFieldNumber = 14,
+    kPrimaryDataBlockIdFieldNumber = 15,
+    kKFieldNumber = 16,
+    kRFieldNumber = 17,
+    kZFieldNumber = 18,
+    kBlockSizeFieldNumber = 20,
   };
   // repeated string datanodeip = 5;
   int datanodeip_size() const;
@@ -9173,6 +9188,190 @@ class CordDataUpdatePlacement final :
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t >*
       mutable_sizes();
 
+  // repeated int32 parity_block_ids = 21;
+  int parity_block_ids_size() const;
+  private:
+  int _internal_parity_block_ids_size() const;
+  public:
+  void clear_parity_block_ids();
+  private:
+  int32_t _internal_parity_block_ids(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_parity_block_ids() const;
+  void _internal_add_parity_block_ids(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_parity_block_ids();
+  public:
+  int32_t parity_block_ids(int index) const;
+  void set_parity_block_ids(int index, int32_t value);
+  void add_parity_block_ids(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      parity_block_ids() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_parity_block_ids();
+
+  // repeated string parity_block_keys = 22;
+  int parity_block_keys_size() const;
+  private:
+  int _internal_parity_block_keys_size() const;
+  public:
+  void clear_parity_block_keys();
+  const std::string& parity_block_keys(int index) const;
+  std::string* mutable_parity_block_keys(int index);
+  void set_parity_block_keys(int index, const std::string& value);
+  void set_parity_block_keys(int index, std::string&& value);
+  void set_parity_block_keys(int index, const char* value);
+  void set_parity_block_keys(int index, const char* value, size_t size);
+  std::string* add_parity_block_keys();
+  void add_parity_block_keys(const std::string& value);
+  void add_parity_block_keys(std::string&& value);
+  void add_parity_block_keys(const char* value);
+  void add_parity_block_keys(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& parity_block_keys() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_parity_block_keys();
+  private:
+  const std::string& _internal_parity_block_keys(int index) const;
+  std::string* _internal_add_parity_block_keys();
+  public:
+
+  // repeated string parity_datanode_ips = 23;
+  int parity_datanode_ips_size() const;
+  private:
+  int _internal_parity_datanode_ips_size() const;
+  public:
+  void clear_parity_datanode_ips();
+  const std::string& parity_datanode_ips(int index) const;
+  std::string* mutable_parity_datanode_ips(int index);
+  void set_parity_datanode_ips(int index, const std::string& value);
+  void set_parity_datanode_ips(int index, std::string&& value);
+  void set_parity_datanode_ips(int index, const char* value);
+  void set_parity_datanode_ips(int index, const char* value, size_t size);
+  std::string* add_parity_datanode_ips();
+  void add_parity_datanode_ips(const std::string& value);
+  void add_parity_datanode_ips(std::string&& value);
+  void add_parity_datanode_ips(const char* value);
+  void add_parity_datanode_ips(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& parity_datanode_ips() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_parity_datanode_ips();
+  private:
+  const std::string& _internal_parity_datanode_ips(int index) const;
+  std::string* _internal_add_parity_datanode_ips();
+  public:
+
+  // repeated int32 parity_datanode_ports = 24;
+  int parity_datanode_ports_size() const;
+  private:
+  int _internal_parity_datanode_ports_size() const;
+  public:
+  void clear_parity_datanode_ports();
+  private:
+  int32_t _internal_parity_datanode_ports(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_parity_datanode_ports() const;
+  void _internal_add_parity_datanode_ports(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_parity_datanode_ports();
+  public:
+  int32_t parity_datanode_ports(int index) const;
+  void set_parity_datanode_ports(int index, int32_t value);
+  void add_parity_datanode_ports(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      parity_datanode_ports() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_parity_datanode_ports();
+
+  // repeated int32 all_block_ids = 25;
+  int all_block_ids_size() const;
+  private:
+  int _internal_all_block_ids_size() const;
+  public:
+  void clear_all_block_ids();
+  private:
+  int32_t _internal_all_block_ids(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_all_block_ids() const;
+  void _internal_add_all_block_ids(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_all_block_ids();
+  public:
+  int32_t all_block_ids(int index) const;
+  void set_all_block_ids(int index, int32_t value);
+  void add_all_block_ids(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      all_block_ids() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_all_block_ids();
+
+  // repeated string all_block_keys = 26;
+  int all_block_keys_size() const;
+  private:
+  int _internal_all_block_keys_size() const;
+  public:
+  void clear_all_block_keys();
+  const std::string& all_block_keys(int index) const;
+  std::string* mutable_all_block_keys(int index);
+  void set_all_block_keys(int index, const std::string& value);
+  void set_all_block_keys(int index, std::string&& value);
+  void set_all_block_keys(int index, const char* value);
+  void set_all_block_keys(int index, const char* value, size_t size);
+  std::string* add_all_block_keys();
+  void add_all_block_keys(const std::string& value);
+  void add_all_block_keys(std::string&& value);
+  void add_all_block_keys(const char* value);
+  void add_all_block_keys(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& all_block_keys() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_all_block_keys();
+  private:
+  const std::string& _internal_all_block_keys(int index) const;
+  std::string* _internal_add_all_block_keys();
+  public:
+
+  // repeated string all_datanode_ips = 27;
+  int all_datanode_ips_size() const;
+  private:
+  int _internal_all_datanode_ips_size() const;
+  public:
+  void clear_all_datanode_ips();
+  const std::string& all_datanode_ips(int index) const;
+  std::string* mutable_all_datanode_ips(int index);
+  void set_all_datanode_ips(int index, const std::string& value);
+  void set_all_datanode_ips(int index, std::string&& value);
+  void set_all_datanode_ips(int index, const char* value);
+  void set_all_datanode_ips(int index, const char* value, size_t size);
+  std::string* add_all_datanode_ips();
+  void add_all_datanode_ips(const std::string& value);
+  void add_all_datanode_ips(std::string&& value);
+  void add_all_datanode_ips(const char* value);
+  void add_all_datanode_ips(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& all_datanode_ips() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_all_datanode_ips();
+  private:
+  const std::string& _internal_all_datanode_ips(int index) const;
+  std::string* _internal_add_all_datanode_ips();
+  public:
+
+  // repeated int32 all_datanode_ports = 28;
+  int all_datanode_ports_size() const;
+  private:
+  int _internal_all_datanode_ports_size() const;
+  public:
+  void clear_all_datanode_ports();
+  private:
+  int32_t _internal_all_datanode_ports(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_all_datanode_ports() const;
+  void _internal_add_all_datanode_ports(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_all_datanode_ports();
+  public:
+  int32_t all_datanode_ports(int index) const;
+  void set_all_datanode_ports(int index, int32_t value);
+  void add_all_datanode_ports(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      all_datanode_ports() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_all_datanode_ports();
+
   // string key = 1;
   void clear_key();
   const std::string& key() const;
@@ -9215,6 +9414,20 @@ class CordDataUpdatePlacement final :
   std::string* _internal_mutable_delta_datanode_ip();
   public:
 
+  // string code_type = 19;
+  void clear_code_type();
+  const std::string& code_type() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_code_type(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_code_type();
+  PROTOBUF_NODISCARD std::string* release_code_type();
+  void set_allocated_code_type(std::string* code_type);
+  private:
+  const std::string& _internal_code_type() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_code_type(const std::string& value);
+  std::string* _internal_mutable_code_type();
+  public:
+
   // int32 cluster_id = 2;
   void clear_cluster_id();
   int32_t cluster_id() const;
@@ -9251,6 +9464,60 @@ class CordDataUpdatePlacement final :
   void _internal_set_delta_datanode_port(int32_t value);
   public:
 
+  // int32 stripe_update_mode = 14;
+  void clear_stripe_update_mode();
+  int32_t stripe_update_mode() const;
+  void set_stripe_update_mode(int32_t value);
+  private:
+  int32_t _internal_stripe_update_mode() const;
+  void _internal_set_stripe_update_mode(int32_t value);
+  public:
+
+  // int32 primary_data_block_id = 15;
+  void clear_primary_data_block_id();
+  int32_t primary_data_block_id() const;
+  void set_primary_data_block_id(int32_t value);
+  private:
+  int32_t _internal_primary_data_block_id() const;
+  void _internal_set_primary_data_block_id(int32_t value);
+  public:
+
+  // int32 k = 16;
+  void clear_k();
+  int32_t k() const;
+  void set_k(int32_t value);
+  private:
+  int32_t _internal_k() const;
+  void _internal_set_k(int32_t value);
+  public:
+
+  // int32 r = 17;
+  void clear_r();
+  int32_t r() const;
+  void set_r(int32_t value);
+  private:
+  int32_t _internal_r() const;
+  void _internal_set_r(int32_t value);
+  public:
+
+  // int32 z = 18;
+  void clear_z();
+  int32_t z() const;
+  void set_z(int32_t value);
+  private:
+  int32_t _internal_z() const;
+  void _internal_set_z(int32_t value);
+  public:
+
+  // int32 block_size = 20;
+  void clear_block_size();
+  int32_t block_size() const;
+  void set_block_size(int32_t value);
+  private:
+  int32_t _internal_block_size() const;
+  void _internal_set_block_size(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:proxy_proto.CordDataUpdatePlacement)
  private:
   class _Internal;
@@ -9269,13 +9536,32 @@ class CordDataUpdatePlacement final :
     mutable std::atomic<int> _offsets_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t > sizes_;
     mutable std::atomic<int> _sizes_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > parity_block_ids_;
+    mutable std::atomic<int> _parity_block_ids_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> parity_block_keys_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> parity_datanode_ips_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > parity_datanode_ports_;
+    mutable std::atomic<int> _parity_datanode_ports_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > all_block_ids_;
+    mutable std::atomic<int> _all_block_ids_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> all_block_keys_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> all_datanode_ips_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > all_datanode_ports_;
+    mutable std::atomic<int> _all_datanode_ports_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr delta_blob_key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr delta_datanode_ip_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr code_type_;
     int32_t cluster_id_;
     int32_t stripe_id_;
     uint64_t update_payload_size_;
     int32_t delta_datanode_port_;
+    int32_t stripe_update_mode_;
+    int32_t primary_data_block_id_;
+    int32_t k_;
+    int32_t r_;
+    int32_t z_;
+    int32_t block_size_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -20415,6 +20701,664 @@ inline void CordDataUpdatePlacement::_internal_set_delta_datanode_port(int32_t v
 inline void CordDataUpdatePlacement::set_delta_datanode_port(int32_t value) {
   _internal_set_delta_datanode_port(value);
   // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.delta_datanode_port)
+}
+
+// int32 stripe_update_mode = 14;
+inline void CordDataUpdatePlacement::clear_stripe_update_mode() {
+  _impl_.stripe_update_mode_ = 0;
+}
+inline int32_t CordDataUpdatePlacement::_internal_stripe_update_mode() const {
+  return _impl_.stripe_update_mode_;
+}
+inline int32_t CordDataUpdatePlacement::stripe_update_mode() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.stripe_update_mode)
+  return _internal_stripe_update_mode();
+}
+inline void CordDataUpdatePlacement::_internal_set_stripe_update_mode(int32_t value) {
+  
+  _impl_.stripe_update_mode_ = value;
+}
+inline void CordDataUpdatePlacement::set_stripe_update_mode(int32_t value) {
+  _internal_set_stripe_update_mode(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.stripe_update_mode)
+}
+
+// int32 primary_data_block_id = 15;
+inline void CordDataUpdatePlacement::clear_primary_data_block_id() {
+  _impl_.primary_data_block_id_ = 0;
+}
+inline int32_t CordDataUpdatePlacement::_internal_primary_data_block_id() const {
+  return _impl_.primary_data_block_id_;
+}
+inline int32_t CordDataUpdatePlacement::primary_data_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.primary_data_block_id)
+  return _internal_primary_data_block_id();
+}
+inline void CordDataUpdatePlacement::_internal_set_primary_data_block_id(int32_t value) {
+  
+  _impl_.primary_data_block_id_ = value;
+}
+inline void CordDataUpdatePlacement::set_primary_data_block_id(int32_t value) {
+  _internal_set_primary_data_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.primary_data_block_id)
+}
+
+// int32 k = 16;
+inline void CordDataUpdatePlacement::clear_k() {
+  _impl_.k_ = 0;
+}
+inline int32_t CordDataUpdatePlacement::_internal_k() const {
+  return _impl_.k_;
+}
+inline int32_t CordDataUpdatePlacement::k() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.k)
+  return _internal_k();
+}
+inline void CordDataUpdatePlacement::_internal_set_k(int32_t value) {
+  
+  _impl_.k_ = value;
+}
+inline void CordDataUpdatePlacement::set_k(int32_t value) {
+  _internal_set_k(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.k)
+}
+
+// int32 r = 17;
+inline void CordDataUpdatePlacement::clear_r() {
+  _impl_.r_ = 0;
+}
+inline int32_t CordDataUpdatePlacement::_internal_r() const {
+  return _impl_.r_;
+}
+inline int32_t CordDataUpdatePlacement::r() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.r)
+  return _internal_r();
+}
+inline void CordDataUpdatePlacement::_internal_set_r(int32_t value) {
+  
+  _impl_.r_ = value;
+}
+inline void CordDataUpdatePlacement::set_r(int32_t value) {
+  _internal_set_r(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.r)
+}
+
+// int32 z = 18;
+inline void CordDataUpdatePlacement::clear_z() {
+  _impl_.z_ = 0;
+}
+inline int32_t CordDataUpdatePlacement::_internal_z() const {
+  return _impl_.z_;
+}
+inline int32_t CordDataUpdatePlacement::z() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.z)
+  return _internal_z();
+}
+inline void CordDataUpdatePlacement::_internal_set_z(int32_t value) {
+  
+  _impl_.z_ = value;
+}
+inline void CordDataUpdatePlacement::set_z(int32_t value) {
+  _internal_set_z(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.z)
+}
+
+// string code_type = 19;
+inline void CordDataUpdatePlacement::clear_code_type() {
+  _impl_.code_type_.ClearToEmpty();
+}
+inline const std::string& CordDataUpdatePlacement::code_type() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.code_type)
+  return _internal_code_type();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void CordDataUpdatePlacement::set_code_type(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.code_type_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.code_type)
+}
+inline std::string* CordDataUpdatePlacement::mutable_code_type() {
+  std::string* _s = _internal_mutable_code_type();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.CordDataUpdatePlacement.code_type)
+  return _s;
+}
+inline const std::string& CordDataUpdatePlacement::_internal_code_type() const {
+  return _impl_.code_type_.Get();
+}
+inline void CordDataUpdatePlacement::_internal_set_code_type(const std::string& value) {
+  
+  _impl_.code_type_.Set(value, GetArenaForAllocation());
+}
+inline std::string* CordDataUpdatePlacement::_internal_mutable_code_type() {
+  
+  return _impl_.code_type_.Mutable(GetArenaForAllocation());
+}
+inline std::string* CordDataUpdatePlacement::release_code_type() {
+  // @@protoc_insertion_point(field_release:proxy_proto.CordDataUpdatePlacement.code_type)
+  return _impl_.code_type_.Release();
+}
+inline void CordDataUpdatePlacement::set_allocated_code_type(std::string* code_type) {
+  if (code_type != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.code_type_.SetAllocated(code_type, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.code_type_.IsDefault()) {
+    _impl_.code_type_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.CordDataUpdatePlacement.code_type)
+}
+
+// int32 block_size = 20;
+inline void CordDataUpdatePlacement::clear_block_size() {
+  _impl_.block_size_ = 0;
+}
+inline int32_t CordDataUpdatePlacement::_internal_block_size() const {
+  return _impl_.block_size_;
+}
+inline int32_t CordDataUpdatePlacement::block_size() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.block_size)
+  return _internal_block_size();
+}
+inline void CordDataUpdatePlacement::_internal_set_block_size(int32_t value) {
+  
+  _impl_.block_size_ = value;
+}
+inline void CordDataUpdatePlacement::set_block_size(int32_t value) {
+  _internal_set_block_size(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.block_size)
+}
+
+// repeated int32 parity_block_ids = 21;
+inline int CordDataUpdatePlacement::_internal_parity_block_ids_size() const {
+  return _impl_.parity_block_ids_.size();
+}
+inline int CordDataUpdatePlacement::parity_block_ids_size() const {
+  return _internal_parity_block_ids_size();
+}
+inline void CordDataUpdatePlacement::clear_parity_block_ids() {
+  _impl_.parity_block_ids_.Clear();
+}
+inline int32_t CordDataUpdatePlacement::_internal_parity_block_ids(int index) const {
+  return _impl_.parity_block_ids_.Get(index);
+}
+inline int32_t CordDataUpdatePlacement::parity_block_ids(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.parity_block_ids)
+  return _internal_parity_block_ids(index);
+}
+inline void CordDataUpdatePlacement::set_parity_block_ids(int index, int32_t value) {
+  _impl_.parity_block_ids_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.parity_block_ids)
+}
+inline void CordDataUpdatePlacement::_internal_add_parity_block_ids(int32_t value) {
+  _impl_.parity_block_ids_.Add(value);
+}
+inline void CordDataUpdatePlacement::add_parity_block_ids(int32_t value) {
+  _internal_add_parity_block_ids(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.parity_block_ids)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::_internal_parity_block_ids() const {
+  return _impl_.parity_block_ids_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::parity_block_ids() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.parity_block_ids)
+  return _internal_parity_block_ids();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::_internal_mutable_parity_block_ids() {
+  return &_impl_.parity_block_ids_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::mutable_parity_block_ids() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.parity_block_ids)
+  return _internal_mutable_parity_block_ids();
+}
+
+// repeated string parity_block_keys = 22;
+inline int CordDataUpdatePlacement::_internal_parity_block_keys_size() const {
+  return _impl_.parity_block_keys_.size();
+}
+inline int CordDataUpdatePlacement::parity_block_keys_size() const {
+  return _internal_parity_block_keys_size();
+}
+inline void CordDataUpdatePlacement::clear_parity_block_keys() {
+  _impl_.parity_block_keys_.Clear();
+}
+inline std::string* CordDataUpdatePlacement::add_parity_block_keys() {
+  std::string* _s = _internal_add_parity_block_keys();
+  // @@protoc_insertion_point(field_add_mutable:proxy_proto.CordDataUpdatePlacement.parity_block_keys)
+  return _s;
+}
+inline const std::string& CordDataUpdatePlacement::_internal_parity_block_keys(int index) const {
+  return _impl_.parity_block_keys_.Get(index);
+}
+inline const std::string& CordDataUpdatePlacement::parity_block_keys(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.parity_block_keys)
+  return _internal_parity_block_keys(index);
+}
+inline std::string* CordDataUpdatePlacement::mutable_parity_block_keys(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.CordDataUpdatePlacement.parity_block_keys)
+  return _impl_.parity_block_keys_.Mutable(index);
+}
+inline void CordDataUpdatePlacement::set_parity_block_keys(int index, const std::string& value) {
+  _impl_.parity_block_keys_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.parity_block_keys)
+}
+inline void CordDataUpdatePlacement::set_parity_block_keys(int index, std::string&& value) {
+  _impl_.parity_block_keys_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.parity_block_keys)
+}
+inline void CordDataUpdatePlacement::set_parity_block_keys(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.parity_block_keys_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:proxy_proto.CordDataUpdatePlacement.parity_block_keys)
+}
+inline void CordDataUpdatePlacement::set_parity_block_keys(int index, const char* value, size_t size) {
+  _impl_.parity_block_keys_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:proxy_proto.CordDataUpdatePlacement.parity_block_keys)
+}
+inline std::string* CordDataUpdatePlacement::_internal_add_parity_block_keys() {
+  return _impl_.parity_block_keys_.Add();
+}
+inline void CordDataUpdatePlacement::add_parity_block_keys(const std::string& value) {
+  _impl_.parity_block_keys_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.parity_block_keys)
+}
+inline void CordDataUpdatePlacement::add_parity_block_keys(std::string&& value) {
+  _impl_.parity_block_keys_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.parity_block_keys)
+}
+inline void CordDataUpdatePlacement::add_parity_block_keys(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.parity_block_keys_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:proxy_proto.CordDataUpdatePlacement.parity_block_keys)
+}
+inline void CordDataUpdatePlacement::add_parity_block_keys(const char* value, size_t size) {
+  _impl_.parity_block_keys_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:proxy_proto.CordDataUpdatePlacement.parity_block_keys)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+CordDataUpdatePlacement::parity_block_keys() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.parity_block_keys)
+  return _impl_.parity_block_keys_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+CordDataUpdatePlacement::mutable_parity_block_keys() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.parity_block_keys)
+  return &_impl_.parity_block_keys_;
+}
+
+// repeated string parity_datanode_ips = 23;
+inline int CordDataUpdatePlacement::_internal_parity_datanode_ips_size() const {
+  return _impl_.parity_datanode_ips_.size();
+}
+inline int CordDataUpdatePlacement::parity_datanode_ips_size() const {
+  return _internal_parity_datanode_ips_size();
+}
+inline void CordDataUpdatePlacement::clear_parity_datanode_ips() {
+  _impl_.parity_datanode_ips_.Clear();
+}
+inline std::string* CordDataUpdatePlacement::add_parity_datanode_ips() {
+  std::string* _s = _internal_add_parity_datanode_ips();
+  // @@protoc_insertion_point(field_add_mutable:proxy_proto.CordDataUpdatePlacement.parity_datanode_ips)
+  return _s;
+}
+inline const std::string& CordDataUpdatePlacement::_internal_parity_datanode_ips(int index) const {
+  return _impl_.parity_datanode_ips_.Get(index);
+}
+inline const std::string& CordDataUpdatePlacement::parity_datanode_ips(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.parity_datanode_ips)
+  return _internal_parity_datanode_ips(index);
+}
+inline std::string* CordDataUpdatePlacement::mutable_parity_datanode_ips(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.CordDataUpdatePlacement.parity_datanode_ips)
+  return _impl_.parity_datanode_ips_.Mutable(index);
+}
+inline void CordDataUpdatePlacement::set_parity_datanode_ips(int index, const std::string& value) {
+  _impl_.parity_datanode_ips_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.parity_datanode_ips)
+}
+inline void CordDataUpdatePlacement::set_parity_datanode_ips(int index, std::string&& value) {
+  _impl_.parity_datanode_ips_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.parity_datanode_ips)
+}
+inline void CordDataUpdatePlacement::set_parity_datanode_ips(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.parity_datanode_ips_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:proxy_proto.CordDataUpdatePlacement.parity_datanode_ips)
+}
+inline void CordDataUpdatePlacement::set_parity_datanode_ips(int index, const char* value, size_t size) {
+  _impl_.parity_datanode_ips_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:proxy_proto.CordDataUpdatePlacement.parity_datanode_ips)
+}
+inline std::string* CordDataUpdatePlacement::_internal_add_parity_datanode_ips() {
+  return _impl_.parity_datanode_ips_.Add();
+}
+inline void CordDataUpdatePlacement::add_parity_datanode_ips(const std::string& value) {
+  _impl_.parity_datanode_ips_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.parity_datanode_ips)
+}
+inline void CordDataUpdatePlacement::add_parity_datanode_ips(std::string&& value) {
+  _impl_.parity_datanode_ips_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.parity_datanode_ips)
+}
+inline void CordDataUpdatePlacement::add_parity_datanode_ips(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.parity_datanode_ips_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:proxy_proto.CordDataUpdatePlacement.parity_datanode_ips)
+}
+inline void CordDataUpdatePlacement::add_parity_datanode_ips(const char* value, size_t size) {
+  _impl_.parity_datanode_ips_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:proxy_proto.CordDataUpdatePlacement.parity_datanode_ips)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+CordDataUpdatePlacement::parity_datanode_ips() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.parity_datanode_ips)
+  return _impl_.parity_datanode_ips_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+CordDataUpdatePlacement::mutable_parity_datanode_ips() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.parity_datanode_ips)
+  return &_impl_.parity_datanode_ips_;
+}
+
+// repeated int32 parity_datanode_ports = 24;
+inline int CordDataUpdatePlacement::_internal_parity_datanode_ports_size() const {
+  return _impl_.parity_datanode_ports_.size();
+}
+inline int CordDataUpdatePlacement::parity_datanode_ports_size() const {
+  return _internal_parity_datanode_ports_size();
+}
+inline void CordDataUpdatePlacement::clear_parity_datanode_ports() {
+  _impl_.parity_datanode_ports_.Clear();
+}
+inline int32_t CordDataUpdatePlacement::_internal_parity_datanode_ports(int index) const {
+  return _impl_.parity_datanode_ports_.Get(index);
+}
+inline int32_t CordDataUpdatePlacement::parity_datanode_ports(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.parity_datanode_ports)
+  return _internal_parity_datanode_ports(index);
+}
+inline void CordDataUpdatePlacement::set_parity_datanode_ports(int index, int32_t value) {
+  _impl_.parity_datanode_ports_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.parity_datanode_ports)
+}
+inline void CordDataUpdatePlacement::_internal_add_parity_datanode_ports(int32_t value) {
+  _impl_.parity_datanode_ports_.Add(value);
+}
+inline void CordDataUpdatePlacement::add_parity_datanode_ports(int32_t value) {
+  _internal_add_parity_datanode_ports(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.parity_datanode_ports)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::_internal_parity_datanode_ports() const {
+  return _impl_.parity_datanode_ports_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::parity_datanode_ports() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.parity_datanode_ports)
+  return _internal_parity_datanode_ports();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::_internal_mutable_parity_datanode_ports() {
+  return &_impl_.parity_datanode_ports_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::mutable_parity_datanode_ports() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.parity_datanode_ports)
+  return _internal_mutable_parity_datanode_ports();
+}
+
+// repeated int32 all_block_ids = 25;
+inline int CordDataUpdatePlacement::_internal_all_block_ids_size() const {
+  return _impl_.all_block_ids_.size();
+}
+inline int CordDataUpdatePlacement::all_block_ids_size() const {
+  return _internal_all_block_ids_size();
+}
+inline void CordDataUpdatePlacement::clear_all_block_ids() {
+  _impl_.all_block_ids_.Clear();
+}
+inline int32_t CordDataUpdatePlacement::_internal_all_block_ids(int index) const {
+  return _impl_.all_block_ids_.Get(index);
+}
+inline int32_t CordDataUpdatePlacement::all_block_ids(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.all_block_ids)
+  return _internal_all_block_ids(index);
+}
+inline void CordDataUpdatePlacement::set_all_block_ids(int index, int32_t value) {
+  _impl_.all_block_ids_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.all_block_ids)
+}
+inline void CordDataUpdatePlacement::_internal_add_all_block_ids(int32_t value) {
+  _impl_.all_block_ids_.Add(value);
+}
+inline void CordDataUpdatePlacement::add_all_block_ids(int32_t value) {
+  _internal_add_all_block_ids(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.all_block_ids)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::_internal_all_block_ids() const {
+  return _impl_.all_block_ids_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::all_block_ids() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.all_block_ids)
+  return _internal_all_block_ids();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::_internal_mutable_all_block_ids() {
+  return &_impl_.all_block_ids_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::mutable_all_block_ids() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.all_block_ids)
+  return _internal_mutable_all_block_ids();
+}
+
+// repeated string all_block_keys = 26;
+inline int CordDataUpdatePlacement::_internal_all_block_keys_size() const {
+  return _impl_.all_block_keys_.size();
+}
+inline int CordDataUpdatePlacement::all_block_keys_size() const {
+  return _internal_all_block_keys_size();
+}
+inline void CordDataUpdatePlacement::clear_all_block_keys() {
+  _impl_.all_block_keys_.Clear();
+}
+inline std::string* CordDataUpdatePlacement::add_all_block_keys() {
+  std::string* _s = _internal_add_all_block_keys();
+  // @@protoc_insertion_point(field_add_mutable:proxy_proto.CordDataUpdatePlacement.all_block_keys)
+  return _s;
+}
+inline const std::string& CordDataUpdatePlacement::_internal_all_block_keys(int index) const {
+  return _impl_.all_block_keys_.Get(index);
+}
+inline const std::string& CordDataUpdatePlacement::all_block_keys(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.all_block_keys)
+  return _internal_all_block_keys(index);
+}
+inline std::string* CordDataUpdatePlacement::mutable_all_block_keys(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.CordDataUpdatePlacement.all_block_keys)
+  return _impl_.all_block_keys_.Mutable(index);
+}
+inline void CordDataUpdatePlacement::set_all_block_keys(int index, const std::string& value) {
+  _impl_.all_block_keys_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.all_block_keys)
+}
+inline void CordDataUpdatePlacement::set_all_block_keys(int index, std::string&& value) {
+  _impl_.all_block_keys_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.all_block_keys)
+}
+inline void CordDataUpdatePlacement::set_all_block_keys(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.all_block_keys_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:proxy_proto.CordDataUpdatePlacement.all_block_keys)
+}
+inline void CordDataUpdatePlacement::set_all_block_keys(int index, const char* value, size_t size) {
+  _impl_.all_block_keys_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:proxy_proto.CordDataUpdatePlacement.all_block_keys)
+}
+inline std::string* CordDataUpdatePlacement::_internal_add_all_block_keys() {
+  return _impl_.all_block_keys_.Add();
+}
+inline void CordDataUpdatePlacement::add_all_block_keys(const std::string& value) {
+  _impl_.all_block_keys_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.all_block_keys)
+}
+inline void CordDataUpdatePlacement::add_all_block_keys(std::string&& value) {
+  _impl_.all_block_keys_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.all_block_keys)
+}
+inline void CordDataUpdatePlacement::add_all_block_keys(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.all_block_keys_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:proxy_proto.CordDataUpdatePlacement.all_block_keys)
+}
+inline void CordDataUpdatePlacement::add_all_block_keys(const char* value, size_t size) {
+  _impl_.all_block_keys_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:proxy_proto.CordDataUpdatePlacement.all_block_keys)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+CordDataUpdatePlacement::all_block_keys() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.all_block_keys)
+  return _impl_.all_block_keys_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+CordDataUpdatePlacement::mutable_all_block_keys() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.all_block_keys)
+  return &_impl_.all_block_keys_;
+}
+
+// repeated string all_datanode_ips = 27;
+inline int CordDataUpdatePlacement::_internal_all_datanode_ips_size() const {
+  return _impl_.all_datanode_ips_.size();
+}
+inline int CordDataUpdatePlacement::all_datanode_ips_size() const {
+  return _internal_all_datanode_ips_size();
+}
+inline void CordDataUpdatePlacement::clear_all_datanode_ips() {
+  _impl_.all_datanode_ips_.Clear();
+}
+inline std::string* CordDataUpdatePlacement::add_all_datanode_ips() {
+  std::string* _s = _internal_add_all_datanode_ips();
+  // @@protoc_insertion_point(field_add_mutable:proxy_proto.CordDataUpdatePlacement.all_datanode_ips)
+  return _s;
+}
+inline const std::string& CordDataUpdatePlacement::_internal_all_datanode_ips(int index) const {
+  return _impl_.all_datanode_ips_.Get(index);
+}
+inline const std::string& CordDataUpdatePlacement::all_datanode_ips(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.all_datanode_ips)
+  return _internal_all_datanode_ips(index);
+}
+inline std::string* CordDataUpdatePlacement::mutable_all_datanode_ips(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.CordDataUpdatePlacement.all_datanode_ips)
+  return _impl_.all_datanode_ips_.Mutable(index);
+}
+inline void CordDataUpdatePlacement::set_all_datanode_ips(int index, const std::string& value) {
+  _impl_.all_datanode_ips_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.all_datanode_ips)
+}
+inline void CordDataUpdatePlacement::set_all_datanode_ips(int index, std::string&& value) {
+  _impl_.all_datanode_ips_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.all_datanode_ips)
+}
+inline void CordDataUpdatePlacement::set_all_datanode_ips(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.all_datanode_ips_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:proxy_proto.CordDataUpdatePlacement.all_datanode_ips)
+}
+inline void CordDataUpdatePlacement::set_all_datanode_ips(int index, const char* value, size_t size) {
+  _impl_.all_datanode_ips_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:proxy_proto.CordDataUpdatePlacement.all_datanode_ips)
+}
+inline std::string* CordDataUpdatePlacement::_internal_add_all_datanode_ips() {
+  return _impl_.all_datanode_ips_.Add();
+}
+inline void CordDataUpdatePlacement::add_all_datanode_ips(const std::string& value) {
+  _impl_.all_datanode_ips_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.all_datanode_ips)
+}
+inline void CordDataUpdatePlacement::add_all_datanode_ips(std::string&& value) {
+  _impl_.all_datanode_ips_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.all_datanode_ips)
+}
+inline void CordDataUpdatePlacement::add_all_datanode_ips(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.all_datanode_ips_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:proxy_proto.CordDataUpdatePlacement.all_datanode_ips)
+}
+inline void CordDataUpdatePlacement::add_all_datanode_ips(const char* value, size_t size) {
+  _impl_.all_datanode_ips_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:proxy_proto.CordDataUpdatePlacement.all_datanode_ips)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+CordDataUpdatePlacement::all_datanode_ips() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.all_datanode_ips)
+  return _impl_.all_datanode_ips_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+CordDataUpdatePlacement::mutable_all_datanode_ips() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.all_datanode_ips)
+  return &_impl_.all_datanode_ips_;
+}
+
+// repeated int32 all_datanode_ports = 28;
+inline int CordDataUpdatePlacement::_internal_all_datanode_ports_size() const {
+  return _impl_.all_datanode_ports_.size();
+}
+inline int CordDataUpdatePlacement::all_datanode_ports_size() const {
+  return _internal_all_datanode_ports_size();
+}
+inline void CordDataUpdatePlacement::clear_all_datanode_ports() {
+  _impl_.all_datanode_ports_.Clear();
+}
+inline int32_t CordDataUpdatePlacement::_internal_all_datanode_ports(int index) const {
+  return _impl_.all_datanode_ports_.Get(index);
+}
+inline int32_t CordDataUpdatePlacement::all_datanode_ports(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.all_datanode_ports)
+  return _internal_all_datanode_ports(index);
+}
+inline void CordDataUpdatePlacement::set_all_datanode_ports(int index, int32_t value) {
+  _impl_.all_datanode_ports_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.all_datanode_ports)
+}
+inline void CordDataUpdatePlacement::_internal_add_all_datanode_ports(int32_t value) {
+  _impl_.all_datanode_ports_.Add(value);
+}
+inline void CordDataUpdatePlacement::add_all_datanode_ports(int32_t value) {
+  _internal_add_all_datanode_ports(value);
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.all_datanode_ports)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::_internal_all_datanode_ports() const {
+  return _impl_.all_datanode_ports_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+CordDataUpdatePlacement::all_datanode_ports() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.all_datanode_ports)
+  return _internal_all_datanode_ports();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::_internal_mutable_all_datanode_ports() {
+  return &_impl_.all_datanode_ports_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+CordDataUpdatePlacement::mutable_all_datanode_ports() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.all_datanode_ports)
+  return _internal_mutable_all_datanode_ports();
 }
 
 // -------------------------------------------------------------------

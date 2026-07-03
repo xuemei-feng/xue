@@ -147,6 +147,9 @@ foreach (_target
             ${CMAKE_CURRENT_SOURCE_DIR}/src/cord_algorithm2.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/cord_algorithm3.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/unilrc_encoder.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/stripe_update.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/parity_log_store.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/stripe_update_proxy.cpp
             #${_target}.cpp
             )
     target_link_libraries(${_target}

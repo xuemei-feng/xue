@@ -66,6 +66,21 @@ extern GetInfoDefaultTypeInternal _GetInfo_default_instance_;
 class MergeParityInfo;
 struct MergeParityInfoDefaultTypeInternal;
 extern MergeParityInfoDefaultTypeInternal _MergeParityInfo_default_instance_;
+class ParityLogAppendInfo;
+struct ParityLogAppendInfoDefaultTypeInternal;
+extern ParityLogAppendInfoDefaultTypeInternal _ParityLogAppendInfo_default_instance_;
+class ParityLogAppendReply;
+struct ParityLogAppendReplyDefaultTypeInternal;
+extern ParityLogAppendReplyDefaultTypeInternal _ParityLogAppendReply_default_instance_;
+class ParityLogClearStripeInfo;
+struct ParityLogClearStripeInfoDefaultTypeInternal;
+extern ParityLogClearStripeInfoDefaultTypeInternal _ParityLogClearStripeInfo_default_instance_;
+class ParityLogMergeIfFullInfo;
+struct ParityLogMergeIfFullInfoDefaultTypeInternal;
+extern ParityLogMergeIfFullInfoDefaultTypeInternal _ParityLogMergeIfFullInfo_default_instance_;
+class ParityLogStoreD0Info;
+struct ParityLogStoreD0InfoDefaultTypeInternal;
+extern ParityLogStoreD0InfoDefaultTypeInternal _ParityLogStoreD0Info_default_instance_;
 class RequestResult;
 struct RequestResultDefaultTypeInternal;
 extern RequestResultDefaultTypeInternal _RequestResult_default_instance_;
@@ -81,6 +96,11 @@ template<> ::datanode_proto::CordRangeRWInfo* Arena::CreateMaybeMessage<::datano
 template<> ::datanode_proto::DelInfo* Arena::CreateMaybeMessage<::datanode_proto::DelInfo>(Arena*);
 template<> ::datanode_proto::GetInfo* Arena::CreateMaybeMessage<::datanode_proto::GetInfo>(Arena*);
 template<> ::datanode_proto::MergeParityInfo* Arena::CreateMaybeMessage<::datanode_proto::MergeParityInfo>(Arena*);
+template<> ::datanode_proto::ParityLogAppendInfo* Arena::CreateMaybeMessage<::datanode_proto::ParityLogAppendInfo>(Arena*);
+template<> ::datanode_proto::ParityLogAppendReply* Arena::CreateMaybeMessage<::datanode_proto::ParityLogAppendReply>(Arena*);
+template<> ::datanode_proto::ParityLogClearStripeInfo* Arena::CreateMaybeMessage<::datanode_proto::ParityLogClearStripeInfo>(Arena*);
+template<> ::datanode_proto::ParityLogMergeIfFullInfo* Arena::CreateMaybeMessage<::datanode_proto::ParityLogMergeIfFullInfo>(Arena*);
+template<> ::datanode_proto::ParityLogStoreD0Info* Arena::CreateMaybeMessage<::datanode_proto::ParityLogStoreD0Info>(Arena*);
 template<> ::datanode_proto::RequestResult* Arena::CreateMaybeMessage<::datanode_proto::RequestResult>(Arena*);
 template<> ::datanode_proto::SetInfo* Arena::CreateMaybeMessage<::datanode_proto::SetInfo>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
@@ -1624,6 +1644,1062 @@ class CordDeltaBlobInfo final :
 };
 // -------------------------------------------------------------------
 
+class ParityLogAppendInfo final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:datanode_proto.ParityLogAppendInfo) */ {
+ public:
+  inline ParityLogAppendInfo() : ParityLogAppendInfo(nullptr) {}
+  ~ParityLogAppendInfo() override;
+  explicit PROTOBUF_CONSTEXPR ParityLogAppendInfo(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParityLogAppendInfo(const ParityLogAppendInfo& from);
+  ParityLogAppendInfo(ParityLogAppendInfo&& from) noexcept
+    : ParityLogAppendInfo() {
+    *this = ::std::move(from);
+  }
+
+  inline ParityLogAppendInfo& operator=(const ParityLogAppendInfo& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParityLogAppendInfo& operator=(ParityLogAppendInfo&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParityLogAppendInfo& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParityLogAppendInfo* internal_default_instance() {
+    return reinterpret_cast<const ParityLogAppendInfo*>(
+               &_ParityLogAppendInfo_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    8;
+
+  friend void swap(ParityLogAppendInfo& a, ParityLogAppendInfo& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParityLogAppendInfo* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParityLogAppendInfo* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParityLogAppendInfo* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParityLogAppendInfo>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParityLogAppendInfo& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParityLogAppendInfo& from) {
+    ParityLogAppendInfo::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParityLogAppendInfo* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "datanode_proto.ParityLogAppendInfo";
+  }
+  protected:
+  explicit ParityLogAppendInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kParityBlockKeyFieldNumber = 3,
+    kCodeTypeFieldNumber = 11,
+    kNewDataFieldNumber = 12,
+    kStripeIdFieldNumber = 1,
+    kParityBlockIdFieldNumber = 2,
+    kDataBlockIdFieldNumber = 4,
+    kRangeOffsetFieldNumber = 5,
+    kRangeLengthFieldNumber = 6,
+    kKFieldNumber = 7,
+    kRFieldNumber = 8,
+    kZFieldNumber = 9,
+    kBlockSizeFieldNumber = 10,
+  };
+  // string parity_block_key = 3;
+  void clear_parity_block_key();
+  const std::string& parity_block_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_parity_block_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_parity_block_key();
+  PROTOBUF_NODISCARD std::string* release_parity_block_key();
+  void set_allocated_parity_block_key(std::string* parity_block_key);
+  private:
+  const std::string& _internal_parity_block_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_parity_block_key(const std::string& value);
+  std::string* _internal_mutable_parity_block_key();
+  public:
+
+  // string code_type = 11;
+  void clear_code_type();
+  const std::string& code_type() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_code_type(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_code_type();
+  PROTOBUF_NODISCARD std::string* release_code_type();
+  void set_allocated_code_type(std::string* code_type);
+  private:
+  const std::string& _internal_code_type() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_code_type(const std::string& value);
+  std::string* _internal_mutable_code_type();
+  public:
+
+  // bytes new_data = 12;
+  void clear_new_data();
+  const std::string& new_data() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_new_data(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_new_data();
+  PROTOBUF_NODISCARD std::string* release_new_data();
+  void set_allocated_new_data(std::string* new_data);
+  private:
+  const std::string& _internal_new_data() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_new_data(const std::string& value);
+  std::string* _internal_mutable_new_data();
+  public:
+
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // int32 parity_block_id = 2;
+  void clear_parity_block_id();
+  int32_t parity_block_id() const;
+  void set_parity_block_id(int32_t value);
+  private:
+  int32_t _internal_parity_block_id() const;
+  void _internal_set_parity_block_id(int32_t value);
+  public:
+
+  // int32 data_block_id = 4;
+  void clear_data_block_id();
+  int32_t data_block_id() const;
+  void set_data_block_id(int32_t value);
+  private:
+  int32_t _internal_data_block_id() const;
+  void _internal_set_data_block_id(int32_t value);
+  public:
+
+  // int32 range_offset = 5;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // int32 range_length = 6;
+  void clear_range_length();
+  int32_t range_length() const;
+  void set_range_length(int32_t value);
+  private:
+  int32_t _internal_range_length() const;
+  void _internal_set_range_length(int32_t value);
+  public:
+
+  // int32 k = 7;
+  void clear_k();
+  int32_t k() const;
+  void set_k(int32_t value);
+  private:
+  int32_t _internal_k() const;
+  void _internal_set_k(int32_t value);
+  public:
+
+  // int32 r = 8;
+  void clear_r();
+  int32_t r() const;
+  void set_r(int32_t value);
+  private:
+  int32_t _internal_r() const;
+  void _internal_set_r(int32_t value);
+  public:
+
+  // int32 z = 9;
+  void clear_z();
+  int32_t z() const;
+  void set_z(int32_t value);
+  private:
+  int32_t _internal_z() const;
+  void _internal_set_z(int32_t value);
+  public:
+
+  // int32 block_size = 10;
+  void clear_block_size();
+  int32_t block_size() const;
+  void set_block_size(int32_t value);
+  private:
+  int32_t _internal_block_size() const;
+  void _internal_set_block_size(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:datanode_proto.ParityLogAppendInfo)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parity_block_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr code_type_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr new_data_;
+    int32_t stripe_id_;
+    int32_t parity_block_id_;
+    int32_t data_block_id_;
+    int32_t range_offset_;
+    int32_t range_length_;
+    int32_t k_;
+    int32_t r_;
+    int32_t z_;
+    int32_t block_size_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_datanode_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParityLogAppendReply final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:datanode_proto.ParityLogAppendReply) */ {
+ public:
+  inline ParityLogAppendReply() : ParityLogAppendReply(nullptr) {}
+  ~ParityLogAppendReply() override;
+  explicit PROTOBUF_CONSTEXPR ParityLogAppendReply(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParityLogAppendReply(const ParityLogAppendReply& from);
+  ParityLogAppendReply(ParityLogAppendReply&& from) noexcept
+    : ParityLogAppendReply() {
+    *this = ::std::move(from);
+  }
+
+  inline ParityLogAppendReply& operator=(const ParityLogAppendReply& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParityLogAppendReply& operator=(ParityLogAppendReply&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParityLogAppendReply& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParityLogAppendReply* internal_default_instance() {
+    return reinterpret_cast<const ParityLogAppendReply*>(
+               &_ParityLogAppendReply_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    9;
+
+  friend void swap(ParityLogAppendReply& a, ParityLogAppendReply& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParityLogAppendReply* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParityLogAppendReply* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParityLogAppendReply* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParityLogAppendReply>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParityLogAppendReply& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParityLogAppendReply& from) {
+    ParityLogAppendReply::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParityLogAppendReply* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "datanode_proto.ParityLogAppendReply";
+  }
+  protected:
+  explicit ParityLogAppendReply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kOkFieldNumber = 1,
+    kNeedD0FieldNumber = 2,
+  };
+  // bool ok = 1;
+  void clear_ok();
+  bool ok() const;
+  void set_ok(bool value);
+  private:
+  bool _internal_ok() const;
+  void _internal_set_ok(bool value);
+  public:
+
+  // bool need_d0 = 2;
+  void clear_need_d0();
+  bool need_d0() const;
+  void set_need_d0(bool value);
+  private:
+  bool _internal_need_d0() const;
+  void _internal_set_need_d0(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:datanode_proto.ParityLogAppendReply)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    bool ok_;
+    bool need_d0_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_datanode_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParityLogStoreD0Info final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:datanode_proto.ParityLogStoreD0Info) */ {
+ public:
+  inline ParityLogStoreD0Info() : ParityLogStoreD0Info(nullptr) {}
+  ~ParityLogStoreD0Info() override;
+  explicit PROTOBUF_CONSTEXPR ParityLogStoreD0Info(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParityLogStoreD0Info(const ParityLogStoreD0Info& from);
+  ParityLogStoreD0Info(ParityLogStoreD0Info&& from) noexcept
+    : ParityLogStoreD0Info() {
+    *this = ::std::move(from);
+  }
+
+  inline ParityLogStoreD0Info& operator=(const ParityLogStoreD0Info& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParityLogStoreD0Info& operator=(ParityLogStoreD0Info&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParityLogStoreD0Info& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParityLogStoreD0Info* internal_default_instance() {
+    return reinterpret_cast<const ParityLogStoreD0Info*>(
+               &_ParityLogStoreD0Info_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    10;
+
+  friend void swap(ParityLogStoreD0Info& a, ParityLogStoreD0Info& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParityLogStoreD0Info* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParityLogStoreD0Info* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParityLogStoreD0Info* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParityLogStoreD0Info>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParityLogStoreD0Info& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParityLogStoreD0Info& from) {
+    ParityLogStoreD0Info::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParityLogStoreD0Info* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "datanode_proto.ParityLogStoreD0Info";
+  }
+  protected:
+  explicit ParityLogStoreD0Info(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kD0FieldNumber = 6,
+    kStripeIdFieldNumber = 1,
+    kParityBlockIdFieldNumber = 2,
+    kDataBlockIdFieldNumber = 3,
+    kRangeOffsetFieldNumber = 4,
+    kRangeLengthFieldNumber = 5,
+  };
+  // bytes d0 = 6;
+  void clear_d0();
+  const std::string& d0() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_d0(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_d0();
+  PROTOBUF_NODISCARD std::string* release_d0();
+  void set_allocated_d0(std::string* d0);
+  private:
+  const std::string& _internal_d0() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_d0(const std::string& value);
+  std::string* _internal_mutable_d0();
+  public:
+
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // int32 parity_block_id = 2;
+  void clear_parity_block_id();
+  int32_t parity_block_id() const;
+  void set_parity_block_id(int32_t value);
+  private:
+  int32_t _internal_parity_block_id() const;
+  void _internal_set_parity_block_id(int32_t value);
+  public:
+
+  // int32 data_block_id = 3;
+  void clear_data_block_id();
+  int32_t data_block_id() const;
+  void set_data_block_id(int32_t value);
+  private:
+  int32_t _internal_data_block_id() const;
+  void _internal_set_data_block_id(int32_t value);
+  public:
+
+  // int32 range_offset = 4;
+  void clear_range_offset();
+  int32_t range_offset() const;
+  void set_range_offset(int32_t value);
+  private:
+  int32_t _internal_range_offset() const;
+  void _internal_set_range_offset(int32_t value);
+  public:
+
+  // int32 range_length = 5;
+  void clear_range_length();
+  int32_t range_length() const;
+  void set_range_length(int32_t value);
+  private:
+  int32_t _internal_range_length() const;
+  void _internal_set_range_length(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:datanode_proto.ParityLogStoreD0Info)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr d0_;
+    int32_t stripe_id_;
+    int32_t parity_block_id_;
+    int32_t data_block_id_;
+    int32_t range_offset_;
+    int32_t range_length_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_datanode_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParityLogClearStripeInfo final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:datanode_proto.ParityLogClearStripeInfo) */ {
+ public:
+  inline ParityLogClearStripeInfo() : ParityLogClearStripeInfo(nullptr) {}
+  ~ParityLogClearStripeInfo() override;
+  explicit PROTOBUF_CONSTEXPR ParityLogClearStripeInfo(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParityLogClearStripeInfo(const ParityLogClearStripeInfo& from);
+  ParityLogClearStripeInfo(ParityLogClearStripeInfo&& from) noexcept
+    : ParityLogClearStripeInfo() {
+    *this = ::std::move(from);
+  }
+
+  inline ParityLogClearStripeInfo& operator=(const ParityLogClearStripeInfo& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParityLogClearStripeInfo& operator=(ParityLogClearStripeInfo&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParityLogClearStripeInfo& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParityLogClearStripeInfo* internal_default_instance() {
+    return reinterpret_cast<const ParityLogClearStripeInfo*>(
+               &_ParityLogClearStripeInfo_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    11;
+
+  friend void swap(ParityLogClearStripeInfo& a, ParityLogClearStripeInfo& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParityLogClearStripeInfo* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParityLogClearStripeInfo* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParityLogClearStripeInfo* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParityLogClearStripeInfo>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParityLogClearStripeInfo& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParityLogClearStripeInfo& from) {
+    ParityLogClearStripeInfo::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParityLogClearStripeInfo* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "datanode_proto.ParityLogClearStripeInfo";
+  }
+  protected:
+  explicit ParityLogClearStripeInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kStripeIdFieldNumber = 1,
+    kParityBeginFieldNumber = 2,
+    kParityEndFieldNumber = 3,
+  };
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // int32 parity_begin = 2;
+  void clear_parity_begin();
+  int32_t parity_begin() const;
+  void set_parity_begin(int32_t value);
+  private:
+  int32_t _internal_parity_begin() const;
+  void _internal_set_parity_begin(int32_t value);
+  public:
+
+  // int32 parity_end = 3;
+  void clear_parity_end();
+  int32_t parity_end() const;
+  void set_parity_end(int32_t value);
+  private:
+  int32_t _internal_parity_end() const;
+  void _internal_set_parity_end(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:datanode_proto.ParityLogClearStripeInfo)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int32_t stripe_id_;
+    int32_t parity_begin_;
+    int32_t parity_end_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_datanode_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ParityLogMergeIfFullInfo final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:datanode_proto.ParityLogMergeIfFullInfo) */ {
+ public:
+  inline ParityLogMergeIfFullInfo() : ParityLogMergeIfFullInfo(nullptr) {}
+  ~ParityLogMergeIfFullInfo() override;
+  explicit PROTOBUF_CONSTEXPR ParityLogMergeIfFullInfo(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ParityLogMergeIfFullInfo(const ParityLogMergeIfFullInfo& from);
+  ParityLogMergeIfFullInfo(ParityLogMergeIfFullInfo&& from) noexcept
+    : ParityLogMergeIfFullInfo() {
+    *this = ::std::move(from);
+  }
+
+  inline ParityLogMergeIfFullInfo& operator=(const ParityLogMergeIfFullInfo& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ParityLogMergeIfFullInfo& operator=(ParityLogMergeIfFullInfo&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ParityLogMergeIfFullInfo& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ParityLogMergeIfFullInfo* internal_default_instance() {
+    return reinterpret_cast<const ParityLogMergeIfFullInfo*>(
+               &_ParityLogMergeIfFullInfo_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    12;
+
+  friend void swap(ParityLogMergeIfFullInfo& a, ParityLogMergeIfFullInfo& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ParityLogMergeIfFullInfo* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ParityLogMergeIfFullInfo* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ParityLogMergeIfFullInfo* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ParityLogMergeIfFullInfo>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ParityLogMergeIfFullInfo& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ParityLogMergeIfFullInfo& from) {
+    ParityLogMergeIfFullInfo::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ParityLogMergeIfFullInfo* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "datanode_proto.ParityLogMergeIfFullInfo";
+  }
+  protected:
+  explicit ParityLogMergeIfFullInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kParityBlockKeyFieldNumber = 3,
+    kCodeTypeFieldNumber = 8,
+    kStripeIdFieldNumber = 1,
+    kParityBlockIdFieldNumber = 2,
+    kKFieldNumber = 4,
+    kRFieldNumber = 5,
+    kZFieldNumber = 6,
+    kBlockSizeFieldNumber = 7,
+  };
+  // string parity_block_key = 3;
+  void clear_parity_block_key();
+  const std::string& parity_block_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_parity_block_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_parity_block_key();
+  PROTOBUF_NODISCARD std::string* release_parity_block_key();
+  void set_allocated_parity_block_key(std::string* parity_block_key);
+  private:
+  const std::string& _internal_parity_block_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_parity_block_key(const std::string& value);
+  std::string* _internal_mutable_parity_block_key();
+  public:
+
+  // string code_type = 8;
+  void clear_code_type();
+  const std::string& code_type() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_code_type(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_code_type();
+  PROTOBUF_NODISCARD std::string* release_code_type();
+  void set_allocated_code_type(std::string* code_type);
+  private:
+  const std::string& _internal_code_type() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_code_type(const std::string& value);
+  std::string* _internal_mutable_code_type();
+  public:
+
+  // int32 stripe_id = 1;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // int32 parity_block_id = 2;
+  void clear_parity_block_id();
+  int32_t parity_block_id() const;
+  void set_parity_block_id(int32_t value);
+  private:
+  int32_t _internal_parity_block_id() const;
+  void _internal_set_parity_block_id(int32_t value);
+  public:
+
+  // int32 k = 4;
+  void clear_k();
+  int32_t k() const;
+  void set_k(int32_t value);
+  private:
+  int32_t _internal_k() const;
+  void _internal_set_k(int32_t value);
+  public:
+
+  // int32 r = 5;
+  void clear_r();
+  int32_t r() const;
+  void set_r(int32_t value);
+  private:
+  int32_t _internal_r() const;
+  void _internal_set_r(int32_t value);
+  public:
+
+  // int32 z = 6;
+  void clear_z();
+  int32_t z() const;
+  void set_z(int32_t value);
+  private:
+  int32_t _internal_z() const;
+  void _internal_set_z(int32_t value);
+  public:
+
+  // int32 block_size = 7;
+  void clear_block_size();
+  int32_t block_size() const;
+  void set_block_size(int32_t value);
+  private:
+  int32_t _internal_block_size() const;
+  void _internal_set_block_size(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:datanode_proto.ParityLogMergeIfFullInfo)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parity_block_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr code_type_;
+    int32_t stripe_id_;
+    int32_t parity_block_id_;
+    int32_t k_;
+    int32_t r_;
+    int32_t z_;
+    int32_t block_size_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_datanode_2eproto;
+};
+// -------------------------------------------------------------------
+
 class DelInfo final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:datanode_proto.DelInfo) */ {
  public:
@@ -1672,7 +2748,7 @@ class DelInfo final :
                &_DelInfo_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    13;
 
   friend void swap(DelInfo& a, DelInfo& b) {
     a.Swap(&b);
@@ -2846,6 +3922,826 @@ inline void CordDeltaBlobInfo::set_proxy_port(int32_t value) {
 
 // -------------------------------------------------------------------
 
+// ParityLogAppendInfo
+
+// int32 stripe_id = 1;
+inline void ParityLogAppendInfo::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t ParityLogAppendInfo::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t ParityLogAppendInfo::stripe_id() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendInfo.stripe_id)
+  return _internal_stripe_id();
+}
+inline void ParityLogAppendInfo::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void ParityLogAppendInfo::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendInfo.stripe_id)
+}
+
+// int32 parity_block_id = 2;
+inline void ParityLogAppendInfo::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
+}
+inline int32_t ParityLogAppendInfo::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
+}
+inline int32_t ParityLogAppendInfo::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendInfo.parity_block_id)
+  return _internal_parity_block_id();
+}
+inline void ParityLogAppendInfo::_internal_set_parity_block_id(int32_t value) {
+  
+  _impl_.parity_block_id_ = value;
+}
+inline void ParityLogAppendInfo::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendInfo.parity_block_id)
+}
+
+// string parity_block_key = 3;
+inline void ParityLogAppendInfo::clear_parity_block_key() {
+  _impl_.parity_block_key_.ClearToEmpty();
+}
+inline const std::string& ParityLogAppendInfo::parity_block_key() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendInfo.parity_block_key)
+  return _internal_parity_block_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ParityLogAppendInfo::set_parity_block_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.parity_block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendInfo.parity_block_key)
+}
+inline std::string* ParityLogAppendInfo::mutable_parity_block_key() {
+  std::string* _s = _internal_mutable_parity_block_key();
+  // @@protoc_insertion_point(field_mutable:datanode_proto.ParityLogAppendInfo.parity_block_key)
+  return _s;
+}
+inline const std::string& ParityLogAppendInfo::_internal_parity_block_key() const {
+  return _impl_.parity_block_key_.Get();
+}
+inline void ParityLogAppendInfo::_internal_set_parity_block_key(const std::string& value) {
+  
+  _impl_.parity_block_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ParityLogAppendInfo::_internal_mutable_parity_block_key() {
+  
+  return _impl_.parity_block_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ParityLogAppendInfo::release_parity_block_key() {
+  // @@protoc_insertion_point(field_release:datanode_proto.ParityLogAppendInfo.parity_block_key)
+  return _impl_.parity_block_key_.Release();
+}
+inline void ParityLogAppendInfo::set_allocated_parity_block_key(std::string* parity_block_key) {
+  if (parity_block_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.parity_block_key_.SetAllocated(parity_block_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.parity_block_key_.IsDefault()) {
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:datanode_proto.ParityLogAppendInfo.parity_block_key)
+}
+
+// int32 data_block_id = 4;
+inline void ParityLogAppendInfo::clear_data_block_id() {
+  _impl_.data_block_id_ = 0;
+}
+inline int32_t ParityLogAppendInfo::_internal_data_block_id() const {
+  return _impl_.data_block_id_;
+}
+inline int32_t ParityLogAppendInfo::data_block_id() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendInfo.data_block_id)
+  return _internal_data_block_id();
+}
+inline void ParityLogAppendInfo::_internal_set_data_block_id(int32_t value) {
+  
+  _impl_.data_block_id_ = value;
+}
+inline void ParityLogAppendInfo::set_data_block_id(int32_t value) {
+  _internal_set_data_block_id(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendInfo.data_block_id)
+}
+
+// int32 range_offset = 5;
+inline void ParityLogAppendInfo::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t ParityLogAppendInfo::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t ParityLogAppendInfo::range_offset() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendInfo.range_offset)
+  return _internal_range_offset();
+}
+inline void ParityLogAppendInfo::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void ParityLogAppendInfo::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendInfo.range_offset)
+}
+
+// int32 range_length = 6;
+inline void ParityLogAppendInfo::clear_range_length() {
+  _impl_.range_length_ = 0;
+}
+inline int32_t ParityLogAppendInfo::_internal_range_length() const {
+  return _impl_.range_length_;
+}
+inline int32_t ParityLogAppendInfo::range_length() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendInfo.range_length)
+  return _internal_range_length();
+}
+inline void ParityLogAppendInfo::_internal_set_range_length(int32_t value) {
+  
+  _impl_.range_length_ = value;
+}
+inline void ParityLogAppendInfo::set_range_length(int32_t value) {
+  _internal_set_range_length(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendInfo.range_length)
+}
+
+// int32 k = 7;
+inline void ParityLogAppendInfo::clear_k() {
+  _impl_.k_ = 0;
+}
+inline int32_t ParityLogAppendInfo::_internal_k() const {
+  return _impl_.k_;
+}
+inline int32_t ParityLogAppendInfo::k() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendInfo.k)
+  return _internal_k();
+}
+inline void ParityLogAppendInfo::_internal_set_k(int32_t value) {
+  
+  _impl_.k_ = value;
+}
+inline void ParityLogAppendInfo::set_k(int32_t value) {
+  _internal_set_k(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendInfo.k)
+}
+
+// int32 r = 8;
+inline void ParityLogAppendInfo::clear_r() {
+  _impl_.r_ = 0;
+}
+inline int32_t ParityLogAppendInfo::_internal_r() const {
+  return _impl_.r_;
+}
+inline int32_t ParityLogAppendInfo::r() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendInfo.r)
+  return _internal_r();
+}
+inline void ParityLogAppendInfo::_internal_set_r(int32_t value) {
+  
+  _impl_.r_ = value;
+}
+inline void ParityLogAppendInfo::set_r(int32_t value) {
+  _internal_set_r(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendInfo.r)
+}
+
+// int32 z = 9;
+inline void ParityLogAppendInfo::clear_z() {
+  _impl_.z_ = 0;
+}
+inline int32_t ParityLogAppendInfo::_internal_z() const {
+  return _impl_.z_;
+}
+inline int32_t ParityLogAppendInfo::z() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendInfo.z)
+  return _internal_z();
+}
+inline void ParityLogAppendInfo::_internal_set_z(int32_t value) {
+  
+  _impl_.z_ = value;
+}
+inline void ParityLogAppendInfo::set_z(int32_t value) {
+  _internal_set_z(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendInfo.z)
+}
+
+// int32 block_size = 10;
+inline void ParityLogAppendInfo::clear_block_size() {
+  _impl_.block_size_ = 0;
+}
+inline int32_t ParityLogAppendInfo::_internal_block_size() const {
+  return _impl_.block_size_;
+}
+inline int32_t ParityLogAppendInfo::block_size() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendInfo.block_size)
+  return _internal_block_size();
+}
+inline void ParityLogAppendInfo::_internal_set_block_size(int32_t value) {
+  
+  _impl_.block_size_ = value;
+}
+inline void ParityLogAppendInfo::set_block_size(int32_t value) {
+  _internal_set_block_size(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendInfo.block_size)
+}
+
+// string code_type = 11;
+inline void ParityLogAppendInfo::clear_code_type() {
+  _impl_.code_type_.ClearToEmpty();
+}
+inline const std::string& ParityLogAppendInfo::code_type() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendInfo.code_type)
+  return _internal_code_type();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ParityLogAppendInfo::set_code_type(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.code_type_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendInfo.code_type)
+}
+inline std::string* ParityLogAppendInfo::mutable_code_type() {
+  std::string* _s = _internal_mutable_code_type();
+  // @@protoc_insertion_point(field_mutable:datanode_proto.ParityLogAppendInfo.code_type)
+  return _s;
+}
+inline const std::string& ParityLogAppendInfo::_internal_code_type() const {
+  return _impl_.code_type_.Get();
+}
+inline void ParityLogAppendInfo::_internal_set_code_type(const std::string& value) {
+  
+  _impl_.code_type_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ParityLogAppendInfo::_internal_mutable_code_type() {
+  
+  return _impl_.code_type_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ParityLogAppendInfo::release_code_type() {
+  // @@protoc_insertion_point(field_release:datanode_proto.ParityLogAppendInfo.code_type)
+  return _impl_.code_type_.Release();
+}
+inline void ParityLogAppendInfo::set_allocated_code_type(std::string* code_type) {
+  if (code_type != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.code_type_.SetAllocated(code_type, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.code_type_.IsDefault()) {
+    _impl_.code_type_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:datanode_proto.ParityLogAppendInfo.code_type)
+}
+
+// bytes new_data = 12;
+inline void ParityLogAppendInfo::clear_new_data() {
+  _impl_.new_data_.ClearToEmpty();
+}
+inline const std::string& ParityLogAppendInfo::new_data() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendInfo.new_data)
+  return _internal_new_data();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ParityLogAppendInfo::set_new_data(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.new_data_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendInfo.new_data)
+}
+inline std::string* ParityLogAppendInfo::mutable_new_data() {
+  std::string* _s = _internal_mutable_new_data();
+  // @@protoc_insertion_point(field_mutable:datanode_proto.ParityLogAppendInfo.new_data)
+  return _s;
+}
+inline const std::string& ParityLogAppendInfo::_internal_new_data() const {
+  return _impl_.new_data_.Get();
+}
+inline void ParityLogAppendInfo::_internal_set_new_data(const std::string& value) {
+  
+  _impl_.new_data_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ParityLogAppendInfo::_internal_mutable_new_data() {
+  
+  return _impl_.new_data_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ParityLogAppendInfo::release_new_data() {
+  // @@protoc_insertion_point(field_release:datanode_proto.ParityLogAppendInfo.new_data)
+  return _impl_.new_data_.Release();
+}
+inline void ParityLogAppendInfo::set_allocated_new_data(std::string* new_data) {
+  if (new_data != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.new_data_.SetAllocated(new_data, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.new_data_.IsDefault()) {
+    _impl_.new_data_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:datanode_proto.ParityLogAppendInfo.new_data)
+}
+
+// -------------------------------------------------------------------
+
+// ParityLogAppendReply
+
+// bool ok = 1;
+inline void ParityLogAppendReply::clear_ok() {
+  _impl_.ok_ = false;
+}
+inline bool ParityLogAppendReply::_internal_ok() const {
+  return _impl_.ok_;
+}
+inline bool ParityLogAppendReply::ok() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendReply.ok)
+  return _internal_ok();
+}
+inline void ParityLogAppendReply::_internal_set_ok(bool value) {
+  
+  _impl_.ok_ = value;
+}
+inline void ParityLogAppendReply::set_ok(bool value) {
+  _internal_set_ok(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendReply.ok)
+}
+
+// bool need_d0 = 2;
+inline void ParityLogAppendReply::clear_need_d0() {
+  _impl_.need_d0_ = false;
+}
+inline bool ParityLogAppendReply::_internal_need_d0() const {
+  return _impl_.need_d0_;
+}
+inline bool ParityLogAppendReply::need_d0() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogAppendReply.need_d0)
+  return _internal_need_d0();
+}
+inline void ParityLogAppendReply::_internal_set_need_d0(bool value) {
+  
+  _impl_.need_d0_ = value;
+}
+inline void ParityLogAppendReply::set_need_d0(bool value) {
+  _internal_set_need_d0(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogAppendReply.need_d0)
+}
+
+// -------------------------------------------------------------------
+
+// ParityLogStoreD0Info
+
+// int32 stripe_id = 1;
+inline void ParityLogStoreD0Info::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t ParityLogStoreD0Info::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t ParityLogStoreD0Info::stripe_id() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogStoreD0Info.stripe_id)
+  return _internal_stripe_id();
+}
+inline void ParityLogStoreD0Info::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void ParityLogStoreD0Info::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogStoreD0Info.stripe_id)
+}
+
+// int32 parity_block_id = 2;
+inline void ParityLogStoreD0Info::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
+}
+inline int32_t ParityLogStoreD0Info::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
+}
+inline int32_t ParityLogStoreD0Info::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogStoreD0Info.parity_block_id)
+  return _internal_parity_block_id();
+}
+inline void ParityLogStoreD0Info::_internal_set_parity_block_id(int32_t value) {
+  
+  _impl_.parity_block_id_ = value;
+}
+inline void ParityLogStoreD0Info::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogStoreD0Info.parity_block_id)
+}
+
+// int32 data_block_id = 3;
+inline void ParityLogStoreD0Info::clear_data_block_id() {
+  _impl_.data_block_id_ = 0;
+}
+inline int32_t ParityLogStoreD0Info::_internal_data_block_id() const {
+  return _impl_.data_block_id_;
+}
+inline int32_t ParityLogStoreD0Info::data_block_id() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogStoreD0Info.data_block_id)
+  return _internal_data_block_id();
+}
+inline void ParityLogStoreD0Info::_internal_set_data_block_id(int32_t value) {
+  
+  _impl_.data_block_id_ = value;
+}
+inline void ParityLogStoreD0Info::set_data_block_id(int32_t value) {
+  _internal_set_data_block_id(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogStoreD0Info.data_block_id)
+}
+
+// int32 range_offset = 4;
+inline void ParityLogStoreD0Info::clear_range_offset() {
+  _impl_.range_offset_ = 0;
+}
+inline int32_t ParityLogStoreD0Info::_internal_range_offset() const {
+  return _impl_.range_offset_;
+}
+inline int32_t ParityLogStoreD0Info::range_offset() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogStoreD0Info.range_offset)
+  return _internal_range_offset();
+}
+inline void ParityLogStoreD0Info::_internal_set_range_offset(int32_t value) {
+  
+  _impl_.range_offset_ = value;
+}
+inline void ParityLogStoreD0Info::set_range_offset(int32_t value) {
+  _internal_set_range_offset(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogStoreD0Info.range_offset)
+}
+
+// int32 range_length = 5;
+inline void ParityLogStoreD0Info::clear_range_length() {
+  _impl_.range_length_ = 0;
+}
+inline int32_t ParityLogStoreD0Info::_internal_range_length() const {
+  return _impl_.range_length_;
+}
+inline int32_t ParityLogStoreD0Info::range_length() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogStoreD0Info.range_length)
+  return _internal_range_length();
+}
+inline void ParityLogStoreD0Info::_internal_set_range_length(int32_t value) {
+  
+  _impl_.range_length_ = value;
+}
+inline void ParityLogStoreD0Info::set_range_length(int32_t value) {
+  _internal_set_range_length(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogStoreD0Info.range_length)
+}
+
+// bytes d0 = 6;
+inline void ParityLogStoreD0Info::clear_d0() {
+  _impl_.d0_.ClearToEmpty();
+}
+inline const std::string& ParityLogStoreD0Info::d0() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogStoreD0Info.d0)
+  return _internal_d0();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ParityLogStoreD0Info::set_d0(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.d0_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogStoreD0Info.d0)
+}
+inline std::string* ParityLogStoreD0Info::mutable_d0() {
+  std::string* _s = _internal_mutable_d0();
+  // @@protoc_insertion_point(field_mutable:datanode_proto.ParityLogStoreD0Info.d0)
+  return _s;
+}
+inline const std::string& ParityLogStoreD0Info::_internal_d0() const {
+  return _impl_.d0_.Get();
+}
+inline void ParityLogStoreD0Info::_internal_set_d0(const std::string& value) {
+  
+  _impl_.d0_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ParityLogStoreD0Info::_internal_mutable_d0() {
+  
+  return _impl_.d0_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ParityLogStoreD0Info::release_d0() {
+  // @@protoc_insertion_point(field_release:datanode_proto.ParityLogStoreD0Info.d0)
+  return _impl_.d0_.Release();
+}
+inline void ParityLogStoreD0Info::set_allocated_d0(std::string* d0) {
+  if (d0 != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.d0_.SetAllocated(d0, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.d0_.IsDefault()) {
+    _impl_.d0_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:datanode_proto.ParityLogStoreD0Info.d0)
+}
+
+// -------------------------------------------------------------------
+
+// ParityLogClearStripeInfo
+
+// int32 stripe_id = 1;
+inline void ParityLogClearStripeInfo::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t ParityLogClearStripeInfo::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t ParityLogClearStripeInfo::stripe_id() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogClearStripeInfo.stripe_id)
+  return _internal_stripe_id();
+}
+inline void ParityLogClearStripeInfo::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void ParityLogClearStripeInfo::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogClearStripeInfo.stripe_id)
+}
+
+// int32 parity_begin = 2;
+inline void ParityLogClearStripeInfo::clear_parity_begin() {
+  _impl_.parity_begin_ = 0;
+}
+inline int32_t ParityLogClearStripeInfo::_internal_parity_begin() const {
+  return _impl_.parity_begin_;
+}
+inline int32_t ParityLogClearStripeInfo::parity_begin() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogClearStripeInfo.parity_begin)
+  return _internal_parity_begin();
+}
+inline void ParityLogClearStripeInfo::_internal_set_parity_begin(int32_t value) {
+  
+  _impl_.parity_begin_ = value;
+}
+inline void ParityLogClearStripeInfo::set_parity_begin(int32_t value) {
+  _internal_set_parity_begin(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogClearStripeInfo.parity_begin)
+}
+
+// int32 parity_end = 3;
+inline void ParityLogClearStripeInfo::clear_parity_end() {
+  _impl_.parity_end_ = 0;
+}
+inline int32_t ParityLogClearStripeInfo::_internal_parity_end() const {
+  return _impl_.parity_end_;
+}
+inline int32_t ParityLogClearStripeInfo::parity_end() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogClearStripeInfo.parity_end)
+  return _internal_parity_end();
+}
+inline void ParityLogClearStripeInfo::_internal_set_parity_end(int32_t value) {
+  
+  _impl_.parity_end_ = value;
+}
+inline void ParityLogClearStripeInfo::set_parity_end(int32_t value) {
+  _internal_set_parity_end(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogClearStripeInfo.parity_end)
+}
+
+// -------------------------------------------------------------------
+
+// ParityLogMergeIfFullInfo
+
+// int32 stripe_id = 1;
+inline void ParityLogMergeIfFullInfo::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t ParityLogMergeIfFullInfo::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t ParityLogMergeIfFullInfo::stripe_id() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogMergeIfFullInfo.stripe_id)
+  return _internal_stripe_id();
+}
+inline void ParityLogMergeIfFullInfo::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void ParityLogMergeIfFullInfo::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogMergeIfFullInfo.stripe_id)
+}
+
+// int32 parity_block_id = 2;
+inline void ParityLogMergeIfFullInfo::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
+}
+inline int32_t ParityLogMergeIfFullInfo::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
+}
+inline int32_t ParityLogMergeIfFullInfo::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogMergeIfFullInfo.parity_block_id)
+  return _internal_parity_block_id();
+}
+inline void ParityLogMergeIfFullInfo::_internal_set_parity_block_id(int32_t value) {
+  
+  _impl_.parity_block_id_ = value;
+}
+inline void ParityLogMergeIfFullInfo::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogMergeIfFullInfo.parity_block_id)
+}
+
+// string parity_block_key = 3;
+inline void ParityLogMergeIfFullInfo::clear_parity_block_key() {
+  _impl_.parity_block_key_.ClearToEmpty();
+}
+inline const std::string& ParityLogMergeIfFullInfo::parity_block_key() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogMergeIfFullInfo.parity_block_key)
+  return _internal_parity_block_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ParityLogMergeIfFullInfo::set_parity_block_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.parity_block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogMergeIfFullInfo.parity_block_key)
+}
+inline std::string* ParityLogMergeIfFullInfo::mutable_parity_block_key() {
+  std::string* _s = _internal_mutable_parity_block_key();
+  // @@protoc_insertion_point(field_mutable:datanode_proto.ParityLogMergeIfFullInfo.parity_block_key)
+  return _s;
+}
+inline const std::string& ParityLogMergeIfFullInfo::_internal_parity_block_key() const {
+  return _impl_.parity_block_key_.Get();
+}
+inline void ParityLogMergeIfFullInfo::_internal_set_parity_block_key(const std::string& value) {
+  
+  _impl_.parity_block_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ParityLogMergeIfFullInfo::_internal_mutable_parity_block_key() {
+  
+  return _impl_.parity_block_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ParityLogMergeIfFullInfo::release_parity_block_key() {
+  // @@protoc_insertion_point(field_release:datanode_proto.ParityLogMergeIfFullInfo.parity_block_key)
+  return _impl_.parity_block_key_.Release();
+}
+inline void ParityLogMergeIfFullInfo::set_allocated_parity_block_key(std::string* parity_block_key) {
+  if (parity_block_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.parity_block_key_.SetAllocated(parity_block_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.parity_block_key_.IsDefault()) {
+    _impl_.parity_block_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:datanode_proto.ParityLogMergeIfFullInfo.parity_block_key)
+}
+
+// int32 k = 4;
+inline void ParityLogMergeIfFullInfo::clear_k() {
+  _impl_.k_ = 0;
+}
+inline int32_t ParityLogMergeIfFullInfo::_internal_k() const {
+  return _impl_.k_;
+}
+inline int32_t ParityLogMergeIfFullInfo::k() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogMergeIfFullInfo.k)
+  return _internal_k();
+}
+inline void ParityLogMergeIfFullInfo::_internal_set_k(int32_t value) {
+  
+  _impl_.k_ = value;
+}
+inline void ParityLogMergeIfFullInfo::set_k(int32_t value) {
+  _internal_set_k(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogMergeIfFullInfo.k)
+}
+
+// int32 r = 5;
+inline void ParityLogMergeIfFullInfo::clear_r() {
+  _impl_.r_ = 0;
+}
+inline int32_t ParityLogMergeIfFullInfo::_internal_r() const {
+  return _impl_.r_;
+}
+inline int32_t ParityLogMergeIfFullInfo::r() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogMergeIfFullInfo.r)
+  return _internal_r();
+}
+inline void ParityLogMergeIfFullInfo::_internal_set_r(int32_t value) {
+  
+  _impl_.r_ = value;
+}
+inline void ParityLogMergeIfFullInfo::set_r(int32_t value) {
+  _internal_set_r(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogMergeIfFullInfo.r)
+}
+
+// int32 z = 6;
+inline void ParityLogMergeIfFullInfo::clear_z() {
+  _impl_.z_ = 0;
+}
+inline int32_t ParityLogMergeIfFullInfo::_internal_z() const {
+  return _impl_.z_;
+}
+inline int32_t ParityLogMergeIfFullInfo::z() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogMergeIfFullInfo.z)
+  return _internal_z();
+}
+inline void ParityLogMergeIfFullInfo::_internal_set_z(int32_t value) {
+  
+  _impl_.z_ = value;
+}
+inline void ParityLogMergeIfFullInfo::set_z(int32_t value) {
+  _internal_set_z(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogMergeIfFullInfo.z)
+}
+
+// int32 block_size = 7;
+inline void ParityLogMergeIfFullInfo::clear_block_size() {
+  _impl_.block_size_ = 0;
+}
+inline int32_t ParityLogMergeIfFullInfo::_internal_block_size() const {
+  return _impl_.block_size_;
+}
+inline int32_t ParityLogMergeIfFullInfo::block_size() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogMergeIfFullInfo.block_size)
+  return _internal_block_size();
+}
+inline void ParityLogMergeIfFullInfo::_internal_set_block_size(int32_t value) {
+  
+  _impl_.block_size_ = value;
+}
+inline void ParityLogMergeIfFullInfo::set_block_size(int32_t value) {
+  _internal_set_block_size(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogMergeIfFullInfo.block_size)
+}
+
+// string code_type = 8;
+inline void ParityLogMergeIfFullInfo::clear_code_type() {
+  _impl_.code_type_.ClearToEmpty();
+}
+inline const std::string& ParityLogMergeIfFullInfo::code_type() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.ParityLogMergeIfFullInfo.code_type)
+  return _internal_code_type();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ParityLogMergeIfFullInfo::set_code_type(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.code_type_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:datanode_proto.ParityLogMergeIfFullInfo.code_type)
+}
+inline std::string* ParityLogMergeIfFullInfo::mutable_code_type() {
+  std::string* _s = _internal_mutable_code_type();
+  // @@protoc_insertion_point(field_mutable:datanode_proto.ParityLogMergeIfFullInfo.code_type)
+  return _s;
+}
+inline const std::string& ParityLogMergeIfFullInfo::_internal_code_type() const {
+  return _impl_.code_type_.Get();
+}
+inline void ParityLogMergeIfFullInfo::_internal_set_code_type(const std::string& value) {
+  
+  _impl_.code_type_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ParityLogMergeIfFullInfo::_internal_mutable_code_type() {
+  
+  return _impl_.code_type_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ParityLogMergeIfFullInfo::release_code_type() {
+  // @@protoc_insertion_point(field_release:datanode_proto.ParityLogMergeIfFullInfo.code_type)
+  return _impl_.code_type_.Release();
+}
+inline void ParityLogMergeIfFullInfo::set_allocated_code_type(std::string* code_type) {
+  if (code_type != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.code_type_.SetAllocated(code_type, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.code_type_.IsDefault()) {
+    _impl_.code_type_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:datanode_proto.ParityLogMergeIfFullInfo.code_type)
+}
+
+// -------------------------------------------------------------------
+
 // DelInfo
 
 // string block_key = 1;
@@ -2901,6 +4797,16 @@ inline void DelInfo::set_allocated_block_key(std::string* block_key) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

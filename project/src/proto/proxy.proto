@@ -458,6 +458,22 @@ message CordDataUpdatePlacement {
   string delta_blob_key = 11;
   string delta_datanode_ip = 12;
   int32 delta_datanode_port = 13;
+  // StripeUpdate: 1=partial, 2=full stripe; 0=legacy CoRD
+  int32 stripe_update_mode = 14;
+  int32 primary_data_block_id = 15;
+  int32 k = 16;
+  int32 r = 17;
+  int32 z = 18;
+  string code_type = 19;
+  int32 block_size = 20;
+  repeated int32 parity_block_ids = 21;
+  repeated string parity_block_keys = 22;
+  repeated string parity_datanode_ips = 23;
+  repeated int32 parity_datanode_ports = 24;
+  repeated int32 all_block_ids = 25;
+  repeated string all_block_keys = 26;
+  repeated string all_datanode_ips = 27;
+  repeated int32 all_datanode_ports = 28;
 }
 
 message CordLpDeltaFetch {

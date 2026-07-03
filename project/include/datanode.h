@@ -79,6 +79,22 @@ namespace ECProject
             grpc::ServerContext *context,
             const datanode_proto::CordDeltaBlobInfo *info,
             datanode_proto::RequestResult *response) override;
+        grpc::Status handleParityLogAppend(
+            grpc::ServerContext *context,
+            const datanode_proto::ParityLogAppendInfo *info,
+            datanode_proto::ParityLogAppendReply *response) override;
+        grpc::Status handleParityLogStoreD0(
+            grpc::ServerContext *context,
+            const datanode_proto::ParityLogStoreD0Info *info,
+            datanode_proto::RequestResult *response) override;
+        grpc::Status handleParityLogClearStripe(
+            grpc::ServerContext *context,
+            const datanode_proto::ParityLogClearStripeInfo *info,
+            datanode_proto::RequestResult *response) override;
+        grpc::Status handleParityLogMergeIfFull(
+            grpc::ServerContext *context,
+            const datanode_proto::ParityLogMergeIfFullInfo *info,
+            datanode_proto::RequestResult *response) override;
         // delete
         grpc::Status handleDelete(
             grpc::ServerContext *context,

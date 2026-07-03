@@ -1,5 +1,6 @@
 #include "datanode.h"
 #include "toolbox.h"
+#include "parity_log_store.h"
 #include <fstream>
 #include <unistd.h>
 #include <fcntl.h>
@@ -1069,6 +1070,67 @@ namespace ECProject
       std::cout << "handleCordDeltaBlob exception" << std::endl;
       std::cout << e.what() << std::endl;
     }
+    return grpc::Status::OK;
+  }
+
+  grpc::Status DatanodeImpl::handleParityLogAppend(grpc::ServerContext *context,
+                                                   const datanode_proto::ParityLogAppendInfo *info,
+                                                   datanode_proto::ParityLogAppendReply *response)
+  {
+    (void)context;
+    response->set_ok(false);
+    response->set_need_d0(false);
+    const std::string &new_data = info->new_data();
+    if (static_cast<int>(new_data.size()) != info->range_length())
+      return grpc::Status::OK;
+    ParityLogAppendResult r = ParityLogStore::instance().append_new_data(
+        info->stripe_id(), info->parity_block_id(), info->parity_block_key(), info->data_block_id(),
+        info->range_offset(), info->range_length(), info->k(), info->r(), info->z(), info->block_size(),
+        info->code_type(), new_data.data(), static_cast<int>(new_data.size()));
+    response->set_ok(r.ok);
+    response->set_need_d0(r.need_d0);
+    return grpc::Status::OK;
+  }
+
+  grpc::Status DatanodeImpl::handleParityLogStoreD0(grpc::ServerContext *context,
+                                                    const datanode_proto::ParityLogStoreD0Info *info,
+                                                    datanode_proto::RequestResult *response)
+  {
+    (void)context;
+    response->set_message(false);
+    const std::string &d0 = info->d0();
+    if (static_cast<int>(d0.size()) != info->range_length())
+      return grpc::Status::OK;
+    bool ok = ParityLogStore::instance().store_d0(info->stripe_id(), info->parity_block_id(), info->data_block_id(),
+                                                   info->range_offset(), info->range_length(), d0.data(),
+                                                   static_cast<int>(d0.size()));
+    if (ok)
+      ok = ParityLogStore::instance().merge_if_full_cached(info->stripe_id(), info->parity_block_id(), m_port);
+    response->set_message(ok);
+    return grpc::Status::OK;
+  }
+
+  grpc::Status DatanodeImpl::handleParityLogClearStripe(grpc::ServerContext *context,
+                                                        const datanode_proto::ParityLogClearStripeInfo *info,
+                                                        datanode_proto::RequestResult *response)
+  {
+    (void)context;
+    response->set_message(
+        ParityLogStore::instance().clear_stripe_logs(info->stripe_id(), info->parity_begin(), info->parity_end()));
+    return grpc::Status::OK;
+  }
+
+  grpc::Status DatanodeImpl::handleParityLogMergeIfFull(grpc::ServerContext *context,
+                                                        const datanode_proto::ParityLogMergeIfFullInfo *info,
+                                                        datanode_proto::RequestResult *response)
+  {
+    (void)context;
+    response->set_message(false);
+    const std::string storage_path =
+        "./storage/" + std::to_string(m_port) + "/" + info->parity_block_key();
+    response->set_message(ParityLogStore::instance().merge_if_full(
+        info->stripe_id(), info->parity_block_id(), storage_path, info->k(), info->r(), info->z(), info->block_size(),
+        info->code_type()));
     return grpc::Status::OK;
   }
 

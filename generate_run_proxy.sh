@@ -11,7 +11,7 @@ if [[ ! -f "$HOSTS_FILE" ]]; then
 fi
 
 USER="root"
-REMOTE_DIR="/root/xue/small_tools"
+REMOTE_DIR="/users/xue/xue/small_tools"
 
 # update_all.sh 已用 sudo rsync 同步全仓库时，可设 SKIP_COPY=1 跳过重复 scp
 if [[ "${SKIP_COPY:-0}" != "1" ]]; then
@@ -33,7 +33,7 @@ PARALLEL=10
 # LOCAL_IP=... 必须紧贴 python，不能写在 cd 前。
 echo "Running generator_sh.py on all hosts (parallel=${PARALLEL}, LOCAL_IP per host)..."
 if xargs -P "$PARALLEL" -I{} ssh -o ConnectTimeout=15 -o StrictHostKeyChecking=no \
-    "${USER}@{}" "cd ${REMOTE_DIR} && LOCAL_IP={} python3 generator_sh.py" \
+    "${USER}@{}" "cd ${REMOTE_DIR} && LOCAL_IP={} python generator_sh.py" \
     < "$HOSTS_FILE"; then
   echo "Successfully ran generator_sh.py on all hosts!"
 else

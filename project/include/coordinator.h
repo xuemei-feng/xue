@@ -79,6 +79,13 @@ namespace ECProject
         grpc::ServerContext *context,
         const coordinator_proto::CordUpdateRequest *request,
         coordinator_proto::ReplyProxyIPsPorts *proxyIPPort) override;
+    grpc::Status uploadStripeStyleUpdate(
+        grpc::ServerContext *context,
+        const coordinator_proto::CordUpdateRequest *request,
+        coordinator_proto::ReplyProxyIPsPorts *proxyIPPort,
+        Stripe *stripe,
+        const std::map<int, std::vector<std::pair<int, int>>> &block_intervals,
+        int block_size);
     grpc::Status cordPlanBeginTransfer(
         grpc::ServerContext *context,
         const coordinator_proto::CordPlanKeyOnly *request,

@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-ROOT_DIR="/root/xue"
+ROOT_DIR="/users/xue/xue"
 HOSTS_FILE="$ROOT_DIR/datanode_hosts"
 USER="root"
 FRESH_MODE=0

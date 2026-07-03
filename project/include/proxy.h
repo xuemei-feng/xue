@@ -187,6 +187,8 @@ namespace ECProject
     bool CordRangeReadFromDatanode(const std::string &block_key, int block_id, int range_offset, char *out, size_t length, const char *ip, int port);
     bool CordRangeWriteToDatanode(const std::string &block_key, int block_id, int range_offset, const char *data, size_t length, const char *ip, int port);
     bool CordDeltaBlobToDatanode(const std::string &blob_key, const char *data, size_t length, const char *ip, int port);
+    bool execute_stripe_partial_update(const proxy_proto::CordDataUpdatePlacement &placement, const char *buf, size_t payload_size);
+    bool execute_stripe_full_update(const proxy_proto::CordDataUpdatePlacement &placement, const char *buf, size_t payload_size);
     /** CoRD：与其它 proxy（ip:port）之间的长连接池，跨 RPC 调用复用 HTTP/2 channel。 */
     proxy_proto::proxyService::Stub *stub_for_peer_proxy(const std::string &endpoint);
     int self_cluster_id() const { return m_self_cluster_id; }

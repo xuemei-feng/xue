@@ -1,6 +1,7 @@
 #include "coordinator.h"
 #include <cstdint>
 #include "cord_algorithm2.h"
+#include "stripe_update.h"
 #include "tinyxml2.h"
 #include <random>
 #include <unistd.h>
@@ -1214,8 +1215,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
   void CoordinatorImpl::initialize_split_parity_lrc_stripe_placement(Stripe *stripe)
   {
-    // 6-cluster 轮询放置（stripe_id % 6）：
-    //   slot0 -> 全部全局校验块；slot1 -> 全部本地校验块；slot2..5 -> 仅数据块（随机，且每 cluster 数据块数 <= r+1）
+    // 随机选取 6 个 cluster（机架），将全部数据块与校验块随机投放；
+    // 约束：每个 cluster 块数 <= r+1（单机架容错）。
     Block *blocks_info = new Block[stripe->n];
     assert(stripe->object_keys.size() == 1);
 
@@ -1224,22 +1225,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       throw std::runtime_error("ClusterNum must be >= 6 for SplitParityLRC placement");
     }
-    if (stripe->k > 4 * (stripe->r + 1))
+    const int target_cluster_num = 6;
+    if (stripe->n > target_cluster_num * (stripe->r + 1))
     {
-      throw std::runtime_error("SplitParityLRC requires k <= 4*(r+1) (four data clusters, each holds at most r+1 data blocks)");
-    }
-
-    const int base = stripe->stripe_id % 6;
-    auto slot_cluster = [&](int slot_offset) -> int {
-      return (base + slot_offset) % cluster_num;
-    };
-    const int global_cluster = slot_cluster(0);
-    const int local_cluster = slot_cluster(1);
-    std::vector<int> data_clusters;
-    data_clusters.reserve(4);
-    for (int slot = 2; slot <= 5; ++slot)
-    {
-      data_clusters.push_back(slot_cluster(slot));
+      throw std::runtime_error("SplitParityLRC requires n <= 6*(r+1) (six racks, each holds at most r+1 blocks)");
     }
 
     std::mt19937 gen;
@@ -1253,6 +1242,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       std::random_device rd;
       gen.seed(rd());
     }
+
+    std::vector<int> all_clusters(cluster_num);
+    std::iota(all_clusters.begin(), all_clusters.end(), 0);
+    std::shuffle(all_clusters.begin(), all_clusters.end(), gen);
+    std::vector<int> selected_clusters(all_clusters.begin(), all_clusters.begin() + target_cluster_num);
 
     const int global_parity_group_id = stripe->z;
     for (int i = 0; i < stripe->n; i++)
@@ -1292,40 +1286,32 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
     }
 
-    std::vector<int> assigned_cluster(stripe->n, -1);
-    for (int i = stripe->k; i < stripe->k + stripe->r; ++i)
-    {
-      assigned_cluster[i] = global_cluster;
-    }
-    for (int i = stripe->k + stripe->r; i < stripe->n; ++i)
-    {
-      assigned_cluster[i] = local_cluster;
-    }
-
-    std::vector<int> data_order(stripe->k);
-    std::iota(data_order.begin(), data_order.end(), 0);
+    std::vector<int> block_order(stripe->n);
+    std::iota(block_order.begin(), block_order.end(), 0);
     const int max_attempts = 256;
     bool placed = false;
+    std::vector<int> assigned_cluster(stripe->n, -1);
     for (int attempt = 0; attempt < max_attempts && !placed; ++attempt)
     {
-      std::shuffle(data_order.begin(), data_order.end(), gen);
-      std::map<int, int> data_cluster_count;
-      for (int cid : data_clusters)
+      std::shuffle(block_order.begin(), block_order.end(), gen);
+      std::fill(assigned_cluster.begin(), assigned_cluster.end(), -1);
+      std::map<int, int> cluster_block_count;
+      for (int cid : selected_clusters)
       {
-        data_cluster_count[cid] = 0;
+        cluster_block_count[cid] = 0;
       }
       bool ok = true;
-      for (int block_idx : data_order)
+      for (int block_idx : block_order)
       {
-        std::vector<int> candidates = data_clusters;
+        std::vector<int> candidates = selected_clusters;
         std::shuffle(candidates.begin(), candidates.end(), gen);
         bool assigned = false;
         for (int cid : candidates)
         {
-          if (data_cluster_count[cid] + 1 <= stripe->r + 1)
+          if (cluster_block_count[cid] + 1 <= stripe->r + 1)
           {
             assigned_cluster[block_idx] = cid;
-            data_cluster_count[cid]++;
+            cluster_block_count[cid]++;
             assigned = true;
             break;
           }
@@ -1340,7 +1326,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     if (!placed)
     {
-      throw std::runtime_error("SplitParityLRC placement failed to satisfy per-cluster data block count <= r+1");
+      throw std::runtime_error("SplitParityLRC placement failed to satisfy per-cluster block count <= r+1");
     }
 
     for (int i = 0; i < stripe->n; i++)
@@ -2111,6 +2097,187 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "XueLRC update strategy has been removed");
   }
 
+  namespace
+  {
+    int stripe_local_parity_block_id(const Stripe *stripe, int data_block_id)
+    {
+      const int g = stripe->blocks[data_block_id]->map2group;
+      for (int i = stripe->k + stripe->r; i < stripe->n; ++i)
+      {
+        if (stripe->blocks[i]->map2group == g)
+          return i;
+      }
+      return -1;
+    }
+  } // namespace
+
+  grpc::Status CoordinatorImpl::uploadStripeStyleUpdate(
+      grpc::ServerContext *context,
+      const coordinator_proto::CordUpdateRequest *request,
+      coordinator_proto::ReplyProxyIPsPorts *proxyIPPort,
+      Stripe *stripe,
+      const std::map<int, std::vector<std::pair<int, int>>> &block_intervals,
+      int block_size)
+  {
+    (void)context;
+    const int stripe_id = request->stripe_id();
+    const int k = stripe->k;
+    const std::string code_type = m_sys_config->CodeType;
+    const stripe_update::UpdateMode mode = stripe_update::classify_update(block_intervals, k, block_size);
+
+    std::cout << "[StripeUpdate] stripe_id=" << stripe_id << " mode="
+              << (mode == stripe_update::UpdateMode::FULL_STRIPE ? "FULL" : "PARTIAL") << std::endl;
+
+    proxyIPPort->set_stripe_update_mode(mode == stripe_update::UpdateMode::FULL_STRIPE ? 2 : 1);
+    proxyIPPort->clear_cord_transfer_plan_key();
+
+    if (mode == stripe_update::UpdateMode::FULL_STRIPE)
+    {
+      std::mt19937 gen;
+      if (m_sys_config->PlacementRandomSeed != 0ULL)
+        seed_placement_mt19937(gen, m_sys_config->PlacementRandomSeed, stripe_id);
+      else
+        gen.seed(std::random_device{}());
+      std::uniform_int_distribution<int> pick(0, k - 1);
+      const int primary = pick(gen);
+      proxyIPPort->set_primary_data_block_id(primary);
+
+      const int primary_cluster = stripe->blocks[primary]->map2cluster;
+      proxy_proto::CordDataUpdatePlacement plan;
+      plan.set_key(m_toolbox->gen_cord_key(stripe_id, primary_cluster));
+      plan.set_cluster_id(primary_cluster);
+      plan.set_stripe_id(stripe_id);
+      plan.set_update_payload_size(static_cast<uint64_t>(k) * static_cast<uint64_t>(block_size));
+      plan.set_stripe_update_mode(2);
+      plan.set_primary_data_block_id(primary);
+      plan.set_k(k);
+      plan.set_r(stripe->r);
+      plan.set_z(stripe->z);
+      plan.set_code_type(code_type);
+      plan.set_block_size(block_size);
+      for (int i = 0; i < stripe->n; ++i)
+      {
+        Block *bp = stripe->blocks[i];
+        const Node &n = m_node_table[bp->map2node];
+        plan.add_all_block_ids(bp->block_id);
+        plan.add_all_block_keys(bp->block_key);
+        plan.add_all_datanode_ips(n.node_ip);
+        plan.add_all_datanode_ports(n.node_port);
+      }
+      for (int i = 0; i < k; ++i)
+      {
+        Block *bp = stripe->blocks[i];
+        const Node &n = m_node_table[bp->map2node];
+        plan.add_blockkeys(bp->block_key);
+        plan.add_blockids(i);
+        plan.add_datanodeip(n.node_ip);
+        plan.add_datanodeport(n.node_port);
+        plan.add_offsets(0);
+        plan.add_sizes(static_cast<uint64_t>(block_size));
+      }
+
+      m_mutex.lock();
+      m_object_commit_table.erase(plan.key());
+      m_mutex.unlock();
+      if (!notify_proxies_cord_ready(plan))
+        return grpc::Status(grpc::StatusCode::INTERNAL, "scheduleCordDataUpdate failed for full stripe primary");
+
+      proxyIPPort->add_append_keys(plan.key());
+      proxyIPPort->add_proxyips(m_cluster_table[primary_cluster].proxy_ip);
+      proxyIPPort->add_proxyports(m_cluster_table[primary_cluster].proxy_port + ECProject::PROXY_PORT_SHIFT);
+      proxyIPPort->add_cluster_slice_sizes(plan.update_payload_size());
+      proxyIPPort->add_group_ids(primary_cluster);
+      proxyIPPort->set_sum_append_size(plan.update_payload_size());
+      return grpc::Status::OK;
+    }
+
+    struct SliceRec
+    {
+      int block_id;
+      int off;
+      int len;
+    };
+    std::map<int, std::vector<SliceRec>> cluster_plan;
+    for (const auto &kv : block_intervals)
+    {
+      const int bid = kv.first;
+      if (bid < 0 || bid >= k)
+        continue;
+      const int cid = stripe->blocks[bid]->map2cluster;
+      for (const auto &seg : kv.second)
+        cluster_plan[cid].push_back(SliceRec{bid, seg.first, seg.second - seg.first});
+    }
+
+    uint64_t sum_bytes = 0;
+    for (const auto &kv : block_intervals)
+      for (const auto &seg : kv.second)
+        sum_bytes += static_cast<uint64_t>(seg.second - seg.first);
+
+    for (const auto &entry : cluster_plan)
+    {
+      const int cid = entry.first;
+      const auto &slices = entry.second;
+      proxy_proto::CordDataUpdatePlacement plan;
+      plan.set_key(m_toolbox->gen_cord_key(stripe_id, cid));
+      plan.set_cluster_id(cid);
+      plan.set_stripe_id(stripe_id);
+      plan.set_stripe_update_mode(1);
+      plan.set_k(k);
+      plan.set_r(stripe->r);
+      plan.set_z(stripe->z);
+      plan.set_code_type(code_type);
+      plan.set_block_size(block_size);
+      uint64_t cluster_payload = 0;
+      for (const auto &s : slices)
+      {
+        Block *bp = stripe->blocks[s.block_id];
+        const Node &n = m_node_table[bp->map2node];
+        plan.add_blockkeys(bp->block_key);
+        plan.add_blockids(s.block_id);
+        plan.add_datanodeip(n.node_ip);
+        plan.add_datanodeport(n.node_port);
+        plan.add_offsets(static_cast<uint64_t>(s.off));
+        plan.add_sizes(static_cast<uint64_t>(s.len));
+        cluster_payload += static_cast<uint64_t>(s.len);
+        for (int g = k; g < k + stripe->r; ++g)
+        {
+          Block *pbp = stripe->blocks[g];
+          const Node &pn = m_node_table[pbp->map2node];
+          plan.add_parity_block_ids(g);
+          plan.add_parity_block_keys(pbp->block_key);
+          plan.add_parity_datanode_ips(pn.node_ip);
+          plan.add_parity_datanode_ports(pn.node_port);
+        }
+        const int lp = stripe_local_parity_block_id(stripe, s.block_id);
+        if (lp >= 0)
+        {
+          Block *pbp = stripe->blocks[lp];
+          const Node &pn = m_node_table[pbp->map2node];
+          plan.add_parity_block_ids(lp);
+          plan.add_parity_block_keys(pbp->block_key);
+          plan.add_parity_datanode_ips(pn.node_ip);
+          plan.add_parity_datanode_ports(pn.node_port);
+        }
+      }
+      plan.set_update_payload_size(cluster_payload);
+
+      m_mutex.lock();
+      m_object_commit_table.erase(plan.key());
+      m_mutex.unlock();
+      if (!notify_proxies_cord_ready(plan))
+        return grpc::Status(grpc::StatusCode::INTERNAL,
+                            "scheduleCordDataUpdate failed for cluster " + std::to_string(cid));
+
+      proxyIPPort->add_append_keys(plan.key());
+      proxyIPPort->add_proxyips(m_cluster_table[cid].proxy_ip);
+      proxyIPPort->add_proxyports(m_cluster_table[cid].proxy_port + ECProject::PROXY_PORT_SHIFT);
+      proxyIPPort->add_cluster_slice_sizes(cluster_payload);
+      proxyIPPort->add_group_ids(cid);
+    }
+    proxyIPPort->set_sum_append_size(sum_bytes);
+    return grpc::Status::OK;
+  }
+
   grpc::Status CoordinatorImpl::uploadCordUpdate(
       grpc::ServerContext *context,
       const coordinator_proto::CordUpdateRequest *request,
@@ -2159,6 +2326,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                             "logical interval out of stripe data range");
       }
       cord_add_logical_range_to_data_blocks(block_size, k, s, e, &block_intervals);
+    }
+
+    if (is_azure_like_code(m_sys_config->CodeType))
+    {
+      return uploadStripeStyleUpdate(context, request, proxyIPPort, stripe, block_intervals, block_size);
     }
 
     // Flip offsets for even-numbered data blocks: mirror the update range within the block.

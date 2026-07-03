@@ -123,6 +123,9 @@ message ReplyProxyIPsPorts {
   repeated uint64 cluster_slice_sizes = 5;
   repeated int32 group_ids = 6;
   string cord_transfer_plan_key = 7;
+  // StripeUpdate: 1=partial, 2=full stripe
+  int32 stripe_update_mode = 8;
+  int32 primary_data_block_id = 9;
 }
 
 message CordPlanKeyOnly {

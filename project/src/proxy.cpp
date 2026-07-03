@@ -2669,6 +2669,37 @@ namespace ECProject
         socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
         socket_data.close(ignore_ec);
 
+        auto report_cord_commit = [&](bool commit) {
+          coordinator_proto::CommitAbortKey commit_abort_key;
+          coordinator_proto::ReplyFromCoordinator result;
+          grpc::ClientContext ctx;
+          commit_abort_key.set_opp(ECProject::CORD_UPDATE);
+          commit_abort_key.set_key(placement_copy->key());
+          commit_abort_key.set_stripe_id(stripe_id);
+          commit_abort_key.set_ifcommitmetadata(commit);
+          grpc::Status st = m_coordinator_ptr->reportCommitAbort(&ctx, commit_abort_key, &result);
+          if (!st.ok() && IF_DEBUG)
+            std::cout << "[CoRD][Proxy] reportCommitAbort failed" << std::endl;
+        };
+
+        if (placement_copy->stripe_update_mode() == 2)
+        {
+          if (!execute_stripe_full_update(*placement_copy, buf.data(), static_cast<size_t>(payload_size)))
+          {
+            report_cord_commit(false);
+            return;
+          }
+        }
+        else if (placement_copy->stripe_update_mode() == 1)
+        {
+          if (!execute_stripe_partial_update(*placement_copy, buf.data(), static_cast<size_t>(payload_size)))
+          {
+            report_cord_commit(false);
+            return;
+          }
+        }
+        else
+        {
         std::vector<size_t> sizes;
         for (int i = 0; i < slice_num; ++i)
           sizes.push_back(static_cast<size_t>(placement_copy->sizes(i)));
@@ -2777,17 +2808,9 @@ namespace ECProject
           std::cout << "[CoRD][Proxy] delta blob store failed" << std::endl;
           return;
         }
+        }
 
-        coordinator_proto::CommitAbortKey commit_abort_key;
-        coordinator_proto::ReplyFromCoordinator result;
-        grpc::ClientContext ctx;
-        commit_abort_key.set_opp(ECProject::CORD_UPDATE);
-        commit_abort_key.set_key(placement_copy->key());
-        commit_abort_key.set_stripe_id(stripe_id);
-        commit_abort_key.set_ifcommitmetadata(true);
-        grpc::Status st = m_coordinator_ptr->reportCommitAbort(&ctx, commit_abort_key, &result);
-        if (!st.ok() && IF_DEBUG)
-          std::cout << "[CoRD][Proxy] reportCommitAbort failed" << std::endl;
+        report_cord_commit(true);
       }
       catch (std::exception &e)
       {

@@ -1508,6 +1508,8 @@ class ReplyProxyIPsPorts final :
     kGroupIdsFieldNumber = 6,
     kCordTransferPlanKeyFieldNumber = 7,
     kSumAppendSizeFieldNumber = 1,
+    kStripeUpdateModeFieldNumber = 8,
+    kPrimaryDataBlockIdFieldNumber = 9,
   };
   // repeated string append_keys = 2;
   int append_keys_size() const;
@@ -1646,6 +1648,24 @@ class ReplyProxyIPsPorts final :
   void _internal_set_sum_append_size(uint64_t value);
   public:
 
+  // int32 stripe_update_mode = 8;
+  void clear_stripe_update_mode();
+  int32_t stripe_update_mode() const;
+  void set_stripe_update_mode(int32_t value);
+  private:
+  int32_t _internal_stripe_update_mode() const;
+  void _internal_set_stripe_update_mode(int32_t value);
+  public:
+
+  // int32 primary_data_block_id = 9;
+  void clear_primary_data_block_id();
+  int32_t primary_data_block_id() const;
+  void set_primary_data_block_id(int32_t value);
+  private:
+  int32_t _internal_primary_data_block_id() const;
+  void _internal_set_primary_data_block_id(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:coordinator_proto.ReplyProxyIPsPorts)
  private:
   class _Internal;
@@ -1664,6 +1684,8 @@ class ReplyProxyIPsPorts final :
     mutable std::atomic<int> _group_ids_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr cord_transfer_plan_key_;
     uint64_t sum_append_size_;
+    int32_t stripe_update_mode_;
+    int32_t primary_data_block_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -5867,6 +5889,46 @@ inline void ReplyProxyIPsPorts::set_allocated_cord_transfer_plan_key(std::string
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:coordinator_proto.ReplyProxyIPsPorts.cord_transfer_plan_key)
+}
+
+// int32 stripe_update_mode = 8;
+inline void ReplyProxyIPsPorts::clear_stripe_update_mode() {
+  _impl_.stripe_update_mode_ = 0;
+}
+inline int32_t ReplyProxyIPsPorts::_internal_stripe_update_mode() const {
+  return _impl_.stripe_update_mode_;
+}
+inline int32_t ReplyProxyIPsPorts::stripe_update_mode() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.ReplyProxyIPsPorts.stripe_update_mode)
+  return _internal_stripe_update_mode();
+}
+inline void ReplyProxyIPsPorts::_internal_set_stripe_update_mode(int32_t value) {
+  
+  _impl_.stripe_update_mode_ = value;
+}
+inline void ReplyProxyIPsPorts::set_stripe_update_mode(int32_t value) {
+  _internal_set_stripe_update_mode(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.ReplyProxyIPsPorts.stripe_update_mode)
+}
+
+// int32 primary_data_block_id = 9;
+inline void ReplyProxyIPsPorts::clear_primary_data_block_id() {
+  _impl_.primary_data_block_id_ = 0;
+}
+inline int32_t ReplyProxyIPsPorts::_internal_primary_data_block_id() const {
+  return _impl_.primary_data_block_id_;
+}
+inline int32_t ReplyProxyIPsPorts::primary_data_block_id() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.ReplyProxyIPsPorts.primary_data_block_id)
+  return _internal_primary_data_block_id();
+}
+inline void ReplyProxyIPsPorts::_internal_set_primary_data_block_id(int32_t value) {
+  
+  _impl_.primary_data_block_id_ = value;
+}
+inline void ReplyProxyIPsPorts::set_primary_data_block_id(int32_t value) {
+  _internal_set_primary_data_block_id(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.ReplyProxyIPsPorts.primary_data_block_id)
 }
 
 // -------------------------------------------------------------------
