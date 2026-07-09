@@ -77,7 +77,9 @@ namespace ECProject
      * |N|=2 或算法三未成功：单全局中心星型（pop_c = argmin_c Σ_i t_{i,c}·b_i）。
      * |N|=1：MST(Kruskal) 于 V={d}∪{全局校验}。
      * 调度：每条 train_route 链路一次性传完 payload；按时间步 Dinic 匹配（每 cluster 每步最多 1 发、1 收）。
-     * 数据依赖：STAR_CENTER_TO_* 须等同组 STAR_DATA_TO_CENTER 全部完成；MST_FORWARD 须同 origin 的入边先完成。
+     * 数据依赖：STAR_CENTER_TO_GLOBAL 须等同组 STAR_DATA_TO_CENTER 全部完成；
+     * STAR_CENTER_TO_LOCAL 须在计划内全部 STAR_CENTER_TO_GLOBAL 完成之后（global 块同 rack）；
+     * MST_FORWARD 须同 origin 的入边先完成。
      *
      * TrainLink.delta_kind：相交集链路上「发往收集器」段为数据增量 ΔD；收集器扇出为校验增量（由 proxy 对 Δ 聚合后再 XOR 落盘）。
      * |N|=1 的 MST 边均为数据增量在线上传输。

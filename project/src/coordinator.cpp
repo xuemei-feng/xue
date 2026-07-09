@@ -2335,7 +2335,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
     }
 
-    std::cout << "[CoRD] Delta store dispatch: " << sorted_clusters.size() << " clusters (parallel notify)\n";
+    std::cout << "[CoRD] Delta store dispatch: " << sorted_clusters.size() << " clusters (serial notify)\n";
     struct CordDeltaNotifyJob {
       proxy_proto::CordDataUpdatePlacement plan;
       int cid = -1;
@@ -2386,16 +2386,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       notify_jobs.push_back(std::move(job));
     }
 
-    std::vector<std::thread> notify_threads;
-    notify_threads.reserve(notify_jobs.size());
     for (auto &job : notify_jobs)
-    {
-      notify_threads.emplace_back([this, &job]() {
-        job.ok = notify_proxies_cord_ready(job.plan);
-      });
-    }
-    for (auto &th : notify_threads)
-      th.join();
+      job.ok = notify_proxies_cord_ready(job.plan);
 
     std::vector<std::string> cord_delta_append_keys;
     cord_delta_append_keys.reserve(notify_jobs.size());

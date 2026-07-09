@@ -730,7 +730,12 @@ namespace ECProject
                   << "(c" << L.dst_cluster << ") payload=" << L.payload_bytes
                   << "B grp=" << L.group_index;
         if (L.delta_kind == CordDeltaPayloadKind::PARITY_DELTA)
-          std::cout << " [depends on DATA_TO_CENTER ingressing to blk" << L.src_block_id << "]";
+        {
+          if (L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL)
+            std::cout << " [depends on all STAR_CENTER_TO_GLOBAL done]";
+          else
+            std::cout << " [depends on DATA_TO_CENTER ingressing to blk" << L.src_block_id << "]";
+        }
         std::cout << "\n";
       }
 
@@ -743,6 +748,18 @@ namespace ECProject
           if (J.kind != TrainLinkKind::STAR_DATA_TO_CENTER)
             continue;
           if (J.group_index != group_idx || J.dst_block_id != collector_block_id)
+            continue;
+          if (remaining[j] > 0)
+            return false;
+        }
+        return true;
+      };
+      /** 本地校验扇出前，计划中所有 global 校验扇出链路须已完成（global 块同 rack）。 */
+      auto all_star_global_parity_fanout_done = [&]() -> bool {
+        for (size_t j = 0; j < out.train_route.size(); ++j)
+        {
+          const TrainLink &J = out.train_route[j];
+          if (J.kind != TrainLinkKind::STAR_CENTER_TO_GLOBAL)
             continue;
           if (remaining[j] > 0)
             return false;
@@ -772,9 +789,16 @@ namespace ECProject
       };
       auto link_eligible_for_step = [&](size_t i) -> bool {
         const TrainLink &L = out.train_route[i];
-        if (L.kind == TrainLinkKind::STAR_CENTER_TO_GLOBAL || L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL)
+        if (L.kind == TrainLinkKind::STAR_CENTER_TO_GLOBAL)
         {
           if (!collector_star_data_ingress_done(L.group_index, L.src_block_id))
+            return false;
+        }
+        else if (L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL)
+        {
+          if (!collector_star_data_ingress_done(L.group_index, L.src_block_id))
+            return false;
+          if (!all_star_global_parity_fanout_done())
             return false;
         }
         return mst_predecessors_done(i);
