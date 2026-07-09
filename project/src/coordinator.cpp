@@ -1917,8 +1917,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     proxy_proto::CordTransferEncodeMeta *meta = plan->mutable_cord_encode_meta();
     meta->set_encode_type(static_cast<int32_t>(m_encode_parameters.encodetype));
     meta->set_k(stripe->k);
-    meta->set_g_m(stripe->g_m);
-    meta->set_l(stripe->l);
+    // CoRD SET 路径只初始化 stripe->r/z，g_m/l 可能未赋值；与 proxy ingress 矩阵编码一致用 r/z
+    meta->set_g_m(m_sys_config->r);
+    meta->set_l(m_sys_config->z);
     meta->set_parity_slice_offset(po);
     meta->set_parity_slice_size(ps);
 
@@ -2011,6 +2012,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       t_stripe.k = m_sys_config->k;
       t_stripe.r = m_sys_config->r;
       t_stripe.z = m_sys_config->z;
+      t_stripe.g_m = m_sys_config->r;
+      t_stripe.l = m_sys_config->z;
       t_stripe.object_keys.push_back(clientID);
       if (code_type == "UniLRC" || code_type == "AzureLRC")
       {
@@ -3136,6 +3139,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     t_stripe.k = m_sys_config->k;
     t_stripe.r = m_sys_config->r;
     t_stripe.z = m_sys_config->z;
+    t_stripe.g_m = m_sys_config->r;
+    t_stripe.l = m_sys_config->z;
     t_stripe.object_keys.push_back(clientID);
     if (code_type == "UniLRC" || code_type == "AzureLRC")
     {
@@ -3222,6 +3227,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     t_stripe.k = m_sys_config->k;
     t_stripe.r = m_sys_config->r;
     t_stripe.z = m_sys_config->z;
+    t_stripe.g_m = m_sys_config->r;
+    t_stripe.l = m_sys_config->z;
     t_stripe.object_keys.push_back(clientID);
     if (code_type == "UniLRC" || code_type == "AzureLRC")
     {
