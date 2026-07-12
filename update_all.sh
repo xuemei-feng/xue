@@ -2,8 +2,8 @@
 [ -n "${BASH_VERSION:-}" ] || exec bash "$0" "$@"
 set -e
 
-SOURCE_DIR="/users/xue/xue"
-REMOTE_DIR="/users/xue/xue"
+SOURCE_DIR="/root/xue"
+REMOTE_DIR="/root/xue"
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 # How many rsync+ssh sessions run at once (default tuned for many racks / many hosts).

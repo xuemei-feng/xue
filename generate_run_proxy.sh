@@ -35,7 +35,7 @@ PARALLEL=10
 echo "Running generator_sh.py on all hosts (repo=${REPO_ROOT}, parallel=${PARALLEL}, LOCAL_IP per host)..."
 if grep -v '^#' "$HOSTS_FILE" | grep -v '^[[:space:]]*$' | \
     xargs -P "$PARALLEL" -I{} ssh -o ConnectTimeout=15 -o StrictHostKeyChecking=no \
-    "${USER}@{}" "cd ${SMALL_TOOLS_DIR} && LOCAL_IP={} python generator_sh.py"; then
+    "${USER}@{}" "cd ${SMALL_TOOLS_DIR} && LOCAL_IP={} python3 generator_sh.py"; then
   echo "Successfully ran generator_sh.py on all hosts!"
 else
   echo "Failed to run generator_sh.py on some hosts!" >&2
