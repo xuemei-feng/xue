@@ -17,6 +17,7 @@
 #include <numeric>
 #include <algorithm>
 #include <thread>
+#include <atomic>
 #include <tuple>
 #include <google/protobuf/repeated_field.h>
 
@@ -52,6 +53,17 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     bool is_azure_like_code(const std::string &code_type) // 辅助函数：判断是否为 Azure 系列分组规则编码
     {
       return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC";
+    }
+
+    int count_recovery_helper_groups(const std::vector<int> &recovery_group_ids, int dest_group_id)
+    {
+      int helper_num = 0;
+      for (int gid : recovery_group_ids)
+      {
+        if (gid != dest_group_id)
+          ++helper_num;
+      }
+      return helper_num;
     }
 
     /** Deterministic seed for placement RNG: same placement_seed + stripe_id -> same sequence (shuffle / cluster / node). */
@@ -3453,7 +3465,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       if (failed_block_id >= k && failed_block_id < k + r)
       {
-        for (int i = 1; i <= z; i++)
+        // global parity repair needs all local groups (0 .. z-1); dest rack is global group z
+        for (int i = 0; i < z; i++)
         {
           recovery_group_ids.push_back(i);
         }
@@ -4025,6 +4038,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       for(int i = 0; i < chosen_cluster_ids.size(); i++){
         chosen_proxies.push_back(m_cluster_table[chosen_cluster_ids[i]].proxy_ip + ":" + std::to_string(m_cluster_table[chosen_cluster_ids[i]].proxy_port));
       }
+      std::atomic<bool> recovery_ok{true};
       std::vector<std::thread> threads;
       for(int i = 0; i < recovery_group_ids.size(); i++){
         if(recovery_group_ids[i] == dest_group_id){
@@ -4032,7 +4046,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
         threads.push_back(std::thread([&t_stripe, &chosen_proxies, &recovery_group_ids, i, failed_block_id, dest_proxy_ip, dest_proxy_port, this,
           &disk_io_start_time, &disk_io_end_time, &decode_start_time, &decode_end_time, &network_start_time, &network_end_time, 
-          &grpc_notify_time, &grpc_start_time, &data_node_grpc_notify_time, &data_node_grpc_start_time
+          &grpc_notify_time, &grpc_start_time, &data_node_grpc_notify_time, &data_node_grpc_start_time, &recovery_ok
         ](){
           grpc::ClientContext degraded_read_context;
           proxy_proto::DegradedReadRequest degraded_read_request;
@@ -4077,16 +4091,17 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           }
           else
           {
+            recovery_ok.store(false);
             std::cout << "[Coordinator] partial degraded read of " << failed_block_id << " failed!" << std::endl;
           }
         }));
 
       }
-      int cross_rack_num = recovery_group_ids.size() - 1;
+      int cross_rack_num = count_recovery_helper_groups(recovery_group_ids, dest_group_id);
       threads.push_back(std::thread([this, &t_stripe, cross_rack_num, dest_group_id, dest_cluster_id, dest_proxy_ip, dest_proxy_port, stripe_id, failed_block_id,
         &disk_io_start_time, &disk_io_end_time, &decode_start_time, &decode_end_time, &network_start_time, &network_end_time, 
         &grpc_notify_time, &grpc_start_time, &data_node_grpc_notify_time, &data_node_grpc_start_time, &cross_rack_network_time, &cross_rack_xor_time,
-        &dest_data_node_network_time, &dest_data_node_disk_io_time
+        &dest_data_node_network_time, &dest_data_node_disk_io_time, &recovery_ok
         ](){
         grpc::ClientContext recovery_context;
         proxy_proto::RecoveryRequest recovery_request;
@@ -4137,6 +4152,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
         else
         {
+          recovery_ok.store(false);
           std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " failed!" << std::endl;
         }
       }
@@ -4144,8 +4160,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       for(int i = 0; i < threads.size(); i++){
         threads[i].join();
       }
+      return recovery_ok.load();
     }
-    return true;
   }
 
   grpc::Status CoordinatorImpl::decodeTest(
@@ -4273,12 +4289,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       for(int i = 0; i < chosen_cluster_ids.size(); i++){
         chosen_proxies.push_back(m_cluster_table[chosen_cluster_ids[i]].proxy_ip + ":" + std::to_string(m_cluster_table[chosen_cluster_ids[i]].proxy_port));
       }
+      std::atomic<bool> recovery_ok{true};
       std::vector<std::thread> threads;
       for(int i = 0; i < recovery_group_ids.size(); i++){
         if(recovery_group_ids[i] == dest_group_id){
           continue;
         }
-        threads.push_back(std::thread([&t_stripe, &chosen_proxies, &recovery_group_ids, i, failed_block_id, dest_proxy_ip, dest_proxy_port, this](){
+        threads.push_back(std::thread([&t_stripe, &chosen_proxies, &recovery_group_ids, i, failed_block_id, dest_proxy_ip, dest_proxy_port, this, &recovery_ok](){
           grpc::ClientContext degraded_read_context;
           proxy_proto::DegradedReadRequest degraded_read_request;
           proxy_proto::DegradedReadReply degraded_read_reply;
@@ -4308,13 +4325,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           }
           else
           {
+            recovery_ok.store(false);
             std::cout << "[Coordinator] partial degraded read of " << failed_block_id << " failed!" << std::endl;
           }
         }));
 
       }
-      int cross_rack_num = recovery_group_ids.size() - 1;
-      threads.push_back(std::thread([this, &t_stripe, cross_rack_num, dest_group_id, dest_cluster_id, dest_proxy_ip, dest_proxy_port, stripe_id, failed_block_id, &recovery_group_ids](){
+      int cross_rack_num = count_recovery_helper_groups(recovery_group_ids, dest_group_id);
+      threads.push_back(std::thread([this, &t_stripe, cross_rack_num, dest_group_id, dest_cluster_id, dest_proxy_ip, dest_proxy_port, stripe_id, failed_block_id, &recovery_group_ids, &recovery_ok](){
         grpc::ClientContext recovery_context;
         proxy_proto::RecoveryRequest recovery_request;
         proxy_proto::RecoveryReply recovery_reply;
@@ -4357,6 +4375,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
         else
         {
+          recovery_ok.store(false);
           std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " failed!" << std::endl;
         }
       }
@@ -4364,8 +4383,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       for(int i = 0; i < threads.size(); i++){
         threads[i].join();
       }
+      return recovery_ok.load();
     }
-    return true;
   }
 
 
@@ -4562,7 +4581,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }));
 
       }
-      int cross_rack_num = recovery_group_ids.size() - 1;
+      int cross_rack_num = count_recovery_helper_groups(recovery_group_ids, dest_group_id);
       threads.push_back(std::thread([this, &t_stripe, cross_rack_num, dest_group_id, dest_proxy_ip, dest_proxy_port, stripe_id, failed_block_id, client_ip, client_port, 
         &disk_io_start_time, &disk_io_end_time, &decode_start_time, &decode_end_time, &network_start_time, &network_end_time, &cross_rack_network_time, &cross_rack_xor_time,
         &grpc_notify_time, &grpc_start_time, &data_node_grpc_notify_time, &data_node_grpc_start_time](){
@@ -4722,7 +4741,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }));
 
       }
-      int cross_rack_num = recovery_group_ids.size() - 1;
+      int cross_rack_num = count_recovery_helper_groups(recovery_group_ids, dest_group_id);
       threads.push_back(std::thread([this, &t_stripe, cross_rack_num, dest_group_id, dest_proxy_ip, dest_proxy_port, stripe_id, failed_block_id, client_ip, client_port](){
         grpc::ClientContext recovery_context;
         proxy_proto::RecoveryRequest recovery_request;
@@ -4869,7 +4888,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }));
 
       }
-      int cross_rack_num = recovery_group_ids.size() - 1;
+      int cross_rack_num = count_recovery_helper_groups(recovery_group_ids, dest_group_id);
       threads.push_back(std::thread([this, &t_stripe, cross_rack_num, dest_group_id, dest_proxy_ip, dest_proxy_port, stripe_id, failed_block_id, client_ip, client_port, block_id](){
         grpc::ClientContext recovery_context;
         proxy_proto::RecoveryRequest recovery_request;
