@@ -36,8 +36,6 @@ service proxyService {
   rpc recovery(RecoveryRequest) returns (RecoveryReply);
   rpc recoveryBreakdown(RecoveryRequest) returns (RecoveryReply);
   rpc multipleRecovery(MultipleRecoveryRequest) returns (GetReply);
-  // partial-decoding recovery: dest rack computes its own partial, aggregates helper partials, writes recovered block
-  rpc partialRecoveryDest(PartialRecoveryDestRequest) returns (RecoveryReply);
   // delete
   rpc deleteBlock(NodeAndBlock) returns (DelReply);
   // append
@@ -231,25 +229,6 @@ message MultipleRecoveryRequest{
   repeated int32 failed_block_ids = 3;
   repeated string failed_block_keys = 4;
   int32 cross_rack_num = 5;
-}
-
-// partial-decoding recovery, dest side: dest rack partial-decodes its own local
-// source blocks, receives cross_rack_num partial blocks from helper racks over TCP,
-// XOR-aggregates them into the recovered failed block, then writes it to a datanode.
-message PartialRecoveryDestRequest{
-  string replaced_node_ip = 1;
-  int32 replaced_node_port = 2;
-  int32 failed_block_id = 3;
-  string failed_block_key = 4;
-  // number of helper proxies that will connect and send one partial block each
-  int32 cross_rack_num = 5;
-  // dest rack's own local source blocks used in partial decoding
-  repeated int32 source_block_ids = 6;
-  repeated string source_block_keys = 7;
-  repeated string source_datanode_ips = 8;
-  repeated int32 source_datanode_ports = 9;
-  // GF decode factor for each local source block (aligned with source_block_ids)
-  repeated int32 decode_factors = 10;
 }
 
 message RecoveryReply {

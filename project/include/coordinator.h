@@ -132,10 +132,6 @@ namespace ECProject
         grpc::ServerContext *context,
         const coordinator_proto::KeyAndClientIP *keyClient,
         coordinator_proto::RecoveryReply *replyClient) override;
-    grpc::Status getPartialRecovery(
-        grpc::ServerContext *context,
-        const coordinator_proto::KeyAndClientIP *keyClient,
-        coordinator_proto::RecoveryReply *replyClient) override;
     grpc::Status decodeTest(
         grpc::ServerContext *context,
         const coordinator_proto::KeyAndClientIP *keyClient,
@@ -218,7 +214,6 @@ namespace ECProject
     int get_cluster_id_by_group_id(Stripe &stripe, int group_id);
     void getStripeFromProxy(std::string client_ip, int client_port, std::string proxy_ip, int proxy_port, int stripe_id, int group_id, std::vector<int> block_ids);
     bool recovery_one_block(int stripe_id, int failed_block_id);
-    bool partial_recovery_one_block(int stripe_id, int failed_block_id);
     bool recovery_one_block_breakdown(int stripe_id, int failed_block_id, 
       std::vector<double> &disk_io_start_time, std::vector<double> &disk_io_end_time, std::vector<double> &decode_start_time, std::vector<double> &decode_end_time,
       std::vector<double> &network_start_time, std::vector<double> &network_end_time, double &cross_rack_network_time, double &cross_rack_xor_time,

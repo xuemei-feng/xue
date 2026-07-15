@@ -126,14 +126,6 @@ namespace ECProject
     int xor_avx(int vects, int len, void **array);
 
     bool get_multi_decode_plan(int k, int r, int z, std::string code_type, const std::vector<int> failed_block_indexes, std::vector<int> &decode_block_indexes, std::vector<std::vector<int>> &decode_factors);
-
-    // Compute GF decode factors for repairing a single block from a given set of
-    // candidate source blocks (typically the failed block's local group). Solves
-    // row_failed = sum_s factor_s * row_source_s over the encoding matrix.
-    // out_factors is aligned with source_block_ids; a factor of 0 means that source
-    // is not needed. Returns false if the sources cannot reconstruct the block.
-    bool get_local_decode_plan(int k, int r, int z, std::string code_type, int failed_block_id,
-                               const std::vector<int> &source_block_ids, std::vector<int> &out_factors);
 }
 
 #endif

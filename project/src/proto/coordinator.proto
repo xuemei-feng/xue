@@ -58,8 +58,6 @@ service coordinatorService {
   // recovery
   rpc getRecovery(KeyAndClientIP) returns (RecoveryReply) {};
   rpc getRecoveryBreakdown(KeyAndClientIP) returns (RecoveryReply) {};
-  // partial-decoding based cross-rack recovery (key = "stripeId_failedBlockId")
-  rpc getPartialRecovery(KeyAndClientIP) returns (RecoveryReply) {};
   rpc fullNodeRecovery(NodeIdFromClient) returns (RepBlockNum) {};
   rpc multiBlockRecovery(StripeIdAndBlockIDsFromClient) returns (RecoveryReply) {};
   // delete

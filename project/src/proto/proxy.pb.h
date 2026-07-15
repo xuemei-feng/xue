@@ -157,9 +157,6 @@ extern ObjectAndPlacementDefaultTypeInternal _ObjectAndPlacement_default_instanc
 class PartialDecodingRequest;
 struct PartialDecodingRequestDefaultTypeInternal;
 extern PartialDecodingRequestDefaultTypeInternal _PartialDecodingRequest_default_instance_;
-class PartialRecoveryDestRequest;
-struct PartialRecoveryDestRequestDefaultTypeInternal;
-extern PartialRecoveryDestRequestDefaultTypeInternal _PartialRecoveryDestRequest_default_instance_;
 class RecalReply;
 struct RecalReplyDefaultTypeInternal;
 extern RecalReplyDefaultTypeInternal _RecalReply_default_instance_;
@@ -235,7 +232,6 @@ template<> ::proxy_proto::MultipleRecoveryRequest* Arena::CreateMaybeMessage<::p
 template<> ::proxy_proto::NodeAndBlock* Arena::CreateMaybeMessage<::proxy_proto::NodeAndBlock>(Arena*);
 template<> ::proxy_proto::ObjectAndPlacement* Arena::CreateMaybeMessage<::proxy_proto::ObjectAndPlacement>(Arena*);
 template<> ::proxy_proto::PartialDecodingRequest* Arena::CreateMaybeMessage<::proxy_proto::PartialDecodingRequest>(Arena*);
-template<> ::proxy_proto::PartialRecoveryDestRequest* Arena::CreateMaybeMessage<::proxy_proto::PartialRecoveryDestRequest>(Arena*);
 template<> ::proxy_proto::RecalReply* Arena::CreateMaybeMessage<::proxy_proto::RecalReply>(Arena*);
 template<> ::proxy_proto::RecoveryReply* Arena::CreateMaybeMessage<::proxy_proto::RecoveryReply>(Arena*);
 template<> ::proxy_proto::RecoveryRequest* Arena::CreateMaybeMessage<::proxy_proto::RecoveryRequest>(Arena*);
@@ -4642,335 +4638,6 @@ class MultipleRecoveryRequest final :
 };
 // -------------------------------------------------------------------
 
-class PartialRecoveryDestRequest final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.PartialRecoveryDestRequest) */ {
- public:
-  inline PartialRecoveryDestRequest() : PartialRecoveryDestRequest(nullptr) {}
-  ~PartialRecoveryDestRequest() override;
-  explicit PROTOBUF_CONSTEXPR PartialRecoveryDestRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  PartialRecoveryDestRequest(const PartialRecoveryDestRequest& from);
-  PartialRecoveryDestRequest(PartialRecoveryDestRequest&& from) noexcept
-    : PartialRecoveryDestRequest() {
-    *this = ::std::move(from);
-  }
-
-  inline PartialRecoveryDestRequest& operator=(const PartialRecoveryDestRequest& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline PartialRecoveryDestRequest& operator=(PartialRecoveryDestRequest&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()
-  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
-        && GetOwningArena() != nullptr
-  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
-    ) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const PartialRecoveryDestRequest& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const PartialRecoveryDestRequest* internal_default_instance() {
-    return reinterpret_cast<const PartialRecoveryDestRequest*>(
-               &_PartialRecoveryDestRequest_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages =
-    18;
-
-  friend void swap(PartialRecoveryDestRequest& a, PartialRecoveryDestRequest& b) {
-    a.Swap(&b);
-  }
-  inline void Swap(PartialRecoveryDestRequest* other) {
-    if (other == this) return;
-  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() != nullptr &&
-        GetOwningArena() == other->GetOwningArena()) {
-   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() == other->GetOwningArena()) {
-  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(PartialRecoveryDestRequest* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  PartialRecoveryDestRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<PartialRecoveryDestRequest>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const PartialRecoveryDestRequest& from);
-  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const PartialRecoveryDestRequest& from) {
-    PartialRecoveryDestRequest::MergeImpl(*this, from);
-  }
-  private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
-  public:
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  uint8_t* _InternalSerialize(
-      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
-
-  private:
-  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
-  void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(PartialRecoveryDestRequest* other);
-
-  private:
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "proxy_proto.PartialRecoveryDestRequest";
-  }
-  protected:
-  explicit PartialRecoveryDestRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
-  public:
-
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  enum : int {
-    kSourceBlockIdsFieldNumber = 6,
-    kSourceBlockKeysFieldNumber = 7,
-    kSourceDatanodeIpsFieldNumber = 8,
-    kSourceDatanodePortsFieldNumber = 9,
-    kDecodeFactorsFieldNumber = 10,
-    kReplacedNodeIpFieldNumber = 1,
-    kFailedBlockKeyFieldNumber = 4,
-    kReplacedNodePortFieldNumber = 2,
-    kFailedBlockIdFieldNumber = 3,
-    kCrossRackNumFieldNumber = 5,
-  };
-  // repeated int32 source_block_ids = 6;
-  int source_block_ids_size() const;
-  private:
-  int _internal_source_block_ids_size() const;
-  public:
-  void clear_source_block_ids();
-  private:
-  int32_t _internal_source_block_ids(int index) const;
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-      _internal_source_block_ids() const;
-  void _internal_add_source_block_ids(int32_t value);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-      _internal_mutable_source_block_ids();
-  public:
-  int32_t source_block_ids(int index) const;
-  void set_source_block_ids(int index, int32_t value);
-  void add_source_block_ids(int32_t value);
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-      source_block_ids() const;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-      mutable_source_block_ids();
-
-  // repeated string source_block_keys = 7;
-  int source_block_keys_size() const;
-  private:
-  int _internal_source_block_keys_size() const;
-  public:
-  void clear_source_block_keys();
-  const std::string& source_block_keys(int index) const;
-  std::string* mutable_source_block_keys(int index);
-  void set_source_block_keys(int index, const std::string& value);
-  void set_source_block_keys(int index, std::string&& value);
-  void set_source_block_keys(int index, const char* value);
-  void set_source_block_keys(int index, const char* value, size_t size);
-  std::string* add_source_block_keys();
-  void add_source_block_keys(const std::string& value);
-  void add_source_block_keys(std::string&& value);
-  void add_source_block_keys(const char* value);
-  void add_source_block_keys(const char* value, size_t size);
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& source_block_keys() const;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_source_block_keys();
-  private:
-  const std::string& _internal_source_block_keys(int index) const;
-  std::string* _internal_add_source_block_keys();
-  public:
-
-  // repeated string source_datanode_ips = 8;
-  int source_datanode_ips_size() const;
-  private:
-  int _internal_source_datanode_ips_size() const;
-  public:
-  void clear_source_datanode_ips();
-  const std::string& source_datanode_ips(int index) const;
-  std::string* mutable_source_datanode_ips(int index);
-  void set_source_datanode_ips(int index, const std::string& value);
-  void set_source_datanode_ips(int index, std::string&& value);
-  void set_source_datanode_ips(int index, const char* value);
-  void set_source_datanode_ips(int index, const char* value, size_t size);
-  std::string* add_source_datanode_ips();
-  void add_source_datanode_ips(const std::string& value);
-  void add_source_datanode_ips(std::string&& value);
-  void add_source_datanode_ips(const char* value);
-  void add_source_datanode_ips(const char* value, size_t size);
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& source_datanode_ips() const;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_source_datanode_ips();
-  private:
-  const std::string& _internal_source_datanode_ips(int index) const;
-  std::string* _internal_add_source_datanode_ips();
-  public:
-
-  // repeated int32 source_datanode_ports = 9;
-  int source_datanode_ports_size() const;
-  private:
-  int _internal_source_datanode_ports_size() const;
-  public:
-  void clear_source_datanode_ports();
-  private:
-  int32_t _internal_source_datanode_ports(int index) const;
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-      _internal_source_datanode_ports() const;
-  void _internal_add_source_datanode_ports(int32_t value);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-      _internal_mutable_source_datanode_ports();
-  public:
-  int32_t source_datanode_ports(int index) const;
-  void set_source_datanode_ports(int index, int32_t value);
-  void add_source_datanode_ports(int32_t value);
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-      source_datanode_ports() const;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-      mutable_source_datanode_ports();
-
-  // repeated int32 decode_factors = 10;
-  int decode_factors_size() const;
-  private:
-  int _internal_decode_factors_size() const;
-  public:
-  void clear_decode_factors();
-  private:
-  int32_t _internal_decode_factors(int index) const;
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-      _internal_decode_factors() const;
-  void _internal_add_decode_factors(int32_t value);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-      _internal_mutable_decode_factors();
-  public:
-  int32_t decode_factors(int index) const;
-  void set_decode_factors(int index, int32_t value);
-  void add_decode_factors(int32_t value);
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-      decode_factors() const;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-      mutable_decode_factors();
-
-  // string replaced_node_ip = 1;
-  void clear_replaced_node_ip();
-  const std::string& replaced_node_ip() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_replaced_node_ip(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_replaced_node_ip();
-  PROTOBUF_NODISCARD std::string* release_replaced_node_ip();
-  void set_allocated_replaced_node_ip(std::string* replaced_node_ip);
-  private:
-  const std::string& _internal_replaced_node_ip() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_replaced_node_ip(const std::string& value);
-  std::string* _internal_mutable_replaced_node_ip();
-  public:
-
-  // string failed_block_key = 4;
-  void clear_failed_block_key();
-  const std::string& failed_block_key() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_failed_block_key(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_failed_block_key();
-  PROTOBUF_NODISCARD std::string* release_failed_block_key();
-  void set_allocated_failed_block_key(std::string* failed_block_key);
-  private:
-  const std::string& _internal_failed_block_key() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_failed_block_key(const std::string& value);
-  std::string* _internal_mutable_failed_block_key();
-  public:
-
-  // int32 replaced_node_port = 2;
-  void clear_replaced_node_port();
-  int32_t replaced_node_port() const;
-  void set_replaced_node_port(int32_t value);
-  private:
-  int32_t _internal_replaced_node_port() const;
-  void _internal_set_replaced_node_port(int32_t value);
-  public:
-
-  // int32 failed_block_id = 3;
-  void clear_failed_block_id();
-  int32_t failed_block_id() const;
-  void set_failed_block_id(int32_t value);
-  private:
-  int32_t _internal_failed_block_id() const;
-  void _internal_set_failed_block_id(int32_t value);
-  public:
-
-  // int32 cross_rack_num = 5;
-  void clear_cross_rack_num();
-  int32_t cross_rack_num() const;
-  void set_cross_rack_num(int32_t value);
-  private:
-  int32_t _internal_cross_rack_num() const;
-  void _internal_set_cross_rack_num(int32_t value);
-  public:
-
-  // @@protoc_insertion_point(class_scope:proxy_proto.PartialRecoveryDestRequest)
- private:
-  class _Internal;
-
-  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  struct Impl_ {
-    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > source_block_ids_;
-    mutable std::atomic<int> _source_block_ids_cached_byte_size_;
-    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> source_block_keys_;
-    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> source_datanode_ips_;
-    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > source_datanode_ports_;
-    mutable std::atomic<int> _source_datanode_ports_cached_byte_size_;
-    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > decode_factors_;
-    mutable std::atomic<int> _decode_factors_cached_byte_size_;
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr replaced_node_ip_;
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr failed_block_key_;
-    int32_t replaced_node_port_;
-    int32_t failed_block_id_;
-    int32_t cross_rack_num_;
-    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  };
-  union { Impl_ _impl_; };
-  friend struct ::TableStruct_proxy_2eproto;
-};
-// -------------------------------------------------------------------
-
 class RecoveryReply final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.RecoveryReply) */ {
  public:
@@ -5019,7 +4686,7 @@ class RecoveryReply final :
                &_RecoveryReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    18;
 
   friend void swap(RecoveryReply& a, RecoveryReply& b) {
     a.Swap(&b);
@@ -5299,7 +4966,7 @@ class AppendStripeDataPlacement final :
                &_AppendStripeDataPlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    19;
 
   friend void swap(AppendStripeDataPlacement& a, AppendStripeDataPlacement& b) {
     a.Swap(&b);
@@ -5762,7 +5429,7 @@ class CordTransferClusterEndpoint final :
                &_CordTransferClusterEndpoint_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    20;
 
   friend void swap(CordTransferClusterEndpoint& a, CordTransferClusterEndpoint& b) {
     a.Swap(&b);
@@ -5937,7 +5604,7 @@ class CordTransferBlockPlacement final :
                &_CordTransferBlockPlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    21;
 
   friend void swap(CordTransferBlockPlacement& a, CordTransferBlockPlacement& b) {
     a.Swap(&b);
@@ -6128,7 +5795,7 @@ class CordTransferDeltaBlobRef final :
                &_CordTransferDeltaBlobRef_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    22;
 
   friend void swap(CordTransferDeltaBlobRef& a, CordTransferDeltaBlobRef& b) {
     a.Swap(&b);
@@ -6335,7 +6002,7 @@ class CordTransferGroupXorHint final :
                &_CordTransferGroupXorHint_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    24;
+    23;
 
   friend void swap(CordTransferGroupXorHint& a, CordTransferGroupXorHint& b) {
     a.Swap(&b);
@@ -6494,7 +6161,7 @@ class CordTransferClusterDeltaLayout final :
                &_CordTransferClusterDeltaLayout_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    25;
+    24;
 
   friend void swap(CordTransferClusterDeltaLayout& a, CordTransferClusterDeltaLayout& b) {
     a.Swap(&b);
@@ -6717,7 +6384,7 @@ class CordTransferStep final :
                &_CordTransferStep_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    26;
+    25;
 
   friend void swap(CordTransferStep& a, CordTransferStep& b) {
     a.Swap(&b);
@@ -7064,7 +6731,7 @@ class CordBlockStripeGroup final :
                &_CordBlockStripeGroup_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    27;
+    26;
 
   friend void swap(CordBlockStripeGroup& a, CordBlockStripeGroup& b) {
     a.Swap(&b);
@@ -7223,7 +6890,7 @@ class CordBlockHalfOpenSeg final :
                &_CordBlockHalfOpenSeg_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    28;
+    27;
 
   friend void swap(CordBlockHalfOpenSeg& a, CordBlockHalfOpenSeg& b) {
     a.Swap(&b);
@@ -7393,7 +7060,7 @@ class CordTransferEncodeMeta final :
                &_CordTransferEncodeMeta_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    29;
+    28;
 
   friend void swap(CordTransferEncodeMeta& a, CordTransferEncodeMeta& b) {
     a.Swap(&b);
@@ -7596,7 +7263,7 @@ class CordCollectorIngressExpect final :
                &_CordCollectorIngressExpect_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    30;
+    29;
 
   friend void swap(CordCollectorIngressExpect& a, CordCollectorIngressExpect& b) {
     a.Swap(&b);
@@ -7805,7 +7472,7 @@ class CordDataStripDesc final :
                &_CordDataStripDesc_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    31;
+    30;
 
   friend void swap(CordDataStripDesc& a, CordDataStripDesc& b) {
     a.Swap(&b);
@@ -7975,7 +7642,7 @@ class CordPlanKeyMsg final :
                &_CordPlanKeyMsg_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    32;
+    31;
 
   friend void swap(CordPlanKeyMsg& a, CordPlanKeyMsg& b) {
     a.Swap(&b);
@@ -8128,7 +7795,7 @@ class CordIngressCacheRef final :
                &_CordIngressCacheRef_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    33;
+    32;
 
   friend void swap(CordIngressCacheRef& a, CordIngressCacheRef& b) {
     a.Swap(&b);
@@ -8292,7 +7959,7 @@ class CordTransferPlan final :
                &_CordTransferPlan_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    34;
+    33;
 
   friend void swap(CordTransferPlan& a, CordTransferPlan& b) {
     a.Swap(&b);
@@ -8729,7 +8396,7 @@ class CordPlanCollectorIngestReq final :
                &_CordPlanCollectorIngestReq_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    35;
+    34;
 
   friend void swap(CordPlanCollectorIngestReq& a, CordPlanCollectorIngestReq& b) {
     a.Swap(&b);
@@ -8953,7 +8620,7 @@ class CordPlanApplyParityXorReq final :
                &_CordPlanApplyParityXorReq_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    36;
+    35;
 
   friend void swap(CordPlanApplyParityXorReq& a, CordPlanApplyParityXorReq& b) {
     a.Swap(&b);
@@ -9198,7 +8865,7 @@ class CordPlanMstDataDeltaReq final :
                &_CordPlanMstDataDeltaReq_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    37;
+    36;
 
   friend void swap(CordPlanMstDataDeltaReq& a, CordPlanMstDataDeltaReq& b) {
     a.Swap(&b);
@@ -9476,7 +9143,7 @@ class CordIngressParityWrite final :
                &_CordIngressParityWrite_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    38;
+    37;
 
   friend void swap(CordIngressParityWrite& a, CordIngressParityWrite& b) {
     a.Swap(&b);
@@ -9678,7 +9345,7 @@ class CordDataUpdatePlacement final :
                &_CordDataUpdatePlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    39;
+    38;
 
   friend void swap(CordDataUpdatePlacement& a, CordDataUpdatePlacement& b) {
     a.Swap(&b);
@@ -10124,7 +9791,7 @@ class CordLpDeltaFetch final :
                &_CordLpDeltaFetch_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    40;
+    39;
 
   friend void swap(CordLpDeltaFetch& a, CordLpDeltaFetch& b) {
     a.Swap(&b);
@@ -10337,7 +10004,7 @@ class CordLpWorkItem final :
                &_CordLpWorkItem_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    41;
+    40;
 
   friend void swap(CordLpWorkItem& a, CordLpWorkItem& b) {
     a.Swap(&b);
@@ -10570,7 +10237,7 @@ class CordLocalParityBundle final :
                &_CordLocalParityBundle_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    42;
+    41;
 
   friend void swap(CordLocalParityBundle& a, CordLocalParityBundle& b) {
     a.Swap(&b);
@@ -10754,7 +10421,7 @@ class CordLpHubSessionBegin final :
                &_CordLpHubSessionBegin_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    43;
+    42;
 
   friend void swap(CordLpHubSessionBegin& a, CordLpHubSessionBegin& b) {
     a.Swap(&b);
@@ -11043,7 +10710,7 @@ class CordLpHubPartialPush final :
                &_CordLpHubPartialPush_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    44;
+    43;
 
   friend void swap(CordLpHubPartialPush& a, CordLpHubPartialPush& b) {
     a.Swap(&b);
@@ -11212,7 +10879,7 @@ class CordLpComputePartialAndPush final :
                &_CordLpComputePartialAndPush_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    45;
+    44;
 
   friend void swap(CordLpComputePartialAndPush& a, CordLpComputePartialAndPush& b) {
     a.Swap(&b);
@@ -11466,7 +11133,7 @@ class CordLpParityApplyDelta final :
                &_CordLpParityApplyDelta_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    46;
+    45;
 
   friend void swap(CordLpParityApplyDelta& a, CordLpParityApplyDelta& b) {
     a.Swap(&b);
@@ -11706,7 +11373,7 @@ class SetReply final :
                &_SetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    47;
+    46;
 
   friend void swap(SetReply& a, SetReply& b) {
     a.Swap(&b);
@@ -11898,7 +11565,7 @@ class GetReply final :
                &_GetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    48;
+    47;
 
   friend void swap(GetReply& a, GetReply& b) {
     a.Swap(&b);
@@ -12046,7 +11713,7 @@ class StripeAndBlockIDs final :
                &_StripeAndBlockIDs_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    49;
+    48;
 
   friend void swap(StripeAndBlockIDs& a, StripeAndBlockIDs& b) {
     a.Swap(&b);
@@ -16669,461 +16336,6 @@ inline void MultipleRecoveryRequest::_internal_set_cross_rack_num(int32_t value)
 inline void MultipleRecoveryRequest::set_cross_rack_num(int32_t value) {
   _internal_set_cross_rack_num(value);
   // @@protoc_insertion_point(field_set:proxy_proto.MultipleRecoveryRequest.cross_rack_num)
-}
-
-// -------------------------------------------------------------------
-
-// PartialRecoveryDestRequest
-
-// string replaced_node_ip = 1;
-inline void PartialRecoveryDestRequest::clear_replaced_node_ip() {
-  _impl_.replaced_node_ip_.ClearToEmpty();
-}
-inline const std::string& PartialRecoveryDestRequest::replaced_node_ip() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PartialRecoveryDestRequest.replaced_node_ip)
-  return _internal_replaced_node_ip();
-}
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE
-void PartialRecoveryDestRequest::set_replaced_node_ip(ArgT0&& arg0, ArgT... args) {
- 
- _impl_.replaced_node_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proxy_proto.PartialRecoveryDestRequest.replaced_node_ip)
-}
-inline std::string* PartialRecoveryDestRequest::mutable_replaced_node_ip() {
-  std::string* _s = _internal_mutable_replaced_node_ip();
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PartialRecoveryDestRequest.replaced_node_ip)
-  return _s;
-}
-inline const std::string& PartialRecoveryDestRequest::_internal_replaced_node_ip() const {
-  return _impl_.replaced_node_ip_.Get();
-}
-inline void PartialRecoveryDestRequest::_internal_set_replaced_node_ip(const std::string& value) {
-  
-  _impl_.replaced_node_ip_.Set(value, GetArenaForAllocation());
-}
-inline std::string* PartialRecoveryDestRequest::_internal_mutable_replaced_node_ip() {
-  
-  return _impl_.replaced_node_ip_.Mutable(GetArenaForAllocation());
-}
-inline std::string* PartialRecoveryDestRequest::release_replaced_node_ip() {
-  // @@protoc_insertion_point(field_release:proxy_proto.PartialRecoveryDestRequest.replaced_node_ip)
-  return _impl_.replaced_node_ip_.Release();
-}
-inline void PartialRecoveryDestRequest::set_allocated_replaced_node_ip(std::string* replaced_node_ip) {
-  if (replaced_node_ip != nullptr) {
-    
-  } else {
-    
-  }
-  _impl_.replaced_node_ip_.SetAllocated(replaced_node_ip, GetArenaForAllocation());
-#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.replaced_node_ip_.IsDefault()) {
-    _impl_.replaced_node_ip_.Set("", GetArenaForAllocation());
-  }
-#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PartialRecoveryDestRequest.replaced_node_ip)
-}
-
-// int32 replaced_node_port = 2;
-inline void PartialRecoveryDestRequest::clear_replaced_node_port() {
-  _impl_.replaced_node_port_ = 0;
-}
-inline int32_t PartialRecoveryDestRequest::_internal_replaced_node_port() const {
-  return _impl_.replaced_node_port_;
-}
-inline int32_t PartialRecoveryDestRequest::replaced_node_port() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PartialRecoveryDestRequest.replaced_node_port)
-  return _internal_replaced_node_port();
-}
-inline void PartialRecoveryDestRequest::_internal_set_replaced_node_port(int32_t value) {
-  
-  _impl_.replaced_node_port_ = value;
-}
-inline void PartialRecoveryDestRequest::set_replaced_node_port(int32_t value) {
-  _internal_set_replaced_node_port(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PartialRecoveryDestRequest.replaced_node_port)
-}
-
-// int32 failed_block_id = 3;
-inline void PartialRecoveryDestRequest::clear_failed_block_id() {
-  _impl_.failed_block_id_ = 0;
-}
-inline int32_t PartialRecoveryDestRequest::_internal_failed_block_id() const {
-  return _impl_.failed_block_id_;
-}
-inline int32_t PartialRecoveryDestRequest::failed_block_id() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PartialRecoveryDestRequest.failed_block_id)
-  return _internal_failed_block_id();
-}
-inline void PartialRecoveryDestRequest::_internal_set_failed_block_id(int32_t value) {
-  
-  _impl_.failed_block_id_ = value;
-}
-inline void PartialRecoveryDestRequest::set_failed_block_id(int32_t value) {
-  _internal_set_failed_block_id(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PartialRecoveryDestRequest.failed_block_id)
-}
-
-// string failed_block_key = 4;
-inline void PartialRecoveryDestRequest::clear_failed_block_key() {
-  _impl_.failed_block_key_.ClearToEmpty();
-}
-inline const std::string& PartialRecoveryDestRequest::failed_block_key() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PartialRecoveryDestRequest.failed_block_key)
-  return _internal_failed_block_key();
-}
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE
-void PartialRecoveryDestRequest::set_failed_block_key(ArgT0&& arg0, ArgT... args) {
- 
- _impl_.failed_block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proxy_proto.PartialRecoveryDestRequest.failed_block_key)
-}
-inline std::string* PartialRecoveryDestRequest::mutable_failed_block_key() {
-  std::string* _s = _internal_mutable_failed_block_key();
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PartialRecoveryDestRequest.failed_block_key)
-  return _s;
-}
-inline const std::string& PartialRecoveryDestRequest::_internal_failed_block_key() const {
-  return _impl_.failed_block_key_.Get();
-}
-inline void PartialRecoveryDestRequest::_internal_set_failed_block_key(const std::string& value) {
-  
-  _impl_.failed_block_key_.Set(value, GetArenaForAllocation());
-}
-inline std::string* PartialRecoveryDestRequest::_internal_mutable_failed_block_key() {
-  
-  return _impl_.failed_block_key_.Mutable(GetArenaForAllocation());
-}
-inline std::string* PartialRecoveryDestRequest::release_failed_block_key() {
-  // @@protoc_insertion_point(field_release:proxy_proto.PartialRecoveryDestRequest.failed_block_key)
-  return _impl_.failed_block_key_.Release();
-}
-inline void PartialRecoveryDestRequest::set_allocated_failed_block_key(std::string* failed_block_key) {
-  if (failed_block_key != nullptr) {
-    
-  } else {
-    
-  }
-  _impl_.failed_block_key_.SetAllocated(failed_block_key, GetArenaForAllocation());
-#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.failed_block_key_.IsDefault()) {
-    _impl_.failed_block_key_.Set("", GetArenaForAllocation());
-  }
-#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proxy_proto.PartialRecoveryDestRequest.failed_block_key)
-}
-
-// int32 cross_rack_num = 5;
-inline void PartialRecoveryDestRequest::clear_cross_rack_num() {
-  _impl_.cross_rack_num_ = 0;
-}
-inline int32_t PartialRecoveryDestRequest::_internal_cross_rack_num() const {
-  return _impl_.cross_rack_num_;
-}
-inline int32_t PartialRecoveryDestRequest::cross_rack_num() const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PartialRecoveryDestRequest.cross_rack_num)
-  return _internal_cross_rack_num();
-}
-inline void PartialRecoveryDestRequest::_internal_set_cross_rack_num(int32_t value) {
-  
-  _impl_.cross_rack_num_ = value;
-}
-inline void PartialRecoveryDestRequest::set_cross_rack_num(int32_t value) {
-  _internal_set_cross_rack_num(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PartialRecoveryDestRequest.cross_rack_num)
-}
-
-// repeated int32 source_block_ids = 6;
-inline int PartialRecoveryDestRequest::_internal_source_block_ids_size() const {
-  return _impl_.source_block_ids_.size();
-}
-inline int PartialRecoveryDestRequest::source_block_ids_size() const {
-  return _internal_source_block_ids_size();
-}
-inline void PartialRecoveryDestRequest::clear_source_block_ids() {
-  _impl_.source_block_ids_.Clear();
-}
-inline int32_t PartialRecoveryDestRequest::_internal_source_block_ids(int index) const {
-  return _impl_.source_block_ids_.Get(index);
-}
-inline int32_t PartialRecoveryDestRequest::source_block_ids(int index) const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PartialRecoveryDestRequest.source_block_ids)
-  return _internal_source_block_ids(index);
-}
-inline void PartialRecoveryDestRequest::set_source_block_ids(int index, int32_t value) {
-  _impl_.source_block_ids_.Set(index, value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PartialRecoveryDestRequest.source_block_ids)
-}
-inline void PartialRecoveryDestRequest::_internal_add_source_block_ids(int32_t value) {
-  _impl_.source_block_ids_.Add(value);
-}
-inline void PartialRecoveryDestRequest::add_source_block_ids(int32_t value) {
-  _internal_add_source_block_ids(value);
-  // @@protoc_insertion_point(field_add:proxy_proto.PartialRecoveryDestRequest.source_block_ids)
-}
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-PartialRecoveryDestRequest::_internal_source_block_ids() const {
-  return _impl_.source_block_ids_;
-}
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-PartialRecoveryDestRequest::source_block_ids() const {
-  // @@protoc_insertion_point(field_list:proxy_proto.PartialRecoveryDestRequest.source_block_ids)
-  return _internal_source_block_ids();
-}
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-PartialRecoveryDestRequest::_internal_mutable_source_block_ids() {
-  return &_impl_.source_block_ids_;
-}
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-PartialRecoveryDestRequest::mutable_source_block_ids() {
-  // @@protoc_insertion_point(field_mutable_list:proxy_proto.PartialRecoveryDestRequest.source_block_ids)
-  return _internal_mutable_source_block_ids();
-}
-
-// repeated string source_block_keys = 7;
-inline int PartialRecoveryDestRequest::_internal_source_block_keys_size() const {
-  return _impl_.source_block_keys_.size();
-}
-inline int PartialRecoveryDestRequest::source_block_keys_size() const {
-  return _internal_source_block_keys_size();
-}
-inline void PartialRecoveryDestRequest::clear_source_block_keys() {
-  _impl_.source_block_keys_.Clear();
-}
-inline std::string* PartialRecoveryDestRequest::add_source_block_keys() {
-  std::string* _s = _internal_add_source_block_keys();
-  // @@protoc_insertion_point(field_add_mutable:proxy_proto.PartialRecoveryDestRequest.source_block_keys)
-  return _s;
-}
-inline const std::string& PartialRecoveryDestRequest::_internal_source_block_keys(int index) const {
-  return _impl_.source_block_keys_.Get(index);
-}
-inline const std::string& PartialRecoveryDestRequest::source_block_keys(int index) const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PartialRecoveryDestRequest.source_block_keys)
-  return _internal_source_block_keys(index);
-}
-inline std::string* PartialRecoveryDestRequest::mutable_source_block_keys(int index) {
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PartialRecoveryDestRequest.source_block_keys)
-  return _impl_.source_block_keys_.Mutable(index);
-}
-inline void PartialRecoveryDestRequest::set_source_block_keys(int index, const std::string& value) {
-  _impl_.source_block_keys_.Mutable(index)->assign(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PartialRecoveryDestRequest.source_block_keys)
-}
-inline void PartialRecoveryDestRequest::set_source_block_keys(int index, std::string&& value) {
-  _impl_.source_block_keys_.Mutable(index)->assign(std::move(value));
-  // @@protoc_insertion_point(field_set:proxy_proto.PartialRecoveryDestRequest.source_block_keys)
-}
-inline void PartialRecoveryDestRequest::set_source_block_keys(int index, const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  _impl_.source_block_keys_.Mutable(index)->assign(value);
-  // @@protoc_insertion_point(field_set_char:proxy_proto.PartialRecoveryDestRequest.source_block_keys)
-}
-inline void PartialRecoveryDestRequest::set_source_block_keys(int index, const char* value, size_t size) {
-  _impl_.source_block_keys_.Mutable(index)->assign(
-    reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_set_pointer:proxy_proto.PartialRecoveryDestRequest.source_block_keys)
-}
-inline std::string* PartialRecoveryDestRequest::_internal_add_source_block_keys() {
-  return _impl_.source_block_keys_.Add();
-}
-inline void PartialRecoveryDestRequest::add_source_block_keys(const std::string& value) {
-  _impl_.source_block_keys_.Add()->assign(value);
-  // @@protoc_insertion_point(field_add:proxy_proto.PartialRecoveryDestRequest.source_block_keys)
-}
-inline void PartialRecoveryDestRequest::add_source_block_keys(std::string&& value) {
-  _impl_.source_block_keys_.Add(std::move(value));
-  // @@protoc_insertion_point(field_add:proxy_proto.PartialRecoveryDestRequest.source_block_keys)
-}
-inline void PartialRecoveryDestRequest::add_source_block_keys(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  _impl_.source_block_keys_.Add()->assign(value);
-  // @@protoc_insertion_point(field_add_char:proxy_proto.PartialRecoveryDestRequest.source_block_keys)
-}
-inline void PartialRecoveryDestRequest::add_source_block_keys(const char* value, size_t size) {
-  _impl_.source_block_keys_.Add()->assign(reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_add_pointer:proxy_proto.PartialRecoveryDestRequest.source_block_keys)
-}
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
-PartialRecoveryDestRequest::source_block_keys() const {
-  // @@protoc_insertion_point(field_list:proxy_proto.PartialRecoveryDestRequest.source_block_keys)
-  return _impl_.source_block_keys_;
-}
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
-PartialRecoveryDestRequest::mutable_source_block_keys() {
-  // @@protoc_insertion_point(field_mutable_list:proxy_proto.PartialRecoveryDestRequest.source_block_keys)
-  return &_impl_.source_block_keys_;
-}
-
-// repeated string source_datanode_ips = 8;
-inline int PartialRecoveryDestRequest::_internal_source_datanode_ips_size() const {
-  return _impl_.source_datanode_ips_.size();
-}
-inline int PartialRecoveryDestRequest::source_datanode_ips_size() const {
-  return _internal_source_datanode_ips_size();
-}
-inline void PartialRecoveryDestRequest::clear_source_datanode_ips() {
-  _impl_.source_datanode_ips_.Clear();
-}
-inline std::string* PartialRecoveryDestRequest::add_source_datanode_ips() {
-  std::string* _s = _internal_add_source_datanode_ips();
-  // @@protoc_insertion_point(field_add_mutable:proxy_proto.PartialRecoveryDestRequest.source_datanode_ips)
-  return _s;
-}
-inline const std::string& PartialRecoveryDestRequest::_internal_source_datanode_ips(int index) const {
-  return _impl_.source_datanode_ips_.Get(index);
-}
-inline const std::string& PartialRecoveryDestRequest::source_datanode_ips(int index) const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PartialRecoveryDestRequest.source_datanode_ips)
-  return _internal_source_datanode_ips(index);
-}
-inline std::string* PartialRecoveryDestRequest::mutable_source_datanode_ips(int index) {
-  // @@protoc_insertion_point(field_mutable:proxy_proto.PartialRecoveryDestRequest.source_datanode_ips)
-  return _impl_.source_datanode_ips_.Mutable(index);
-}
-inline void PartialRecoveryDestRequest::set_source_datanode_ips(int index, const std::string& value) {
-  _impl_.source_datanode_ips_.Mutable(index)->assign(value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PartialRecoveryDestRequest.source_datanode_ips)
-}
-inline void PartialRecoveryDestRequest::set_source_datanode_ips(int index, std::string&& value) {
-  _impl_.source_datanode_ips_.Mutable(index)->assign(std::move(value));
-  // @@protoc_insertion_point(field_set:proxy_proto.PartialRecoveryDestRequest.source_datanode_ips)
-}
-inline void PartialRecoveryDestRequest::set_source_datanode_ips(int index, const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  _impl_.source_datanode_ips_.Mutable(index)->assign(value);
-  // @@protoc_insertion_point(field_set_char:proxy_proto.PartialRecoveryDestRequest.source_datanode_ips)
-}
-inline void PartialRecoveryDestRequest::set_source_datanode_ips(int index, const char* value, size_t size) {
-  _impl_.source_datanode_ips_.Mutable(index)->assign(
-    reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_set_pointer:proxy_proto.PartialRecoveryDestRequest.source_datanode_ips)
-}
-inline std::string* PartialRecoveryDestRequest::_internal_add_source_datanode_ips() {
-  return _impl_.source_datanode_ips_.Add();
-}
-inline void PartialRecoveryDestRequest::add_source_datanode_ips(const std::string& value) {
-  _impl_.source_datanode_ips_.Add()->assign(value);
-  // @@protoc_insertion_point(field_add:proxy_proto.PartialRecoveryDestRequest.source_datanode_ips)
-}
-inline void PartialRecoveryDestRequest::add_source_datanode_ips(std::string&& value) {
-  _impl_.source_datanode_ips_.Add(std::move(value));
-  // @@protoc_insertion_point(field_add:proxy_proto.PartialRecoveryDestRequest.source_datanode_ips)
-}
-inline void PartialRecoveryDestRequest::add_source_datanode_ips(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  _impl_.source_datanode_ips_.Add()->assign(value);
-  // @@protoc_insertion_point(field_add_char:proxy_proto.PartialRecoveryDestRequest.source_datanode_ips)
-}
-inline void PartialRecoveryDestRequest::add_source_datanode_ips(const char* value, size_t size) {
-  _impl_.source_datanode_ips_.Add()->assign(reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_add_pointer:proxy_proto.PartialRecoveryDestRequest.source_datanode_ips)
-}
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
-PartialRecoveryDestRequest::source_datanode_ips() const {
-  // @@protoc_insertion_point(field_list:proxy_proto.PartialRecoveryDestRequest.source_datanode_ips)
-  return _impl_.source_datanode_ips_;
-}
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
-PartialRecoveryDestRequest::mutable_source_datanode_ips() {
-  // @@protoc_insertion_point(field_mutable_list:proxy_proto.PartialRecoveryDestRequest.source_datanode_ips)
-  return &_impl_.source_datanode_ips_;
-}
-
-// repeated int32 source_datanode_ports = 9;
-inline int PartialRecoveryDestRequest::_internal_source_datanode_ports_size() const {
-  return _impl_.source_datanode_ports_.size();
-}
-inline int PartialRecoveryDestRequest::source_datanode_ports_size() const {
-  return _internal_source_datanode_ports_size();
-}
-inline void PartialRecoveryDestRequest::clear_source_datanode_ports() {
-  _impl_.source_datanode_ports_.Clear();
-}
-inline int32_t PartialRecoveryDestRequest::_internal_source_datanode_ports(int index) const {
-  return _impl_.source_datanode_ports_.Get(index);
-}
-inline int32_t PartialRecoveryDestRequest::source_datanode_ports(int index) const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PartialRecoveryDestRequest.source_datanode_ports)
-  return _internal_source_datanode_ports(index);
-}
-inline void PartialRecoveryDestRequest::set_source_datanode_ports(int index, int32_t value) {
-  _impl_.source_datanode_ports_.Set(index, value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PartialRecoveryDestRequest.source_datanode_ports)
-}
-inline void PartialRecoveryDestRequest::_internal_add_source_datanode_ports(int32_t value) {
-  _impl_.source_datanode_ports_.Add(value);
-}
-inline void PartialRecoveryDestRequest::add_source_datanode_ports(int32_t value) {
-  _internal_add_source_datanode_ports(value);
-  // @@protoc_insertion_point(field_add:proxy_proto.PartialRecoveryDestRequest.source_datanode_ports)
-}
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-PartialRecoveryDestRequest::_internal_source_datanode_ports() const {
-  return _impl_.source_datanode_ports_;
-}
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-PartialRecoveryDestRequest::source_datanode_ports() const {
-  // @@protoc_insertion_point(field_list:proxy_proto.PartialRecoveryDestRequest.source_datanode_ports)
-  return _internal_source_datanode_ports();
-}
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-PartialRecoveryDestRequest::_internal_mutable_source_datanode_ports() {
-  return &_impl_.source_datanode_ports_;
-}
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-PartialRecoveryDestRequest::mutable_source_datanode_ports() {
-  // @@protoc_insertion_point(field_mutable_list:proxy_proto.PartialRecoveryDestRequest.source_datanode_ports)
-  return _internal_mutable_source_datanode_ports();
-}
-
-// repeated int32 decode_factors = 10;
-inline int PartialRecoveryDestRequest::_internal_decode_factors_size() const {
-  return _impl_.decode_factors_.size();
-}
-inline int PartialRecoveryDestRequest::decode_factors_size() const {
-  return _internal_decode_factors_size();
-}
-inline void PartialRecoveryDestRequest::clear_decode_factors() {
-  _impl_.decode_factors_.Clear();
-}
-inline int32_t PartialRecoveryDestRequest::_internal_decode_factors(int index) const {
-  return _impl_.decode_factors_.Get(index);
-}
-inline int32_t PartialRecoveryDestRequest::decode_factors(int index) const {
-  // @@protoc_insertion_point(field_get:proxy_proto.PartialRecoveryDestRequest.decode_factors)
-  return _internal_decode_factors(index);
-}
-inline void PartialRecoveryDestRequest::set_decode_factors(int index, int32_t value) {
-  _impl_.decode_factors_.Set(index, value);
-  // @@protoc_insertion_point(field_set:proxy_proto.PartialRecoveryDestRequest.decode_factors)
-}
-inline void PartialRecoveryDestRequest::_internal_add_decode_factors(int32_t value) {
-  _impl_.decode_factors_.Add(value);
-}
-inline void PartialRecoveryDestRequest::add_decode_factors(int32_t value) {
-  _internal_add_decode_factors(value);
-  // @@protoc_insertion_point(field_add:proxy_proto.PartialRecoveryDestRequest.decode_factors)
-}
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-PartialRecoveryDestRequest::_internal_decode_factors() const {
-  return _impl_.decode_factors_;
-}
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
-PartialRecoveryDestRequest::decode_factors() const {
-  // @@protoc_insertion_point(field_list:proxy_proto.PartialRecoveryDestRequest.decode_factors)
-  return _internal_decode_factors();
-}
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-PartialRecoveryDestRequest::_internal_mutable_decode_factors() {
-  return &_impl_.decode_factors_;
-}
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
-PartialRecoveryDestRequest::mutable_decode_factors() {
-  // @@protoc_insertion_point(field_mutable_list:proxy_proto.PartialRecoveryDestRequest.decode_factors)
-  return _internal_mutable_decode_factors();
 }
 
 // -------------------------------------------------------------------
@@ -24107,8 +23319,6 @@ StripeAndBlockIDs::mutable_datanodeports() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
-// -------------------------------------------------------------------
-
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

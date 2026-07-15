@@ -911,22 +911,6 @@ int main(int argc, char **argv)
     // std::cout << "Degraded read test end" << std::endl;
     // std::cout << std::endl;
     
-    // for partial-decoding cross-rack recovery (currently fixed to block 0 of stripe 0)
-    {
-        int repair_stripe_id = 0;
-        int repair_failed_block_id = 0;
-        std::cout << "Partial-decoding recovery test start (stripe " << repair_stripe_id
-                  << ", block " << repair_failed_block_id << ")" << std::endl;
-        std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-        bool ok = client.partial_recovery(repair_stripe_id, repair_failed_block_id);
-        std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-        std::cout << "Partial recovery result: " << (ok ? "success" : "failed") << std::endl;
-        std::cout << "Partial recovery time: " << time_span.count() << " seconds" << std::endl;
-        std::cout << "Partial-decoding recovery test end" << std::endl;
-        std::cout << std::endl;
-    }
-
     //for single block recovery
     /*
     std::cout << "Single block recovery test start" << std::endl;
