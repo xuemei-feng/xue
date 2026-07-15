@@ -42,6 +42,18 @@ namespace ECProject
                   asio::ip::address::from_string(proxy_ip_port.substr(0, proxy_ip_port.find(':')).c_str()),
                   ECProject::PROXY_PORT_SHIFT + ECProject::PROXY_XFER_PORT_SUB_OFFSET +
                       std::stoi(proxy_ip_port.substr(proxy_ip_port.find(':') + 1, proxy_ip_port.size())))),
+          m_set_acceptor(
+              io_context,
+              asio::ip::tcp::endpoint(
+                  asio::ip::address::from_string(proxy_ip_port.substr(0, proxy_ip_port.find(':')).c_str()),
+                  ECProject::SET_XFER_PORT_OFFSET +
+                      std::stoi(proxy_ip_port.substr(proxy_ip_port.find(':') + 1, proxy_ip_port.size())))),
+          m_recovery_acceptor(
+              io_context,
+              asio::ip::tcp::endpoint(
+                  asio::ip::address::from_string(proxy_ip_port.substr(0, proxy_ip_port.find(':')).c_str()),
+                  ECProject::RECOVERY_XFER_PORT_OFFSET +
+                      std::stoi(proxy_ip_port.substr(proxy_ip_port.find(':') + 1, proxy_ip_port.size())))),
           m_coordinator_address(coordinator_address)
     {
       init_coordinator();
@@ -220,7 +232,9 @@ namespace ECProject
     int m_self_cluster_id;
     asio::io_context io_context;
     asio::ip::tcp::acceptor acceptor;
+    asio::ip::tcp::acceptor m_set_acceptor;
     asio::ip::tcp::acceptor m_cord_xfer_acceptor;
+    asio::ip::tcp::acceptor m_recovery_acceptor;
     sem_t sem;
     std::string m_coordinator_address;
   };

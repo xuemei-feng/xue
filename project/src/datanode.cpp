@@ -293,6 +293,7 @@ namespace ECProject
       {
         DnDeliveredSocket delivered(io_context);
         acceptor.accept(delivered.socket);
+        std::cout << "[Datanode" << m_port << "][Accept] got TCP connection" << std::endl;
 
         bool delivered_plain_write = false;
         {
@@ -488,12 +489,15 @@ namespace ECProject
         bool is_serialized = append_info->is_serialized();
 
         // append_offset must be the physical offset of the block
-        auto dataBlockHandler = [this](std::string block_key, int append_size, int append_offset) mutable
+        auto dataBlockHandler = [this](std::string block_key, int append_size, int append_offset,
+                                        std::future<DnDeliveredSocket> fut) mutable
         {
             try
             {
+                std::cout << "[Datanode" << m_port << "][Append] waiting for TCP data, block_key=" << block_key << " size=" << append_size << std::endl;
                 std::vector<char> buf(append_size);
-                DnDeliveredSocket delivered = dn_wait_for_connection(DnConnWaitKind::PlainRead);
+                DnDeliveredSocket delivered = fut.get();
+                std::cout << "[Datanode" << m_port << "][Append] TCP connected, reading data..." << std::endl;
                 asio::error_code ec = dn_tcp_read_with_prefix(delivered, buf.data(), static_cast<size_t>(append_size));
 
                 asio::error_code ignore_ec;
@@ -503,7 +507,7 @@ namespace ECProject
                 std::string targetdir = "./storage/" + std::to_string(m_port) + "/";
                 std::string writepath = targetdir + block_key;
 
-                // std::cout << "[Datanode" << m_port << "][Append101] writepath: " << writepath << " append_offset: " << append_offset << " append_size: " << append_size << std::endl;
+                std::cout << "[Datanode" << m_port << "][Append] writing to: " << writepath << " size=" << append_size << std::endl;
 
                 if (access(targetdir.c_str(), 0) == -1)
                 {
@@ -512,37 +516,30 @@ namespace ECProject
 
                 if (append_offset == 0)
                 {
-                    // append_offset==0 允许重建同名块文件（例如重复更新同一 block_key）。
-                    // 这里统一使用 trunc，避免因文件已存在触发断言导致进程崩溃。
                     std::ofstream create_file(writepath, std::ios::binary | std::ios::out | std::ios::trunc);
                     create_file.close();
                 }
 
-                // Open file in append mode
-                // write the data to the disk using pagecache
                 std::ofstream append_file(writepath, std::ios::binary | std::ios::out | std::ios::app);
-                // Append data from buffer to end of file
                 append_file.write(buf.data(), append_size);
-                if (cord_trace_log(IF_DEBUG))
-                {
-                    std::cout << "[Datanode" << m_port << "][Append120] successfully append data block " << block_key << " with " << append_size << " bytes" << std::endl;
-                }
+                std::cout << "[Datanode" << m_port << "][Append] wrote " << block_key << " size=" << append_size << " OK" << std::endl;
                 append_file.flush();
                 append_file.close();
             }
             catch (const std::exception &e)
             {
-                std::cerr << e.what() << '\n';
+                std::cout << "[Datanode" << m_port << "][Append] EXCEPTION: " << e.what() << " block_key=" << block_key << std::endl;
             }
         };
 
         // append_offset must be the physical offset of the block
-        auto ParityBlockHandler = [this](std::string block_key, int append_size, int append_offset, bool is_serialized) mutable
+        auto ParityBlockHandler = [this](std::string block_key, int append_size, int append_offset, bool is_serialized,
+                                         std::future<DnDeliveredSocket> fut) mutable
         {
             try
             {
                 char *buf = new char[append_size];
-                DnDeliveredSocket delivered = dn_wait_for_connection(DnConnWaitKind::PlainRead);
+                DnDeliveredSocket delivered = fut.get();
                 asio::error_code ec = dn_tcp_read_with_prefix(delivered, buf, static_cast<size_t>(append_size));
 
                 asio::error_code ignore_ec;
@@ -593,18 +590,24 @@ namespace ECProject
 
         try
         {
-            if (cord_trace_log(IF_DEBUG))
+            // Register waiter BEFORE spawning thread, so the accept loop can find it
+            // when TCP data arrives (fixes race between gRPC and TCP connect in proxy)
+            auto prom = std::make_shared<std::promise<DnDeliveredSocket>>();
+            std::future<DnDeliveredSocket> fut = prom->get_future();
+
             {
-                // std::cout << "[Datanode" << m_port << "][Append109] block_key: " << block_key << ", block_id: " << block_id << ", append_size: " << append_size << ", append_offset: " << append_offset << " is_serialized: " << is_serialized << std::endl;
+                std::lock_guard<std::mutex> lk(m_dn_conn_wait_mu);
+                m_dn_conn_waiters.emplace_back(DnConnWaitKind::PlainRead, std::move(prom));
             }
+
             if (block_id < m_sys_config->k)
             {
-                std::thread my_thread(dataBlockHandler, block_key, append_size, append_offset);
+                std::thread my_thread(dataBlockHandler, block_key, append_size, append_offset, std::move(fut));
                 my_thread.detach();
             }
             else
             {
-                std::thread my_thread(ParityBlockHandler, block_key, append_size, append_offset, is_serialized);
+                std::thread my_thread(ParityBlockHandler, block_key, append_size, append_offset, is_serialized, std::move(fut));
                 my_thread.detach();
             }
             response->set_message(true);
@@ -624,13 +627,16 @@ namespace ECProject
     {
         std::string block_key = recovery_info->block_key();
         int block_id = recovery_info->block_id();
+        (void)block_id;
 
-        auto handler = [this, &response](std::string block_key, int block_id) mutable
+        auto handler = [this](std::string block_key, std::future<DnDeliveredSocket> fut) mutable
         {
             try
             {
+                std::cout << "[Datanode" << m_port << "][Recovery] waiting for TCP data, block_key=" << block_key
+                          << " size=" << m_sys_config->BlockSize << std::endl;
                 std::vector<char> buf(m_sys_config->BlockSize);
-                DnDeliveredSocket delivered = dn_wait_for_connection(DnConnWaitKind::PlainRead);
+                DnDeliveredSocket delivered = fut.get();
                 asio::error_code ec = dn_tcp_read_with_prefix(delivered, buf.data(), static_cast<size_t>(m_sys_config->BlockSize));
 
                 asio::error_code ignore_ec;
@@ -654,10 +660,8 @@ namespace ECProject
                 ofs.flush();
                 ofs.close();
 
-                if (cord_trace_log(IF_DEBUG))
-                {
-                    std::cout << "[Datanode" << m_port << "][Recovery] successfully recovery block " << block_key << " with " << m_sys_config->BlockSize << " bytes" << std::endl;
-                }
+                std::cout << "[Datanode" << m_port << "][Recovery] wrote " << block_key
+                          << " size=" << m_sys_config->BlockSize << " OK" << std::endl;
             }
             catch (const std::exception &e)
             {
@@ -667,8 +671,15 @@ namespace ECProject
 
         try
         {
-            std::thread my_thread(handler, block_key, block_id);
-            my_thread.join();
+            // Register waiter BEFORE returning so proxy can TCP after sync gRPC
+            auto prom = std::make_shared<std::promise<DnDeliveredSocket>>();
+            std::future<DnDeliveredSocket> fut = prom->get_future();
+            {
+                std::lock_guard<std::mutex> lk(m_dn_conn_wait_mu);
+                m_dn_conn_waiters.emplace_back(DnConnWaitKind::PlainRead, std::move(prom));
+            }
+            std::thread my_thread(handler, block_key, std::move(fut));
+            my_thread.detach();
             response->set_message(true);
         }
         catch (const std::exception &e)
@@ -689,13 +700,18 @@ namespace ECProject
 
         std::string block_key = recovery_info->block_key();
         int block_id = recovery_info->block_id();
+        (void)block_id;
 
-        auto handler = [this, &response](std::string block_key, int block_id) mutable
+        // Shared disk timing so proxy can still observe it after early gRPC return is not possible;
+        // keep measuring locally for logs only (response must not be written after detach).
+        auto handler = [this](std::string block_key, std::future<DnDeliveredSocket> fut) mutable
         {
             try
             {
+                std::cout << "[Datanode" << m_port << "][Recovery] waiting for TCP data, block_key=" << block_key
+                          << " size=" << m_sys_config->BlockSize << std::endl;
                 std::vector<char> buf(m_sys_config->BlockSize);
-                DnDeliveredSocket delivered = dn_wait_for_connection(DnConnWaitKind::PlainRead);
+                DnDeliveredSocket delivered = fut.get();
                 asio::error_code ec = dn_tcp_read_with_prefix(delivered, buf.data(), static_cast<size_t>(m_sys_config->BlockSize));
 
                 asio::error_code ignore_ec;
@@ -709,7 +725,7 @@ namespace ECProject
                     mkdir(targetdir.c_str(), S_IRWXU);
                 }
 
-                std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now(); // start time for disk io
+                std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
                 std::ofstream ofs(writepath, std::ios::binary | std::ios::out | std::ios::trunc);
                 if (!ofs.is_open())
                 {
@@ -719,14 +735,10 @@ namespace ECProject
                 ofs.write(buf.data(), m_sys_config->BlockSize);
                 ofs.flush();
                 ofs.close();
-                std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now(); // end time for disk io
-                response->set_disk_io_start_time(std::chrono::duration_cast<std::chrono::duration<double>>(begin.time_since_epoch()).count());
-                response->set_disk_io_end_time(std::chrono::duration_cast<std::chrono::duration<double>>(end.time_since_epoch()).count());
-
-                if (cord_trace_log(IF_DEBUG))
-                {
-                    std::cout << "[Datanode" << m_port << "][Recovery] successfully recovery block " << block_key << " with " << m_sys_config->BlockSize << " bytes" << std::endl;
-                }
+                std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+                double disk_io_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - begin).count();
+                std::cout << "[Datanode" << m_port << "][Recovery] wrote " << block_key
+                          << " size=" << m_sys_config->BlockSize << " OK disk_io=" << disk_io_time << "s" << std::endl;
             }
             catch (const std::exception &e)
             {
@@ -736,9 +748,18 @@ namespace ECProject
 
         try
         {
-            std::thread my_thread(handler, block_key, block_id);
-            my_thread.join();
+            auto prom = std::make_shared<std::promise<DnDeliveredSocket>>();
+            std::future<DnDeliveredSocket> fut = prom->get_future();
+            {
+                std::lock_guard<std::mutex> lk(m_dn_conn_wait_mu);
+                m_dn_conn_waiters.emplace_back(DnConnWaitKind::PlainRead, std::move(prom));
+            }
+            std::thread my_thread(handler, block_key, std::move(fut));
+            my_thread.detach();
             response->set_message(true);
+            // Disk IO completes asynchronously after TCP; leave times unset (0) for early return.
+            response->set_disk_io_start_time(0);
+            response->set_disk_io_end_time(0);
         }
         catch (const std::exception &e)
         {

@@ -10,6 +10,10 @@ namespace ECProject
   const int PROXY_PORT_SHIFT = 100;
   /** CoRD proxy↔proxy delta 直连 TCP：grpc_port + PROXY_PORT_SHIFT + 此偏移（与 client 数据口 +100 错开） */
   const int PROXY_XFER_PORT_SUB_OFFSET = 1;
+  /** SET/Append 数据直连 TCP 端口偏移：grpc_port + 此偏移（独立于 CoRD 的 shared acceptor 端口） */
+  const int SET_XFER_PORT_OFFSET = 150;
+  /** Recovery 跨 rack 数据直连 TCP 端口偏移：grpc_port + 此偏移（独立于 SET/CoRD 端口） */
+  const int RECOVERY_XFER_PORT_OFFSET = 200;
 
   class Config
   {

@@ -2301,45 +2301,41 @@ namespace ECProject
       append_info.set_append_offset(slice_offset);
       append_info.set_is_serialized(is_serialized);
       std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
-      // gRPC notify in parallel with TCP data transfer (same pattern as RecoveryToDatanode)
-      std::thread notify_datanode_thread([this, &context, &append_info, &result, &node_ip_port, block_key, block_id]()
-      {
+      // gRPC must complete BEFORE TCP connect so datanode registers PlainRead waiter
+      // (datanode handleAppend now registers waiter synchronously before returning)
       grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleAppend(&context, append_info, &result);
-        if (!stat.ok())
-        {
-          std::cout << "[AppendToDatanode] notify datanode failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
-        }
-      });
+      if (!stat.ok())
+      {
+        std::cout << "[AppendToDatanode] notify datanode failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
+        return false;
+      }
 
       asio::error_code error;
       asio::io_context io_context;
       asio::ip::tcp::socket socket(io_context);
       asio::ip::tcp::resolver resolver(io_context);
       asio::error_code con_error;
+      std::string tcp_target = std::string(ip) + ":" + std::to_string(port + ECProject::DATANODE_PORT_SHIFT);
       asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}), con_error);
-      if (!con_error && cord_trace_log(IF_DEBUG))
+      if (con_error)
       {
-        std::cout << "Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " success! block_key: " << block_key << " block_id: " << block_id << " slice_size: " << slice_size << " slice_offset: " << slice_offset << " is_serialized: " << is_serialized << std::endl;
+        std::cout << "[AppendToDatanode] TCP connect FAILED to " << tcp_target << " block_key: " << block_key << " err: " << con_error.message() << std::endl;
+        return false;
       }
-      else if (cord_trace_log(IF_DEBUG))
-      {
-        std::cout << "Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " failed! block_key: " << block_key << " block_id: " << block_id << " slice_size: " << slice_size << " slice_offset: " << slice_offset << " is_serialized: " << is_serialized << std::endl;
-        exit(-1);
-      }
+      std::cout << "[AppendToDatanode] TCP connect OK to " << tcp_target << " block_key: " << block_key << " size: " << slice_size << std::endl;
       asio::write(socket, asio::buffer(slice_buf, slice_size), error);
+      if (error)
+      {
+        std::cout << "[AppendToDatanode] TCP write FAILED to " << tcp_target << " block_key: " << block_key << " err: " << error.message() << std::endl;
+      }
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
-      notify_datanode_thread.join();
-      if (cord_trace_log(IF_DEBUG))
-      {
-        std::cout << "[Proxy" << m_self_cluster_id << "][Append139]"
-                  << "Append to " << block_key << " with length of " << slice_size << std::endl;
-      }
+      std::cout << "[Proxy" << m_self_cluster_id << "][Append] wrote " << block_key << " size=" << slice_size << " to " << node_ip_port << std::endl;
     }
     catch (const std::exception &e)
     {
-      std::cerr << e.what() << '\n';
+      std::cout << "[AppendToDatanode] EXCEPTION: " << e.what() << " block_key=" << block_key << std::endl;
     }
 
     return true;
@@ -2355,41 +2351,46 @@ namespace ECProject
       recovery_info.set_block_key(std::string(block_key));
       recovery_info.set_block_id(block_id);
       std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
-      std::thread notify_datanode_thread([this, &context, &recovery_info, &result, &node_ip_port, &block_key, &block_id]()
+      // gRPC must complete BEFORE TCP connect so datanode registers PlainRead waiter
+      grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleRecovery(&context, recovery_info, &result);
+      if (!stat.ok())
       {
-        grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleRecovery(&context, recovery_info, &result);
-        if (!stat.ok())
-        {
-          std::cout << "[RecoveryToDatanode] notify datanode failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
-          exit(-1);
-        }
-      });
-      //grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleRecovery(&context, recovery_info, &result);
+        std::cout << "[RecoveryToDatanode] notify datanode failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
+        return false;
+      }
 
       asio::error_code error;
       asio::io_context io_context;
       asio::ip::tcp::socket socket(io_context);
       asio::ip::tcp::resolver resolver(io_context);
       asio::error_code con_error;
+      std::string tcp_target = std::string(ip) + ":" + std::to_string(port + ECProject::DATANODE_PORT_SHIFT);
       asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}), con_error);
-      if (!con_error && cord_trace_log(IF_DEBUG))
+      if (con_error)
       {
-        std::cout << "[RecoveryToDatanode] Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " success! block_key: " << block_key << " block_id: " << block_id << std::endl;
+        std::cout << "[RecoveryToDatanode] Connect to " << tcp_target << " failed! block_key: " << block_key
+                  << " block_id: " << block_id << " err: " << con_error.message() << std::endl;
+        return false;
       }
-      else if (con_error)
-      {
-        std::cout << "[RecoveryToDatanode] Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
-        exit(-1);
-      }
+      std::cout << "[RecoveryToDatanode] Connect to " << tcp_target << " success! block_key: " << block_key
+                << " block_id: " << block_id << std::endl;
       asio::write(socket, asio::buffer(buf, m_sys_config->BlockSize), error);
+      if (error)
+      {
+        std::cout << "[RecoveryToDatanode] TCP write FAILED to " << tcp_target << " block_key: " << block_key
+                  << " err: " << error.message() << std::endl;
+        return false;
+      }
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
-      notify_datanode_thread.join();
+      std::cout << "[Proxy" << m_self_cluster_id << "][Recovery] wrote " << block_key
+                << " size=" << m_sys_config->BlockSize << " to " << node_ip_port << std::endl;
     }
     catch (const std::exception &e)
     {
       std::cerr << e.what() << '\n';
+      return false;
     }
 
     return true;
@@ -2405,48 +2406,53 @@ namespace ECProject
       recovery_info.set_block_key(std::string(block_key));
       recovery_info.set_block_id(block_id);
       std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
-      std::chrono::high_resolution_clock::time_point grpc_notify_time;
-      std::thread notify_datanode_thread([this, &context, &recovery_info, &result, &grpc_notify_time, &node_ip_port, &block_key, &block_id]()
+      std::chrono::high_resolution_clock::time_point grpc_notify_time = std::chrono::high_resolution_clock::now();
+      // gRPC must complete BEFORE TCP connect so datanode registers PlainRead waiter
+      grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleRecoveryBreakdown(&context, recovery_info, &result);
+      if (!stat.ok())
       {
-        grpc_notify_time = std::chrono::high_resolution_clock::now();
-        grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleRecoveryBreakdown(&context, recovery_info, &result);
-        if (!stat.ok())
-        {
-          std::cout << "[RecoveryToDatanode] notify datanode failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
-          exit(-1);
-        }
-      });
+        std::cout << "[RecoveryToDatanode] notify datanode failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
+        return false;
+      }
 
       asio::error_code error;
       asio::io_context io_context;
       asio::ip::tcp::socket socket(io_context);
       asio::ip::tcp::resolver resolver(io_context);
       asio::error_code con_error;
+      std::string tcp_target = std::string(ip) + ":" + std::to_string(port + ECProject::DATANODE_PORT_SHIFT);
       asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}), con_error);
-      std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now(); // start time for network
-      if (!con_error && cord_trace_log(IF_DEBUG))
+      std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+      if (con_error)
       {
-        std::cout << "[RecoveryToDatanode] Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " success! block_key: " << block_key << " block_id: " << block_id << std::endl;
+        std::cout << "[RecoveryToDatanode] Connect to " << tcp_target << " failed! block_key: " << block_key
+                  << " block_id: " << block_id << " err: " << con_error.message() << std::endl;
+        return false;
       }
-      else if (con_error)
-      {
-        std::cout << "[RecoveryToDatanode] Connect to " << ip << ":" << port + ECProject::DATANODE_PORT_SHIFT << " failed! block_key: " << block_key << " block_id: " << block_id << std::endl;
-        exit(-1);
-      }
+      std::cout << "[RecoveryToDatanode] Connect to " << tcp_target << " success! block_key: " << block_key
+                << " block_id: " << block_id << std::endl;
       asio::write(socket, asio::buffer(buf, m_sys_config->BlockSize), error);
+      if (error)
+      {
+        std::cout << "[RecoveryToDatanode] TCP write FAILED to " << tcp_target << " block_key: " << block_key
+                  << " err: " << error.message() << std::endl;
+        return false;
+      }
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
-      std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now(); // end time for network
+      std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
       *network_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - begin).count();
-      notify_datanode_thread.join();
+      // Disk write now happens asynchronously after TCP; disk_io from reply is unset.
       *disk_io_time = result.disk_io_end_time() - result.disk_io_start_time();
       *network_time += result.grpc_start_time() - std::chrono::duration_cast<std::chrono::duration<double>>(grpc_notify_time.time_since_epoch()).count();
-  
+      std::cout << "[Proxy" << m_self_cluster_id << "][Recovery] wrote " << block_key
+                << " size=" << m_sys_config->BlockSize << " to " << node_ip_port << std::endl;
     }
     catch (const std::exception &e)
     {
       std::cerr << e.what() << '\n';
+      return false;
     }
 
     return true;
@@ -3684,7 +3690,7 @@ namespace ECProject
       try
       {
         asio::ip::tcp::socket socket_data(io_context);
-        acceptor.accept(socket_data);
+        m_set_acceptor.accept(socket_data);
         asio::error_code error;
 
         // assert(m_pre_allocated_buffer_queue.size() > 0 && "Pre-allocated buffer queue is empty");
@@ -3847,7 +3853,7 @@ namespace ECProject
         // read the key and value in the socket sent by client
         // initialize the socket of reading key and value
         asio::ip::tcp::socket socket_data(io_context);
-        acceptor.accept(socket_data);
+        m_set_acceptor.accept(socket_data);
         asio::error_code error;
 
         int extend_value_size_byte = block_size * k;
@@ -4793,7 +4799,7 @@ namespace ECProject
             //asio::io_context io_context;
             asio::ip::tcp::socket socket(this->io_context);
             //asio::ip::tcp::resolver resolver(io_context);
-            this->acceptor.accept(socket);
+            this->m_recovery_acceptor.accept(socket);
             std::cout << "connected to porxy" << std::endl;
             asio::error_code error;
             size_t len = asio::read(socket, asio::buffer(cross_rack_bufs[i], this->m_sys_config->BlockSize), error);
@@ -4831,7 +4837,7 @@ namespace ECProject
         std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode success!" << std::endl;
       }
     }
-  
+
     std::string replaced_node_ip = recovery_request->replaced_node_ip();
     int replaced_node_port = recovery_request->replaced_node_port();
     std::cout << "[Proxy" << m_self_cluster_id << "][Degraded] send to the client" << replaced_node_ip << ":" << replaced_node_port << std::endl;
@@ -4992,7 +4998,7 @@ namespace ECProject
             //asio::io_context io_context;
             asio::ip::tcp::socket socket(this->io_context);
             //asio::ip::tcp::resolver resolver(io_context);
-            this->acceptor.accept(socket);
+            this->m_recovery_acceptor.accept(socket);
             std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
             accept_start_time[i] = std::chrono::duration_cast<std::chrono::duration<double>>(start.time_since_epoch()).count();
             std::cout << "connected to porxy" << std::endl;
@@ -5189,7 +5195,7 @@ namespace ECProject
           get_from_proxies_threads.push_back(std::thread([i, this, &cross_rack_bufs, &cross_rack_ok]()mutable{
             asio::ip::tcp::socket socket(this->io_context);
             std::cout << "connecting to proxy" << std::endl;
-            this->acceptor.accept(socket);
+            this->m_recovery_acceptor.accept(socket);
             std::cout << "connected to porxy" << std::endl;
             asio::error_code error;
             asio::read(socket, asio::buffer(cross_rack_bufs[i], this->m_sys_config->BlockSize), error);
@@ -5392,7 +5398,7 @@ namespace ECProject
               asio::ip::tcp::socket socket(this->io_context);
               //asio::ip::tcp::resolver resolver(io_context);
               std::cout << "connecting to proxy" << std::endl;
-              this->acceptor.accept(socket);
+              this->m_recovery_acceptor.accept(socket);
               std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
               accept_start_time[i] = std::chrono::duration_cast<std::chrono::duration<double>>(start.time_since_epoch()).count();
               std::cout << "connected to porxy" << std::endl;
@@ -5579,7 +5585,7 @@ namespace ECProject
         try
         {
           asio::ip::tcp::socket socket(this->io_context);
-          this->acceptor.accept(socket);
+          this->m_recovery_acceptor.accept(socket);
           asio::error_code ec;
           size_t read_bytes = 0;
           while (read_bytes < per_proxy_len)

@@ -860,7 +860,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::string chosen_proxy = selected_proxy_ip + ":" + std::to_string(selected_proxy_port);
     grpc::Status status = m_proxy_ptrs[chosen_proxy]->encodeAndSetObject(&cont, object_placement, &set_reply);
     proxyIPPort->set_proxyip(selected_proxy_ip);
-    proxyIPPort->set_proxyport(selected_proxy_port + ECProject::PROXY_PORT_SHIFT); // use another port to accept data
+    proxyIPPort->set_proxyport(selected_proxy_port + ECProject::SET_XFER_PORT_OFFSET); // use another port to accept data
     if (status.ok())
     {
       m_mutex.lock();
@@ -2170,7 +2170,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       proxyIPPort->add_append_keys(plan.key());
       proxyIPPort->add_proxyips(m_cluster_table[plan.cluster_id()].proxy_ip);
-      proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::PROXY_PORT_SHIFT); // use another port to accept data
+      proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::SET_XFER_PORT_OFFSET); // use another port to accept data
       proxyIPPort->add_cluster_slice_sizes(plan.append_size());
       sum_append_size += plan.append_size();
     }
@@ -3357,7 +3357,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       proxyIPPort->add_append_keys(plan.key());
       proxyIPPort->add_proxyips(m_cluster_table[plan.cluster_id()].proxy_ip);
-      proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::PROXY_PORT_SHIFT); // use another port to accept data
+      proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::SET_XFER_PORT_OFFSET); // use another port to accept data
       proxyIPPort->add_cluster_slice_sizes(plan.append_size());
       sum_append_size += plan.append_size();
     }
@@ -3445,7 +3445,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       proxyIPPort->add_append_keys(plan.key());
       proxyIPPort->add_proxyips(m_cluster_table[plan.cluster_id()].proxy_ip);
-      proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::PROXY_PORT_SHIFT); // use another port to accept data
+      proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::SET_XFER_PORT_OFFSET); // use another port to accept data
       proxyIPPort->add_cluster_slice_sizes(plan.append_size());
       //proxyIPPort->add_group_ids(group_id);
       sum_append_size += plan.append_size();
@@ -4052,7 +4052,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           proxy_proto::DegradedReadRequest degraded_read_request;
           proxy_proto::DegradedReadReply degraded_read_reply;
           degraded_read_request.set_clientip(dest_proxy_ip);
-          degraded_read_request.set_clientport(dest_proxy_port + ECProject::PROXY_PORT_SHIFT);
+          degraded_read_request.set_clientport(dest_proxy_port + ECProject::RECOVERY_XFER_PORT_OFFSET);
           degraded_read_request.set_failed_block_id(failed_block_id);
           degraded_read_request.set_failed_block_key(t_stripe.blocks[failed_block_id]->block_key);
           std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[i]];
@@ -4300,7 +4300,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           proxy_proto::DegradedReadRequest degraded_read_request;
           proxy_proto::DegradedReadReply degraded_read_reply;
           degraded_read_request.set_clientip(dest_proxy_ip);
-          degraded_read_request.set_clientport(dest_proxy_port + ECProject::PROXY_PORT_SHIFT);
+          degraded_read_request.set_clientport(dest_proxy_port + ECProject::RECOVERY_XFER_PORT_OFFSET);
           degraded_read_request.set_failed_block_id(failed_block_id);
           degraded_read_request.set_failed_block_key(t_stripe.blocks[failed_block_id]->block_key);
           std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[i]];
@@ -4539,7 +4539,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           proxy_proto::DegradedReadRequest degraded_read_request;
           proxy_proto::DegradedReadReply degraded_read_reply;
           degraded_read_request.set_clientip(dest_proxy_ip);
-          degraded_read_request.set_clientport(dest_proxy_port + ECProject::PROXY_PORT_SHIFT);
+          degraded_read_request.set_clientport(dest_proxy_port + ECProject::RECOVERY_XFER_PORT_OFFSET);
           degraded_read_request.set_failed_block_id(failed_block_id);
           degraded_read_request.set_failed_block_key(t_stripe.blocks[failed_block_id]->block_key);
           std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[i]];
@@ -4710,7 +4710,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           proxy_proto::DegradedReadRequest degraded_read_request;
           proxy_proto::DegradedReadReply degraded_read_reply;
           degraded_read_request.set_clientip(dest_proxy_ip);
-          degraded_read_request.set_clientport(dest_proxy_port + ECProject::PROXY_PORT_SHIFT);
+          degraded_read_request.set_clientport(dest_proxy_port + ECProject::RECOVERY_XFER_PORT_OFFSET);
           degraded_read_request.set_failed_block_id(failed_block_id);
           degraded_read_request.set_failed_block_key(t_stripe.blocks[failed_block_id]->block_key);
           std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[i]];
@@ -4857,7 +4857,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           proxy_proto::DegradedReadRequest degraded_read_request;
           proxy_proto::DegradedReadReply degraded_read_reply;
           degraded_read_request.set_clientip(dest_proxy_ip);
-          degraded_read_request.set_clientport(dest_proxy_port + ECProject::PROXY_PORT_SHIFT);
+          degraded_read_request.set_clientport(dest_proxy_port + ECProject::RECOVERY_XFER_PORT_OFFSET);
           degraded_read_request.set_failed_block_id(failed_block_id);
           degraded_read_request.set_failed_block_key(t_stripe.blocks[failed_block_id]->block_key);
           std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[i]];
