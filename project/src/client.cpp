@@ -1508,6 +1508,26 @@ namespace ECProject
     return true;
   }
 
+  bool Client::partial_recovery(int stripe_id, int failed_block_id)
+  {
+    grpc::ClientContext context;
+    coordinator_proto::KeyAndClientIP request;
+    request.set_key(std::to_string(stripe_id) + "_" + std::to_string(failed_block_id));
+    request.set_clientip(m_clientIPForGet);
+    request.set_clientport(m_clientPortForGet);
+
+    coordinator_proto::RecoveryReply reply;
+    grpc::Status status = m_coordinator_ptr->getPartialRecovery(&context, request, &reply);
+
+    if (!status.ok())
+    {
+      std::cout << "[Client] partial recovery failed!" << std::endl;
+      return false;
+    }
+
+    return true;
+  }
+
   bool Client::recovery_breakdown(int stripe_id, int failed_block_id, double &disk_read_time, double &network_time, double &decode_time, double &disk_write_time)
   {
     grpc::ClientContext context;

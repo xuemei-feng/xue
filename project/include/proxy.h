@@ -159,6 +159,10 @@ namespace ECProject
         grpc::ServerContext *context,
         const proxy_proto::MultipleRecoveryRequest *multiple_recovery_request,
         proxy_proto::GetReply *response) override;
+    grpc::Status partialRecoveryDest(
+        grpc::ServerContext *context,
+        const proxy_proto::PartialRecoveryDestRequest *partial_recovery_dest_request,
+        proxy_proto::RecoveryReply *response) override;
     // delete
     grpc::Status deleteBlock(
         grpc::ServerContext *context,

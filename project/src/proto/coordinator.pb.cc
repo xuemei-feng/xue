@@ -784,7 +784,7 @@ const char descriptor_table_protodef_coordinator_2eproto[] PROTOBUF_SECTION_VARI
   "ecoveryReply\022\026\n\016disk_read_time\030\001 \001(\001\022\024\n\014"
   "network_time\030\002 \001(\001\022\023\n\013decode_time\030\003 \001(\001\022"
   "\027\n\017disk_write_time\030\004 \001(\001\022\027\n\017grpc_start_t"
-  "ime\030\005 \001(\0012\211\026\n\022coordinatorService\022k\n\025sayH"
+  "ime\030\005 \001(\0012\346\026\n\022coordinatorService\022k\n\025sayH"
   "elloToCoordinator\022\'.coordinator_proto.Re"
   "questToCoordinator\032\'.coordinator_proto.R"
   "eplyFromCoordinator\"\000\022`\n\ncheckalive\022\'.co"
@@ -841,25 +841,27 @@ const char descriptor_table_protodef_coordinator_2eproto[] PROTOBUF_SECTION_VARI
   " .coordinator_proto.RecoveryReply\"\000\022]\n\024g"
   "etRecoveryBreakdown\022!.coordinator_proto."
   "KeyAndClientIP\032 .coordinator_proto.Recov"
-  "eryReply\"\000\022Y\n\020fullNodeRecovery\022#.coordin"
-  "ator_proto.NodeIdFromClient\032\036.coordinato"
-  "r_proto.RepBlockNum\"\000\022j\n\022multiBlockRecov"
-  "ery\0220.coordinator_proto.StripeIdAndBlock"
-  "IDsFromClient\032 .coordinator_proto.Recove"
-  "ryReply\"\000\022N\n\010delByKey\022 .coordinator_prot"
-  "o.KeyFromClient\032\036.coordinator_proto.RepI"
-  "fDeling\"\000\022V\n\013delByStripe\022%.coordinator_p"
-  "roto.StripeIdFromClient\032\036.coordinator_pr"
-  "oto.RepIfDeling\"\000\022Y\n\013listStripes\022\'.coord"
-  "inator_proto.RequestToCoordinator\032\037.coor"
-  "dinator_proto.RepStripeIds\"\000\022W\n\ndecodeTe"
-  "st\022!.coordinator_proto.KeyAndClientIP\032$."
-  "coordinator_proto.DegradedReadReply\"\000b\006p"
-  "roto3"
+  "eryReply\"\000\022[\n\022getPartialRecovery\022!.coord"
+  "inator_proto.KeyAndClientIP\032 .coordinato"
+  "r_proto.RecoveryReply\"\000\022Y\n\020fullNodeRecov"
+  "ery\022#.coordinator_proto.NodeIdFromClient"
+  "\032\036.coordinator_proto.RepBlockNum\"\000\022j\n\022mu"
+  "ltiBlockRecovery\0220.coordinator_proto.Str"
+  "ipeIdAndBlockIDsFromClient\032 .coordinator"
+  "_proto.RecoveryReply\"\000\022N\n\010delByKey\022 .coo"
+  "rdinator_proto.KeyFromClient\032\036.coordinat"
+  "or_proto.RepIfDeling\"\000\022V\n\013delByStripe\022%."
+  "coordinator_proto.StripeIdFromClient\032\036.c"
+  "oordinator_proto.RepIfDeling\"\000\022Y\n\013listSt"
+  "ripes\022\'.coordinator_proto.RequestToCoord"
+  "inator\032\037.coordinator_proto.RepStripeIds\""
+  "\000\022W\n\ndecodeTest\022!.coordinator_proto.KeyA"
+  "ndClientIP\032$.coordinator_proto.DegradedR"
+  "eadReply\"\000b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_coordinator_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_coordinator_2eproto = {
-    false, false, 5085, descriptor_table_protodef_coordinator_2eproto,
+    false, false, 5178, descriptor_table_protodef_coordinator_2eproto,
     "coordinator.proto",
     &descriptor_table_coordinator_2eproto_once, nullptr, 0, 27,
     schemas, file_default_instances, TableStruct_coordinator_2eproto::offsets,

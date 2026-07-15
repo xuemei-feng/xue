@@ -5648,6 +5648,136 @@ namespace ECProject
 
     return grpc::Status::OK;
   }
+
+  // Partial-decoding recovery, dest side.
+  //   1. Read this rack's own local source blocks from datanodes and compute the
+  //      rack's partial sum via GF matrix multiply (encode_data with decode_num=1),
+  //      i.e. own_partial = XOR_j (factor_j * source_j).
+  //   2. Concurrently accept cross_rack_num TCP connections, each delivering one
+  //      partial block (BlockSize bytes) from a helper rack.
+  //   3. recovered = own_partial XOR (all helper partials), then write it to the
+  //      replaced datanode.
+  grpc::Status ProxyImpl::partialRecoveryDest(
+      grpc::ServerContext *context,
+      const proxy_proto::PartialRecoveryDestRequest *partial_recovery_dest_request,
+      proxy_proto::RecoveryReply *response)
+  {
+    try
+    {
+      int block_size = m_sys_config->BlockSize;
+      int own_source_num = partial_recovery_dest_request->source_block_ids_size();
+      int cross_rack_num = partial_recovery_dest_request->cross_rack_num();
+
+      if (cord_trace_log(IF_DEBUG))
+      {
+        std::cout << "[Proxy" << m_self_cluster_id << "][PartialRecoveryDest] own_sources=" << own_source_num
+                  << " helper_racks=" << cross_rack_num << std::endl;
+      }
+
+      char *own_partial = static_cast<char *>(std::aligned_alloc(32, block_size));
+      std::memset(own_partial, 0, block_size);
+
+      // Kick off receiving helper partials in parallel with local read+decode.
+      char **helper_bufs = nullptr;
+      std::vector<std::thread> recv_threads;
+      if (cross_rack_num > 0)
+      {
+        helper_bufs = new char *[cross_rack_num];
+        for (int i = 0; i < cross_rack_num; i++)
+          helper_bufs[i] = static_cast<char *>(std::aligned_alloc(32, block_size));
+        for (int i = 0; i < cross_rack_num; i++)
+        {
+          recv_threads.push_back(std::thread([i, this, &helper_bufs, block_size]() {
+            asio::ip::tcp::socket socket(this->io_context);
+            this->acceptor.accept(socket);
+            asio::error_code error;
+            asio::read(socket, asio::buffer(helper_bufs[i], block_size), error);
+            if (error && error != asio::error::eof)
+              std::cout << "[Proxy][PartialRecoveryDest] read from helper proxy error: " << error.message() << std::endl;
+            asio::error_code ignore_ec;
+            socket.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
+            socket.close(ignore_ec);
+          }));
+        }
+      }
+
+      // Read this rack's own source blocks and partial-decode them locally.
+      if (own_source_num > 0)
+      {
+        std::vector<char *> src_bufs(own_source_num);
+        for (int i = 0; i < own_source_num; i++)
+          src_bufs[i] = static_cast<char *>(std::aligned_alloc(32, block_size));
+
+        std::vector<std::thread> get_threads;
+        for (int i = 0; i < own_source_num; i++)
+        {
+          get_threads.push_back(std::thread([this, i, &partial_recovery_dest_request, &src_bufs, block_size]() {
+            this->GetFromDatanode(
+                partial_recovery_dest_request->source_block_keys(i),
+                src_bufs[i],
+                static_cast<size_t>(block_size),
+                partial_recovery_dest_request->source_datanode_ips(i).c_str(),
+                static_cast<int>(partial_recovery_dest_request->source_datanode_ports(i)));
+          }));
+        }
+        for (int i = 0; i < own_source_num; i++)
+          get_threads[i].join();
+
+        unsigned char decode_matrix[own_source_num];
+        for (int i = 0; i < own_source_num; i++)
+          decode_matrix[i] = static_cast<unsigned char>(partial_recovery_dest_request->decode_factors(i));
+
+        unsigned char *src_ptrs[own_source_num];
+        for (int i = 0; i < own_source_num; i++)
+          src_ptrs[i] = reinterpret_cast<unsigned char *>(src_bufs[i]);
+        unsigned char *out_ptrs[1] = {reinterpret_cast<unsigned char *>(own_partial)};
+
+        ECProject::encode_data(block_size, own_source_num, 1, decode_matrix, src_ptrs, out_ptrs);
+
+        for (int i = 0; i < own_source_num; i++)
+          std::free(src_bufs[i]);
+      }
+
+      // Wait for all helper partials to arrive.
+      for (auto &th : recv_threads)
+        th.join();
+
+      // recovered = own_partial XOR (all helper partials).
+      char *recovered = static_cast<char *>(std::aligned_alloc(32, block_size));
+      int vects = 1 + cross_rack_num + 1; // sources (own + helpers) + destination
+      char **xor_ptrs = new char *[vects];
+      xor_ptrs[0] = own_partial;
+      for (int i = 0; i < cross_rack_num; i++)
+        xor_ptrs[1 + i] = helper_bufs[i];
+      xor_ptrs[vects - 1] = recovered;
+      ECProject::xor_avx(vects, block_size, reinterpret_cast<void **>(xor_ptrs));
+
+      std::string failed_block_key = partial_recovery_dest_request->failed_block_key();
+      int failed_block_id = partial_recovery_dest_request->failed_block_id();
+      std::string replaced_node_ip = partial_recovery_dest_request->replaced_node_ip();
+      int replaced_node_port = partial_recovery_dest_request->replaced_node_port();
+      RecoveryToDatanode(failed_block_key.c_str(), failed_block_id, recovered, replaced_node_ip.c_str(), replaced_node_port);
+
+      if (cord_trace_log(IF_DEBUG))
+        std::cout << "[Proxy" << m_self_cluster_id << "][PartialRecoveryDest] recovered " << failed_block_key
+                  << " written to " << replaced_node_ip << ":" << replaced_node_port << std::endl;
+
+      delete[] xor_ptrs;
+      std::free(recovered);
+      std::free(own_partial);
+      if (helper_bufs)
+      {
+        for (int i = 0; i < cross_rack_num; i++)
+          std::free(helper_bufs[i]);
+        delete[] helper_bufs;
+      }
+    }
+    catch (const std::exception &e)
+    {
+      std::cerr << "[Proxy][PartialRecoveryDest] exception: " << e.what() << std::endl;
+    }
+    return grpc::Status::OK;
+  }
   // delete
   grpc::Status ProxyImpl::deleteBlock(
       grpc::ServerContext *context,

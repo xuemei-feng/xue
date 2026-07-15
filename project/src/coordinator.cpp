@@ -4431,6 +4431,213 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
   }
 
+  grpc::Status CoordinatorImpl::getPartialRecovery(
+      grpc::ServerContext *context,
+      const coordinator_proto::KeyAndClientIP *keyClient,
+      coordinator_proto::RecoveryReply *recoveryReply)
+  {
+    int stripe_id = std::stoi(keyClient->key().substr(0, keyClient->key().find('_')));
+    int failed_block_id = std::stoi(keyClient->key().substr(keyClient->key().find('_') + 1));
+    bool if_success = partial_recovery_one_block(stripe_id, failed_block_id);
+
+    if (if_success)
+    {
+      return grpc::Status::OK;
+    }
+    else
+    {
+      return grpc::Status(grpc::StatusCode::INTERNAL, "Partial recovery failed!");
+    }
+  }
+
+  // Cross-rack repair of a single block via partial decoding.
+  //
+  // Plan:
+  //   1. get_multi_decode_plan() selects k linearly independent source blocks and,
+  //      for the failed block, the GF decode factor of each source. The recovered
+  //      block equals XOR over sources of (factor_j * source_j).
+  //   2. Group the chosen sources by cluster (rack). Each rack can compute its own
+  //      partial sum = XOR over its local sources of (factor_j * source_j).
+  //   3. The dest rack (rack holding the failed block) computes its own partial sum
+  //      locally and, concurrently, receives one partial block from every helper
+  //      rack, XOR-aggregates all of them into the recovered block, and writes it
+  //      back to a datanode in the dest rack.
+  bool CoordinatorImpl::partial_recovery_one_block(int stripe_id, int failed_block_id)
+  {
+    if (m_stripe_table.find(stripe_id) == m_stripe_table.end())
+    {
+      std::cout << "[Coordinator][PartialRecovery] stripe " << stripe_id << " not found!" << std::endl;
+      return false;
+    }
+    Stripe &t_stripe = m_stripe_table[stripe_id];
+
+    // Source block ids used to reconstruct the failed block, and their GF decode
+    // factors (recovered = XOR over sources of factor_j * source_j).
+    std::vector<int> decode_block_ids;
+    std::vector<int> factors;
+
+    // Prefer local-group repair: for a single-block failure whose recovery needs
+    // only one local group (typically a data block or a local parity block), the
+    // local group is the optimal repair set (fewest blocks read), even if the
+    // group spans multiple racks. Fall back to the global k-source plan otherwise
+    // (e.g. a global parity failure that spans several groups).
+    std::vector<int> recovery_group_ids = get_recovery_group_ids(
+        m_sys_config->CodeType, m_sys_config->k, m_sys_config->r, m_sys_config->z, failed_block_id);
+
+    bool used_local_group = false;
+    if (recovery_group_ids.size() == 1)
+    {
+      std::vector<int> candidate_ids;
+      for (int bid : t_stripe.group_to_blocks[recovery_group_ids[0]])
+      {
+        if (bid != failed_block_id)
+          candidate_ids.push_back(bid);
+      }
+      std::vector<int> local_factors;
+      if (!candidate_ids.empty() &&
+          ECProject::get_local_decode_plan(m_sys_config->k, m_sys_config->r, m_sys_config->z,
+                                           m_sys_config->CodeType, failed_block_id, candidate_ids, local_factors))
+      {
+        // Keep only sources with a non-zero factor (blocks actually needed).
+        for (size_t i = 0; i < candidate_ids.size(); i++)
+        {
+          if (local_factors[i] != 0)
+          {
+            decode_block_ids.push_back(candidate_ids[i]);
+            factors.push_back(local_factors[i]);
+          }
+        }
+        used_local_group = !decode_block_ids.empty();
+      }
+    }
+
+    if (!used_local_group)
+    {
+      std::vector<int> failed_block_indexes = {failed_block_id};
+      std::vector<std::vector<int>> decode_factors; // decode_factors[failed_idx][source_idx]
+      bool plan_ok = ECProject::get_multi_decode_plan(
+          m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType,
+          failed_block_indexes, decode_block_ids, decode_factors);
+      if (!plan_ok || decode_factors.empty() || decode_factors[0].size() != decode_block_ids.size())
+      {
+        std::cout << "[Coordinator][PartialRecovery] decode plan failed for "
+                  << stripe_id << "_" << failed_block_id << std::endl;
+        return false;
+      }
+      factors = decode_factors[0];
+    }
+
+    std::cout << "[Coordinator][PartialRecovery] " << stripe_id << "_" << failed_block_id
+              << " repair mode=" << (used_local_group ? "local-group" : "global")
+              << " sources=" << decode_block_ids.size() << std::endl;
+
+    int dest_cluster_id = t_stripe.blocks[failed_block_id]->map2cluster;
+
+    // Group chosen sources by cluster; keep factor aligned with each source block.
+    struct ClusterSources
+    {
+      std::vector<int> block_ids;
+      std::vector<std::string> block_keys;
+      std::vector<std::string> datanode_ips;
+      std::vector<int> datanode_ports;
+      std::vector<int> factors;
+    };
+    std::map<int, ClusterSources> sources_by_cluster;
+    for (size_t j = 0; j < decode_block_ids.size(); j++)
+    {
+      int bid = decode_block_ids[j];
+      Block *blk = t_stripe.blocks[bid];
+      ClusterSources &cs = sources_by_cluster[blk->map2cluster];
+      cs.block_ids.push_back(bid);
+      cs.block_keys.push_back(blk->block_key);
+      cs.datanode_ips.push_back(m_node_table[blk->map2node].node_ip);
+      cs.datanode_ports.push_back(m_node_table[blk->map2node].node_port);
+      cs.factors.push_back(factors[j]);
+    }
+
+    std::string dest_proxy_ip = m_cluster_table[dest_cluster_id].proxy_ip;
+    int dest_proxy_port = m_cluster_table[dest_cluster_id].proxy_port;
+    int replaced_node_id = randomly_select_a_node(dest_cluster_id, stripe_id);
+
+    // Helper racks are all source clusters other than the dest cluster.
+    std::vector<int> helper_cluster_ids;
+    for (const auto &kv : sources_by_cluster)
+    {
+      if (kv.first != dest_cluster_id)
+        helper_cluster_ids.push_back(kv.first);
+    }
+    int cross_rack_num = static_cast<int>(helper_cluster_ids.size());
+
+    std::vector<std::thread> threads;
+
+    // Dest rack: partial-decode its own local sources + aggregate helper partials.
+    threads.push_back(std::thread([&, dest_cluster_id, dest_proxy_ip, dest_proxy_port, replaced_node_id, cross_rack_num]() {
+      grpc::ClientContext dest_context;
+      proxy_proto::PartialRecoveryDestRequest dest_request;
+      proxy_proto::RecoveryReply dest_reply;
+      dest_request.set_replaced_node_ip(m_node_table[replaced_node_id].node_ip);
+      dest_request.set_replaced_node_port(m_node_table[replaced_node_id].node_port);
+      dest_request.set_failed_block_id(failed_block_id);
+      dest_request.set_failed_block_key(t_stripe.blocks[failed_block_id]->block_key);
+      dest_request.set_cross_rack_num(cross_rack_num);
+      auto it = sources_by_cluster.find(dest_cluster_id);
+      if (it != sources_by_cluster.end())
+      {
+        const ClusterSources &cs = it->second;
+        for (size_t i = 0; i < cs.block_ids.size(); i++)
+        {
+          dest_request.add_source_block_ids(cs.block_ids[i]);
+          dest_request.add_source_block_keys(cs.block_keys[i]);
+          dest_request.add_source_datanode_ips(cs.datanode_ips[i]);
+          dest_request.add_source_datanode_ports(cs.datanode_ports[i]);
+          dest_request.add_decode_factors(cs.factors[i]);
+        }
+      }
+      std::string dest_proxy = dest_proxy_ip + ":" + std::to_string(dest_proxy_port);
+      grpc::Status status = m_proxy_ptrs[dest_proxy]->partialRecoveryDest(&dest_context, dest_request, &dest_reply);
+      if (status.ok())
+        std::cout << "[Coordinator][PartialRecovery] dest of " << stripe_id << "_" << failed_block_id << " success!" << std::endl;
+      else
+        std::cout << "[Coordinator][PartialRecovery] dest of " << stripe_id << "_" << failed_block_id << " failed!" << std::endl;
+    }));
+
+    // Helper racks: read local sources, partial-decode, TCP-send one partial block to dest.
+    for (int helper_cluster_id : helper_cluster_ids)
+    {
+      threads.push_back(std::thread([&, helper_cluster_id, dest_proxy_ip, dest_proxy_port]() {
+        const ClusterSources &cs = sources_by_cluster.at(helper_cluster_id);
+        grpc::ClientContext helper_context;
+        proxy_proto::PartialDecodingRequest helper_request;
+        proxy_proto::DegradedReadReply helper_reply;
+        helper_request.set_dest_ip(dest_proxy_ip);
+        helper_request.set_dest_port(dest_proxy_port + ECProject::PROXY_PORT_SHIFT);
+        helper_request.set_decode_num(1);
+        for (size_t i = 0; i < cs.block_ids.size(); i++)
+        {
+          helper_request.add_source_block_ids(cs.block_ids[i]);
+          helper_request.add_source_block_keys(cs.block_keys[i]);
+          helper_request.add_source_datanode_ips(cs.datanode_ips[i]);
+          helper_request.add_source_datanode_ports(cs.datanode_ports[i]);
+          helper_request.add_decode_factors(cs.factors[i]);
+        }
+        std::string helper_proxy = m_cluster_table[helper_cluster_id].proxy_ip + ":" +
+                                   std::to_string(m_cluster_table[helper_cluster_id].proxy_port);
+        grpc::Status status = m_proxy_ptrs[helper_proxy]->partialDecoding(&helper_context, helper_request, &helper_reply);
+        if (status.ok())
+          std::cout << "[Coordinator][PartialRecovery] helper cluster " << helper_cluster_id << " partial decode success!" << std::endl;
+        else
+          std::cout << "[Coordinator][PartialRecovery] helper cluster " << helper_cluster_id << " partial decode failed!" << std::endl;
+      }));
+    }
+
+    for (auto &th : threads)
+      th.join();
+
+    std::cout << "[Coordinator][PartialRecovery] recovery of " << stripe_id << "_" << failed_block_id
+              << " done (sources=" << decode_block_ids.size() << ", helper_racks=" << cross_rack_num << ")" << std::endl;
+    return true;
+  }
+
   bool CoordinatorImpl::degraded_read_one_block_breakdown(int stripe_id, int failed_block_id, std::string client_ip, int client_port, 
     std::vector<double> &disk_io_start_time, std::vector<double> &disk_io_end_time, std::vector<double> &decode_start_time, std::vector<double> &decode_end_time,
     std::vector<double> &network_start_time, std::vector<double> &network_end_time, double &cross_rack_network_time, double &cross_rack_xor_time,
