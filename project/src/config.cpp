@@ -34,9 +34,10 @@ namespace ECProject
     }
     if (CodeType == "SplitParityLRC")
     {
+      // 1 global + 1 local + ceil(k/(r+1)) data racks
+      const int data_rack_num = (k + r) / (r + 1);
       assert(DatanodeNumPerCluster > k / z + 1 && "Error: DatanodeNumPerCluster must be greater than k / z + 1");
-      assert(ClusterNum >= 6 && "Error: SplitParityLRC requires ClusterNum >= 6");
-      assert(k <= 4 * (r + 1) && "Error: SplitParityLRC requires k <= 4*(r+1)");
+      assert(ClusterNum >= 2 + data_rack_num && "Error: SplitParityLRC requires ClusterNum >= 2 + ceil(k/(r+1))");
     }
     if (CodeType == "CordXueLRC")
     {

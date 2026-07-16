@@ -1242,30 +1242,30 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
   void CoordinatorImpl::initialize_split_parity_lrc_stripe_placement(Stripe *stripe)
   {
-    // 6-cluster 轮询放置（stripe_id % 6）：
-    //   slot0 -> 全部全局校验块；slot1 -> 全部本地校验块；slot2..5 -> 仅数据块（随机，且每 cluster 数据块数 <= r+1）
+    // 轮询放置（stripe_id % ClusterNum）：
+    //   slot0 -> 全部全局校验块；slot1 -> 全部本地校验块；
+    //   随后连续 ceil(k/(r+1)) 个 slot -> 仅数据块（随机混置，且每 cluster 数据块数 <= r+1）
     Block *blocks_info = new Block[stripe->n];
     assert(stripe->object_keys.size() == 1);
 
     const int cluster_num = m_sys_config->ClusterNum;
-    if (cluster_num < 6)
+    // ceil(k / (r+1))
+    const int data_rack_num = (stripe->k + stripe->r) / (stripe->r + 1);
+    const int required_clusters = 2 + data_rack_num;
+    if (cluster_num < required_clusters)
     {
-      throw std::runtime_error("ClusterNum must be >= 6 for SplitParityLRC placement");
-    }
-    if (stripe->k > 4 * (stripe->r + 1))
-    {
-      throw std::runtime_error("SplitParityLRC requires k <= 4*(r+1) (four data clusters, each holds at most r+1 data blocks)");
+      throw std::runtime_error("ClusterNum must be >= 2 + ceil(k/(r+1)) for SplitParityLRC placement");
     }
 
-    const int base = stripe->stripe_id % 6;
+    const int base = stripe->stripe_id % cluster_num;
     auto slot_cluster = [&](int slot_offset) -> int {
       return (base + slot_offset) % cluster_num;
     };
     const int global_cluster = slot_cluster(0);
     const int local_cluster = slot_cluster(1);
     std::vector<int> data_clusters;
-    data_clusters.reserve(4);
-    for (int slot = 2; slot <= 5; ++slot)
+    data_clusters.reserve(static_cast<size_t>(data_rack_num));
+    for (int slot = 2; slot < 2 + data_rack_num; ++slot)
     {
       data_clusters.push_back(slot_cluster(slot));
     }
