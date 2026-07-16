@@ -37,6 +37,19 @@ inline T ceil(T const &A, T const &B)
 };
 namespace ECProject
 {
+  // Identify proxy→DN GET TCP vs CoRD/Recovery on the shared DN data port.
+  static void proxy_write_dn_plain_get_magic(asio::ip::tcp::socket &socket)
+  {
+    uint8_t magic[8];
+    uint64_t v = DN_TCP_PLAIN_GET_MAGIC;
+    for (int i = 7; i >= 0; --i)
+    {
+      magic[i] = static_cast<uint8_t>(v & 0xffu);
+      v >>= 8;
+    }
+    asio::write(socket, asio::buffer(magic, 8));
+  }
+
   static std::string cord_dbg_hex_preview(const void *data, size_t len, size_t max_show = 48)
   {
     if (!data || len == 0)
@@ -2547,6 +2560,7 @@ namespace ECProject
       asio::ip::tcp::socket socket(io_context);
       std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now(); // start time for network
       asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}));
+      proxy_write_dn_plain_get_magic(socket);
       asio::error_code ec;
       asio::read(socket, asio::buffer(value, value_length), ec);
       asio::error_code ignore_ec;
@@ -2599,6 +2613,7 @@ namespace ECProject
       asio::ip::tcp::resolver resolver(io_context);
       asio::ip::tcp::socket socket(io_context);
       asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}));
+      proxy_write_dn_plain_get_magic(socket);
       asio::error_code ec;
       asio::read(socket, asio::buffer(buf, value_length), ec);
       asio::error_code ignore_ec;
@@ -2657,6 +2672,7 @@ namespace ECProject
       asio::ip::tcp::resolver resolver(io_context);
       asio::ip::tcp::socket socket(io_context);
       asio::connect(socket, resolver.resolve({std::string(ip), std::to_string(port + ECProject::DATANODE_PORT_SHIFT)}));
+      proxy_write_dn_plain_get_magic(socket);
       asio::error_code ec;
       asio::read(socket, asio::buffer(value, value_length), ec);
       asio::error_code ignore_ec;

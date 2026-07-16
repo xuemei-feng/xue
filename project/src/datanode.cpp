@@ -12,7 +12,6 @@
 #include <vector>
 #include <cstring>
 #include <arpa/inet.h>
-#include <sys/select.h>
 
 namespace
 {
@@ -87,21 +86,6 @@ namespace
     for (int i = 0; i < 8; ++i)
       v = (v << 8) | static_cast<uint64_t>(b[i]);
     return v;
-  }
-
-  static bool cord_dn_socket_has_readable_data(asio::ip::tcp::socket &socket, int timeout_ms)
-  {
-    const int fd = socket.native_handle();
-    if (fd < 0)
-      return false;
-    fd_set rfds;
-    FD_ZERO(&rfds);
-    FD_SET(fd, &rfds);
-    struct timeval tv;
-    tv.tv_sec = timeout_ms / 1000;
-    tv.tv_usec = (timeout_ms % 1000) * 1000;
-    const int sel = ::select(fd + 1, &rfds, nullptr, nullptr, &tv);
-    return sel > 0 && FD_ISSET(fd, &rfds);
   }
 }
 
@@ -341,21 +325,10 @@ namespace ECProject
         acceptor.accept(delivered.socket);
         std::cout << "[Datanode" << m_port << "][Accept] got TCP connection" << std::endl;
 
-        bool delivered_plain_write = false;
-        {
-          std::lock_guard<std::mutex> lk(m_dn_conn_wait_mu);
-          if (!m_dn_conn_waiters.empty() && m_dn_conn_waiters.front().first == DnConnWaitKind::PlainWrite &&
-              !cord_dn_socket_has_readable_data(delivered.socket, 100))
-          {
-            auto prom = std::move(m_dn_conn_waiters.front().second);
-            m_dn_conn_waiters.pop_front();
-            prom->set_value(std::move(delivered));
-            delivered_plain_write = true;
-          }
-        }
-        if (delivered_plain_write)
-          continue;
-
+        // Always read 8-byte header first (no select silence wait):
+        // - DN_TCP_PLAIN_GET_MAGIC + PlainWrite waiter => proxy GET
+        // - CoRD pending tag => cord xfer
+        // - else PlainRead waiter => recovery/append payload prefix
         uint8_t tag_buf[8] = {0};
         asio::error_code read_ec;
         asio::read(delivered.socket, asio::buffer(tag_buf, 8), read_ec);
@@ -368,6 +341,30 @@ namespace ECProject
         }
 
         const uint64_t wire_tag = cord_dn_parse_u64_be(tag_buf);
+
+        if (wire_tag == ECProject::DN_TCP_PLAIN_GET_MAGIC)
+        {
+          bool delivered_plain_write = false;
+          {
+            std::lock_guard<std::mutex> lk(m_dn_conn_wait_mu);
+            if (!m_dn_conn_waiters.empty() && m_dn_conn_waiters.front().first == DnConnWaitKind::PlainWrite)
+            {
+              auto prom = std::move(m_dn_conn_waiters.front().second);
+              m_dn_conn_waiters.pop_front();
+              prom->set_value(std::move(delivered));
+              delivered_plain_write = true;
+            }
+          }
+          if (!delivered_plain_write)
+          {
+            std::cout << "[Datanode] plain GET magic but no PlainWrite waiter" << std::endl;
+            asio::error_code ignore_ec;
+            delivered.socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+            delivered.socket.close(ignore_ec);
+          }
+          continue;
+        }
+
         CordDnDispatchJob job;
         if (dn_take_cord_pending(wire_tag, job))
         {

@@ -14,6 +14,12 @@ namespace ECProject
   const int SET_XFER_PORT_OFFSET = 150;
   /** Recovery 跨 rack 数据直连 TCP 端口偏移：grpc_port + 此偏移（独立于 SET/CoRD 端口） */
   const int RECOVERY_XFER_PORT_OFFSET = 200;
+  /**
+   * DN TCP 多路复用：proxy GET 在 connect 后先写此 u64（大端）再读块。
+   * 避免 accept 侧用 select 静默超时区分 GET / CoRD / Recovery（旧实现每次 GET 空等 100ms）。
+   * CoRD xfer_tag 从 1 递增，不会使用该值。
+   */
+  constexpr uint64_t DN_TCP_PLAIN_GET_MAGIC = ~uint64_t{0};
 
   class Config
   {
