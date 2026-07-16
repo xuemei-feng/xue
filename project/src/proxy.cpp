@@ -1164,14 +1164,10 @@ namespace ECProject
         return true;
       if (have_xor)
       {
-        const auto nz =
-            cord_parity_delta_nonzero_span(reinterpret_cast<const char *>(xor_all.data()), xor_all.size());
-        if (nz.second > 0)
-        {
-          cord_accum_global_delta_xor_for_l1_locked(
-              plan.stripe_id(), po + nz.first,
-              reinterpret_cast<const char *>(xor_all.data()) + nz.first, static_cast<size_t>(nz.second));
-        }
+        // 终态 L1 步依赖该 key 存在。即使 ΣG 全 0，也要占位，否则 step 会报 global_xor_l1_missing。
+        // 用整段 xor_all（含前导 0）累加，避免只写 nonzero span 时 key 尚未创建。
+        cord_accum_global_delta_xor_for_l1_locked(
+            plan.stripe_id(), po, reinterpret_cast<const char *>(xor_all.data()), xor_all.size());
       }
       g_cord_collector_parity_coded[ck] = std::move(coded);
     }
@@ -1704,19 +1700,23 @@ namespace ECProject
             const std::string acc_key = cord_global_xor_l1_key(plan.stripe_id());
             std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
             auto ait = g_cord_global_delta_xor_for_l1.find(acc_key);
-            if (ait == g_cord_global_delta_xor_for_l1.end() ||
-                ait->second.size() < static_cast<size_t>(st.chunk_byte_offset()) + chunk_len)
+            // 无累加结果 ≈ 终态 L1 增量为 0：填零并走后续 zero_delta SKIP，勿当硬错误。
+            if (ait == g_cord_global_delta_xor_for_l1.end())
             {
-              plan_log_both_sync("FAIL PARITY_FANOUT global_xor_l1_missing key=" + acc_key + " step=" +
-                                 std::to_string(st.step_index()));
-              stats.failed = 1;
-              return stats;
+              std::memset(buf.data(), 0, chunk_len);
             }
-            std::memcpy(buf.data(), ait->second.data() + static_cast<size_t>(st.chunk_byte_offset()), chunk_len);
+            else
+            {
+              const size_t need = static_cast<size_t>(st.chunk_byte_offset()) + chunk_len;
+              if (ait->second.size() < need)
+                ait->second.resize(need, 0);
+              std::memcpy(buf.data(), ait->second.data() + static_cast<size_t>(st.chunk_byte_offset()), chunk_len);
+            }
             filled = true;
             parity_compute_src = "global_delta_xor_l1";
           }
-          if (parity_ingest >= 0)
+          // 终态 L1（global_xor）已 filled 时勿再等 ingress_lp_cache，否则会空等到 timeout（~128s）。
+          if (!filled && parity_ingest >= 0)
           {
             std::string append_key;
             if (cord_lookup_ingress_append_key(plan, self_cluster_id, &append_key))
