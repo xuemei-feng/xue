@@ -425,60 +425,62 @@ void ECProject::decode_azure_lrc(const int k, const int r, const int z, const in
                                  int failed_block_id)
 {
     memset(res_ptr, 0, block_size);
-    if (failed_block_id < k || failed_block_id >= k + r){
-        unsigned char *vect_ptrs[block_num + 1];
-        for(int i = 0; i < block_num; i++){
+    if (block_num <= 0 || block_indexes == nullptr || block_ptrs == nullptr || res_ptr == nullptr)
+        return;
+
+    // Data / local-parity failure: group members XOR (partials are associative).
+    if (failed_block_id < k || failed_block_id >= k + r)
+    {
+        unsigned char **vect_ptrs = new unsigned char *[block_num + 1];
+        for (int i = 0; i < block_num; i++)
             vect_ptrs[i] = block_ptrs[i];
-        }
         vect_ptrs[block_num] = res_ptr;
         xor_gen_avx(block_num + 1, block_size, (void **)vect_ptrs);
+        delete[] vect_ptrs;
+        return;
     }
-    else
+
+    // Global-parity failure: recompute from available DATA blocks with encoding coeffs.
+    // Supports a subset of data (cross-rack GF-weighted partial); XOR of all rack
+    // partials equals the full global parity. Non-data helpers are ignored.
+    (void)z;
+    unsigned char *encode_matrix = new unsigned char[(k + r + z) * k];
+    gen_azure_lrc_matrix(encode_matrix, k, r, z);
+
+    int data_cnt = 0;
+    for (int i = 0; i < block_num; i++)
     {
-        int m = k + r;
-        unsigned char *encode_matrix = new unsigned char[m * k];
-        memset(encode_matrix, 0,  m * k);
-        gf_gen_rs_matrix1(encode_matrix, m, k);
-        unsigned char *decode_matrix = new unsigned char[k * k];
-        memset(decode_matrix, 0, k * k);
-        unsigned char *temp_matrix = new unsigned char[k * k];
-        memset(temp_matrix, 0, k * k);
-        int used_row[k];
-        std::unordered_map<int, int> idx_to_row;
-        for(int i = k / z, j = 0; j < k && i < k + r; i++){
-            if(i != failed_block_id){
-                used_row[j] = i;
-                idx_to_row[i] = j;
-                j++;
-            }
-        }
-        for(int i = 0; i < k; i++){
-            for(int j = 0; j < k; j++){
-                temp_matrix[i * k + j] = encode_matrix[used_row[i] * k + j];
-            }
-        }
-        unsigned char *invert_matrix = new unsigned char[k * k];
-        gf_invert_matrix(temp_matrix, invert_matrix, k);
-        unsigned char * vect_all = new unsigned char[k];
-        gf_mul_vect_matrix(encode_matrix + failed_block_id * k, invert_matrix, vect_all, k);
-        unsigned char *decode_vector = new unsigned char[block_num];
-        for(int i = 0; i < block_num; i++){
-            decode_vector[i] = vect_all[idx_to_row[block_indexes->at(i)]];
-        }
-        unsigned char *g_tbls = new unsigned char[block_num * 32];
-        ec_init_tables(block_num, 1, decode_vector, g_tbls);
-        unsigned char **res_ptr_ptr = new unsigned char *[1];
-        res_ptr_ptr[0] = res_ptr;
-        ec_encode_data_avx2(block_size, block_num, 1, g_tbls, block_ptrs, res_ptr_ptr);
-        delete[] encode_matrix;
-        delete[] decode_matrix;
-        delete[] temp_matrix;
-        delete[] invert_matrix;
-        delete[] vect_all;
-        delete[] decode_vector;
-        delete[] g_tbls;
-        delete[] res_ptr_ptr;
+        if (block_indexes->at(i) >= 0 && block_indexes->at(i) < k)
+            data_cnt++;
     }
+    if (data_cnt == 0)
+    {
+        delete[] encode_matrix;
+        return;
+    }
+
+    unsigned char **data_ptrs = new unsigned char *[data_cnt];
+    unsigned char *decode_vector = new unsigned char[data_cnt];
+    int di = 0;
+    for (int i = 0; i < block_num; i++)
+    {
+        const int bid = block_indexes->at(i);
+        if (bid < 0 || bid >= k)
+            continue;
+        data_ptrs[di] = block_ptrs[i];
+        decode_vector[di] = encode_matrix[failed_block_id * k + bid];
+        di++;
+    }
+
+    unsigned char *g_tbls = new unsigned char[data_cnt * 32];
+    ec_init_tables(data_cnt, 1, decode_vector, g_tbls);
+    unsigned char *res_ptr_ptr[1] = {res_ptr};
+    ec_encode_data_avx2(block_size, data_cnt, 1, g_tbls, data_ptrs, res_ptr_ptr);
+
+    delete[] encode_matrix;
+    delete[] data_ptrs;
+    delete[] decode_vector;
+    delete[] g_tbls;
 }
 
 void ECProject::decode_optimal_lrc(const int k, const int r, const int z, const int block_num,

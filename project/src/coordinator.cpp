@@ -52,6 +52,34 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC";
     }
 
+    // Partition surviving blocks of a local group by physical cluster (rack).
+    std::map<int, std::vector<int>> partition_group_helpers_by_cluster(
+        Stripe &t_stripe, const std::vector<int> &group_block_ids, int failed_block_id)
+    {
+      std::map<int, std::vector<int>> cluster_to_blocks;
+      for (int bid : group_block_ids)
+      {
+        if (bid == failed_block_id)
+          continue;
+        Block *t_block = t_stripe.blocks[bid];
+        cluster_to_blocks[t_block->map2cluster].push_back(bid);
+      }
+      return cluster_to_blocks;
+    }
+
+    // All data blocks 0..k-1 by physical cluster. Used for Azure-like global-parity repair:
+    // each rack computes a GF-weighted partial via decode_azure_lrc; XOR merges to full G.
+    std::map<int, std::vector<int>> partition_data_blocks_by_cluster(Stripe &t_stripe, int k)
+    {
+      std::map<int, std::vector<int>> cluster_to_blocks;
+      for (int bid = 0; bid < k; ++bid)
+      {
+        Block *t_block = t_stripe.blocks[bid];
+        cluster_to_blocks[t_block->map2cluster].push_back(bid);
+      }
+      return cluster_to_blocks;
+    }
+
     /** Deterministic seed for placement RNG: same placement_seed + stripe_id -> same sequence (shuffle / cluster / node). */
     static void seed_placement_mt19937(std::mt19937 &gen, std::uint64_t placement_seed, int stripe_id)
     {
@@ -3810,84 +3838,119 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::vector<int> recovery_group_ids = get_recovery_group_ids(m_sys_config->CodeType, m_sys_config->k, m_sys_config->r, m_sys_config->z, failed_block_id);
     grpc::Status status;
 
-    if (recovery_group_ids.size() == 1)
+    const bool azure_like_global_parity =
+        is_azure_like_code(code_type) && failed_block_id >= m_sys_config->k &&
+        failed_block_id < m_sys_config->k + m_sys_config->r;
+
+    if (azure_like_global_parity || recovery_group_ids.size() == 1)
     {
-      //assert((code_type == "UniLRC") || (code_type == "AzureLRC" && (failed_block_id < m_sys_config->k || failed_block_id >= m_sys_config->k + m_sys_config->r)));
-
-      grpc::ClientContext recovery_context;
-      proxy_proto::RecoveryRequest recovery_request;
-      proxy_proto::RecoveryReply recovery_reply;
-
-      int chosen_cluster_id = get_cluster_id_by_group_id(t_stripe, recovery_group_ids[0]);
-      std::string chosen_proxy = m_cluster_table[chosen_cluster_id].proxy_ip + ":" + std::to_string(m_cluster_table[chosen_cluster_id].proxy_port);
-      recovery_request.set_failed_block_id(failed_block_id);
-      recovery_request.set_failed_block_key(t_stripe.blocks[failed_block_id]->block_key);
-      int t_node_id = randomly_select_a_node(chosen_cluster_id, stripe_id);
-      recovery_request.set_replaced_node_ip(m_node_table[t_node_id].node_ip);
-      recovery_request.set_replaced_node_port(m_node_table[t_node_id].node_port);
-      recovery_request.set_cross_rack_num(0);
-      std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[0]];
-      for (int i = 0; i < int(blockids.size()); i++)
+      std::vector<int> all_data_block_ids;
+      const std::vector<int> *helper_block_ids = nullptr;
+      int group_id = -1;
+      if (azure_like_global_parity)
       {
-        if (blockids[i] == failed_block_id)
-          continue;
-
-        Block *t_block = t_stripe.blocks[blockids[i]];
-        recovery_request.add_datanodeip(m_node_table[t_block->map2node].node_ip);
-        recovery_request.add_datanodeport(m_node_table[t_block->map2node].node_port);
-        recovery_request.add_blockkeys(t_block->block_key);
-        recovery_request.add_blockids(t_block->block_id);
-      }
-      std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-      grpc_notify_time.push_back(std::chrono::duration_cast<std::chrono::duration<double>>(start.time_since_epoch()).count());
-      status = m_proxy_ptrs[chosen_proxy]->recoveryBreakdown(&recovery_context, recovery_request, &recovery_reply);
-      if (status.ok())
-      {
-        disk_io_start_time.push_back(recovery_reply.disk_io_start_time());
-        disk_io_end_time.push_back(recovery_reply.disk_io_end_time());
-        decode_start_time.push_back(recovery_reply.decode_start_time());
-        decode_end_time.push_back(recovery_reply.decode_end_time());
-        network_start_time.push_back(recovery_reply.network_start_time());
-        network_end_time.push_back(recovery_reply.network_end_time());
-        cross_rack_network_time = recovery_reply.cross_rack_time();
-        cross_rack_xor_time = recovery_reply.cross_rack_xor_time();
-        data_node_grpc_notify_time.push_back(recovery_reply.data_node_grpc_notify_time());
-        data_node_grpc_start_time.push_back(recovery_reply.data_node_grpc_start_time());
-        dest_data_node_network_time = recovery_reply.dest_data_node_network_time();
-        dest_data_node_disk_io_time = recovery_reply.dest_data_node_disk_io_time();
-        grpc_start_time.push_back(recovery_reply.grpc_start_time());
-        std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " success!" << std::endl;
-        return true;
+        all_data_block_ids.reserve(static_cast<size_t>(m_sys_config->k));
+        for (int i = 0; i < m_sys_config->k; ++i)
+          all_data_block_ids.push_back(i);
+        helper_block_ids = &all_data_block_ids;
       }
       else
       {
-        std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " failed!" << std::endl;
+        group_id = recovery_group_ids[0];
+        helper_block_ids = &t_stripe.group_to_blocks[group_id];
+      }
+      const std::vector<int> &group_block_ids = *helper_block_ids;
+      const int dest_cluster_id = t_stripe.blocks[failed_block_id]->map2cluster;
+      auto cluster_to_blocks = azure_like_global_parity
+                                   ? partition_data_blocks_by_cluster(t_stripe, m_sys_config->k)
+                                   : partition_group_helpers_by_cluster(t_stripe, group_block_ids, failed_block_id);
+
+      std::vector<int> remote_clusters;
+      for (const auto &kv : cluster_to_blocks)
+      {
+        if (kv.first != dest_cluster_id)
+          remote_clusters.push_back(kv.first);
+      }
+
+      if (remote_clusters.empty() || !is_azure_like_code(code_type))
+      {
+        grpc::ClientContext recovery_context;
+        proxy_proto::RecoveryRequest recovery_request;
+        proxy_proto::RecoveryReply recovery_reply;
+
+        int chosen_cluster_id = dest_cluster_id;
+        if (!is_azure_like_code(code_type))
+          chosen_cluster_id = get_cluster_id_by_group_id(t_stripe, group_id);
+        std::string chosen_proxy = m_cluster_table[chosen_cluster_id].proxy_ip + ":" +
+                                   std::to_string(m_cluster_table[chosen_cluster_id].proxy_port);
+        recovery_request.set_failed_block_id(failed_block_id);
+        recovery_request.set_failed_block_key(t_stripe.blocks[failed_block_id]->block_key);
+        int t_node_id = randomly_select_a_node(chosen_cluster_id, stripe_id);
+        recovery_request.set_replaced_node_ip(m_node_table[t_node_id].node_ip);
+        recovery_request.set_replaced_node_port(m_node_table[t_node_id].node_port);
+        recovery_request.set_cross_rack_num(0);
+        for (int bid : group_block_ids)
+        {
+          if (bid == failed_block_id)
+            continue;
+          Block *t_block = t_stripe.blocks[bid];
+          recovery_request.add_datanodeip(m_node_table[t_block->map2node].node_ip);
+          recovery_request.add_datanodeport(m_node_table[t_block->map2node].node_port);
+          recovery_request.add_blockkeys(t_block->block_key);
+          recovery_request.add_blockids(t_block->block_id);
+        }
+        std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+        grpc_notify_time.push_back(
+            std::chrono::duration_cast<std::chrono::duration<double>>(start.time_since_epoch()).count());
+        status = m_proxy_ptrs[chosen_proxy]->recoveryBreakdown(&recovery_context, recovery_request, &recovery_reply);
+        if (status.ok())
+        {
+          disk_io_start_time.push_back(recovery_reply.disk_io_start_time());
+          disk_io_end_time.push_back(recovery_reply.disk_io_end_time());
+          decode_start_time.push_back(recovery_reply.decode_start_time());
+          decode_end_time.push_back(recovery_reply.decode_end_time());
+          network_start_time.push_back(recovery_reply.network_start_time());
+          network_end_time.push_back(recovery_reply.network_end_time());
+          cross_rack_network_time = recovery_reply.cross_rack_time();
+          cross_rack_xor_time = recovery_reply.cross_rack_xor_time();
+          data_node_grpc_notify_time.push_back(recovery_reply.data_node_grpc_notify_time());
+          data_node_grpc_start_time.push_back(recovery_reply.data_node_grpc_start_time());
+          dest_data_node_network_time = recovery_reply.dest_data_node_network_time();
+          dest_data_node_disk_io_time = recovery_reply.dest_data_node_disk_io_time();
+          grpc_start_time.push_back(recovery_reply.grpc_start_time());
+          std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " success!"
+                    << std::endl;
+          return true;
+        }
+        std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " failed!"
+                  << std::endl;
         return false;
       }
-    }
-    else
-    {
-      int dest_group_id = t_stripe.blocks[failed_block_id]->map2group;
-      int dest_cluster_id = get_cluster_id_by_group_id(t_stripe, dest_group_id);
+
       std::string dest_proxy_ip = m_cluster_table[dest_cluster_id].proxy_ip;
       int dest_proxy_port = m_cluster_table[dest_cluster_id].proxy_port;
-      std::vector<int> chosen_cluster_ids;
-      for(int i = 0; i < recovery_group_ids.size(); i++){
-        chosen_cluster_ids.push_back(get_cluster_id_by_group_id(t_stripe, recovery_group_ids[i]));
-      }
-      std::vector<std::string> chosen_proxies;
-      for(int i = 0; i < chosen_cluster_ids.size(); i++){
-        chosen_proxies.push_back(m_cluster_table[chosen_cluster_ids[i]].proxy_ip + ":" + std::to_string(m_cluster_table[chosen_cluster_ids[i]].proxy_port));
-      }
+      const int cross_rack_num = static_cast<int>(remote_clusters.size());
+      std::atomic<bool> recovery_ok{true};
       std::vector<std::thread> threads;
-      for(int i = 0; i < recovery_group_ids.size(); i++){
-        if(recovery_group_ids[i] == dest_group_id){
-          continue;
-        }
-        threads.push_back(std::thread([&t_stripe, &chosen_proxies, &recovery_group_ids, i, failed_block_id, dest_proxy_ip, dest_proxy_port, this,
-          &disk_io_start_time, &disk_io_end_time, &decode_start_time, &decode_end_time, &network_start_time, &network_end_time, 
-          &grpc_notify_time, &grpc_start_time, &data_node_grpc_notify_time, &data_node_grpc_start_time
-        ](){
+      cross_rack_network_time = 0;
+      cross_rack_xor_time = 0;
+      dest_data_node_network_time = 0;
+      dest_data_node_disk_io_time = 0;
+
+      std::cout << "[Coordinator] rack-partitioned "
+                << (azure_like_global_parity ? "global-parity " : "")
+                << "recovery (breakdown) of " << stripe_id << "_" << failed_block_id
+                << " dest_cluster=" << dest_cluster_id << " cross_rack_num=" << cross_rack_num
+                << std::endl;
+
+      for (int remote_cid : remote_clusters)
+      {
+        threads.push_back(std::thread([this, &t_stripe, &cluster_to_blocks, remote_cid, failed_block_id,
+                                       dest_proxy_ip, dest_proxy_port, &recovery_ok, &disk_io_start_time,
+                                       &disk_io_end_time, &decode_start_time, &decode_end_time,
+                                       &network_start_time, &network_end_time, &grpc_notify_time,
+                                       &grpc_start_time, &data_node_grpc_notify_time,
+                                       &data_node_grpc_start_time]() {
           grpc::ClientContext degraded_read_context;
           proxy_proto::DegradedReadRequest degraded_read_request;
           proxy_proto::DegradedReadReply degraded_read_reply;
@@ -3895,25 +3958,20 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           degraded_read_request.set_clientport(dest_proxy_port + ECProject::PROXY_PORT_SHIFT);
           degraded_read_request.set_failed_block_id(failed_block_id);
           degraded_read_request.set_failed_block_key(t_stripe.blocks[failed_block_id]->block_key);
-          std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[i]];
-          for (int j = 0; j < int(blockids.size()); j++)
+          for (int bid : cluster_to_blocks.at(remote_cid))
           {
-            if(is_azure_like_code(m_sys_config->CodeType) && degraded_read_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
-              break;
-
-            if ((is_azure_like_code(m_sys_config->CodeType) && blockids[j] >= m_sys_config->k + m_sys_config->r) || blockids[j] == failed_block_id)
-              continue;
-
-            Block *t_block = t_stripe.blocks[blockids[j]];
+            Block *t_block = t_stripe.blocks[bid];
             degraded_read_request.add_datanodeip(m_node_table[t_block->map2node].node_ip);
             degraded_read_request.add_datanodeport(m_node_table[t_block->map2node].node_port);
             degraded_read_request.add_blockkeys(t_block->block_key);
             degraded_read_request.add_blockids(t_block->block_id);
           }
           std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-
-          grpc::Status status = m_proxy_ptrs[chosen_proxies[i]]->degradedReadBreakdown(&degraded_read_context, degraded_read_request, &degraded_read_reply);
-          if (status.ok())
+          std::string helper_proxy = m_cluster_table[remote_cid].proxy_ip + ":" +
+                                     std::to_string(m_cluster_table[remote_cid].proxy_port);
+          grpc::Status st = m_proxy_ptrs[helper_proxy]->degradedReadBreakdown(
+              &degraded_read_context, degraded_read_request, &degraded_read_reply);
+          if (st.ok())
           {
             std::lock_guard<std::mutex> lock(m_mutex);
             disk_io_start_time.push_back(degraded_read_reply.disk_io_start_time());
@@ -3922,26 +3980,31 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             decode_end_time.push_back(degraded_read_reply.decode_end_time());
             network_start_time.push_back(degraded_read_reply.network_start_time());
             network_end_time.push_back(degraded_read_reply.network_end_time());
+            grpc_notify_time.push_back(
+                std::chrono::duration_cast<std::chrono::duration<double>>(start.time_since_epoch()).count());
             grpc_start_time.push_back(degraded_read_reply.grpc_start_time());
             data_node_grpc_notify_time.push_back(degraded_read_reply.data_node_grpc_notify_time());
             data_node_grpc_start_time.push_back(degraded_read_reply.data_node_grpc_start_time());
-            grpc_notify_time.push_back(std::chrono::duration_cast<std::chrono::duration<double>>(start.time_since_epoch()).count());
-    
-            std::cout << "[Coordinator] partial degraded read of " << failed_block_id << " success!" << std::endl;
+            std::cout << "[Coordinator] partial from cluster " << remote_cid << " for block "
+                      << failed_block_id << " success!" << std::endl;
           }
           else
           {
-            std::cout << "[Coordinator] partial degraded read of " << failed_block_id << " failed!" << std::endl;
+            recovery_ok.store(false);
+            std::cout << "[Coordinator] partial from cluster " << remote_cid << " for block "
+                      << failed_block_id << " failed!" << std::endl;
           }
         }));
-
       }
-      int cross_rack_num = recovery_group_ids.size() - 1;
-      threads.push_back(std::thread([this, &t_stripe, cross_rack_num, dest_group_id, dest_cluster_id, dest_proxy_ip, dest_proxy_port, stripe_id, failed_block_id,
-        &disk_io_start_time, &disk_io_end_time, &decode_start_time, &decode_end_time, &network_start_time, &network_end_time, 
-        &grpc_notify_time, &grpc_start_time, &data_node_grpc_notify_time, &data_node_grpc_start_time, &cross_rack_network_time, &cross_rack_xor_time,
-        &dest_data_node_network_time, &dest_data_node_disk_io_time
-        ](){
+
+      threads.push_back(std::thread([this, &t_stripe, &cluster_to_blocks, &remote_clusters, cross_rack_num,
+                                     dest_cluster_id, dest_proxy_ip, dest_proxy_port, stripe_id,
+                                     failed_block_id, &recovery_ok, &disk_io_start_time, &disk_io_end_time,
+                                     &decode_start_time, &decode_end_time, &network_start_time,
+                                     &network_end_time, &cross_rack_network_time, &cross_rack_xor_time,
+                                     &grpc_notify_time, &grpc_start_time, &data_node_grpc_notify_time,
+                                     &data_node_grpc_start_time, &dest_data_node_network_time,
+                                     &dest_data_node_disk_io_time]() {
         grpc::ClientContext recovery_context;
         proxy_proto::RecoveryRequest recovery_request;
         proxy_proto::RecoveryReply recovery_reply;
@@ -3951,55 +4014,81 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         recovery_request.set_replaced_node_ip(m_node_table[t_node_id].node_ip);
         recovery_request.set_replaced_node_port(m_node_table[t_node_id].node_port);
         recovery_request.set_cross_rack_num(cross_rack_num);
-        std::vector<int> blockids = t_stripe.group_to_blocks[dest_group_id];
-        for (int i = 0; i < int(blockids.size()); i++)
+        for (int remote_cid : remote_clusters)
         {
-          if(is_azure_like_code(m_sys_config->CodeType) && recovery_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
-            break;
-
-          if (blockids[i] == failed_block_id)
-            continue;
-
-          Block *t_block = t_stripe.blocks[blockids[i]];
-          recovery_request.add_datanodeip(m_node_table[t_block->map2node].node_ip);
-          recovery_request.add_datanodeport(m_node_table[t_block->map2node].node_port);
-          recovery_request.add_blockkeys(t_block->block_key);
-          recovery_request.add_blockids(t_block->block_id);
+          recovery_request.add_proxyip(m_cluster_table[remote_cid].proxy_ip);
+          recovery_request.add_proxyport(m_cluster_table[remote_cid].proxy_port);
         }
-        //std::cout << "[Coordinator] start recovery of " << stripe_id << "_" << failed_block_id << std::endl;
+        auto local_it = cluster_to_blocks.find(dest_cluster_id);
+        if (local_it != cluster_to_blocks.end())
+        {
+          for (int bid : local_it->second)
+          {
+            Block *t_block = t_stripe.blocks[bid];
+            recovery_request.add_datanodeip(m_node_table[t_block->map2node].node_ip);
+            recovery_request.add_datanodeport(m_node_table[t_block->map2node].node_port);
+            recovery_request.add_blockkeys(t_block->block_key);
+            recovery_request.add_blockids(t_block->block_id);
+          }
+        }
         std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-
-        grpc::Status status = m_proxy_ptrs[dest_proxy_ip + ":" + std::to_string(dest_proxy_port)]->recoveryBreakdown(&recovery_context, recovery_request, &recovery_reply);
-        if (status.ok())
+        std::string dest_proxy = dest_proxy_ip + ":" + std::to_string(dest_proxy_port);
+        grpc::Status st =
+            m_proxy_ptrs[dest_proxy]->recoveryBreakdown(&recovery_context, recovery_request, &recovery_reply);
+        if (st.ok())
         {
           std::lock_guard<std::mutex> lock(m_mutex);
-          grpc_notify_time.push_back(std::chrono::duration_cast<std::chrono::duration<double>>(start.time_since_epoch()).count());
           disk_io_start_time.push_back(recovery_reply.disk_io_start_time());
           disk_io_end_time.push_back(recovery_reply.disk_io_end_time());
           decode_start_time.push_back(recovery_reply.decode_start_time());
           decode_end_time.push_back(recovery_reply.decode_end_time());
           network_start_time.push_back(recovery_reply.network_start_time());
           network_end_time.push_back(recovery_reply.network_end_time());
-          grpc_start_time.push_back(recovery_reply.grpc_start_time());
           cross_rack_network_time = recovery_reply.cross_rack_time();
           cross_rack_xor_time = recovery_reply.cross_rack_xor_time();
+          grpc_notify_time.push_back(
+              std::chrono::duration_cast<std::chrono::duration<double>>(start.time_since_epoch()).count());
+          grpc_start_time.push_back(recovery_reply.grpc_start_time());
           data_node_grpc_notify_time.push_back(recovery_reply.data_node_grpc_notify_time());
           data_node_grpc_start_time.push_back(recovery_reply.data_node_grpc_start_time());
           dest_data_node_network_time = recovery_reply.dest_data_node_network_time();
           dest_data_node_disk_io_time = recovery_reply.dest_data_node_disk_io_time();
-          std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " success!" << std::endl;
+          std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " success!"
+                    << std::endl;
         }
         else
         {
-          std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " failed!" << std::endl;
+          recovery_ok.store(false);
+          std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " failed!"
+                    << std::endl;
         }
-      }
-      ));
-      for(int i = 0; i < threads.size(); i++){
-        threads[i].join();
-      }
+      }));
+
+      for (auto &t : threads)
+        t.join();
+      return recovery_ok.load();
     }
-    return true;
+
+    // Fallback for non-azure multi-group codes: reuse recovery_one_block, fill dummy timings.
+    const bool ok = recovery_one_block(stripe_id, failed_block_id);
+    if (ok)
+    {
+      disk_io_start_time.push_back(0);
+      disk_io_end_time.push_back(0);
+      decode_start_time.push_back(0);
+      decode_end_time.push_back(0);
+      network_start_time.push_back(0);
+      network_end_time.push_back(0);
+      grpc_notify_time.push_back(0);
+      grpc_start_time.push_back(0);
+      data_node_grpc_notify_time.push_back(0);
+      data_node_grpc_start_time.push_back(0);
+      cross_rack_network_time = 0;
+      cross_rack_xor_time = 0;
+      dest_data_node_network_time = 0;
+      dest_data_node_disk_io_time = 0;
+    }
+    return ok;
   }
 
   grpc::Status CoordinatorImpl::decodeTest(
@@ -4072,67 +4161,102 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::vector<int> recovery_group_ids = get_recovery_group_ids(m_sys_config->CodeType, m_sys_config->k, m_sys_config->r, m_sys_config->z, failed_block_id);
     grpc::Status status;
 
-    if (recovery_group_ids.size() == 1)
+    // Azure-like / SplitParityLRC / CordXueLRC global parity: repair from ALL data blocks
+    // partitioned by physical rack. Each rack computes GF-weighted partial; dest XORs.
+    const bool azure_like_global_parity =
+        is_azure_like_code(code_type) && failed_block_id >= m_sys_config->k &&
+        failed_block_id < m_sys_config->k + m_sys_config->r;
+
+    if (azure_like_global_parity || recovery_group_ids.size() == 1)
     {
-      //assert((code_type == "UniLRC") || (code_type == "AzureLRC" && (failed_block_id < m_sys_config->k || failed_block_id >= m_sys_config->k + m_sys_config->r)));
-
-      grpc::ClientContext recovery_context;
-      proxy_proto::RecoveryRequest recovery_request;
-      proxy_proto::RecoveryReply recovery_reply;
-
-      int chosen_cluster_id = get_cluster_id_by_group_id(t_stripe, recovery_group_ids[0]);
-      std::string chosen_proxy = m_cluster_table[chosen_cluster_id].proxy_ip + ":" + std::to_string(m_cluster_table[chosen_cluster_id].proxy_port);
-      recovery_request.set_failed_block_id(failed_block_id);
-      recovery_request.set_failed_block_key(t_stripe.blocks[failed_block_id]->block_key);
-      int t_node_id = randomly_select_a_node(chosen_cluster_id, stripe_id);
-      recovery_request.set_replaced_node_ip(m_node_table[t_node_id].node_ip);
-      recovery_request.set_replaced_node_port(m_node_table[t_node_id].node_port);
-      recovery_request.set_cross_rack_num(0);
-      std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[0]];
-      for (int i = 0; i < int(blockids.size()); i++)
+      std::vector<int> all_data_block_ids;
+      const std::vector<int> *helper_block_ids = nullptr;
+      int group_id = -1;
+      if (azure_like_global_parity)
       {
-        if (blockids[i] == failed_block_id)
-          continue;
-
-        Block *t_block = t_stripe.blocks[blockids[i]];
-        recovery_request.add_datanodeip(m_node_table[t_block->map2node].node_ip);
-        recovery_request.add_datanodeport(m_node_table[t_block->map2node].node_port);
-        recovery_request.add_blockkeys(t_block->block_key);
-        recovery_request.add_blockids(t_block->block_id);
-      }
-
-      status = m_proxy_ptrs[chosen_proxy]->recovery(&recovery_context, recovery_request, &recovery_reply);
-      if (status.ok())
-      {
-        std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " success!" << std::endl;
-        return true;
+        all_data_block_ids.reserve(static_cast<size_t>(m_sys_config->k));
+        for (int i = 0; i < m_sys_config->k; ++i)
+          all_data_block_ids.push_back(i);
+        helper_block_ids = &all_data_block_ids;
       }
       else
       {
-        std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " failed!" << std::endl;
+        group_id = recovery_group_ids[0];
+        helper_block_ids = &t_stripe.group_to_blocks[group_id];
+      }
+      const std::vector<int> &group_block_ids = *helper_block_ids;
+      const int dest_cluster_id = t_stripe.blocks[failed_block_id]->map2cluster;
+      auto cluster_to_blocks = azure_like_global_parity
+                                   ? partition_data_blocks_by_cluster(t_stripe, m_sys_config->k)
+                                   : partition_group_helpers_by_cluster(t_stripe, group_block_ids, failed_block_id);
+
+      std::vector<int> remote_clusters;
+      for (const auto &kv : cluster_to_blocks)
+      {
+        if (kv.first != dest_cluster_id)
+          remote_clusters.push_back(kv.first);
+      }
+
+      // All helpers already on dest rack: keep single-proxy pull path.
+      if (remote_clusters.empty() || !is_azure_like_code(code_type))
+      {
+        grpc::ClientContext recovery_context;
+        proxy_proto::RecoveryRequest recovery_request;
+        proxy_proto::RecoveryReply recovery_reply;
+
+        int chosen_cluster_id = dest_cluster_id;
+        if (!is_azure_like_code(code_type))
+          chosen_cluster_id = get_cluster_id_by_group_id(t_stripe, group_id);
+        std::string chosen_proxy = m_cluster_table[chosen_cluster_id].proxy_ip + ":" +
+                                   std::to_string(m_cluster_table[chosen_cluster_id].proxy_port);
+        recovery_request.set_failed_block_id(failed_block_id);
+        recovery_request.set_failed_block_key(t_stripe.blocks[failed_block_id]->block_key);
+        int t_node_id = randomly_select_a_node(chosen_cluster_id, stripe_id);
+        recovery_request.set_replaced_node_ip(m_node_table[t_node_id].node_ip);
+        recovery_request.set_replaced_node_port(m_node_table[t_node_id].node_port);
+        recovery_request.set_cross_rack_num(0);
+        for (int bid : group_block_ids)
+        {
+          if (bid == failed_block_id)
+            continue;
+          Block *t_block = t_stripe.blocks[bid];
+          recovery_request.add_datanodeip(m_node_table[t_block->map2node].node_ip);
+          recovery_request.add_datanodeport(m_node_table[t_block->map2node].node_port);
+          recovery_request.add_blockkeys(t_block->block_key);
+          recovery_request.add_blockids(t_block->block_id);
+        }
+
+        status = m_proxy_ptrs[chosen_proxy]->recovery(&recovery_context, recovery_request, &recovery_reply);
+        if (status.ok())
+        {
+          std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " success!"
+                    << std::endl;
+          return true;
+        }
+        std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " failed!"
+                  << std::endl;
         return false;
       }
-    }
-    else
-    {
-      int dest_group_id = t_stripe.blocks[failed_block_id]->map2group;
-      int dest_cluster_id = get_cluster_id_by_group_id(t_stripe, dest_group_id);
+
+      // Rack-partitioned repair:
+      // - data/local: helpers of one logical group across racks (XOR partials)
+      // - global parity: all data blocks across racks (GF-weighted partials; XOR merges)
       std::string dest_proxy_ip = m_cluster_table[dest_cluster_id].proxy_ip;
       int dest_proxy_port = m_cluster_table[dest_cluster_id].proxy_port;
-      std::vector<int> chosen_cluster_ids;
-      for(int i = 0; i < recovery_group_ids.size(); i++){
-        chosen_cluster_ids.push_back(get_cluster_id_by_group_id(t_stripe, recovery_group_ids[i]));
-      }
-      std::vector<std::string> chosen_proxies;
-      for(int i = 0; i < chosen_cluster_ids.size(); i++){
-        chosen_proxies.push_back(m_cluster_table[chosen_cluster_ids[i]].proxy_ip + ":" + std::to_string(m_cluster_table[chosen_cluster_ids[i]].proxy_port));
-      }
+      const int cross_rack_num = static_cast<int>(remote_clusters.size());
+      std::atomic<bool> recovery_ok{true};
       std::vector<std::thread> threads;
-      for(int i = 0; i < recovery_group_ids.size(); i++){
-        if(recovery_group_ids[i] == dest_group_id){
-          continue;
-        }
-        threads.push_back(std::thread([&t_stripe, &chosen_proxies, &recovery_group_ids, i, failed_block_id, dest_proxy_ip, dest_proxy_port, this](){
+
+      std::cout << "[Coordinator] rack-partitioned "
+                << (azure_like_global_parity ? "global-parity " : "")
+                << "recovery of " << stripe_id << "_" << failed_block_id
+                << " dest_cluster=" << dest_cluster_id << " cross_rack_num=" << cross_rack_num
+                << std::endl;
+
+      for (int remote_cid : remote_clusters)
+      {
+        threads.push_back(std::thread([this, &t_stripe, &cluster_to_blocks, remote_cid, failed_block_id,
+                                       dest_proxy_ip, dest_proxy_port, &recovery_ok]() {
           grpc::ClientContext degraded_read_context;
           proxy_proto::DegradedReadRequest degraded_read_request;
           proxy_proto::DegradedReadReply degraded_read_reply;
@@ -4140,35 +4264,36 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           degraded_read_request.set_clientport(dest_proxy_port + ECProject::PROXY_PORT_SHIFT);
           degraded_read_request.set_failed_block_id(failed_block_id);
           degraded_read_request.set_failed_block_key(t_stripe.blocks[failed_block_id]->block_key);
-          std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[i]];
-          for (int j = 0; j < int(blockids.size()); j++)
+          for (int bid : cluster_to_blocks.at(remote_cid))
           {
-            if(is_azure_like_code(m_sys_config->CodeType) && degraded_read_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
-              break;
-
-            if ((is_azure_like_code(m_sys_config->CodeType) && blockids[j] >= m_sys_config->k + m_sys_config->r) || blockids[j] == failed_block_id)
-              continue;
-
-            Block *t_block = t_stripe.blocks[blockids[j]];
+            Block *t_block = t_stripe.blocks[bid];
             degraded_read_request.add_datanodeip(m_node_table[t_block->map2node].node_ip);
             degraded_read_request.add_datanodeport(m_node_table[t_block->map2node].node_port);
             degraded_read_request.add_blockkeys(t_block->block_key);
             degraded_read_request.add_blockids(t_block->block_id);
           }
-          grpc::Status status = m_proxy_ptrs[chosen_proxies[i]]->degradedRead(&degraded_read_context, degraded_read_request, &degraded_read_reply);
-          if (status.ok())
+          std::string helper_proxy = m_cluster_table[remote_cid].proxy_ip + ":" +
+                                     std::to_string(m_cluster_table[remote_cid].proxy_port);
+          grpc::Status st =
+              m_proxy_ptrs[helper_proxy]->degradedRead(&degraded_read_context, degraded_read_request,
+                                                       &degraded_read_reply);
+          if (st.ok())
           {
-            std::cout << "[Coordinator] partial degraded read of " << failed_block_id << " success!" << std::endl;
+            std::cout << "[Coordinator] partial from cluster " << remote_cid << " for block "
+                      << failed_block_id << " success!" << std::endl;
           }
           else
           {
-            std::cout << "[Coordinator] partial degraded read of " << failed_block_id << " failed!" << std::endl;
+            recovery_ok.store(false);
+            std::cout << "[Coordinator] partial from cluster " << remote_cid << " for block "
+                      << failed_block_id << " failed!" << std::endl;
           }
         }));
-
       }
-      int cross_rack_num = recovery_group_ids.size() - 1;
-      threads.push_back(std::thread([this, &t_stripe, cross_rack_num, dest_group_id, dest_cluster_id, dest_proxy_ip, dest_proxy_port, stripe_id, failed_block_id, &recovery_group_ids](){
+
+      threads.push_back(std::thread([this, &t_stripe, &cluster_to_blocks, &remote_clusters, cross_rack_num,
+                                     dest_cluster_id, dest_proxy_ip, dest_proxy_port, stripe_id,
+                                     failed_block_id, &recovery_ok]() {
         grpc::ClientContext recovery_context;
         proxy_proto::RecoveryRequest recovery_request;
         proxy_proto::RecoveryReply recovery_reply;
@@ -4178,48 +4303,150 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         recovery_request.set_replaced_node_ip(m_node_table[t_node_id].node_ip);
         recovery_request.set_replaced_node_port(m_node_table[t_node_id].node_port);
         recovery_request.set_cross_rack_num(cross_rack_num);
-        for(int i = 0; i < recovery_group_ids.size(); i++){
-          if(recovery_group_ids[i] == dest_group_id){
-            continue;
+        for (int remote_cid : remote_clusters)
+        {
+          recovery_request.add_proxyip(m_cluster_table[remote_cid].proxy_ip);
+          recovery_request.add_proxyport(m_cluster_table[remote_cid].proxy_port);
+        }
+        auto local_it = cluster_to_blocks.find(dest_cluster_id);
+        if (local_it != cluster_to_blocks.end())
+        {
+          for (int bid : local_it->second)
+          {
+            Block *t_block = t_stripe.blocks[bid];
+            recovery_request.add_datanodeip(m_node_table[t_block->map2node].node_ip);
+            recovery_request.add_datanodeport(m_node_table[t_block->map2node].node_port);
+            recovery_request.add_blockkeys(t_block->block_key);
+            recovery_request.add_blockids(t_block->block_id);
           }
-          int cluster_id = get_cluster_id_by_group_id(t_stripe, recovery_group_ids[i]);
-          std::string proxy_ip = m_cluster_table[cluster_id].proxy_ip;
-          int proxy_port = m_cluster_table[cluster_id].proxy_port;
-          recovery_request.add_proxyip(proxy_ip);
-          recovery_request.add_proxyport(proxy_port);
         }
-        std::vector<int> blockids = t_stripe.group_to_blocks[dest_group_id];
-        for (int i = 0; i < int(blockids.size()); i++)
+        std::string dest_proxy = dest_proxy_ip + ":" + std::to_string(dest_proxy_port);
+        grpc::Status st = m_proxy_ptrs[dest_proxy]->recovery(&recovery_context, recovery_request, &recovery_reply);
+        if (st.ok())
         {
-          if(is_azure_like_code(m_sys_config->CodeType) && recovery_request.blockids_size() == (m_sys_config->k / m_sys_config->z))
-            break;
-
-          if (blockids[i] == failed_block_id)
-            continue;
-
-          Block *t_block = t_stripe.blocks[blockids[i]];
-          recovery_request.add_datanodeip(m_node_table[t_block->map2node].node_ip);
-          recovery_request.add_datanodeport(m_node_table[t_block->map2node].node_port);
-          recovery_request.add_blockkeys(t_block->block_key);
-          recovery_request.add_blockids(t_block->block_id);
-        }
-        //std::cout << "[Coordinator] start recovery of " << stripe_id << "_" << failed_block_id << std::endl;
-        grpc::Status status = m_proxy_ptrs[dest_proxy_ip + ":" + std::to_string(dest_proxy_port)]->recovery(&recovery_context, recovery_request, &recovery_reply);
-        if (status.ok())
-        {
-          std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " success!" << std::endl;
+          std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " success!"
+                    << std::endl;
         }
         else
         {
-          std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " failed!" << std::endl;
+          recovery_ok.store(false);
+          std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " failed!"
+                    << std::endl;
         }
-      }
-      ));
-      for(int i = 0; i < threads.size(); i++){
-        threads[i].join();
-      }
+      }));
+
+      for (auto &t : threads)
+        t.join();
+      return recovery_ok.load();
     }
-    return true;
+
+    // Non-azure multi-group path (e.g. OptimalLRC / UniformLRC)
+    int dest_group_id = t_stripe.blocks[failed_block_id]->map2group;
+    int dest_cluster_id = get_cluster_id_by_group_id(t_stripe, dest_group_id);
+    std::string dest_proxy_ip = m_cluster_table[dest_cluster_id].proxy_ip;
+    int dest_proxy_port = m_cluster_table[dest_cluster_id].proxy_port;
+    std::vector<int> chosen_cluster_ids;
+    for (int i = 0; i < int(recovery_group_ids.size()); i++)
+    {
+      chosen_cluster_ids.push_back(get_cluster_id_by_group_id(t_stripe, recovery_group_ids[i]));
+    }
+    std::vector<std::string> chosen_proxies;
+    for (int i = 0; i < int(chosen_cluster_ids.size()); i++)
+    {
+      chosen_proxies.push_back(m_cluster_table[chosen_cluster_ids[i]].proxy_ip + ":" +
+                               std::to_string(m_cluster_table[chosen_cluster_ids[i]].proxy_port));
+    }
+    std::atomic<bool> recovery_ok{true};
+    std::vector<std::thread> threads;
+    for (int i = 0; i < int(recovery_group_ids.size()); i++)
+    {
+      if (recovery_group_ids[i] == dest_group_id)
+        continue;
+      threads.push_back(std::thread([&t_stripe, &chosen_proxies, &recovery_group_ids, i, failed_block_id,
+                                     dest_proxy_ip, dest_proxy_port, this, &recovery_ok]() {
+        grpc::ClientContext degraded_read_context;
+        proxy_proto::DegradedReadRequest degraded_read_request;
+        proxy_proto::DegradedReadReply degraded_read_reply;
+        degraded_read_request.set_clientip(dest_proxy_ip);
+        degraded_read_request.set_clientport(dest_proxy_port + ECProject::PROXY_PORT_SHIFT);
+        degraded_read_request.set_failed_block_id(failed_block_id);
+        degraded_read_request.set_failed_block_key(t_stripe.blocks[failed_block_id]->block_key);
+        std::vector<int> blockids = t_stripe.group_to_blocks[recovery_group_ids[i]];
+        for (int j = 0; j < int(blockids.size()); j++)
+        {
+          if (blockids[j] == failed_block_id)
+            continue;
+          Block *t_block = t_stripe.blocks[blockids[j]];
+          degraded_read_request.add_datanodeip(m_node_table[t_block->map2node].node_ip);
+          degraded_read_request.add_datanodeport(m_node_table[t_block->map2node].node_port);
+          degraded_read_request.add_blockkeys(t_block->block_key);
+          degraded_read_request.add_blockids(t_block->block_id);
+        }
+        grpc::Status st =
+            m_proxy_ptrs[chosen_proxies[i]]->degradedRead(&degraded_read_context, degraded_read_request,
+                                                          &degraded_read_reply);
+        if (st.ok())
+        {
+          std::cout << "[Coordinator] partial degraded read of " << failed_block_id << " success!"
+                    << std::endl;
+        }
+        else
+        {
+          recovery_ok.store(false);
+          std::cout << "[Coordinator] partial degraded read of " << failed_block_id << " failed!"
+                    << std::endl;
+        }
+      }));
+    }
+    int cross_rack_num = static_cast<int>(recovery_group_ids.size()) - 1;
+    threads.push_back(std::thread([this, &t_stripe, cross_rack_num, dest_group_id, dest_cluster_id,
+                                   dest_proxy_ip, dest_proxy_port, stripe_id, failed_block_id,
+                                   &recovery_group_ids, &recovery_ok]() {
+      grpc::ClientContext recovery_context;
+      proxy_proto::RecoveryRequest recovery_request;
+      proxy_proto::RecoveryReply recovery_reply;
+      recovery_request.set_failed_block_id(failed_block_id);
+      recovery_request.set_failed_block_key(t_stripe.blocks[failed_block_id]->block_key);
+      int t_node_id = randomly_select_a_node(dest_cluster_id, stripe_id);
+      recovery_request.set_replaced_node_ip(m_node_table[t_node_id].node_ip);
+      recovery_request.set_replaced_node_port(m_node_table[t_node_id].node_port);
+      recovery_request.set_cross_rack_num(cross_rack_num);
+      for (int i = 0; i < int(recovery_group_ids.size()); i++)
+      {
+        if (recovery_group_ids[i] == dest_group_id)
+          continue;
+        int cluster_id = get_cluster_id_by_group_id(t_stripe, recovery_group_ids[i]);
+        recovery_request.add_proxyip(m_cluster_table[cluster_id].proxy_ip);
+        recovery_request.add_proxyport(m_cluster_table[cluster_id].proxy_port);
+      }
+      std::vector<int> blockids = t_stripe.group_to_blocks[dest_group_id];
+      for (int i = 0; i < int(blockids.size()); i++)
+      {
+        if (blockids[i] == failed_block_id)
+          continue;
+        Block *t_block = t_stripe.blocks[blockids[i]];
+        recovery_request.add_datanodeip(m_node_table[t_block->map2node].node_ip);
+        recovery_request.add_datanodeport(m_node_table[t_block->map2node].node_port);
+        recovery_request.add_blockkeys(t_block->block_key);
+        recovery_request.add_blockids(t_block->block_id);
+      }
+      grpc::Status st = m_proxy_ptrs[dest_proxy_ip + ":" + std::to_string(dest_proxy_port)]->recovery(
+          &recovery_context, recovery_request, &recovery_reply);
+      if (st.ok())
+      {
+        std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " success!"
+                  << std::endl;
+      }
+      else
+      {
+        recovery_ok.store(false);
+        std::cout << "[Coordinator] recovery of " << stripe_id << "_" << failed_block_id << " failed!"
+                  << std::endl;
+      }
+    }));
+    for (auto &t : threads)
+      t.join();
+    return recovery_ok.load();
   }
 
 

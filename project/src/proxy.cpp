@@ -4653,46 +4653,64 @@ namespace ECProject
 
       std::string code_type = m_sys_config->CodeType;
       int cross_rack_num = recovery_request->cross_rack_num();
+      const int helper_n = recovery_request->datanodeip_size();
       // auto status = std::make_shared<std::vector<bool>>(recovery_request->datanodeip_size(), false);
-      std::unique_ptr<bool[]> status(new bool[recovery_request->datanodeip_size()]);
-      std::fill_n(status.get(), recovery_request->datanodeip_size(), false);
+      std::unique_ptr<bool[]> status(new bool[std::max(1, helper_n)]);
+      std::fill_n(status.get(), std::max(1, helper_n), false);
 
       //std::vector<std::vector<char>> get_bufs(recovery_request->datanodeip_size(), std::vector<char>(m_sys_config->BlockSize, 0));
-      std::vector<char*> get_bufs(recovery_request->datanodeip_size());
-      for(int i = 0; i < recovery_request->datanodeip_size(); i++)
+      std::vector<char*> get_bufs(helper_n);
+      for(int i = 0; i < helper_n; i++)
       {
         get_bufs[i] = static_cast<char*>(std::aligned_alloc(32, m_sys_config->BlockSize));
       }
       //std::vector<char> res_buf(m_sys_config->BlockSize, 0);
       char *res_buf = static_cast<char*>(std::aligned_alloc(32, m_sys_config->BlockSize));
       char *real_res_buf = static_cast<char*>(std::aligned_alloc(32, m_sys_config->BlockSize));
+      std::memset(res_buf, 0, m_sys_config->BlockSize);
+      std::memset(real_res_buf, 0, m_sys_config->BlockSize);
 
       std::vector<std::thread> get_threads;
-      for (int i = 0; i < recovery_request->datanodeip_size(); i++)
+      for (int i = 0; i < helper_n; i++)
       {
         get_threads.push_back(std::thread(&ProxyImpl::get_from_node, this, 
           recovery_request->blockkeys(i), get_bufs[i], m_sys_config->BlockSize, recovery_request->datanodeip(i).c_str(), 
           recovery_request->datanodeport(i), status.get(), i));
       }
-      for (int i = 0; i < recovery_request->datanodeip_size(); i++)
+      for (int i = 0; i < helper_n; i++)
       {
         get_threads[i].join();
       }
       
-      bool all_true = std::all_of(status.get(), status.get() + recovery_request->datanodeip_size(), [](bool val)
+      bool all_true = (helper_n == 0) ||
+                      std::all_of(status.get(), status.get() + helper_n, [](bool val)
                                   { return val == true; });
       if (!all_true)
       {
         std::cout << "[Proxy" << m_self_cluster_id << "][GET]"
                   << "read from datanodes failed!" << std::endl;
+        for (int i = 0; i < helper_n; i++)
+          std::free(get_bufs[i]);
+        std::free(res_buf);
+        std::free(real_res_buf);
+        return grpc::Status(grpc::StatusCode::INTERNAL, "read from datanodes failed");
       }
-      else
+
       {
-        std::cout << "[Proxy" << m_self_cluster_id << "][GET]"
-                  << "read from datanodes success!" << std::endl;
+        if (helper_n == 0)
+        {
+          std::cout << "[Proxy" << m_self_cluster_id << "][GET]"
+                    << "no local helpers; wait for " << cross_rack_num << " cross-rack partials"
+                    << std::endl;
+        }
+        else
+        {
+          std::cout << "[Proxy" << m_self_cluster_id << "][GET]"
+                    << "read from datanodes success!" << std::endl;
+        }
 
         std::vector<int> block_idxs;
-        for (int i = 0; i < recovery_request->datanodeip_size(); i++)
+        for (int i = 0; i < helper_n; i++)
         {
           block_idxs.push_back(recovery_request->blockids(i));
         }
@@ -4703,26 +4721,29 @@ namespace ECProject
         std::string replaced_node_ip = recovery_request->replaced_node_ip();
         int replaced_node_port = recovery_request->replaced_node_port();
 
-        if (code_type == "UniLRC")
+        if (helper_n > 0)
         {
-          decode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize);
-        }
-        else if (is_azure_like_code(code_type))
-        {
-          decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
-        }
-        else if (code_type == "OptimalLRC")
-        {
-          decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
-        }
-        else if (code_type == "UniformLRC")
-        {
-          decode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
-        }
-        else
-        {
-          std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] code type error!" << std::endl;
-          exit(1);
+          if (code_type == "UniLRC")
+          {
+            decode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, helper_n, &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize);
+          }
+          else if (is_azure_like_code(code_type))
+          {
+            decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, helper_n, &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
+          }
+          else if (code_type == "OptimalLRC")
+          {
+            decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, helper_n, &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
+          }
+          else if (code_type == "UniformLRC")
+          {
+            decode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, helper_n, &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
+          }
+          else
+          {
+            std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] code type error!" << std::endl;
+            exit(1);
+          }
         }
 
         if(cross_rack_num){
@@ -4794,11 +4815,11 @@ namespace ECProject
           RecoveryToDatanode(failed_block_key.c_str(), failed_block_id, res_buf, replaced_node_ip.c_str(), replaced_node_port);
         }
       }
-      delete res_buf;
-      delete real_res_buf;
-      for(int i = 0; i < recovery_request->datanodeip_size(); i++)
+      std::free(res_buf);
+      std::free(real_res_buf);
+      for(int i = 0; i < helper_n; i++)
       {
-        delete get_bufs[i];
+        std::free(get_bufs[i]);
       }
     }
     catch (const std::exception &e)
@@ -4825,61 +4846,91 @@ namespace ECProject
 
       std::string code_type = m_sys_config->CodeType;
       int cross_rack_num = recovery_request->cross_rack_num();
+      const int helper_n = recovery_request->datanodeip_size();
       // auto status = std::make_shared<std::vector<bool>>(recovery_request->datanodeip_size(), false);
-      std::unique_ptr<bool[]> status(new bool[recovery_request->datanodeip_size()]);
-      std::fill_n(status.get(), recovery_request->datanodeip_size(), false);
+      std::unique_ptr<bool[]> status(new bool[std::max(1, helper_n)]);
+      std::fill_n(status.get(), std::max(1, helper_n), false);
 
       //std::vector<std::vector<char>> get_bufs(recovery_request->datanodeip_size(), std::vector<char>(m_sys_config->BlockSize, 0));
-      std::vector<char*> get_bufs(recovery_request->datanodeip_size());
-      for(int i = 0; i < recovery_request->datanodeip_size(); i++)
+      std::vector<char*> get_bufs(helper_n);
+      for(int i = 0; i < helper_n; i++)
       {
         get_bufs[i] = static_cast<char*>(std::aligned_alloc(32, m_sys_config->BlockSize));
       }
       //std::vector<char> res_buf(m_sys_config->BlockSize, 0);
       char *res_buf = static_cast<char*>(std::aligned_alloc(32, m_sys_config->BlockSize));
       char *real_res_buf = static_cast<char*>(std::aligned_alloc(32, m_sys_config->BlockSize));
+      std::memset(res_buf, 0, m_sys_config->BlockSize);
+      std::memset(real_res_buf, 0, m_sys_config->BlockSize);
 
-      std::vector<double> data_node_disk_io_start_time(recovery_request->datanodeip_size(), 0.0);
-      std::vector<double> data_node_disk_io_end_time(recovery_request->datanodeip_size(), 0.0);
-      std::vector<double> data_node_network_start_time(recovery_request->datanodeip_size(), 0.0);
-      std::vector<double> data_node_network_end_time(recovery_request->datanodeip_size(), 0.0);
-      std::vector<double> data_node_grpc_notify_time(recovery_request->datanodeip_size(), 0.0);
-      std::vector<double> data_node_grpc_start_time(recovery_request->datanodeip_size(), 0.0);
+      std::vector<double> data_node_disk_io_start_time(std::max(1, helper_n), 0.0);
+      std::vector<double> data_node_disk_io_end_time(std::max(1, helper_n), 0.0);
+      std::vector<double> data_node_network_start_time(std::max(1, helper_n), 0.0);
+      std::vector<double> data_node_network_end_time(std::max(1, helper_n), 0.0);
+      std::vector<double> data_node_grpc_notify_time(std::max(1, helper_n), 0.0);
+      std::vector<double> data_node_grpc_start_time(std::max(1, helper_n), 0.0);
 
       std::vector<std::thread> get_threads;
-      for (int i = 0; i < recovery_request->datanodeip_size(); i++)
+      for (int i = 0; i < helper_n; i++)
       {
         get_threads.push_back(std::thread(&ProxyImpl::get_from_node_breakdown, this, 
           recovery_request->blockkeys(i), get_bufs[i], m_sys_config->BlockSize, recovery_request->datanodeip(i).c_str(), 
           recovery_request->datanodeport(i), status.get(), i, &data_node_disk_io_start_time[i], &data_node_disk_io_end_time[i],
           &data_node_network_start_time[i], &data_node_network_end_time[i], &data_node_grpc_notify_time[i], &data_node_grpc_start_time[i]));
       }
-      for (int i = 0; i < recovery_request->datanodeip_size(); i++)
+      for (int i = 0; i < helper_n; i++)
       {
         get_threads[i].join();
       }
 
-      response->set_disk_io_start_time(*std::min_element(data_node_disk_io_start_time.begin(), data_node_disk_io_start_time.end()));
-      response->set_disk_io_end_time(*std::max_element(data_node_disk_io_end_time.begin(), data_node_disk_io_end_time.end()));
-      response->set_network_start_time(*std::min_element(data_node_network_start_time.begin(), data_node_network_start_time.end()));
-      response->set_network_end_time(*std::max_element(data_node_network_end_time.begin(), data_node_network_end_time.end()));
-      response->set_data_node_grpc_notify_time(*std::min_element(data_node_grpc_notify_time.begin(), data_node_grpc_notify_time.end()));
-      response->set_data_node_grpc_start_time(*std::max_element(data_node_grpc_start_time.begin(), data_node_grpc_start_time.end()));
+      if (helper_n > 0)
+      {
+        response->set_disk_io_start_time(*std::min_element(data_node_disk_io_start_time.begin(), data_node_disk_io_start_time.begin() + helper_n));
+        response->set_disk_io_end_time(*std::max_element(data_node_disk_io_end_time.begin(), data_node_disk_io_end_time.begin() + helper_n));
+        response->set_network_start_time(*std::min_element(data_node_network_start_time.begin(), data_node_network_start_time.begin() + helper_n));
+        response->set_network_end_time(*std::max_element(data_node_network_end_time.begin(), data_node_network_end_time.begin() + helper_n));
+        response->set_data_node_grpc_notify_time(*std::min_element(data_node_grpc_notify_time.begin(), data_node_grpc_notify_time.begin() + helper_n));
+        response->set_data_node_grpc_start_time(*std::max_element(data_node_grpc_start_time.begin(), data_node_grpc_start_time.begin() + helper_n));
+      }
+      else
+      {
+        response->set_disk_io_start_time(0);
+        response->set_disk_io_end_time(0);
+        response->set_network_start_time(0);
+        response->set_network_end_time(0);
+        response->set_data_node_grpc_notify_time(0);
+        response->set_data_node_grpc_start_time(0);
+      }
       
-      bool all_true = std::all_of(status.get(), status.get() + recovery_request->datanodeip_size(), [](bool val)
+      bool all_true = (helper_n == 0) ||
+                      std::all_of(status.get(), status.get() + helper_n, [](bool val)
                                   { return val == true; });
       if (!all_true)
       {
         std::cout << "[Proxy" << m_self_cluster_id << "][GET]"
                   << "read from datanodes failed!" << std::endl;
+        for (int i = 0; i < helper_n; i++)
+          std::free(get_bufs[i]);
+        std::free(res_buf);
+        std::free(real_res_buf);
+        return grpc::Status(grpc::StatusCode::INTERNAL, "read from datanodes failed");
       }
-      else
+
       {
-        std::cout << "[Proxy" << m_self_cluster_id << "][GET]"
-                  << "read from datanodes success!" << std::endl;
+        if (helper_n == 0)
+        {
+          std::cout << "[Proxy" << m_self_cluster_id << "][GET]"
+                    << "no local helpers; wait for " << cross_rack_num << " cross-rack partials"
+                    << std::endl;
+        }
+        else
+        {
+          std::cout << "[Proxy" << m_self_cluster_id << "][GET]"
+                    << "read from datanodes success!" << std::endl;
+        }
 
         std::vector<int> block_idxs;
-        for (int i = 0; i < recovery_request->datanodeip_size(); i++)
+        for (int i = 0; i < helper_n; i++)
         {
           block_idxs.push_back(recovery_request->blockids(i));
         }
@@ -4891,26 +4942,29 @@ namespace ECProject
         int replaced_node_port = recovery_request->replaced_node_port();
 
         std::chrono::high_resolution_clock::time_point t3 = std::chrono::high_resolution_clock::now();
-        if (code_type == "UniLRC")
+        if (helper_n > 0)
         {
-          decode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize);
-        }
-        else if (is_azure_like_code(code_type))
-        {
-          decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
-        }
-        else if (code_type == "OptimalLRC")
-        {
-          decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
-        }
-        else if (code_type == "UniformLRC")
-        {
-          decode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
-        }
-        else
-        {
-          std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] code type error!" << std::endl;
-          exit(1);
+          if (code_type == "UniLRC")
+          {
+            decode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, helper_n, &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize);
+          }
+          else if (is_azure_like_code(code_type))
+          {
+            decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, helper_n, &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
+          }
+          else if (code_type == "OptimalLRC")
+          {
+            decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, helper_n, &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
+          }
+          else if (code_type == "UniformLRC")
+          {
+            decode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, helper_n, &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
+          }
+          else
+          {
+            std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] code type error!" << std::endl;
+            exit(1);
+          }
         }
         std::chrono::high_resolution_clock::time_point t4 = std::chrono::high_resolution_clock::now();
         response->set_decode_start_time(std::chrono::duration_cast<std::chrono::duration<double>>(t3.time_since_epoch()).count());
@@ -4996,11 +5050,11 @@ namespace ECProject
         response->set_dest_data_node_network_time(dest_data_node_network_time);
         response->set_dest_data_node_disk_io_time(dest_data_node_disk_io_time);
       }
-      delete res_buf;
-      delete real_res_buf;
-      for(int i = 0; i < recovery_request->datanodeip_size(); i++)
+      std::free(res_buf);
+      std::free(real_res_buf);
+      for(int i = 0; i < helper_n; i++)
       {
-        delete get_bufs[i];
+        std::free(get_bufs[i]);
       }
     }
     catch (const std::exception &e)
