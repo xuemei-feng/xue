@@ -12,6 +12,7 @@
 #include <sstream>
 #include <sys/socket.h>
 #include "unilrc_encoder.h"
+#include "cord_xue_lrc.h"
 namespace ECProject
 {
   namespace
@@ -32,7 +33,12 @@ namespace ECProject
 
     bool is_azure_like_code(const std::string &code_type)
     {
-      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC";
+      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC";
+    }
+
+    bool is_cord_xue_code(const std::string &code_type)
+    {
+      return code_type == "CordXueLRC";
     }
 
     using CordClock = std::chrono::steady_clock;
@@ -631,6 +637,13 @@ namespace ECProject
       }
       data_block_num_per_group.push_back(0);
     }
+    else if (is_cord_xue_code(code_type))
+    {
+      for (int g = 0; g < z; ++g)
+      {
+        data_block_num_per_group.push_back(cord_xue_lrc::data_block_count_in_local_group(g, k, r, z));
+      }
+    }
     else if (code_type == "UniformLRC")
     {
       /*int group_size = r + 1;
@@ -701,29 +714,12 @@ namespace ECProject
       }
       global_pairty_block_num_per_group.push_back(r);
     }
-    else if (code_type == "UniformLRC")
+    else if (is_cord_xue_code(code_type))
     {
-      /*int group_size = r + 1;
-      int local_group_size = int((k + r) / z);
-      int larger_local_group_num = int((k + r) % z);
-      int group_num_of_one_local_group = local_group_size / group_size + (bool)(local_group_size % group_size);
-      for (int i = 0; i < z - 1; i++)
+      for (int g = 0; g < z; ++g)
       {
-        if (i + larger_local_group_num == z)
-        {
-          local_group_size++;
-          group_num_of_one_local_group = local_group_size / group_size + (bool)(local_group_size % group_size);
-        }
-        for (int j = 0; j < group_num_of_one_local_group; j++)
-        {
-          global_pairty_block_num_per_group.push_back(0);
-        }
+        global_pairty_block_num_per_group.push_back(g == z - 1 ? r : 0);
       }
-      global_pairty_block_num_per_group.push_back(r);*/
-      for(int i = 0; i < z - 1; i++){
-        global_pairty_block_num_per_group.push_back(0);
-      }
-      global_pairty_block_num_per_group.push_back(r);
     }
     else if (code_type == "UniLRC")
     {
@@ -766,32 +762,9 @@ namespace ECProject
       }
       local_parity_block_num_per_group.push_back(0);
     }
-    else if (code_type == "UniformLRC")
+    else if (is_cord_xue_code(code_type))
     {
-      /*int group_size = r + 1;
-      int local_group_size = int((k + r) / z);
-      int larger_local_group_num = int((k + r) % z);
-      int group_num_of_one_local_group = local_group_size / group_size + (bool)(local_group_size % group_size);
-      for (int i = 0; i < z; i++)
-      {
-        if (i + larger_local_group_num == z)
-        {
-          local_group_size++;
-          group_num_of_one_local_group = local_group_size / group_size + (bool)(local_group_size % group_size);
-        }
-        for (int j = 0; j < group_num_of_one_local_group; j++)
-        {
-          if (j == group_num_of_one_local_group - 1)
-          {
-            local_parity_block_num_per_group.push_back(1);
-          }
-          else
-          {
-            local_parity_block_num_per_group.push_back(0);
-          }
-        }
-      }*/
-      for (int i = 0; i < z; i++)
+      for (int g = 0; g < z; ++g)
       {
         local_parity_block_num_per_group.push_back(1);
       }
@@ -840,7 +813,7 @@ namespace ECProject
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
 
-      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
+      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_cord_xue_code(m_sys_config->CodeType) || is_azure_like_code(m_sys_config->CodeType));
       std::vector<int> data_block_num_per_group = get_data_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
       std::vector<int> global_parity_block_num_per_group = get_global_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
       std::vector<int> local_parity_block_num_per_group = get_local_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
@@ -861,7 +834,7 @@ namespace ECProject
         {
           ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
         }
-        else if (m_sys_config->CodeType == "UniformLRC")
+        else if (m_sys_config->CodeType == "UniformLRC" || is_cord_xue_code(m_sys_config->CodeType))
         {
           ECProject::encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
         }
@@ -958,7 +931,7 @@ namespace ECProject
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
 
-      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
+      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_cord_xue_code(m_sys_config->CodeType) || is_azure_like_code(m_sys_config->CodeType));
       std::vector<int> data_block_num_per_group = get_data_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
       int capacity = block_num;
       for(int i = 0; i < data_block_num_per_group.size(); i++)
@@ -987,7 +960,7 @@ namespace ECProject
         //ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
-      else if (m_sys_config->CodeType == "UniformLRC")
+      else if (m_sys_config->CodeType == "UniformLRC" || is_cord_xue_code(m_sys_config->CodeType))
       {
         //ECProject::encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
@@ -1912,7 +1885,7 @@ namespace ECProject
     {
       parameters.push_back(1);
     }
-    else if(m_sys_config->CodeType == "UniformLRC")
+    else if(m_sys_config->CodeType == "UniformLRC" || is_cord_xue_code(m_sys_config->CodeType))
     {
       parameters.push_back(2);
     }

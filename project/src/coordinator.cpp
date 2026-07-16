@@ -1,4 +1,5 @@
 #include "coordinator.h"
+#include "cord_xue_lrc.h"
 #include "devcommon.h"
 #include <cstdint>
 #include "cord_algorithm2.h"
@@ -51,7 +52,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   {
     bool is_azure_like_code(const std::string &code_type) // 辅助函数：判断是否为 Azure 系列分组规则编码
     {
-      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC";
+      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC";
+    }
+
+    bool is_cord_xue_code(const std::string &code_type)
+    {
+      return code_type == "CordXueLRC";
     }
 
     /** Deterministic seed for placement RNG: same placement_seed + stripe_id -> same sequence (shuffle / cluster / node). */
@@ -1380,12 +1386,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
   void CoordinatorImpl::initialize_cord_xue_lrc_stripe_placement(Stripe *stripe)
   {
-    // Azure-style placement (cluster = rack):
+    // Uniform 风格分组 + Cord 机架放置：
     // 1) all global parity -> global_cluster
-    // 2) per local group: local parity + min(r,h) data blocks -> dedicated cluster (round-robin, skip global)
+    // 2) per local group: local parity + min(r,h_g) data blocks -> dedicated cluster (round-robin, skip global)
     // 3) one data block per group -> global_cluster
     // 4) remaining data per group in batches of (r+1) -> round-robin clusters (skip global)
-    // 5) equal per-group remainder m>0: pack theta groups' remainders per cluster (theta=floor(r/(m-1)), m=1 -> r+1)
+    // 5) equal per-group remainder m>0: pack theta groups' remainders per cluster (theta=floor(r/(m-1)), m=1 -> r+1);
+    //    when m differs across groups, all remainders share one cluster
     Block *blocks_info = new Block[stripe->n];
     assert(stripe->object_keys.size() == 1);
 
@@ -1394,12 +1401,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       throw std::runtime_error("ClusterNum must be >= 3 for CordXueLRC placement");
     }
-    if (stripe->k % stripe->z != 0)
-    {
-      throw std::runtime_error("CordXueLRC requires k divisible by z");
-    }
 
-    const int h = stripe->k / stripe->z;
+    const int k = stripe->k;
+    const int r = stripe->r;
+    const int z = stripe->z;
+    std::vector<std::vector<int>> group_data_blocks;
+    cord_xue_lrc::build_data_blocks_per_local_group(k, r, z, &group_data_blocks);
+
     const int global_cluster = stripe->stripe_id % cluster_num;
     int cluster_cursor = global_cluster + 1;
 
@@ -1426,7 +1434,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       gen.seed(rd());
     }
 
-    const int global_parity_group_id = stripe->z;
     for (int i = 0; i < stripe->n; i++)
     {
       blocks_info[i].block_size = m_sys_config->BlockSize;
@@ -1440,7 +1447,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'D';
-        blocks_info[i].map2group = int(i / h);
+        blocks_info[i].map2group = cord_xue_lrc::data_block_map2group(i, k, r, z);
       }
       else if (i < stripe->k + stripe->r)
       {
@@ -1450,7 +1457,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i - stripe->k);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'G';
-        blocks_info[i].map2group = global_parity_group_id;
+        blocks_info[i].map2group = cord_xue_lrc::global_parity_map2group(z);
       }
       else
       {
@@ -1472,47 +1479,48 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       assigned_cluster[i] = global_cluster;
     }
 
-    const int n_primary_data = std::min(stripe->r, h);
     std::vector<std::vector<int>> group_remainder_blocks(stripe->z);
 
     for (int g = 0; g < stripe->z; ++g)
     {
-      const int base = g * h;
+      const std::vector<int> &data_ids = group_data_blocks[static_cast<size_t>(g)];
+      const int hg = static_cast<int>(data_ids.size());
       const int local_parity_id = stripe->k + stripe->r + g;
+      const int n_primary_data = std::min(stripe->r, hg);
 
-      // Step 2: local parity + min(r,h) data blocks
+      // Step 2: local parity + min(r,h_g) data blocks
       const int primary_cluster = next_non_global_cluster();
-      for (int j = 0; j < n_primary_data; ++j)
+      for (int j = 0; j < n_primary_data && j < hg; ++j)
       {
-        assigned_cluster[base + j] = primary_cluster;
+        assigned_cluster[data_ids[static_cast<size_t>(j)]] = primary_cluster;
       }
       assigned_cluster[local_parity_id] = primary_cluster;
 
-      int next_idx = base + n_primary_data;
+      int next_idx = n_primary_data;
 
       // Step 3: one data block to global cluster
-      if (next_idx < base + h)
+      if (next_idx < hg)
       {
-        assigned_cluster[next_idx] = global_cluster;
+        assigned_cluster[data_ids[static_cast<size_t>(next_idx)]] = global_cluster;
         next_idx++;
       }
 
       // Step 4: batches of (r+1) data blocks
       const int batch_size = stripe->r + 1;
-      while (next_idx + batch_size <= base + h)
+      while (next_idx + batch_size <= hg)
       {
         const int batch_cluster = next_non_global_cluster();
         for (int j = 0; j < batch_size; ++j)
         {
-          assigned_cluster[next_idx] = batch_cluster;
+          assigned_cluster[data_ids[static_cast<size_t>(next_idx)]] = batch_cluster;
           next_idx++;
         }
       }
 
       // Step 5 leftovers for this group (m blocks when equal across groups)
-      while (next_idx < base + h)
+      while (next_idx < hg)
       {
-        group_remainder_blocks[g].push_back(next_idx);
+        group_remainder_blocks[g].push_back(data_ids[static_cast<size_t>(next_idx)]);
         next_idx++;
       }
     }
@@ -1567,13 +1575,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       else
       {
+        // 各组 remainder 数量不等时，仍合并到同一非 global 机架（如 z=2 时组0+组1 remain 共架）
+        const int remainder_cluster = next_non_global_cluster();
         for (int g = 0; g < stripe->z; ++g)
         {
-          if (group_remainder_blocks[g].empty())
-          {
-            continue;
-          }
-          const int remainder_cluster = next_non_global_cluster();
           for (int block_idx : group_remainder_blocks[g])
           {
             assigned_cluster[block_idx] = remainder_cluster;
@@ -2094,6 +2099,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       {
         initialize_optimal_lrc_stripe_placement(&t_stripe);
       }
+      else if (code_type == "CordXueLRC")
+      {
+        initialize_cord_xue_lrc_stripe_placement(&t_stripe);
+      }
       else if (code_type == "UniformLRC")
       {
         initialize_uniform_lrc_stripe_placement(&t_stripe);
@@ -2105,10 +2114,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       else if (code_type == "SplitParityLRC")
       {
         initialize_split_parity_lrc_stripe_placement(&t_stripe);
-      }
-      else if (code_type == "CordXueLRC")
-      {
-        initialize_cord_xue_lrc_stripe_placement(&t_stripe);
       }
       else
       {
@@ -3296,6 +3301,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       initialize_optimal_lrc_stripe_placement(&t_stripe);
     }
+    else if (code_type == "CordXueLRC")
+    {
+      initialize_cord_xue_lrc_stripe_placement(&t_stripe);
+    }
     else if (code_type == "UniformLRC")
     {
       initialize_uniform_lrc_stripe_placement(&t_stripe);
@@ -3307,10 +3316,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     else if (code_type == "SplitParityLRC")
     {
       initialize_split_parity_lrc_stripe_placement(&t_stripe);
-    }
-    else if (code_type == "CordXueLRC")
-    {
-      initialize_cord_xue_lrc_stripe_placement(&t_stripe);
     }
     print_stripe_data_placement(t_stripe);
 
@@ -3384,6 +3389,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       initialize_optimal_lrc_stripe_placement(&t_stripe);
     }
+    else if (code_type == "CordXueLRC")
+    {
+      initialize_cord_xue_lrc_stripe_placement(&t_stripe);
+    }
     else if (code_type == "UniformLRC")
     {
       initialize_uniform_lrc_stripe_placement(&t_stripe);
@@ -3395,10 +3404,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     else if (code_type == "SplitParityLRC")
     {
       initialize_split_parity_lrc_stripe_placement(&t_stripe);
-    }
-    else if (code_type == "CordXueLRC")
-    {
-      initialize_cord_xue_lrc_stripe_placement(&t_stripe);
     }
     print_stripe_data_placement(t_stripe);
 
@@ -3524,7 +3529,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         recovery_group_ids.push_back(group_num - 1);
       }
     }
-    else if (code_type == "UniformLRC")
+    else if (code_type == "UniformLRC" || is_cord_xue_code(code_type))
     {
       if (failed_block_id >= k + r)
       {
@@ -3636,6 +3641,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         }
       }
       data_block_num_per_group.push_back(0);
+    }
+    else if (is_cord_xue_code(code_type))
+    {
+      for (int g = 0; g < z; ++g)
+      {
+        data_block_num_per_group.push_back(cord_xue_lrc::data_block_count_in_local_group(g, k, r, z));
+      }
     }
     else if (code_type == "UniformLRC")
     {

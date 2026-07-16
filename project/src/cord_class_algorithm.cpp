@@ -1,4 +1,5 @@
 #include "cord_class_algorithm.h"
+#include "cord_xue_lrc.h"
 #include "devcommon.h"
 #include "meta_definition.h"
 #include <algorithm>
@@ -371,7 +372,34 @@ namespace ECProject
         }
       }
 
+      // Uniform 风格 CordXueLRC：全部全局校验更新完成后，将各 ΔG 异或后更新最后一组本地校验 L_{z-1}
+      {
+        const int last_g = stripe.z - 1;
+        const int Lb = local_parity_block_for_group(stripe, last_g);
+        if (Lb >= 0)
+        {
+          std::vector<int> updated_data;
+          for (const auto &kv : block_intervals)
+          {
+            const int bid = kv.first;
+            if (bid >= 0 && bid < k && delta_bytes_for_block(block_intervals, bid) > 0)
+              updated_data.push_back(bid);
+          }
+          const int64_t pl = cord_alg2::merged_delta_hull_span_bytes(block_intervals, updated_data);
+          if (pl > 0)
+          {
+            const int lc = block_cluster(stripe, Lb);
+            auto L = make_link(collector, Lb, gc, lc, pl, cord_alg2::TrainLinkKind::STAR_CENTER_TO_LOCAL,
+                               cord_alg2::CordDeltaPayloadKind::PARITY_DELTA, cord_alg2::kCordGlobalXorFinalGroupIndex,
+                               cluster_num, tp);
+            L.parity_merge_data_block_ids.clear();
+            out.train_route.push_back(std::move(L));
+          }
+        }
+      }
+
       cord_alg2::schedule_train_route_timeslots(&out, cluster_num, tp);
+      cord_alg2::ensure_global_xor_final_timeslot_last(&out);
 
       if (cord_verbose_enabled())
         std::cout << "[CoRD-Class] train_route links=" << out.train_route.size()

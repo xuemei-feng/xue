@@ -3,41 +3,41 @@
 #
 # Units: MB/s (megabytes per second), TABLE II — "Bandwidth measurements in Asia regions".
 # Region index matches CLUSTER_IPS in limit_bw_matrix.sh (proxy IP per cluster):
-#   0=TYO(.3)  1=MEL(.12)  2=SG(.21)  3=SEO(.30)  4=JAK(.39)  5=HK(.48)
+#   0=TYO  1=MEL  2=SG  3=SEO  4=JAK  5=HK  6=BKK  7=TPE  8=DEL  9=BOM
 #
 # Construction (for tc symmetric egress matrix):
-#   - Diagonal [i,i]: intra-region MB/s from TABLE II.
-#   - Upper triangle (row i < col j): TABLE II cell (i,j).
-#   - Lower triangle: mirror A[j,i]=A[i,j] (paper may show slight asymmetry; limit uses symmetric cap).
-#
-# Upper triangle (i<j) values used (MB/s):
-#   TYO→MEL 4.21  TYO→SG 4.69  TYO→SEO 5.98  TYO→JAK 4.69  TYO→HK 5.37
-#   MEL→SG 5.51  MEL→SEO 3.23  MEL→JAK 5.24  MEL→HK 4.96
-#   SG→SEO 5.52  SG→JAK 7.41  SG→HK 5.53
-#   SEO→JAK 4.19  SEO→HK 5.19
-#   JAK→HK 4.47
+#   - Diagonal [i,i]: intra-region MB/s from TABLE II (0-5); 6-9 use placeholder ~42 MB/s.
+#   - Off-diagonal: 125 MB/s (cross-region cap).
 #
 # Linux tc HTB uses Mbit/s ("mbit"). Convert MB/s → Mbit/s for tc by multiplying
 # bytes→bits factor (default 8). Override with BW_MATRIX_MB_PER_SEC_TO_TC_MBIT.
 
+readonly BW_CLUSTER_NUM="${BW_CLUSTER_NUM:-10}"
 readonly BW_MATRIX_MB_PER_SEC_TO_TC_MBIT="${BW_MATRIX_MB_PER_SEC_TO_TC_MBIT:-8}"
 
-# Symmetric 6×6, row-major, units: MB/s (see construction above)
+# Symmetric 10×10, row-major, units: MB/s
 readonly BW_MATRIX_MB_PER_SEC=(
-  43.62 125 125 125 125 125
-  125 51.33 125 125 125 125
-  125 125 39.68 125 125 125
-  125 125 125 32.54 125 125
-  125 125 125 125 46.82 125
-  125 125 125 125 125 35.87
+  43.62 125 125 125 125 125 125 125 125 125
+  125 51.33 125 125 125 125 125 125 125 125
+  125 125 39.68 125 125 125 125 125 125 125
+  125 125 125 32.54 125 125 125 125 125 125
+  125 125 125 125 46.82 125 125 125 125 125
+  125 125 125 125 125 35.87 125 125 125 125
+  125 125 125 125 125 125 42.00 125 125 125
+  125 125 125 125 125 125 125 42.00 125 125
+  125 125 125 125 125 125 125 125 42.00 125
+  125 125 125 125 125 125 125 125 125 42.00
 )
 
 _get_bw_matrix_index() {
   local src=$1 dst=$2
-  if ! [[ "$src" =~ ^[0-5]$ && "$dst" =~ ^[0-5]$ ]]; then
+  if ! [[ "$src" =~ ^[0-9]+$ && "$dst" =~ ^[0-9]+$ ]]; then
     return 1
   fi
-  echo $((src * 6 + dst))
+  if (( src < 0 || dst < 0 || src >= BW_CLUSTER_NUM || dst >= BW_CLUSTER_NUM )); then
+    return 1
+  fi
+  echo $((src * BW_CLUSTER_NUM + dst))
 }
 
 # strip bandwidth from matrix in MB/s (for logging / display)

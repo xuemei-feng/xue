@@ -2,7 +2,7 @@
 """
 Sort a column of IPs and rewrite cluster deployment configs.
 
-Role assignment (after numeric sort), default 6 clusters × 8 datanodes:
+Role assignment (after numeric sort), default 10 clusters × 8 datanodes:
   [0]       client
   [1]       coordinator
   per cluster c in 0..N-1:
@@ -34,12 +34,12 @@ except ImportError:
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-CLUSTER_NUM = int(os.environ.get("CLUSTER_NUM", "6"))
+CLUSTER_NUM = int(os.environ.get("CLUSTER_NUM", "10"))
 DATANODES_PER_CLUSTER = int(os.environ.get("DATANODES_PER_CLUSTER", "8"))
 PROXY_PORT_BASE = int(os.environ.get("PROXY_PORT_BASE", "50405"))
 DATANODE_PORT_START = int(os.environ.get("DATANODE_PORT_START", "17600"))
 
-CLUSTER_LABELS = ["TYO", "MEL", "SG", "SEO", "JAK", "HK"]
+CLUSTER_LABELS = ["TYO", "MEL", "SG", "SEO", "JAK", "HK", "BKK", "TPE", "DEL", "BOM"]
 
 PATHS = {
     "hosts": os.path.join(ROOT, "hosts"),
@@ -157,6 +157,33 @@ def patch_coordinator_ip(path, coordinator_ip):
     print("  patched CoordinatorIP -> %s in %s" % (coordinator_ip, path))
 
 
+def patch_cluster_topology(path, cluster_num, datanodes_per_cluster):
+    with open(path, "r") as f:
+        text = f.read()
+    text, n1 = re.subn(
+        r"(<ClusterNum>)[^<]+(</ClusterNum>)",
+        r"\g<1>%d\2" % cluster_num,
+        text,
+        count=1,
+    )
+    text, n2 = re.subn(
+        r"(<DatanodeNumPerCluster>)[^<]+(</DatanodeNumPerCluster>)",
+        r"\g<1>%d\2" % datanodes_per_cluster,
+        text,
+        count=1,
+    )
+    if n1 != 1:
+        raise RuntimeError("ClusterNum not found in %s" % path)
+    if n2 != 1:
+        raise RuntimeError("DatanodeNumPerCluster not found in %s" % path)
+    with open(path, "w") as f:
+        f.write(text)
+    print(
+        "  patched ClusterNum=%d DatanodeNumPerCluster=%d in %s"
+        % (cluster_num, datanodes_per_cluster, path)
+    )
+
+
 def patch_bash_ip_array(path, var_name, ip_lines):
     """Replace VAR=( ... ) block; ip_lines are full inner lines including quotes."""
     with open(path, "r") as f:
@@ -215,9 +242,19 @@ def patch_generator_py(path, coordinator_ip, clusters):
     if n2 != 1:
         raise RuntimeError("coordinator_ip not found in %s" % path)
 
+    text, n3 = re.subn(
+        r"^cluster_number = \d+",
+        "cluster_number = %d" % CLUSTER_NUM,
+        text,
+        count=1,
+        flags=re.MULTILINE,
+    )
+    if n3 != 1:
+        raise RuntimeError("cluster_number not found in %s" % path)
+
     with open(path, "w") as f:
         f.write(text)
-    print("  patched generator_sh.py (proxy_ip_list + coordinator_ip)")
+    print("  patched generator_sh.py (proxy_ip_list + coordinator_ip + cluster_number)")
 
 
 def patch_main_client(path, client_ip):
@@ -261,6 +298,7 @@ def apply(sorted_ips, dry_run=False):
     write_lines(PATHS["datanode_hosts"], datanode_ips)
     write_cluster_xml(PATHS["cluster_xml"], client_ip, coordinator_ip, clusters)
     patch_coordinator_ip(PATHS["param_xml"], coordinator_ip)
+    patch_cluster_topology(PATHS["param_xml"], CLUSTER_NUM, DATANODES_PER_CLUSTER)
     patch_limit_scripts(client_ip, coordinator_ip, clusters)
     patch_generator_py(PATHS["generator_py"], coordinator_ip, clusters)
     patch_main_client(PATHS["main_client"], client_ip)

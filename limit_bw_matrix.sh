@@ -35,7 +35,7 @@ skip_bw_limit_this_host() {
   return 1
 }
 
-# 与 proxy_hosts / clusterInformation.xml 中 6 个 proxy 一致（一机一角色）
+# 与 proxy_hosts / clusterInformation.xml 中 10 个 proxy 一致（一机一角色）
 CLUSTER_IPS=(
   "172.16.2.33"   # 0: TYO  cluster 0 proxy
   "172.16.2.42"   # 1: MEL  cluster 1 proxy
@@ -43,6 +43,10 @@ CLUSTER_IPS=(
   "172.16.2.60"   # 3: SEO  cluster 3 proxy
   "172.16.2.69"   # 4: JAK  cluster 4 proxy
   "172.16.2.78"   # 5: HK  cluster 5 proxy
+  "172.16.2.87"   # 6: BKK  cluster 6 proxy
+  "172.16.2.96"   # 7: TPE  cluster 7 proxy
+  "172.16.2.105"   # 8: DEL  cluster 8 proxy
+  "172.16.2.114"   # 9: BOM  cluster 9 proxy
 )
 
 detect_iface() {

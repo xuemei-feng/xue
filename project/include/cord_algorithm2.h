@@ -1,6 +1,7 @@
 #ifndef ECPROJECT_CORD_ALGORITHM2_H
 #define ECPROJECT_CORD_ALGORITHM2_H
 
+#include <algorithm>
 #include <cstdint>
 #include <map>
 #include <string>
@@ -16,6 +17,9 @@ namespace ECProject
 {
   namespace cord_alg2
   {
+    /** CordXueLRC 终态链路：全局 ΔG 异或后更新最后一组本地校验（build_class_update_plan 使用） */
+    constexpr int kCordGlobalXorFinalGroupIndex = 1000000;
+
     /** 传输时间模型：t = latency + bytes / bw；优先 bw_matrix_mb_per_sec[src][dst]（MB/s），否则 inv_bw 回退 */
     struct TransferParams
     {
@@ -105,6 +109,9 @@ namespace ECProject
 
     /** 对 train_route 做依赖感知的时间步调度（Dinic）；结果写入 out->timeslot_schedule */
     void schedule_train_route_timeslots(Algorithm2Result *out, int cluster_num, const TransferParams &tp);
+
+    /** CordXueLRC：将终态 L1 链路移到独立 timeslot 末尾 */
+    void ensure_global_xor_final_timeslot_last(Algorithm2Result *out);
 
     /** 从 BW_limitsame 风格文件加载对称带宽矩阵（MB/s） */
     bool load_bw_matrix_from_limitsame_file(const std::string &path, int cluster_num, TransferParams *tp);

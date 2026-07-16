@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 current_path = os.getcwd()
 parent_path = os.path.dirname(current_path)
 
-cluster_number = 6
+cluster_number = 10
 datanode_number_per_cluster = 8
 datanode_port_start = 17600
 cluster_id_start = 0
@@ -18,6 +18,10 @@ proxy_ip_list = [
     ["172.16.2.60", 50408],
     ["172.16.2.69", 50409],
     ["172.16.2.78", 50410],
+    ["172.16.2.87", 50411],
+    ["172.16.2.96", 50412],
+    ["172.16.2.105", 50413],
+    ["172.16.2.114", 50414],
 ]
 coordinator_ip = "172.16.2.32"
 

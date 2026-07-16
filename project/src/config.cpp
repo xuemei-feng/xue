@@ -1,4 +1,5 @@
 #include "config.h"
+#include "cord_xue_lrc.h"
 #include "tinyxml2.h"
 #include <cassert>
 
@@ -40,8 +41,10 @@ namespace ECProject
     }
     if (CodeType == "CordXueLRC")
     {
-      assert(k % z == 0 && "Error: CordXueLRC requires k divisible by z");
-      assert(DatanodeNumPerCluster > k / z + 1 && "Error: DatanodeNumPerCluster must be greater than k / z + 1");
+      assert((k + r) % z == 0 && "Error: CordXueLRC requires (k + r) divisible by z");
+      const int max_h = cord_xue_lrc::max_data_blocks_in_any_local_group(k, r, z);
+      assert(DatanodeNumPerCluster > max_h + 1 &&
+             "Error: DatanodeNumPerCluster must be greater than max CordXueLRC local group data blocks + 1");
       assert(ClusterNum > z + 1 && "Error: CordXueLRC requires ClusterNum > z + 1");
     }
     if (CodeType == "OptimalLRC")

@@ -788,6 +788,15 @@ namespace ECProject
       };
       auto link_eligible_for_step = [&](size_t i) -> bool {
         const TrainLink &L = out.train_route[i];
+        if (L.group_index == kCordGlobalXorFinalGroupIndex)
+        {
+          for (size_t j = 0; j < out.train_route.size(); ++j)
+          {
+            if (j != i && remaining[j] > 0)
+              return false;
+          }
+          return true;
+        }
         if (L.kind == TrainLinkKind::STAR_CENTER_TO_GLOBAL || L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL)
         {
           if (!collector_star_data_ingress_done(L.group_index, L.src_block_id))
@@ -933,6 +942,15 @@ namespace ECProject
 
       auto link_eligible_for_step = [&](size_t i) -> bool {
         const TrainLink &L = out->train_route[i];
+        if (L.group_index == kCordGlobalXorFinalGroupIndex)
+        {
+          for (size_t j = 0; j < out->train_route.size(); ++j)
+          {
+            if (j != i && remaining[j] > 0)
+              return false;
+          }
+          return true;
+        }
         if (L.kind == TrainLinkKind::STAR_CENTER_TO_GLOBAL || L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL)
         {
           if (!collector_star_data_ingress_done(L.group_index, L.src_block_id))
@@ -997,6 +1015,32 @@ namespace ECProject
         }
         out->timeslot_schedule.push_back(std::move(te));
       }
+    }
+
+    void ensure_global_xor_final_timeslot_last(Algorithm2Result *out)
+    {
+      if (out == nullptr || out->timeslot_schedule.empty())
+        return;
+      int final_li = -1;
+      for (size_t i = 0; i < out->train_route.size(); ++i)
+      {
+        if (out->train_route[i].group_index == kCordGlobalXorFinalGroupIndex)
+        {
+          final_li = static_cast<int>(i);
+          break;
+        }
+      }
+      if (final_li < 0)
+        return;
+      for (auto &te : out->timeslot_schedule)
+      {
+        auto &idx = te.link_indices;
+        idx.erase(std::remove(idx.begin(), idx.end(), final_li), idx.end());
+      }
+      TimeslotEntry te;
+      te.timeslot = out->timeslot_schedule.empty() ? 0 : out->timeslot_schedule.back().timeslot + 1;
+      te.link_indices.push_back(final_li);
+      out->timeslot_schedule.push_back(std::move(te));
     }
 
     bool load_bw_matrix_from_limitsame_file(const std::string &path, int cluster_num, TransferParams *tp)
