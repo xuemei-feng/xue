@@ -31,7 +31,8 @@ namespace ECProject
       STAR_DATA_TO_CENTER,
       STAR_CENTER_TO_GLOBAL,
       STAR_CENTER_TO_LOCAL,
-      MST_FORWARD
+      MST_FORWARD,
+      GLOBAL_TO_LOCAL
     };
 
     /** 线上载荷语义：数据增量 ΔD（按字节传输） vs 已由收集器聚合得到的校验增量（再 XOR 落盘） */

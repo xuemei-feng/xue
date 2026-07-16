@@ -5,21 +5,25 @@ import xml.etree.ElementTree as ET
 current_path = os.getcwd()
 parent_path = os.path.dirname(current_path)
 
-cluster_number = 6
+cluster_number = 10
 datanode_number_per_cluster = 8
 datanode_port_start = 17600
 cluster_id_start = 0
 iftest = False
 
 proxy_ip_list = [
-    ["172.16.2.33", 50405],
-    ["172.16.2.42", 50406],
-    ["172.16.2.51", 50407],
-    ["172.16.2.60", 50408],
-    ["172.16.2.69", 50409],
-    ["172.16.2.78", 50410],
+    ["172.16.2.89", 50405],
+    ["172.16.2.98", 50406],
+    ["172.16.2.107", 50407],
+    ["172.16.2.116", 50408],
+    ["172.16.2.125", 50409],
+    ["172.16.2.134", 50410],
+    ["172.16.2.143", 50411],
+    ["172.16.2.152", 50412],
+    ["172.16.2.161", 50413],
+    ["172.16.2.170", 50414],
 ]
-coordinator_ip = "172.16.2.32"
+coordinator_ip = "172.16.2.88"
 
 proxy_num = len(proxy_ip_list)
 
@@ -154,16 +158,22 @@ def generate_run_proxy_datanode_file():
         _write_stop_commands(f)
         f.write("\n")
 
+        # nohup + 重定向：避免后台进程占住 SSH/pdsh 管道，导致并行槽位耗尽、后续 proxy 起不来
         for _cid, uri in datanodes:
-            f.write("./project/cmake/build/run_datanode " + uri + " & \n")
+            f.write("nohup ./project/cmake/build/run_datanode " + uri +
+                    " >>/tmp/unilrc-datanode.log 2>&1 &\n")
         if datanodes:
             f.write("\n")
 
         if proxies:
             f.write("sleep 5s\n")
             f.write("\n")
+            f.write("export CORD_XFER_VERBOSE=\"${CORD_XFER_VERBOSE:-1}\"\n")
             for _cid, proxy in proxies:
-                f.write("./project/cmake/build/run_proxy " + proxy + "  & \n")
+                f.write("stdbuf -oL -eL nohup ./project/cmake/build/run_proxy " + proxy +
+                        " >>/tmp/unilrc-proxy.log 2>&1 &\n")
+                f.write("echo \"started " + proxy +
+                        " log=/tmp/unilrc-proxy.log pid=$!\"\n")
             f.write("\n")
 
     if not proxies and not datanodes:
@@ -213,7 +223,8 @@ def generate_run_datanode_file():
             host, port = uri.rsplit(":", 1)
             bulk_port = int(port) + 50
             f.write("echo \"Starting datanode %s (bulk :%d)\"\n" % (uri, bulk_port))
-            f.write("./project/cmake/build/run_datanode " + uri + " & \n")
+            f.write("nohup ./project/cmake/build/run_datanode " + uri +
+                    " >>/tmp/unilrc-datanode.log 2>&1 &\n")
         f.write("\n")
 
     print("run_datanode.sh: local_ip %s -> %s" % (

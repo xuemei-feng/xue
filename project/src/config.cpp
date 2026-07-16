@@ -34,9 +34,10 @@ namespace ECProject
     }
     if (CodeType == "SplitParityLRC")
     {
-      assert(DatanodeNumPerCluster > k / z + 1 && "Error: DatanodeNumPerCluster must be greater than k / z + 1");
-      assert(ClusterNum >= 6 && "Error: SplitParityLRC requires ClusterNum >= 6");
-      assert(k <= 4 * (r + 1) && "Error: SplitParityLRC requires k <= 4*(r+1)");
+      // slot0=全局校验, slot1=本地校验, 其余 ClusterNum-2 个 cluster 放数据（每 cluster ≤ r+1）
+      assert(DatanodeNumPerCluster > r && "Error: SplitParityLRC DatanodeNumPerCluster must be greater than r");
+      assert(ClusterNum >= 3 && "Error: SplitParityLRC requires ClusterNum >= 3");
+      assert(k <= (ClusterNum - 2) * (r + 1) && "Error: SplitParityLRC requires k <= (ClusterNum-2)*(r+1)");
     }
     if (CodeType == "CordXueLRC")
     {

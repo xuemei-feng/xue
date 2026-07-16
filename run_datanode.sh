@@ -3,5 +3,6 @@ set -e
 
 pkill -9 run_datanode || true
 
-echo "No datanode role for local_ip=172.16.2.31; skip."
-exit 0
+echo "Starting datanode 172.16.2.113:17621 (bulk :17671)"
+nohup ./project/cmake/build/run_datanode 172.16.2.113:17621 >>/tmp/unilrc-datanode.log 2>&1 &
+

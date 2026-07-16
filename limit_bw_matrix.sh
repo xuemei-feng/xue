@@ -20,8 +20,8 @@ fi
 source "$BW_FILE"
 
 SKIP_BW_LIMIT_IPS=(
-  "172.16.2.31"
-  "172.16.2.32"
+  "172.16.2.87"
+  "172.16.2.88"
 )
 
 skip_bw_limit_this_host() {
@@ -35,14 +35,18 @@ skip_bw_limit_this_host() {
   return 1
 }
 
-# 与 proxy_hosts / clusterInformation.xml 中 6 个 proxy 一致（一机一角色）
+# 与 proxy_hosts / clusterInformation.xml 中 10 个 proxy 一致（一机一角色）
 CLUSTER_IPS=(
-  "172.16.2.33"   # 0: TYO  cluster 0 proxy
-  "172.16.2.42"   # 1: MEL  cluster 1 proxy
-  "172.16.2.51"   # 2: SG  cluster 2 proxy
-  "172.16.2.60"   # 3: SEO  cluster 3 proxy
-  "172.16.2.69"   # 4: JAK  cluster 4 proxy
-  "172.16.2.78"   # 5: HK  cluster 5 proxy
+  "172.16.2.89"   # 0: TYO  cluster 0 proxy
+  "172.16.2.98"   # 1: MEL  cluster 1 proxy
+  "172.16.2.107"   # 2: SG  cluster 2 proxy
+  "172.16.2.116"   # 3: SEO  cluster 3 proxy
+  "172.16.2.125"   # 4: JAK  cluster 4 proxy
+  "172.16.2.134"   # 5: HK  cluster 5 proxy
+  "172.16.2.143"   # 6: C6  cluster 6 proxy
+  "172.16.2.152"   # 7: C7  cluster 7 proxy
+  "172.16.2.161"   # 8: C8  cluster 8 proxy
+  "172.16.2.170"   # 9: C9  cluster 9 proxy
 )
 
 detect_iface() {

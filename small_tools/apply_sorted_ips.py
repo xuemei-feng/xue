@@ -2,7 +2,7 @@
 """
 Sort a column of IPs and rewrite cluster deployment configs.
 
-Role assignment (after numeric sort), default 6 clusters × 8 datanodes:
+Role assignment (after numeric sort), default 10 clusters × 8 datanodes:
   [0]       client
   [1]       coordinator
   per cluster c in 0..N-1:
@@ -34,12 +34,12 @@ except ImportError:
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-CLUSTER_NUM = int(os.environ.get("CLUSTER_NUM", "6"))
+CLUSTER_NUM = int(os.environ.get("CLUSTER_NUM", "10"))
 DATANODES_PER_CLUSTER = int(os.environ.get("DATANODES_PER_CLUSTER", "8"))
 PROXY_PORT_BASE = int(os.environ.get("PROXY_PORT_BASE", "50405"))
 DATANODE_PORT_START = int(os.environ.get("DATANODE_PORT_START", "17600"))
 
-CLUSTER_LABELS = ["TYO", "MEL", "SG", "SEO", "JAK", "HK"]
+CLUSTER_LABELS = ["TYO", "MEL", "SG", "SEO", "JAK", "HK", "C6", "C7", "C8", "C9"]
 
 PATHS = {
     "hosts": os.path.join(ROOT, "hosts"),

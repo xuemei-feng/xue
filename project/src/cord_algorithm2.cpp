@@ -261,6 +261,8 @@ namespace ECProject
         return "STAR_CENTER_TO_GLOBAL";
       case TrainLinkKind::STAR_CENTER_TO_LOCAL:
         return "STAR_CENTER_TO_LOCAL";
+      case TrainLinkKind::GLOBAL_TO_LOCAL:
+        return "GLOBAL_TO_LOCAL";
       default:
         return "MST_FORWARD";
       }
@@ -712,6 +714,57 @@ namespace ECProject
         ++gi;
       }
 
+      // ---------- 全局校验增量 → 所属本地组本地校验（等所有写全局的前继完成后调度） ----------
+      {
+        std::map<int, int64_t> global_payload; // global_block_id -> max Δ bytes observed
+        for (const auto &L : out.train_route)
+        {
+          if (L.dst_block_id < k || L.dst_block_id >= k + r)
+            continue;
+          if (L.payload_bytes <= 0)
+            continue;
+          auto &cur = global_payload[L.dst_block_id];
+          cur = std::max(cur, L.payload_bytes);
+        }
+        for (const auto &kv : global_payload)
+        {
+          const int gblk = kv.first;
+          const int64_t pb = kv.second;
+          if (pb <= 0)
+            continue;
+          const int gnum = stripe.blocks[gblk]->map2group;
+          int Lb = -1;
+          for (int i = k + r; i < stripe.n; ++i)
+          {
+            if (stripe.blocks[i]->map2group == gnum && stripe.blocks[i]->block_type == 'L')
+            {
+              Lb = i;
+              break;
+            }
+          }
+          if (Lb < 0)
+            continue;
+          const int gc = block_cluster(stripe, gblk);
+          const int lc = block_cluster(stripe, Lb);
+          if (gc < 0 || lc < 0)
+            continue;
+          TrainLink L;
+          L.src_block_id = gblk;
+          L.dst_block_id = Lb;
+          L.src_cluster = gc;
+          L.dst_cluster = lc;
+          L.payload_bytes = pb;
+          L.est_transfer_sec = transfer_sec(gc, lc, pb, tp);
+          L.group_index = -1;
+          L.kind = TrainLinkKind::GLOBAL_TO_LOCAL;
+          L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
+          std::cout << "[CoRD-Alg2]   GLOBAL_TO_LOCAL: global_blk" << gblk << "(c" << gc
+                    << ") --ΔG " << pb << "B --> local_blk" << Lb << "(c" << lc
+                    << ") group=" << gnum << " est=" << L.est_transfer_sec << "s\n";
+          out.train_route.push_back(std::move(L));
+        }
+      }
+
       // ---------- 时间步调度（每条链路一次性传完 payload；每步 cluster 容量 + 依赖约束） ----------
       const int C = cluster_num;
       const int S = 0;
@@ -770,11 +823,30 @@ namespace ECProject
         }
         return true;
       };
+      /** GLOBAL_TO_LOCAL：发往该全局块的所有前继链路须已完成（含 CTR_TO_GLOBAL / MST）。 */
+      auto global_inbound_done = [&](int global_block_id) -> bool {
+        for (size_t j = 0; j < out.train_route.size(); ++j)
+        {
+          const TrainLink &J = out.train_route[j];
+          if (J.kind == TrainLinkKind::GLOBAL_TO_LOCAL)
+            continue;
+          if (J.dst_block_id != global_block_id)
+            continue;
+          if (remaining[j] > 0)
+            return false;
+        }
+        return true;
+      };
       auto link_eligible_for_step = [&](size_t i) -> bool {
         const TrainLink &L = out.train_route[i];
         if (L.kind == TrainLinkKind::STAR_CENTER_TO_GLOBAL || L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL)
         {
           if (!collector_star_data_ingress_done(L.group_index, L.src_block_id))
+            return false;
+        }
+        if (L.kind == TrainLinkKind::GLOBAL_TO_LOCAL)
+        {
+          if (!global_inbound_done(L.src_block_id))
             return false;
         }
         return mst_predecessors_done(i);

@@ -15,7 +15,7 @@ REMOTE_COMMAND="cd /root/xue && BW_MATRIX_VERBOSE=${V} /bin/bash limit_bw_matrix
 echo "Applying matrix bandwidth limit (egress + ingress) on all nodes (BW_MATRIX_VERBOSE=${V})..."
 echo "Matrix: project/config/BW_limit (TABLE II MB/s → tc mbit, default ×8; ingress via IFB)."
 # 10.10.1.1 / 10.10.1.2 不做限速：勿加入 proxy_hosts；limit_bw_matrix.sh 也会自动跳过。
-# proxy_hosts 应为 6 个 cluster proxy（.3/.12/.21/.30/.39/.48），与 CLUSTER_IPS 一致。
+# proxy_hosts 应为 10 个 cluster proxy，与 CLUSTER_IPS / clusterInformation.xml 一致。
 # 假定各节点已通过 update_all.sh（rsync）与本机目录 /root/xue 对齐，无需 pdcp 分发。
 if sudo pdsh -R ssh -w ^"${HOSTS_FILE}" -l "${USER}" -f "${PARALLEL}" "${REMOTE_COMMAND}"; then
   echo "Bandwidth matrix applied on all nodes."

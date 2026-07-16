@@ -49,7 +49,33 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   {
     bool is_azure_like_code(const std::string &code_type) // 辅助函数：判断是否为 Azure 系列分组规则编码
     {
-      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC";
+      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "CordXueLRC";
+    }
+
+    // SplitParityLRC：编码/本地组同 UniformLRC，放置仍为全局/本地校验分槽
+    bool is_uniform_encode_code(const std::string &code_type)
+    {
+      return code_type == "UniformLRC" || code_type == "SplitParityLRC";
+    }
+
+    // Uniform 风格：将 [0, k+r) 的块序列映射到本地编码组 id（0..z-1）
+    // 与 initialize_uniform_lrc_stripe_placement / gen_uniform_lrc_matrix 的分组一致
+    int uniform_local_group_of_dg_index(int dg_index, int k, int r, int z)
+    {
+      if (z <= 0 || dg_index < 0 || dg_index >= k + r)
+        return -1;
+      int local_group_size = (k + r) / z;
+      const int larger_local_group_num = (k + r) % z;
+      int cursor = 0;
+      for (int i = 0; i < z; ++i)
+      {
+        if (i + larger_local_group_num == z)
+          local_group_size++;
+        if (dg_index < cursor + local_group_size)
+          return i;
+        cursor += local_group_size;
+      }
+      return z - 1;
     }
 
     /** Deterministic seed for placement RNG: same placement_seed + stripe_id -> same sequence (shuffle / cluster / node). */
@@ -799,7 +825,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     object_placement.set_k(k);
     object_placement.set_g_m(g_m);
     object_placement.set_l(l);
-    object_placement.set_encode_type((int)m_encode_parameters.encodetype);
+    // SplitParityLRC / UniformLRC：proxy encodeAndSetObject 走 encode_uniform_lrc（type=2）
+    if (is_uniform_encode_code(m_sys_config->CodeType))
+      object_placement.set_encode_type(2);
+    else
+      object_placement.set_encode_type((int)m_encode_parameters.encodetype);
     object_placement.set_block_size(block_size);
 
     Stripe t_stripe;
@@ -1214,30 +1244,33 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
   void CoordinatorImpl::initialize_split_parity_lrc_stripe_placement(Stripe *stripe)
   {
-    // 6-cluster 轮询放置（stripe_id % 6）：
-    //   slot0 -> 全部全局校验块；slot1 -> 全部本地校验块；slot2..5 -> 仅数据块（随机，且每 cluster 数据块数 <= r+1）
+    // 分槽放置（stripe_id % ClusterNum 轮询起点）：
+    //   slot0 -> 全部全局校验；slot1 -> 全部本地校验；
+    //   slot2..ClusterNum-1 -> 仅数据块（随机，且每 cluster 数据块数 <= r+1）
+    // 本地编码组（map2group）同 UniformLRC：前若干数据块一组，剩余数据块+全部全局校验另一组
     Block *blocks_info = new Block[stripe->n];
     assert(stripe->object_keys.size() == 1);
 
     const int cluster_num = m_sys_config->ClusterNum;
-    if (cluster_num < 6)
+    const int data_slot_num = cluster_num - 2;
+    if (cluster_num < 3)
     {
-      throw std::runtime_error("ClusterNum must be >= 6 for SplitParityLRC placement");
+      throw std::runtime_error("ClusterNum must be >= 3 for SplitParityLRC placement");
     }
-    if (stripe->k > 4 * (stripe->r + 1))
+    if (data_slot_num <= 0 || stripe->k > data_slot_num * (stripe->r + 1))
     {
-      throw std::runtime_error("SplitParityLRC requires k <= 4*(r+1) (four data clusters, each holds at most r+1 data blocks)");
+      throw std::runtime_error("SplitParityLRC requires k <= (ClusterNum-2)*(r+1)");
     }
 
-    const int base = stripe->stripe_id % 6;
+    const int base = stripe->stripe_id % cluster_num;
     auto slot_cluster = [&](int slot_offset) -> int {
       return (base + slot_offset) % cluster_num;
     };
     const int global_cluster = slot_cluster(0);
     const int local_cluster = slot_cluster(1);
     std::vector<int> data_clusters;
-    data_clusters.reserve(4);
-    for (int slot = 2; slot <= 5; ++slot)
+    data_clusters.reserve(static_cast<size_t>(data_slot_num));
+    for (int slot = 2; slot < cluster_num; ++slot)
     {
       data_clusters.push_back(slot_cluster(slot));
     }
@@ -1254,7 +1287,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       gen.seed(rd());
     }
 
-    const int global_parity_group_id = stripe->z;
     for (int i = 0; i < stripe->n; i++)
     {
       blocks_info[i].block_size = m_sys_config->BlockSize;
@@ -1268,7 +1300,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'D';
-        blocks_info[i].map2group = int(i / (stripe->k / stripe->z));
+        blocks_info[i].map2group = uniform_local_group_of_dg_index(i, stripe->k, stripe->r, stripe->z);
       }
       else if (i < stripe->k + stripe->r)
       {
@@ -1278,7 +1310,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i - stripe->k);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'G';
-        blocks_info[i].map2group = global_parity_group_id;
+        blocks_info[i].map2group = uniform_local_group_of_dg_index(i, stripe->k, stripe->r, stripe->z);
       }
       else
       {
@@ -1915,7 +1947,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return;
     }
     proxy_proto::CordTransferEncodeMeta *meta = plan->mutable_cord_encode_meta();
-    meta->set_encode_type(static_cast<int32_t>(m_encode_parameters.encodetype));
+    // SplitParityLRC / UniformLRC：CoRD 矩阵路径使用 gen_uniform_lrc_matrix（encode_type=2）
+    if (is_uniform_encode_code(m_sys_config->CodeType))
+      meta->set_encode_type(2);
+    else
+      meta->set_encode_type(static_cast<int32_t>(m_encode_parameters.encodetype));
     meta->set_k(stripe->k);
     // CoRD SET 路径只初始化 stripe->r/z，g_m/l 可能未赋值；与 proxy ingress 矩阵编码一致用 r/z
     meta->set_g_m(m_sys_config->r);
@@ -3303,7 +3339,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   std::vector<int> CoordinatorImpl::get_recovery_group_ids(std::string code_type, int k, int r, int z, int failed_block_id)
   {
     std::vector<int> recovery_group_ids;
-    if (is_azure_like_code(code_type))
+    if (code_type == "SplitParityLRC")
+    {
+      // map2group = Uniform 本地编码组；全局校验落在含全局的本地组内
+      if (failed_block_id < k + r)
+        recovery_group_ids.push_back(uniform_local_group_of_dg_index(failed_block_id, k, r, z));
+      else
+        recovery_group_ids.push_back(failed_block_id - k - r);
+    }
+    else if (is_azure_like_code(code_type))
     {
       if (failed_block_id >= k && failed_block_id < k + r)
       {
@@ -3378,7 +3422,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         recovery_group_ids.push_back(group_num - 1);
       }
     }
-    else if (code_type == "UniformLRC")
+    else if (code_type == "UniformLRC") // fine-grained rack groups（与 SplitParity 的编码组不同）
     {
       if (failed_block_id >= k + r)
       {
@@ -3464,7 +3508,24 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   std::vector<int> CoordinatorImpl::get_data_block_num_per_group(int k, int r, int z, std::string code_type)
   {
     std::vector<int> data_block_num_per_group;
-    if (is_azure_like_code(code_type))
+    if (code_type == "SplitParityLRC")
+    {
+      // 与 Uniform 本地组一致：按 [D|G] 序列划分，每组统计数据块数
+      std::vector<int> data_n(z, 0), global_n(z, 0);
+      for (int i = 0; i < k + r; ++i)
+      {
+        const int g = uniform_local_group_of_dg_index(i, k, r, z);
+        if (g < 0 || g >= z)
+          continue;
+        if (i < k)
+          data_n[static_cast<size_t>(g)]++;
+        else
+          global_n[static_cast<size_t>(g)]++;
+      }
+      (void)global_n;
+      data_block_num_per_group = data_n;
+    }
+    else if (is_azure_like_code(code_type))
     {
       for (int i = 0; i < z; i++)
       {
@@ -3586,7 +3647,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     int k = t_stripe.k;
     int num_data_groups = t_stripe.num_groups;
     std::string code_type = m_sys_config->CodeType;
-    if(code_type != "UniLRC"){
+    // Azure/Uniform 等存在纯校验组；SplitParityLRC 的每组都可能含数据，不减
+    if (code_type != "UniLRC" && code_type != "SplitParityLRC")
+    {
       num_data_groups--;
     }
     //std::cout << "[GET] getting stripe " << stripe_id << " with " << num_data_groups << " data groups" << std::endl;
@@ -3752,7 +3815,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       object_placement.set_l(l);
       object_placement.set_g_m(g_m);
       object_placement.set_stripe_id(object_info.map2stripe);
-      object_placement.set_encode_type(m_encode_parameters.encodetype);
+      if (is_uniform_encode_code(m_sys_config->CodeType))
+        object_placement.set_encode_type(2);
+      else
+        object_placement.set_encode_type(m_encode_parameters.encodetype);
       object_placement.set_clientip(client_ip);
       object_placement.set_clientport(client_port);
       Stripe &t_stripe = m_stripe_table[object_info.map2stripe];
@@ -4048,7 +4114,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     else if(code_type == "OptimalLRC"){
       decode_optimal_lrc(k, r, z, block_num, &recovery_block_ids, recovery_data_ptrs.data(), res, block_size, failed_block_id);
     }
-    else if(code_type == "UniformLRC"){
+    else if(is_uniform_encode_code(code_type)){
       decode_uniform_lrc(k, r, z, block_num, &recovery_block_ids, recovery_data_ptrs.data(), res, block_size, failed_block_id);
     }
     else{

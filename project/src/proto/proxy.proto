@@ -281,6 +281,8 @@ enum CordTransferLinkKind {
   CORD_TRANSFER_STAR_CENTER_TO_GLOBAL = 1;
   CORD_TRANSFER_STAR_CENTER_TO_LOCAL = 2;
   CORD_TRANSFER_MST_FORWARD = 3;
+  // 全局校验增量落盘完成后，再转发到该全局块所属本地组的本地校验机架
+  CORD_TRANSFER_GLOBAL_TO_LOCAL = 4;
 }
 
 // 与 cord_alg2::CordDeltaPayloadKind 一致：线上是数据增量还是校验增量
