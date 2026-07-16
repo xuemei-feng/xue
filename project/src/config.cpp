@@ -1,6 +1,6 @@
 #include "config.h"
-#include "cord_xue_lrc.h"
 #include "tinyxml2.h"
+#include <algorithm>
 #include <cassert>
 
 namespace ECProject
@@ -42,9 +42,12 @@ namespace ECProject
     if (CodeType == "CordXueLRC")
     {
       assert((k + r) % z == 0 && "Error: CordXueLRC requires (k + r) divisible by z");
-      const int max_h = cord_xue_lrc::max_data_blocks_in_any_local_group(k, r, z);
-      assert(DatanodeNumPerCluster > max_h + 1 &&
-             "Error: DatanodeNumPerCluster must be greater than max CordXueLRC local group data blocks + 1");
+      // Cord 放置会把本地组拆到多个 cluster，单 cluster 最密约：
+      // global: r+z；primary/batch: r+1；remainder: 最多 z*r。
+      // 同 stripe 同 cluster 要求不同 datanode，故节点数需大于该上界。
+      const int max_blocks_per_cluster = std::max(r + z, std::max(r + 1, z * r));
+      assert(DatanodeNumPerCluster > max_blocks_per_cluster &&
+             "Error: DatanodeNumPerCluster must be greater than max CordXueLRC blocks placed in any cluster");
       assert(ClusterNum > z + 1 && "Error: CordXueLRC requires ClusterNum > z + 1");
     }
     if (CodeType == "OptimalLRC")

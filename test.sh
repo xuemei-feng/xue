@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CoRD 批量更新 trace：改下面路径即可，每行格式见 main_client.cpp 用法说明
-CORD_TRACE_FILE="/root/xue/log/log/T00-1MB-100-10-20000log"
+CORD_TRACE_FILE="/root/xue/log/log/T00-1MB-100-24-20000log"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONFIG_XML="${SCRIPT_DIR}/project/config/parameterConfiguration.xml"
@@ -69,15 +69,19 @@ if [ ! -f "${CORD_TRACE_FILE}" ]; then
 fi
 
 # 并行 batch：CORD_BATCH_THREADS（默认 1）；CORD_PIPELINE_XFER=1（默认）upload 后不阻塞 wait，与下一条 stripe 重叠
+# 排查卡死时可先关流水线：CORD_PIPELINE_XFER=0 bash test.sh
 export CORD_BATCH_THREADS="${CORD_BATCH_THREADS:-1}"
 export CORD_PIPELINE_XFER="${CORD_PIPELINE_XFER:-1}"
 export CORD_UPDATE_SLICE_PARALLEL="${CORD_UPDATE_SLICE_PARALLEL:-1}"
+# proxy 侧 plan 执行日志（需 proxy 进程启动时已带上该环境变量）
+export CORD_XFER_VERBOSE="${CORD_XFER_VERBOSE:-1}"
 echo "CoRD batch trace: ${CORD_TRACE_FILE}"
 echo "ClientStripeNum=${CLIENT_STRIPE_NUM} (from ${CONFIG_XML})"
 echo "CordRequestTimeoutSec=${CORD_REQUEST_TIMEOUT_SEC} (from ${CONFIG_XML})"
 echo "CORD_BATCH_THREADS=${CORD_BATCH_THREADS}"
 echo "CORD_PIPELINE_XFER=${CORD_PIPELINE_XFER}"
 echo "CORD_UPDATE_SLICE_PARALLEL=${CORD_UPDATE_SLICE_PARALLEL}"
+echo "CORD_XFER_VERBOSE=${CORD_XFER_VERBOSE} (proxy plan logs; restart proxies after change)"
 echo "Client IP=${CLIENT_IP} (override with CORD_CLIENT_IP)"
 echo "Client port=${CLIENT_PORT} (override with CORD_CLIENT_PORT)"
 echo y | "${MAIN_CLIENT}" --config "${CONFIG_XML}" --ip "${CLIENT_IP}" --port "${CLIENT_PORT}" "${CORD_TRACE_FILE}"

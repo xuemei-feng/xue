@@ -682,12 +682,13 @@ namespace ECProject
       return "stripe_" + std::to_string(stripe_id) + ":global_xor_l1";
     }
 
-    inline void cord_accum_global_delta_xor_for_l1(int stripe_id, int slice_off, const char *delta, size_t len)
+    /** 调用方必须已持有 g_cord_xfer_mu（std::mutex 不可重入）。 */
+    inline void cord_accum_global_delta_xor_for_l1_locked(int stripe_id, int slice_off, const char *delta,
+                                                         size_t len)
     {
       if (stripe_id < 0 || !delta || len == 0)
         return;
       const std::string key = cord_global_xor_l1_key(stripe_id);
-      std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
       auto &acc = g_cord_global_delta_xor_for_l1[key];
       const size_t need = static_cast<size_t>(slice_off) + len;
       if (acc.size() < need)
@@ -695,6 +696,14 @@ namespace ECProject
       for (size_t i = 0; i < len; ++i)
         acc[static_cast<size_t>(slice_off) + i] ^=
             static_cast<uint8_t>(delta[i]);
+    }
+
+    inline void cord_accum_global_delta_xor_for_l1(int stripe_id, int slice_off, const char *delta, size_t len)
+    {
+      if (stripe_id < 0 || !delta || len == 0)
+        return;
+      std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+      cord_accum_global_delta_xor_for_l1_locked(stripe_id, slice_off, delta, len);
     }
   }
 
@@ -1071,9 +1080,7 @@ namespace ECProject
     }
     if (!cord_spin_until_collector_ingress_ready(plan, group, collector_block_id, parity_ingest_stripe_group))
       return false;
-    std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
-    if (g_cord_collector_parity_coded.count(ck))
-      return true;
+
     const auto &meta = plan.cord_encode_meta();
     const int k = meta.k();
     const int ps = meta.parity_slice_size();
@@ -1082,43 +1089,52 @@ namespace ECProject
                       " col_blk=" + std::to_string(collector_block_id) +
                       " pig=" + std::to_string(parity_ingest_stripe_group) + " k=" + std::to_string(k) +
                       " ps=" + std::to_string(ps) + " po=" + std::to_string(po));
+
+    // 在锁内只拷贝 delta → strips；矩阵编码放锁外，避免长时间占用 g_cord_xfer_mu，
+    // 并杜绝 encode 后 cord_accum_* 二次加锁导致的自死锁。
     std::vector<std::vector<char>> strips;
-    try
     {
-      strips.assign(static_cast<size_t>(k), std::vector<char>(static_cast<size_t>(ps), 0));
-    }
-    catch (const std::bad_alloc &e)
-    {
-      cord_plan_log_err("[CoRD-PLAN][BAD_ALLOC] collector_strips k=" + std::to_string(k) +
-                        " ps=" + std::to_string(ps) + " err=" + e.what());
-      return false;
-    }
-    for (int didx = 0; didx < plan.cord_data_strip_descs_size(); ++didx)
-    {
-      const auto &desc = plan.cord_data_strip_descs(didx);
-      const int bid = desc.block_id();
-      if (bid < 0 || bid >= k)
-        continue;
-      if (parity_ingest_stripe_group >= 0 &&
-          cord_plan_data_block_stripe_group(plan, bid) != parity_ingest_stripe_group)
-        continue;
-      const std::string bk = cord_collector_block_buf_key(plan.plan_key(), group, collector_block_id, bid);
-      auto it = g_cord_collector_block_delta.find(bk);
-      if (it == g_cord_collector_block_delta.end())
-        continue;
-      const std::vector<uint8_t> &delta = it->second;
-      const int so = desc.slice_offset();
-      const int slen = desc.slice_len();
-      const int lo = std::max(so, po);
-      const int hi = std::min(so + slen, po + ps);
-      for (int x = lo; x < hi; ++x)
+      std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+      if (g_cord_collector_parity_coded.count(ck))
+        return true;
+      try
       {
-        const size_t di_off = static_cast<size_t>(x - so);
-        if (di_off >= delta.size())
+        strips.assign(static_cast<size_t>(k), std::vector<char>(static_cast<size_t>(ps), 0));
+      }
+      catch (const std::bad_alloc &e)
+      {
+        cord_plan_log_err("[CoRD-PLAN][BAD_ALLOC] collector_strips k=" + std::to_string(k) +
+                          " ps=" + std::to_string(ps) + " err=" + e.what());
+        return false;
+      }
+      for (int didx = 0; didx < plan.cord_data_strip_descs_size(); ++didx)
+      {
+        const auto &desc = plan.cord_data_strip_descs(didx);
+        const int bid = desc.block_id();
+        if (bid < 0 || bid >= k)
           continue;
-        strips[static_cast<size_t>(bid)][static_cast<size_t>(x - po)] = static_cast<char>(delta[di_off]);
+        if (parity_ingest_stripe_group >= 0 &&
+            cord_plan_data_block_stripe_group(plan, bid) != parity_ingest_stripe_group)
+          continue;
+        const std::string bk = cord_collector_block_buf_key(plan.plan_key(), group, collector_block_id, bid);
+        auto it = g_cord_collector_block_delta.find(bk);
+        if (it == g_cord_collector_block_delta.end())
+          continue;
+        const std::vector<uint8_t> &delta = it->second;
+        const int so = desc.slice_offset();
+        const int slen = desc.slice_len();
+        const int lo = std::max(so, po);
+        const int hi = std::min(so + slen, po + ps);
+        for (int x = lo; x < hi; ++x)
+        {
+          const size_t di_off = static_cast<size_t>(x - so);
+          if (di_off >= delta.size())
+            continue;
+          strips[static_cast<size_t>(bid)][static_cast<size_t>(x - po)] = static_cast<char>(delta[di_off]);
+        }
       }
     }
+
     std::vector<std::vector<uint8_t>> coded;
     const ECProject::EncodeType et = static_cast<ECProject::EncodeType>(meta.encode_type());
     if (!cord_matrix_encode_strips(k, meta.g_m(), meta.l(), et, ps, strips, &coded, code_type))
@@ -1126,26 +1142,39 @@ namespace ECProject
       cord_plan_log_out("[CoRD-PLAN] matrix encode failed");
       return false;
     }
+
+    std::vector<uint8_t> xor_all;
+    bool have_xor = false;
     if (is_cord_xue_code(code_type) && meta.g_m() > 0)
     {
       const int gm = meta.g_m();
-      std::vector<uint8_t> xor_all(static_cast<size_t>(ps), 0);
+      xor_all.assign(static_cast<size_t>(ps), 0);
       for (int row = 0; row < gm && row < static_cast<int>(coded.size()); ++row)
       {
         for (int b = 0; b < ps; ++b)
           xor_all[static_cast<size_t>(b)] ^=
               coded[static_cast<size_t>(row)][static_cast<size_t>(b)];
       }
-      const auto nz =
-          cord_parity_delta_nonzero_span(reinterpret_cast<const char *>(xor_all.data()), xor_all.size());
-      if (nz.second > 0)
-      {
-        cord_accum_global_delta_xor_for_l1(plan.stripe_id(), po + nz.first,
-                                           reinterpret_cast<const char *>(xor_all.data()) + nz.first,
-                                           static_cast<size_t>(nz.second));
-      }
+      have_xor = true;
     }
-    g_cord_collector_parity_coded[ck] = std::move(coded);
+
+    {
+      std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+      if (g_cord_collector_parity_coded.count(ck))
+        return true;
+      if (have_xor)
+      {
+        const auto nz =
+            cord_parity_delta_nonzero_span(reinterpret_cast<const char *>(xor_all.data()), xor_all.size());
+        if (nz.second > 0)
+        {
+          cord_accum_global_delta_xor_for_l1_locked(
+              plan.stripe_id(), po + nz.first,
+              reinterpret_cast<const char *>(xor_all.data()) + nz.first, static_cast<size_t>(nz.second));
+        }
+      }
+      g_cord_collector_parity_coded[ck] = std::move(coded);
+    }
     return true;
   }
 

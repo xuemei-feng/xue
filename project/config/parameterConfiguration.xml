@@ -9,7 +9,7 @@
     <!--67108864-->
     <DatanodeNumPerCluster>8</DatanodeNumPerCluster>
     <ClusterNum>10</ClusterNum>
-    <CoordinatorIP>172.16.2.32</CoordinatorIP>
+    <CoordinatorIP>172.16.2.88</CoordinatorIP>
     <CoordinatorPort>55555</CoordinatorPort>
     <!-- AppendMode: REP_MODE; UNILRC_MODE; CACHED_MODE -->
     <AppendMode>UNILRC_MODE</AppendMode>
@@ -22,7 +22,7 @@
     <!-- 0 = non-deterministic placement RNG; non-zero = reproducible RandomLRC / encode Ran placement for same seed+stripe_id+topology -->
     <PlacementRandomSeed>1</PlacementRandomSeed>
     <!-- ClientStripeNum: SET 阶段放置条带数；stripe_id 0 .. ClientStripeNum-1 -->
-    <ClientStripeNum>1</ClientStripeNum>
+    <ClientStripeNum>100</ClientStripeNum>
     <!-- CordRequestTimeoutSec: CoRD 单次 update 总超时（秒），含 plan、upload、跨 cluster 传输 -->
     <CordRequestTimeoutSec>120</CordRequestTimeoutSec>
     <!-- <CodeType>UniformLRC</CodeType>

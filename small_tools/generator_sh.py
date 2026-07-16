@@ -12,18 +12,18 @@ cluster_id_start = 0
 iftest = False
 
 proxy_ip_list = [
-    ["172.16.2.33", 50405],
-    ["172.16.2.42", 50406],
-    ["172.16.2.51", 50407],
-    ["172.16.2.60", 50408],
-    ["172.16.2.69", 50409],
-    ["172.16.2.78", 50410],
-    ["172.16.2.87", 50411],
-    ["172.16.2.96", 50412],
-    ["172.16.2.105", 50413],
-    ["172.16.2.114", 50414],
+    ["172.16.2.89", 50405],
+    ["172.16.2.98", 50406],
+    ["172.16.2.107", 50407],
+    ["172.16.2.116", 50408],
+    ["172.16.2.125", 50409],
+    ["172.16.2.134", 50410],
+    ["172.16.2.143", 50411],
+    ["172.16.2.152", 50412],
+    ["172.16.2.161", 50413],
+    ["172.16.2.170", 50414],
 ]
-coordinator_ip = "172.16.2.32"
+coordinator_ip = "172.16.2.88"
 
 proxy_num = len(proxy_ip_list)
 
@@ -65,6 +65,20 @@ def _write_stop_commands(f, kill_proxy=True):
     f.write("pkill -9 run_datanode 2>/dev/null || true\n")
     if kill_proxy:
         f.write("pkill -9 run_proxy 2>/dev/null || true\n")
+
+
+def _nohup_start(f, binary, args, log_file, env_prefix=""):
+    """后台启动并切断与 SSH/pdsh 的 stdout，避免占死并发槽位。
+
+    使用 stdbuf 行缓冲，便于随后 tail -F 日志。
+    env_prefix: 可选，如 'CORD_XFER_VERBOSE=1 '。
+    """
+    f.write(": > %s\n" % log_file)
+    f.write(
+        "nohup env %sstdbuf -oL -eL %s %s >%s 2>&1 < /dev/null &\n"
+        % (env_prefix, binary, args, log_file)
+    )
+    f.write('echo "started %s log=%s pid=$!"\n' % (args, log_file))
 
 
 def load_clusters_from_xml(xml_path=CLUSTER_XML):
@@ -155,19 +169,33 @@ def generate_run_proxy_datanode_file():
         return
 
     with open(file_name, 'w') as f:
+        f.write("#!/bin/bash\n")
         _write_stop_commands(f)
         f.write("\n")
 
         for _cid, uri in datanodes:
-            f.write("./project/cmake/build/run_datanode " + uri + " & \n")
+            host = uri.split(":", 1)[0]
+            log = "/tmp/unilrc-datanode-start-%s.log" % host
+            _nohup_start(f, "./project/cmake/build/run_datanode", uri, log)
         if datanodes:
             f.write("\n")
 
         if proxies:
-            f.write("sleep 5s\n")
-            f.write("\n")
+            # 同机既有 datanode 又有 proxy（半模拟）时稍等端口起来；纯 proxy 节点几乎无等待
+            if datanodes:
+                f.write("sleep 2\n")
+                f.write("\n")
+            # 固定日志路径，便于 start_proxy.sh 统一 tail；默认打开 CoRD plan 日志
+            f.write('export CORD_XFER_VERBOSE="${CORD_XFER_VERBOSE:-1}"\n')
             for _cid, proxy in proxies:
-                f.write("./project/cmake/build/run_proxy " + proxy + "  & \n")
+                log = "/tmp/unilrc-proxy.log"
+                _nohup_start(
+                    f,
+                    "./project/cmake/build/run_proxy",
+                    proxy,
+                    log,
+                    env_prefix='CORD_XFER_VERBOSE="${CORD_XFER_VERBOSE}" ',
+                )
             f.write("\n")
 
     if not proxies and not datanodes:
@@ -216,8 +244,9 @@ def generate_run_datanode_file():
         for _cid, uri in datanodes:
             host, port = uri.rsplit(":", 1)
             bulk_port = int(port) + 50
+            log = "/tmp/unilrc-datanode-start-%s.log" % host
             f.write("echo \"Starting datanode %s (bulk :%d)\"\n" % (uri, bulk_port))
-            f.write("./project/cmake/build/run_datanode " + uri + " & \n")
+            _nohup_start(f, "./project/cmake/build/run_datanode", uri, log)
         f.write("\n")
 
     print("run_datanode.sh: local_ip %s -> %s" % (
@@ -257,13 +286,26 @@ def cluster_generate_run_proxy_datanode_file(ip, port, i):
     file_name = parent_path + '/run_cluster_sh/' + str(i) + '/cluster_run_proxy_datanode.sh'
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
     with open(file_name, 'w') as f:
-        f.write("pkill -9 run_datanode\n")
-        f.write("pkill -9 run_proxy\n")
+        f.write("#!/bin/bash\n")
+        f.write("pkill -9 run_datanode 2>/dev/null || true\n")
+        f.write("pkill -9 run_proxy 2>/dev/null || true\n")
         f.write("\n")
         for each_datanode in cluster_informtion[0]["datanode"]:
-            f.write("./project/cmake/build/run_datanode " + ip + ":" + str(each_datanode[1]) + " & \n")
+            uri = ip + ":" + str(each_datanode[1])
+            _nohup_start(
+                f,
+                "./project/cmake/build/run_datanode",
+                uri,
+                "/tmp/unilrc-datanode-start-%s.log" % ip,
+            )
         f.write("\n")
-        f.write("./project/cmake/build/run_proxy " + ip + ":" + str(port) + " " + coordinator_ip + " & \n")
+        proxy_uri = ip + ":" + str(port)
+        _nohup_start(
+            f,
+            "./project/cmake/build/run_proxy",
+            proxy_uri + " " + coordinator_ip,
+            "/tmp/unilrc-proxy-start-%s.log" % ip,
+        )
         f.write("\n")
 
 

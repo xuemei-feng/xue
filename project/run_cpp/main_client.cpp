@@ -92,7 +92,7 @@ namespace
     const std::string detected = detect_local_cluster_ip(ip_prefix(config->CoordinatorIP));
     if (!detected.empty())
       return detected;
-    return "172.16.2.31";
+    return "172.16.2.87";
   }
 
   bool parse_client_args(int argc, char **argv, ClientRunOptions &opts)

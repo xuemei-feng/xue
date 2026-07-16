@@ -76,6 +76,10 @@ set +e
 bash kill_all.sh
 # node0 上若进程过多，pkill 可能被 OOM kill；killall 更直接
 killall -9 run_datanode run_proxy run_coordinator main_client 2>/dev/null || true
+# 停掉本机 start_proxy / follow 的 pdsh tail（kill_all 只杀 run_*，不会停这些）
+pkill -9 -f 'pdsh .*proxy_hosts.*tail' 2>/dev/null || true
+pkill -9 -f 'tail -.* /tmp/unilrc-proxy' 2>/dev/null || true
 set -e
 
 echo "Done. All ${TOTAL} remote nodes killed successfully; node0 cleaned."
+echo "Note: 若终端里还开着 start_proxy.sh 的日志跟随，请 Ctrl-C 停掉；那不是 run_proxy 进程。"
