@@ -2,7 +2,7 @@
 <Configuration>
     <AlignedSize>4096</AlignedSize>
     <UnitSize>8192</UnitSize>
-    <BlockSize>65536</BlockSize>
+    <BlockSize>1048576</BlockSize>
     <!-- 64 KiB -->
     <!--1048576-->
     <!--8388608-->
@@ -17,12 +17,12 @@
     <!-- LRC: UniLRC; AzureLRC; OptimalLRC; UniformLRC; XueLRC; SplitParityLRC; CordXueLRC -->
     <CodeType>SplitParityLRC</CodeType>
     <k>10</k>
-    <r>2</r>  //是全局校验块数量
+    <r>3</r>  //是全局校验块数量
     <z>2</z>  //是本地校验块数量
     <!-- 0 = non-deterministic placement RNG; non-zero = reproducible RandomLRC / encode Ran placement for same seed+stripe_id+topology -->
     <PlacementRandomSeed>1</PlacementRandomSeed>
     <!-- ClientStripeNum: SET 阶段放置条带数；stripe_id 0 .. ClientStripeNum-1 -->
-    <ClientStripeNum>100</ClientStripeNum>
+    <ClientStripeNum>1</ClientStripeNum>
     <!-- CordRequestTimeoutSec: CoRD 单次 update 总超时（秒），含 plan、upload、跨 cluster 传输 -->
     <CordRequestTimeoutSec>120</CordRequestTimeoutSec>
     <!-- <CodeType>UniformLRC</CodeType>
