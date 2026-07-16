@@ -35,6 +35,52 @@ namespace
     return g_cord_dn_next_xfer_tag.fetch_add(1, std::memory_order_relaxed);
   }
 
+  static bool dn_is_serialized_parity_key(const std::string &block_key)
+  {
+    return block_key.find("_G") != std::string::npos || block_key.find("_L") != std::string::npos;
+  }
+
+  static void dn_read_block_into_buf(const std::string &readpath, const std::string &block_key,
+                                     int block_size, char *buf, ECProject::DatanodeImpl *self)
+  {
+    memset(buf, 0, static_cast<size_t>(block_size));
+    if (access(readpath.c_str(), 0) == -1)
+      return;
+
+    // After full-stripe merge / flat append, parity file size == BlockSize → raw read.
+    // Intermediate CoRD/partial appends keep serialized (offset,size,payload) slices.
+    long long file_size = -1;
+    {
+      std::ifstream szf(readpath, std::ios::binary | std::ios::ate);
+      if (szf.is_open())
+        file_size = static_cast<long long>(szf.tellg());
+    }
+    const bool look_like_flat = (file_size == static_cast<long long>(block_size));
+
+    if (dn_is_serialized_parity_key(block_key) && !look_like_flat)
+    {
+      std::vector<ECProject::ParitySlice> slices = self->deserialize(readpath);
+      for (const auto &slice : slices)
+      {
+        for (int i = 0; i < slice.size; i++)
+        {
+          if (slice.offset + i < block_size)
+            buf[slice.offset + i] ^= slice.slice_ptr[i];
+        }
+        delete[] slice.slice_ptr;
+      }
+    }
+    else
+    {
+      std::ifstream ifs(readpath, std::ios::binary);
+      if (ifs.is_open())
+      {
+        ifs.read(buf, block_size);
+        ifs.close();
+      }
+    }
+  }
+
   static uint64_t cord_dn_parse_u64_be(const uint8_t b[8])
   {
     uint64_t v = 0;
@@ -1021,9 +1067,7 @@ namespace ECProject
             {
                 std::cout << "[Datanode" << m_port << "][GET] read from the disk and write to socket with port " << m_port + ECProject::DATANODE_PORT_SHIFT << std::endl;
             }
-            std::ifstream ifs(readpath);
-            ifs.read(buf, block_size);
-            ifs.close();
+            dn_read_block_into_buf(readpath, block_key, block_size, buf, this);
         }
         std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now(); // end time for disk io
         double disk_io_start_time = std::chrono::duration_cast<std::chrono::duration<double>>(begin.time_since_epoch()).count();
@@ -1084,9 +1128,7 @@ namespace ECProject
             {
                 std::cout << "[Datanode" << m_port << "][GET] read from the disk and write to socket with port " << m_port + ECProject::DATANODE_PORT_SHIFT << std::endl;
             }
-            std::ifstream ifs(readpath);
-            ifs.read(buf, block_size);
-            ifs.close();
+            dn_read_block_into_buf(readpath, block_key, block_size, buf, this);
         }
         auto handler = [this](std::string block_key, int block_size, std::string proxy_ip, int proxy_port, char* buf) mutable
         {
