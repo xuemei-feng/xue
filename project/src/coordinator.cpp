@@ -2466,17 +2466,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         notify_jobs.push_back(std::move(job));
       }
 
-      std::vector<std::thread> notify_threads;
-      notify_threads.reserve(notify_jobs.size());
+      // BoundedRandom：按 cluster 串行 notify，与 RPC 规划路径同线程顺序完成
       for (auto &job : notify_jobs)
       {
-        notify_threads.emplace_back([this, &job]() { job.ok = notify_proxies_cord_ready(job.plan); });
-      }
-      for (auto &th : notify_threads)
-        th.join();
-
-      for (const auto &job : notify_jobs)
-      {
+        job.ok = notify_proxies_cord_ready(job.plan);
         if (!job.ok)
         {
           return grpc::Status(grpc::StatusCode::INTERNAL,
