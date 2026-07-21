@@ -17,8 +17,9 @@
     <!-- LRC: UniLRC; AzureLRC; OptimalLRC; UniformLRC; XueLRC; SplitParityLRC; CordXueLRC -->
     <CodeType>SplitParityLRC</CodeType>
     <k>10</k>
-    <r>3</r>  //是全局校验块数量
-    <z>2</z>  //是本地校验块数量
+    <!-- r: 全局校验块数量；z: 本地校验块数量 -->
+    <r>3</r>
+    <z>2</z>
     <!-- 0 = non-deterministic placement RNG; non-zero = reproducible RandomLRC / encode Ran placement for same seed+stripe_id+topology -->
     <PlacementRandomSeed>1</PlacementRandomSeed>
     <!-- ClientStripeNum: SET 阶段放置条带数；stripe_id 0 .. ClientStripeNum-1 -->

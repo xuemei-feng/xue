@@ -39,14 +39,31 @@ namespace
 
   std::string default_config_path(const char *argv0)
   {
-    char cwd[PATH_MAX];
-    if (getcwd(cwd, sizeof(cwd)) == nullptr)
-      return "";
-    std::string exe(argv0);
+    // Resolve config relative to the executable directory:
+    //   <exe_dir>/../../config/parameterConfiguration.xml
+    // Works for both absolute and relative argv0.
+    std::string exe(argv0 ? argv0 : "");
+    std::string exe_dir;
     const std::size_t slash = exe.rfind('/');
     if (slash == std::string::npos)
-      return std::string(cwd) + "/../../config/parameterConfiguration.xml";
-    return std::string(cwd) + exe.substr(1, slash) + "/../../config/parameterConfiguration.xml";
+    {
+      char cwd[PATH_MAX];
+      if (getcwd(cwd, sizeof(cwd)) == nullptr)
+        return "";
+      exe_dir = cwd;
+    }
+    else if (!exe.empty() && exe[0] == '/')
+    {
+      exe_dir = exe.substr(0, slash);
+    }
+    else
+    {
+      char cwd[PATH_MAX];
+      if (getcwd(cwd, sizeof(cwd)) == nullptr)
+        return "";
+      exe_dir = std::string(cwd) + "/" + exe.substr(0, slash);
+    }
+    return exe_dir + "/../../config/parameterConfiguration.xml";
   }
 
   std::string ip_prefix(const std::string &ip)

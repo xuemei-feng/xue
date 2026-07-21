@@ -1,6 +1,7 @@
 #include "config.h"
 #include "tinyxml2.h"
 #include <cassert>
+#include <stdexcept>
 
 namespace ECProject
 {
@@ -34,9 +35,11 @@ namespace ECProject
     }
     if (CodeType == "SplitParityLRC")
     {
-      assert(DatanodeNumPerCluster > k / z + 1 && "Error: DatanodeNumPerCluster must be greater than k / z + 1");
-      assert(ClusterNum >= 6 && "Error: SplitParityLRC requires ClusterNum >= 6");
-      assert(k <= 4 * (r + 1) && "Error: SplitParityLRC requires k <= 4*(r+1)");
+      // ceil(n/(r+1)) racks, each holds at most r+1 blocks (data + parity) of a stripe
+      const int n_blocks = k + r + z;
+      const int data_rack_num = (n_blocks + r) / (r + 1); // ceil(n/(r+1))
+      assert(DatanodeNumPerCluster >= r + 1 && "Error: SplitParityLRC requires DatanodeNumPerCluster >= r+1");
+      assert(ClusterNum >= data_rack_num && "Error: SplitParityLRC requires ClusterNum >= ceil((k+r+z)/(r+1))");
     }
     if (CodeType == "CordXueLRC")
     {
@@ -78,14 +81,14 @@ namespace ECProject
     if (doc.LoadFile(configPath.c_str()) != tinyxml2::XML_SUCCESS)
     {
       std::cerr << "Failed to load config file: " << configPath << std::endl;
-      return;
+      throw std::runtime_error("Failed to load config file: " + configPath);
     }
 
     tinyxml2::XMLElement *root = doc.RootElement();
     if (root == nullptr)
     {
       std::cerr << "Invalid config file format" << std::endl;
-      return;
+      throw std::runtime_error("Invalid config file format: " + configPath);
     }
 
     if (auto elem = root->FirstChildElement("AlignedSize"))
