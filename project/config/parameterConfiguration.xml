@@ -2,14 +2,14 @@
 <Configuration>
     <AlignedSize>4096</AlignedSize>
     <UnitSize>8192</UnitSize>
-    <BlockSize>65536</BlockSize>
+    <BlockSize>1048576</BlockSize>
     <!-- 64 KiB -->
     <!--1048576-->
     <!--8388608-->
     <!--67108864-->
     <DatanodeNumPerCluster>8</DatanodeNumPerCluster>
     <ClusterNum>6</ClusterNum>
-    <CoordinatorIP>172.16.2.32</CoordinatorIP>
+    <CoordinatorIP>172.16.2.91</CoordinatorIP>
     <CoordinatorPort>55555</CoordinatorPort>
     <!-- AppendMode: REP_MODE; UNILRC_MODE; CACHED_MODE -->
     <AppendMode>UNILRC_MODE</AppendMode>
