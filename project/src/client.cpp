@@ -11,11 +11,22 @@
 #include <cstring>
 #include <sstream>
 #include <sys/socket.h>
+#include <random>
 #include "unilrc_encoder.h"
 namespace ECProject
 {
   namespace
   {
+    void fill_random_bytes(char *buf, size_t n)
+    {
+      if (buf == nullptr || n == 0)
+        return;
+      thread_local std::mt19937 gen{std::random_device{}()};
+      std::uniform_int_distribution<int> dist(0, 255);
+      for (size_t i = 0; i < n; ++i)
+        buf[i] = static_cast<char>(dist(gen));
+    }
+
     std::string cord_client_hex_preview(const char *p, size_t len, size_t max_show = 48)
     {
       if (!p || len == 0)
@@ -415,8 +426,13 @@ namespace ECProject
   }*/
 
 
-  void Client::async_cord_update_to_proxies(char *cluster_slice_data, std::string cord_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr)
+  void Client::async_cord_update_to_proxies(char *cluster_slice_data, std::string cord_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr,
+                                            double *out_xfer_wait_sec, double *out_xfer_pure_sec)
   {
+    if (out_xfer_wait_sec != nullptr)
+      out_xfer_wait_sec[index] = 0.0;
+    if (out_xfer_pure_sec != nullptr)
+      out_xfer_pure_sec[index] = 0.0;
     if (cord_abort_if_timed_out())
       return;
     std::cout << "[CoRD][Client " << m_clientID << "] TCP send slice_idx=" << index << " bytes=" << cluster_slice_size
@@ -455,6 +471,15 @@ namespace ECProject
     if (status.ok() && reply.ifcommit())
     {
       if_commit_arr[index] = true;
+      if (reply.cord_xfer_timing_present())
+      {
+        const double pure = reply.cord_xfer_pure_sec();
+        const double wait = pure + std::max(0.0, reply.cord_xfer_grpc_sec());
+        if (out_xfer_pure_sec != nullptr)
+          out_xfer_pure_sec[index] = pure;
+        if (out_xfer_wait_sec != nullptr)
+          out_xfer_wait_sec[index] = wait;
+      }
     }
     else
     {
@@ -834,6 +859,11 @@ namespace ECProject
     }
     else
     {
+      // 每条 stripe 使用独立随机数据；校验块必须随数据重新编码
+      const size_t buf_bytes =
+          static_cast<size_t>(m_sys_config->BlockSize) * static_cast<size_t>(m_sys_config->n);
+      fill_random_bytes(m_pre_allocated_buffer, buf_bytes);
+
       std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
@@ -848,27 +878,23 @@ namespace ECProject
       parity_ptr_array.insert(parity_ptr_array.end(), global_parity_ptr_array.begin(), global_parity_ptr_array.end());
       parity_ptr_array.insert(parity_ptr_array.end(), local_parity_ptr_array.begin(), local_parity_ptr_array.end());
 
-      // 测试数据恒定（0xaa），校验块只需编码一次，后续条带直接复用
-      if (!m_parity_precomputed)
+      if (m_sys_config->CodeType == "UniLRC")
       {
-        if (m_sys_config->CodeType == "UniLRC")
-        {
-          ECProject::encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-        }
-        else if (m_sys_config->CodeType == "OptimalLRC")
-        {
-          ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-        }
-        else if (m_sys_config->CodeType == "UniformLRC")
-        {
-          ECProject::encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-        }
-        else if (is_azure_like_code(m_sys_config->CodeType))
-        {
-          ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-        }
-        m_parity_precomputed = true;
+        ECProject::encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
+      else if (m_sys_config->CodeType == "OptimalLRC")
+      {
+        ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+      }
+      else if (m_sys_config->CodeType == "UniformLRC")
+      {
+        ECProject::encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+      }
+      else if (is_azure_like_code(m_sys_config->CodeType))
+      {
+        ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+      }
+      (void)m_parity_precomputed;
       // 回退到 client 直接并发发送给所有 proxy（旧逻辑），先跑通带宽测试
       // 使用 Asio 多路复用实现真正的异步并发发送（单线程事件循环）
       asio::io_context io_context;
@@ -952,6 +978,10 @@ namespace ECProject
     }
     else
     {
+      const size_t buf_bytes =
+          static_cast<size_t>(m_sys_config->BlockSize) * static_cast<size_t>(m_sys_config->n);
+      fill_random_bytes(m_pre_allocated_buffer, buf_bytes);
+
       std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
@@ -1091,6 +1121,7 @@ namespace ECProject
       return false;
     }
 
+    fill_random_bytes(m_pre_allocated_buffer, static_cast<size_t>(reply.sum_append_size()));
     std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
     std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
     std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
@@ -1144,6 +1175,8 @@ namespace ECProject
     pending->plan_sec = 0.0;
     pending->payload_prep_sec = 0.0;
     pending->upload_sec = 0.0;
+    pending->direct_xfer_wait_sec = 0.0;
+    pending->direct_xfer_pure_sec = 0.0;
     pending->wall_t0 = std::chrono::steady_clock::now();
 
     if (logical_ranges.empty())
@@ -1219,11 +1252,11 @@ namespace ECProject
       }
       const auto prep_t0 = std::chrono::steady_clock::now();
       owned_payload.resize(static_cast<size_t>(reply.sum_append_size()));
-      std::memset(owned_payload.data(), 0xbb, owned_payload.size());
+      fill_random_bytes(owned_payload.data(), owned_payload.size());
       pending->payload_prep_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - prep_t0).count();
       payload_send = owned_payload.data();
       std::cout << "[CoRD][Client " << m_clientID << "] stripe_id=" << stripe_id
-                << " auto 0xBB fill payload total_bytes=" << owned_payload.size() << " intervals:";
+                << " auto random fill payload total_bytes=" << owned_payload.size() << " intervals:";
       for (const auto &r : logical_ranges)
         std::cout << " [" << r.first << "," << r.second << ")";
       std::cout << '\n'
@@ -1252,6 +1285,10 @@ namespace ECProject
     const int slice_count = reply.append_keys_size();
     std::unique_ptr<bool[]> if_commit_arr(new bool[slice_count]);
     std::fill_n(if_commit_arr.get(), slice_count, false);
+    std::unique_ptr<double[]> xfer_wait_arr(new double[slice_count]);
+    std::unique_ptr<double[]> xfer_pure_arr(new double[slice_count]);
+    std::fill_n(xfer_wait_arr.get(), slice_count, 0.0);
+    std::fill_n(xfer_pure_arr.get(), slice_count, 0.0);
     if (cord_abort_if_timed_out())
     {
       pending->upload_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - upload_t0).count();
@@ -1264,16 +1301,23 @@ namespace ECProject
     upload_threads.reserve(static_cast<size_t>(slice_count));
     for (int i = 0; i < slice_count; ++i)
     {
-      upload_threads.emplace_back([this, i, &cord_deadline, cord_timeout_sec, &cluster_slices, &reply, if_commit_arr = if_commit_arr.get()]() {
+      upload_threads.emplace_back([this, i, &cord_deadline, cord_timeout_sec, &cluster_slices, &reply,
+                                   if_commit_arr = if_commit_arr.get(), xfer_wait_arr = xfer_wait_arr.get(),
+                                   xfer_pure_arr = xfer_pure_arr.get()]() {
         CordThreadDeadlineScope deadline_scope(&cord_deadline, cord_timeout_sec);
         async_cord_update_to_proxies(cluster_slices[static_cast<size_t>(i)], reply.append_keys(i),
                                      static_cast<int>(reply.cluster_slice_sizes(i)), reply.proxyips(i),
-                                     reply.proxyports(i), i, if_commit_arr);
+                                     reply.proxyports(i), i, if_commit_arr, xfer_wait_arr, xfer_pure_arr);
       });
     }
     for (auto &t : upload_threads)
       t.join();
     pending->upload_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - upload_t0).count();
+    for (int i = 0; i < slice_count; ++i)
+    {
+      pending->direct_xfer_wait_sec = std::max(pending->direct_xfer_wait_sec, xfer_wait_arr[static_cast<size_t>(i)]);
+      pending->direct_xfer_pure_sec = std::max(pending->direct_xfer_pure_sec, xfer_pure_arr[static_cast<size_t>(i)]);
+    }
     if (cord_abort_if_timed_out())
     {
       cord_fill_timing(partial_timing, pending->wall_t0, pending->plan_sec, pending->payload_prep_sec,
@@ -1294,6 +1338,12 @@ namespace ECProject
       std::cout << "[CoRD][Client " << m_clientID << "] upload done; deferred xfer wait for plan_key="
                 << pending->transfer_plan_key << "\n";
     }
+    else if (pending->direct_xfer_wait_sec > 0.0 || pending->direct_xfer_pure_sec > 0.0)
+    {
+      std::cout << "[BoundedRandom][Client " << m_clientID << "] direct fanout timing (max over clusters): "
+                << "xfer_wait_sec=" << pending->direct_xfer_wait_sec
+                << " xfer_pure_sec=" << pending->direct_xfer_pure_sec << "\n";
+    }
 
     if (partial_timing != nullptr)
     {
@@ -1301,9 +1351,19 @@ namespace ECProject
       partial_timing->payload_prep_sec = pending->payload_prep_sec;
       partial_timing->upload_sec = pending->upload_sec;
       partial_timing->xfer_begin_sec = 0.0;
-      partial_timing->xfer_wait_sec = 0.0;
-      partial_timing->xfer_pure_sec = 0.0;
-      partial_timing->xfer_grpc_sec = 0.0;
+      if (pending->transfer_plan_key.empty())
+      {
+        partial_timing->xfer_wait_sec = pending->direct_xfer_wait_sec;
+        partial_timing->xfer_pure_sec = pending->direct_xfer_pure_sec;
+        partial_timing->xfer_grpc_sec =
+            std::max(0.0, pending->direct_xfer_wait_sec - pending->direct_xfer_pure_sec);
+      }
+      else
+      {
+        partial_timing->xfer_wait_sec = 0.0;
+        partial_timing->xfer_pure_sec = 0.0;
+        partial_timing->xfer_grpc_sec = 0.0;
+      }
       partial_timing->wall_sec =
           std::chrono::duration<double>(std::chrono::steady_clock::now() - pending->wall_t0).count();
     }
@@ -1319,8 +1379,11 @@ namespace ECProject
     double xfer_grpc_sec = 0.0;
     if (pending->transfer_plan_key.empty())
     {
+      // BoundedRandom 直推：扇出已在 upload 内完成，用各 cluster 上报的 max 填 xfer_*
+      const double xw = pending->direct_xfer_wait_sec;
+      const double xp = pending->direct_xfer_pure_sec;
       cord_fill_timing(out_timing, pending->wall_t0, pending->plan_sec, pending->payload_prep_sec,
-                       pending->upload_sec, 0.0, 0.0, 0.0, 0.0);
+                       pending->upload_sec, 0.0, xw, xp, std::max(0.0, xw - xp));
       return true;
     }
 

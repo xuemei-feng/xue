@@ -444,6 +444,20 @@ message CordPlanMstDataDeltaReq {
   int32 src_data_block_id = 11;
 }
 
+message CordParityFanoutTarget {
+  int32 parity_block_id = 1;
+  string block_key = 2;
+  string datanode_ip = 3;
+  int32 datanode_port = 4;
+  int32 proxy_cluster_id = 5;
+  string proxy_ip = 6;
+  int32 proxy_port = 7; // cluster 表中的 gRPC 基端口（与 CoRD topology 一致）
+}
+
+message CordDataSliceFanout {
+  repeated CordParityFanoutTarget targets = 1;
+}
+
 message CordDataUpdatePlacement {
   string key = 1;
   int32 cluster_id = 2;
@@ -458,6 +472,12 @@ message CordDataUpdatePlacement {
   string delta_blob_key = 11;
   string delta_datanode_ip = 12;
   int32 delta_datanode_port = 13;
+  // BoundedRandomLRC 直推：数据 proxy 本地算 ΔP 后扇出到校验 proxy；不存 _delta blob，无 CordTransferPlan
+  bool direct_parity_fanout = 14;
+  int32 k = 15;
+  int32 r = 16;
+  int32 z = 17;
+  repeated CordDataSliceFanout slice_fanouts = 18; // 与 blockids 一一对应
 }
 
 message CordLpDeltaFetch {

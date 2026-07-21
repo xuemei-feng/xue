@@ -112,6 +112,10 @@ message CommitAbortKey {
   bool ifcommitmetadata = 2;
   int32 opp = 3;
   int32 stripe_id = 4;
+  // BoundedRandom 直推：proxy 上报扇出耗时，经 checkCommitAbort 回传 client
+  bool cord_xfer_timing_present = 5;
+  double cord_xfer_pure_sec = 6;  // CRDX/本地校验 XOR 落盘（不含矩阵编码）
+  double cord_xfer_wait_sec = 7;  // 扇出阶段 wall（编码 + 全部目标 fanout）
 }
 
 // append

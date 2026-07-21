@@ -1070,12 +1070,27 @@ namespace ECProject
     return true;
   }
 
+  /** BoundedRandom 直推 / CoRD 扇出：并发 XOR 同一校验块时按 block_key 串行化 RMW（方案 A） */
+  static std::mutex g_parity_xor_mu_map_mu;
+  static std::map<std::string, std::shared_ptr<std::mutex>> g_parity_xor_mu_by_key;
+
+  static std::shared_ptr<std::mutex> cord_parity_xor_mu_for(const std::string &block_key)
+  {
+    std::lock_guard<std::mutex> lk(g_parity_xor_mu_map_mu);
+    auto &p = g_parity_xor_mu_by_key[block_key];
+    if (!p)
+      p = std::make_shared<std::mutex>();
+    return p;
+  }
+
   static bool cord_apply_parity_xor_delta(ProxyImpl *proxy, const proxy_proto::CordPlanApplyParityXorReq &request,
                                           const char *payload, size_t payload_len)
   {
     const int psz = request.parity_slice_length();
     if (psz <= 0 || static_cast<size_t>(psz) != payload_len)
       return false;
+    auto xor_mu = cord_parity_xor_mu_for(request.block_key());
+    std::lock_guard<std::mutex> xor_lk(*xor_mu);
     std::vector<char> cur(static_cast<size_t>(psz));
     if (!proxy->CordRangeReadFromDatanode(request.block_key(), request.dst_block_id(), request.parity_slice_offset(),
                                           cur.data(), static_cast<size_t>(psz), request.datanode_ip().c_str(),
@@ -1094,6 +1109,40 @@ namespace ECProject
       return false;
     }
     cord_pure_xfer_parity_dn_done_verified(request.plan_key());
+    return true;
+  }
+
+  /** 用 encode_azure_lrc 从单数据块 ΔD 生成全部校验增量（与 SET 编码一致） */
+  static bool bounded_random_encode_parity_deltas(int k, int r, int z, int data_block_id, const char *delta,
+                                                   size_t delta_len, std::vector<std::vector<uint8_t>> *coded_out)
+  {
+    if (k <= 0 || r < 0 || z <= 0 || data_block_id < 0 || data_block_id >= k || delta == nullptr || delta_len == 0 ||
+        coded_out == nullptr)
+      return false;
+    std::vector<std::vector<char>> data_strips(static_cast<size_t>(k),
+                                               std::vector<char>(delta_len, 0));
+    std::memcpy(data_strips[static_cast<size_t>(data_block_id)].data(), delta, delta_len);
+    std::vector<std::vector<char>> parity(static_cast<size_t>(r + z), std::vector<char>(delta_len, 0));
+    std::vector<unsigned char *> dptrs(static_cast<size_t>(k));
+    std::vector<unsigned char *> pptrs(static_cast<size_t>(r + z));
+    for (int i = 0; i < k; ++i)
+      dptrs[static_cast<size_t>(i)] =
+          reinterpret_cast<unsigned char *>(data_strips[static_cast<size_t>(i)].data());
+    for (int j = 0; j < r + z; ++j)
+      pptrs[static_cast<size_t>(j)] = reinterpret_cast<unsigned char *>(parity[static_cast<size_t>(j)].data());
+    ECProject::encode_azure_lrc(k, r, z, dptrs.data(), pptrs.data(), static_cast<int>(delta_len));
+    coded_out->resize(static_cast<size_t>(r + z));
+    for (int j = 0; j < r + z; ++j)
+      (*coded_out)[static_cast<size_t>(j)].assign(parity[static_cast<size_t>(j)].begin(),
+                                                   parity[static_cast<size_t>(j)].end());
+    return true;
+  }
+
+  static bool bounded_random_parity_delta_all_zero(const std::vector<uint8_t> &v)
+  {
+    for (uint8_t b : v)
+      if (b != 0)
+        return false;
     return true;
   }
 
@@ -2771,12 +2820,123 @@ namespace ECProject
             delta_concat.insert(delta_concat.end(), one.delta.begin(), one.delta.end());
           }
         }
-        if (!CordDeltaBlobToDatanode(placement_copy->delta_blob_key(), delta_concat.data(), delta_concat.size(),
-                                     placement_copy->delta_datanode_ip().c_str(),
-                                     placement_copy->delta_datanode_port()))
+
+        double fanout_wait_sec = 0.0;
+        double fanout_pure_sec = 0.0;
+        if (placement_copy->direct_parity_fanout())
         {
-          std::cout << "[CoRD][Proxy] delta blob store failed" << std::endl;
-          return;
+          if (placement_copy->slice_fanouts_size() != slice_num)
+          {
+            std::cout << "[BoundedRandom][Proxy] slice_fanouts size mismatch slices=" << slice_num
+                      << " fanouts=" << placement_copy->slice_fanouts_size() << std::endl;
+            return;
+          }
+          const int k_enc = placement_copy->k();
+          const int r_enc = placement_copy->r();
+          const int z_enc = placement_copy->z();
+          const int self_cid = m_self_cluster_id;
+          size_t delta_off = 0;
+          const auto fanout_phase_t0 = std::chrono::steady_clock::now();
+          double pure_acc_sec = 0.0;
+          for (int j = 0; j < slice_num; ++j)
+          {
+            const size_t slen = sizes[static_cast<size_t>(j)];
+            if (delta_off + slen > delta_concat.size())
+            {
+              std::cout << "[BoundedRandom][Proxy] delta concat short slice=" << j << std::endl;
+              return;
+            }
+            const char *dd = delta_concat.data() + delta_off;
+            delta_off += slen;
+            const int data_bid = placement_copy->blockids(j);
+            const int slice_off = static_cast<int>(placement_copy->offsets(j));
+            std::vector<std::vector<uint8_t>> coded;
+            if (!bounded_random_encode_parity_deltas(k_enc, r_enc, z_enc, data_bid, dd, slen, &coded))
+            {
+              std::cout << "[BoundedRandom][Proxy] encode parity deltas failed data_blk=" << data_bid << std::endl;
+              return;
+            }
+            const auto &fanout = placement_copy->slice_fanouts(j);
+            std::atomic<bool> fanout_failed{false};
+            std::mutex pure_mu;
+            double slice_pure_max = 0.0;
+            std::vector<std::thread> fanout_workers;
+            fanout_workers.reserve(static_cast<size_t>(fanout.targets_size()));
+            for (int ti = 0; ti < fanout.targets_size(); ++ti)
+            {
+              const auto target = fanout.targets(ti);
+              fanout_workers.emplace_back([&, target, slice_off, slen, k_enc]() {
+                if (fanout_failed.load(std::memory_order_relaxed))
+                  return;
+                const int pbid = target.parity_block_id();
+                const int row = pbid - k_enc;
+                if (row < 0 || row >= static_cast<int>(coded.size()))
+                {
+                  fanout_failed.store(true, std::memory_order_relaxed);
+                  return;
+                }
+                const auto &pdelta = coded[static_cast<size_t>(row)];
+                if (bounded_random_parity_delta_all_zero(pdelta))
+                  return;
+                proxy_proto::CordPlanApplyParityXorReq req;
+                req.set_plan_key(placement_copy->key());
+                req.set_dst_block_id(pbid);
+                req.set_block_key(target.block_key());
+                req.set_datanode_ip(target.datanode_ip());
+                req.set_datanode_port(target.datanode_port());
+                req.set_parity_slice_offset(slice_off);
+                req.set_parity_slice_length(static_cast<int32_t>(slen));
+                const auto t_pure0 = std::chrono::steady_clock::now();
+                bool ok = false;
+                if (target.proxy_cluster_id() == self_cid)
+                {
+                  ok = cord_apply_parity_xor_delta(this, req, reinterpret_cast<const char *>(pdelta.data()),
+                                                   pdelta.size());
+                }
+                else
+                {
+                  std::string meta;
+                  req.SerializeToString(&meta);
+                  ok = cord_tcp_xfer_send(target.proxy_ip(), target.proxy_port(), CORD_XFER_TCP_PARITY_XOR, meta,
+                                         pdelta.data(), pdelta.size());
+                }
+                const double one_pure =
+                    std::chrono::duration<double>(std::chrono::steady_clock::now() - t_pure0).count();
+                {
+                  std::lock_guard<std::mutex> lk(pure_mu);
+                  slice_pure_max = std::max(slice_pure_max, one_pure);
+                }
+                if (!ok)
+                {
+                  std::cout << "[BoundedRandom][Proxy] parity fanout failed data_blk=" << data_bid
+                            << " parity_blk=" << pbid << " dst_c=" << target.proxy_cluster_id() << std::endl;
+                  fanout_failed.store(true, std::memory_order_relaxed);
+                }
+              });
+            }
+            for (auto &th : fanout_workers)
+              th.join();
+            if (fanout_failed.load(std::memory_order_relaxed))
+              return;
+            pure_acc_sec += slice_pure_max;
+          }
+          fanout_wait_sec =
+              std::chrono::duration<double>(std::chrono::steady_clock::now() - fanout_phase_t0).count();
+          fanout_pure_sec = pure_acc_sec;
+          std::cout << "[BoundedRandom][Proxy] direct fanout done key=" << placement_copy->key()
+                    << " slices=" << slice_num << " stripe_id=" << stripe_id
+                    << " fanout_wait_sec=" << fanout_wait_sec << " fanout_pure_sec=" << fanout_pure_sec
+                    << std::endl;
+        }
+        else
+        {
+          if (!CordDeltaBlobToDatanode(placement_copy->delta_blob_key(), delta_concat.data(), delta_concat.size(),
+                                       placement_copy->delta_datanode_ip().c_str(),
+                                       placement_copy->delta_datanode_port()))
+          {
+            std::cout << "[CoRD][Proxy] delta blob store failed" << std::endl;
+            return;
+          }
         }
 
         coordinator_proto::CommitAbortKey commit_abort_key;
@@ -2786,6 +2946,12 @@ namespace ECProject
         commit_abort_key.set_key(placement_copy->key());
         commit_abort_key.set_stripe_id(stripe_id);
         commit_abort_key.set_ifcommitmetadata(true);
+        if (placement_copy->direct_parity_fanout())
+        {
+          commit_abort_key.set_cord_xfer_timing_present(true);
+          commit_abort_key.set_cord_xfer_pure_sec(fanout_pure_sec);
+          commit_abort_key.set_cord_xfer_wait_sec(fanout_wait_sec);
+        }
         grpc::Status st = m_coordinator_ptr->reportCommitAbort(&ctx, commit_abort_key, &result);
         if (!st.ok() && IF_DEBUG)
           std::cout << "[CoRD][Proxy] reportCommitAbort failed" << std::endl;

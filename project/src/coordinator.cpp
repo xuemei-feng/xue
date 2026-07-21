@@ -2311,23 +2311,188 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       cord_add_logical_range_to_data_blocks(block_size, k, s, e, &block_intervals);
     }
 
-    // Flip offsets for even-numbered data blocks: mirror the update range within the block.
-    // e.g., a range at the last 8 KB of the block → first 8 KB of the block.
-    for (auto &kv : block_intervals)
+    const bool bounded_random_direct =
+        (m_sys_config->CodeType == "BoundedRandomLRC");
+
+    // CoRD 实验性：偶数数据块块内区间镜像。BoundedRandomLRC 直推路径不做翻转。
+    if (!bounded_random_direct)
+    {
+      for (auto &kv : block_intervals)
+      {
+        const int bid = kv.first;
+        if (bid % 2 == 0)
+        {
+          for (auto &seg : kv.second)
+          {
+            const int lo = seg.first;
+            const int hi = seg.second;
+            seg.first = block_size - hi;
+            seg.second = block_size - lo;
+          }
+          std::sort(kv.second.begin(), kv.second.end());
+        }
+      }
+    }
+
+    std::map<int, std::vector<CordSliceRec>> cluster_slices;
+    for (const auto &kv : block_intervals)
     {
       const int bid = kv.first;
-      if (bid % 2 == 0)
+      if (bid < 0 || bid >= k)
+        continue;
+      Block *bp = stripe->blocks[bid];
+      for (const auto &seg : kv.second)
       {
-        for (auto &seg : kv.second)
-        {
-          const int lo = seg.first;
-          const int hi = seg.second;
-          seg.first  = block_size - hi;
-          seg.second = block_size - lo;
-        }
-        // restore ascending order after flipping
-        std::sort(kv.second.begin(), kv.second.end());
+        CordSliceRec r;
+        r.block_id = bid;
+        r.block_offset = seg.first;
+        r.len = seg.second - seg.first;
+        if (r.len <= 0)
+          continue;
+        cluster_slices[bp->map2cluster].push_back(r);
       }
+    }
+    for (auto &cs : cluster_slices)
+    {
+      std::sort(cs.second.begin(), cs.second.end(),
+                [](const CordSliceRec &a, const CordSliceRec &b)
+                {
+                  if (a.block_id != b.block_id)
+                    return a.block_id < b.block_id;
+                  return a.block_offset < b.block_offset;
+                });
+    }
+
+    uint64_t sum_update_bytes = 0;
+    for (const auto &cs : cluster_slices)
+      for (const auto &s : cs.second)
+        sum_update_bytes += static_cast<uint64_t>(s.len);
+
+    if (cluster_slices.empty() || sum_update_bytes == 0)
+    {
+      proxyIPPort->set_sum_append_size(0);
+      return grpc::Status::OK;
+    }
+
+    std::vector<std::pair<int, std::vector<CordSliceRec>>> sorted_clusters(cluster_slices.begin(),
+                                                                             cluster_slices.end());
+    std::sort(sorted_clusters.begin(), sorted_clusters.end(),
+              [](const std::pair<int, std::vector<CordSliceRec>> &a,
+                 const std::pair<int, std::vector<CordSliceRec>> &b)
+              { return a.first < b.first; });
+
+    auto fill_parity_fanout_target = [&](int parity_block_id, proxy_proto::CordDataSliceFanout *fanout) {
+      if (parity_block_id < 0 || parity_block_id >= static_cast<int>(stripe->blocks.size()))
+        return;
+      Block *pb = stripe->blocks[parity_block_id];
+      const Node &pn = m_node_table[pb->map2node];
+      const Cluster &pc = m_cluster_table[pb->map2cluster];
+      auto *t = fanout->add_targets();
+      t->set_parity_block_id(parity_block_id);
+      t->set_block_key(pb->block_key);
+      t->set_datanode_ip(pn.node_ip);
+      t->set_datanode_port(pn.node_port);
+      t->set_proxy_cluster_id(pb->map2cluster);
+      t->set_proxy_ip(pc.proxy_ip);
+      t->set_proxy_port(pc.proxy_port);
+    };
+
+    // BoundedRandomLRC：client→数据 proxy RMW+算ΔP，直推校验 proxy（无 Alg1/2/3、无 _delta blob）
+    if (bounded_random_direct)
+    {
+      std::cout << "[BoundedRandom] ===== uploadCordUpdate direct parity fanout stripe_id=" << stripe_id
+                << " k=" << k << " r=" << stripe->r << " z=" << stripe->z
+                << " sum_bytes=" << sum_update_bytes << " clusters=" << sorted_clusters.size() << " =====\n";
+      for (const auto &kv : block_intervals)
+      {
+        std::cout << "  block " << kv.first << " (c" << stripe->blocks[kv.first]->map2cluster << "):";
+        for (const auto &seg : kv.second)
+          std::cout << " [" << seg.first << "," << seg.second << ")";
+        std::cout << "\n";
+      }
+
+      struct CordDeltaNotifyJob
+      {
+        proxy_proto::CordDataUpdatePlacement plan;
+        int cid = -1;
+        uint64_t cluster_payload = 0;
+        bool ok = false;
+      };
+      std::vector<CordDeltaNotifyJob> notify_jobs;
+      notify_jobs.reserve(sorted_clusters.size());
+      for (const auto &plan_entry : sorted_clusters)
+      {
+        const int cid = plan_entry.first;
+        const auto &slices = plan_entry.second;
+        if (m_cluster_table.find(cid) == m_cluster_table.end() || m_cluster_table[cid].nodes.empty())
+        {
+          return grpc::Status(grpc::StatusCode::INTERNAL,
+                              "cluster has no datanode for BoundedRandom update");
+        }
+        CordDeltaNotifyJob job;
+        job.cid = cid;
+        proxy_proto::CordDataUpdatePlacement &plan = job.plan;
+        plan.set_key(m_toolbox->gen_cord_key(stripe_id, cid));
+        plan.set_cluster_id(cid);
+        plan.set_stripe_id(stripe_id);
+        plan.set_direct_parity_fanout(true);
+        plan.set_k(stripe->k);
+        plan.set_r(stripe->r);
+        plan.set_z(stripe->z);
+        for (const auto &s : slices)
+          job.cluster_payload += static_cast<uint64_t>(s.len);
+        plan.set_update_payload_size(job.cluster_payload);
+        for (const auto &s : slices)
+        {
+          Block *b = stripe->blocks[s.block_id];
+          const Node &n = m_node_table[b->map2node];
+          plan.add_datanodeip(n.node_ip);
+          plan.add_datanodeport(n.node_port);
+          plan.add_blockkeys(b->block_key);
+          plan.add_blockids(b->block_id);
+          plan.add_offsets(static_cast<uint64_t>(s.block_offset));
+          plan.add_sizes(static_cast<uint64_t>(s.len));
+
+          auto *fanout = plan.add_slice_fanouts();
+          // Azure-LRC：全部 r 个全局校验 + 所属本地组 1 个本地校验
+          for (int gi = 0; gi < stripe->r; ++gi)
+            fill_parity_fanout_target(stripe->k + gi, fanout);
+          fill_parity_fanout_target(stripe->k + stripe->r + b->map2group, fanout);
+        }
+
+        m_mutex.lock();
+        m_object_commit_table.erase(plan.key());
+        m_mutex.unlock();
+        notify_jobs.push_back(std::move(job));
+      }
+
+      std::vector<std::thread> notify_threads;
+      notify_threads.reserve(notify_jobs.size());
+      for (auto &job : notify_jobs)
+      {
+        notify_threads.emplace_back([this, &job]() { job.ok = notify_proxies_cord_ready(job.plan); });
+      }
+      for (auto &th : notify_threads)
+        th.join();
+
+      for (const auto &job : notify_jobs)
+      {
+        if (!job.ok)
+        {
+          return grpc::Status(grpc::StatusCode::INTERNAL,
+                              "scheduleCordDataUpdate failed for cluster " + std::to_string(job.cid) +
+                                  " key=" + job.plan.key());
+        }
+        proxyIPPort->add_append_keys(job.plan.key());
+        proxyIPPort->add_proxyips(m_cluster_table[job.cid].proxy_ip);
+        proxyIPPort->add_proxyports(m_cluster_table[job.cid].proxy_port + ECProject::PROXY_PORT_SHIFT);
+        proxyIPPort->add_cluster_slice_sizes(job.cluster_payload);
+        proxyIPPort->add_group_ids(job.cid);
+      }
+      proxyIPPort->set_sum_append_size(sum_update_bytes);
+      proxyIPPort->clear_cord_transfer_plan_key();
+      std::cout << "[BoundedRandom] ===== uploadCordUpdate done (direct fanout, no CordTransferPlan) =====\n";
+      return grpc::Status::OK;
     }
 
     // --- CoRD uploadCordUpdate verbose debug ---
@@ -2415,53 +2580,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       enrich_cord_transfer_plan_block_stripe_groups(stripe, &cord_xfer_plan);
       enrich_cord_transfer_plan_step_parity_filters(stripe, &cord_xfer_plan);
     }
-
-    std::map<int, std::vector<CordSliceRec>> cluster_slices;
-    for (const auto &kv : block_intervals)
-    {
-      const int bid = kv.first;
-      if (bid < 0 || bid >= k)
-        continue;
-      Block *bp = stripe->blocks[bid];
-      for (const auto &seg : kv.second)
-      {
-        CordSliceRec r;
-        r.block_id = bid;
-        r.block_offset = seg.first;
-        r.len = seg.second - seg.first;
-        if (r.len <= 0)
-          continue;
-        cluster_slices[bp->map2cluster].push_back(r);
-      }
-    }
-    for (auto &cs : cluster_slices)
-    {
-      std::sort(cs.second.begin(), cs.second.end(),
-                [](const CordSliceRec &a, const CordSliceRec &b)
-                {
-                  if (a.block_id != b.block_id)
-                    return a.block_id < b.block_id;
-                  return a.block_offset < b.block_offset;
-                });
-    }
-
-    uint64_t sum_update_bytes = 0;
-    for (const auto &cs : cluster_slices)
-      for (const auto &s : cs.second)
-        sum_update_bytes += static_cast<uint64_t>(s.len);
-
-    if (cluster_slices.empty() || sum_update_bytes == 0)
-    {
-      proxyIPPort->set_sum_append_size(0);
-      return grpc::Status::OK;
-    }
-
-    std::vector<std::pair<int, std::vector<CordSliceRec>>> sorted_clusters(cluster_slices.begin(),
-                                                                             cluster_slices.end());
-    std::sort(sorted_clusters.begin(), sorted_clusters.end(),
-              [](const std::pair<int, std::vector<CordSliceRec>> &a,
-                 const std::pair<int, std::vector<CordSliceRec>> &b)
-              { return a.first < b.first; });
 
     enrich_cord_transfer_plan_topology(stripe, m_cluster_table, m_node_table, m_toolbox, &cord_xfer_plan,
                                        sorted_clusters);
@@ -5260,6 +5378,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         if (opp == SET || opp == APPEND || opp == CORD_UPDATE)
         {
           m_object_commit_table[key] = m_object_updating_table[key];
+          if (opp == CORD_UPDATE && commit_abortkey->cord_xfer_timing_present())
+          {
+            CordKeyXferTiming t;
+            t.pure_sec = commit_abortkey->cord_xfer_pure_sec();
+            t.wait_sec = commit_abortkey->cord_xfer_wait_sec();
+            m_cord_key_xfer_timing[key] = t;
+          }
           cv.notify_all();
           m_object_updating_table.erase(key);
           if (opp == CORD_UPDATE)
@@ -5414,6 +5539,17 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       while (m_object_commit_table.find(key) == m_object_commit_table.end())
       {
         cv.wait(lck);
+      }
+      if (opp == CORD_UPDATE)
+      {
+        auto tit = m_cord_key_xfer_timing.find(key);
+        if (tit != m_cord_key_xfer_timing.end())
+        {
+          reply->set_cord_xfer_timing_present(true);
+          reply->set_cord_xfer_pure_sec(tit->second.pure_sec);
+          reply->set_cord_xfer_grpc_sec(std::max(0.0, tit->second.wait_sec - tit->second.pure_sec));
+          m_cord_key_xfer_timing.erase(tit);
+        }
       }
     }
     else if (opp == DEL)

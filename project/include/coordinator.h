@@ -232,6 +232,13 @@ namespace ECProject
     int m_cur_stripe_id = 0;
     std::unordered_map<std::string, ObjectInfo> m_object_commit_table;
     std::unordered_map<std::string, ObjectInfo> m_object_updating_table;
+    /** CORD_UPDATE key → BoundedRandom 直推扇出耗时（report 写入，check 读出后清除） */
+    struct CordKeyXferTiming
+    {
+      double pure_sec = 0.0;
+      double wait_sec = 0.0;
+    };
+    std::unordered_map<std::string, CordKeyXferTiming> m_cord_key_xfer_timing;
     std::map<int, Cluster> m_cluster_table;
     std::map<int, Node> m_node_table;
     std::map<int, Stripe> m_stripe_table;

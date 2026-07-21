@@ -64,6 +64,9 @@ extern CordBlockStripeGroupDefaultTypeInternal _CordBlockStripeGroup_default_ins
 class CordCollectorIngressExpect;
 struct CordCollectorIngressExpectDefaultTypeInternal;
 extern CordCollectorIngressExpectDefaultTypeInternal _CordCollectorIngressExpect_default_instance_;
+class CordDataSliceFanout;
+struct CordDataSliceFanoutDefaultTypeInternal;
+extern CordDataSliceFanoutDefaultTypeInternal _CordDataSliceFanout_default_instance_;
 class CordDataStripDesc;
 struct CordDataStripDescDefaultTypeInternal;
 extern CordDataStripDescDefaultTypeInternal _CordDataStripDesc_default_instance_;
@@ -91,6 +94,9 @@ extern CordLpParityApplyDeltaDefaultTypeInternal _CordLpParityApplyDelta_default
 class CordLpWorkItem;
 struct CordLpWorkItemDefaultTypeInternal;
 extern CordLpWorkItemDefaultTypeInternal _CordLpWorkItem_default_instance_;
+class CordParityFanoutTarget;
+struct CordParityFanoutTargetDefaultTypeInternal;
+extern CordParityFanoutTargetDefaultTypeInternal _CordParityFanoutTarget_default_instance_;
 class CordPlanApplyParityXorReq;
 struct CordPlanApplyParityXorReqDefaultTypeInternal;
 extern CordPlanApplyParityXorReqDefaultTypeInternal _CordPlanApplyParityXorReq_default_instance_;
@@ -195,6 +201,7 @@ template<> ::proxy_proto::CheckaliveCMD* Arena::CreateMaybeMessage<::proxy_proto
 template<> ::proxy_proto::CordBlockHalfOpenSeg* Arena::CreateMaybeMessage<::proxy_proto::CordBlockHalfOpenSeg>(Arena*);
 template<> ::proxy_proto::CordBlockStripeGroup* Arena::CreateMaybeMessage<::proxy_proto::CordBlockStripeGroup>(Arena*);
 template<> ::proxy_proto::CordCollectorIngressExpect* Arena::CreateMaybeMessage<::proxy_proto::CordCollectorIngressExpect>(Arena*);
+template<> ::proxy_proto::CordDataSliceFanout* Arena::CreateMaybeMessage<::proxy_proto::CordDataSliceFanout>(Arena*);
 template<> ::proxy_proto::CordDataStripDesc* Arena::CreateMaybeMessage<::proxy_proto::CordDataStripDesc>(Arena*);
 template<> ::proxy_proto::CordDataUpdatePlacement* Arena::CreateMaybeMessage<::proxy_proto::CordDataUpdatePlacement>(Arena*);
 template<> ::proxy_proto::CordLocalParityBundle* Arena::CreateMaybeMessage<::proxy_proto::CordLocalParityBundle>(Arena*);
@@ -204,6 +211,7 @@ template<> ::proxy_proto::CordLpHubPartialPush* Arena::CreateMaybeMessage<::prox
 template<> ::proxy_proto::CordLpHubSessionBegin* Arena::CreateMaybeMessage<::proxy_proto::CordLpHubSessionBegin>(Arena*);
 template<> ::proxy_proto::CordLpParityApplyDelta* Arena::CreateMaybeMessage<::proxy_proto::CordLpParityApplyDelta>(Arena*);
 template<> ::proxy_proto::CordLpWorkItem* Arena::CreateMaybeMessage<::proxy_proto::CordLpWorkItem>(Arena*);
+template<> ::proxy_proto::CordParityFanoutTarget* Arena::CreateMaybeMessage<::proxy_proto::CordParityFanoutTarget>(Arena*);
 template<> ::proxy_proto::CordPlanApplyParityXorReq* Arena::CreateMaybeMessage<::proxy_proto::CordPlanApplyParityXorReq>(Arena*);
 template<> ::proxy_proto::CordPlanCollectorIngestReq* Arena::CreateMaybeMessage<::proxy_proto::CordPlanCollectorIngestReq>(Arena*);
 template<> ::proxy_proto::CordPlanKeyMsg* Arena::CreateMaybeMessage<::proxy_proto::CordPlanKeyMsg>(Arena*);
@@ -8902,6 +8910,392 @@ class CordPlanMstDataDeltaReq final :
 };
 // -------------------------------------------------------------------
 
+class CordParityFanoutTarget final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.CordParityFanoutTarget) */ {
+ public:
+  inline CordParityFanoutTarget() : CordParityFanoutTarget(nullptr) {}
+  ~CordParityFanoutTarget() override;
+  explicit PROTOBUF_CONSTEXPR CordParityFanoutTarget(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  CordParityFanoutTarget(const CordParityFanoutTarget& from);
+  CordParityFanoutTarget(CordParityFanoutTarget&& from) noexcept
+    : CordParityFanoutTarget() {
+    *this = ::std::move(from);
+  }
+
+  inline CordParityFanoutTarget& operator=(const CordParityFanoutTarget& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CordParityFanoutTarget& operator=(CordParityFanoutTarget&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const CordParityFanoutTarget& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const CordParityFanoutTarget* internal_default_instance() {
+    return reinterpret_cast<const CordParityFanoutTarget*>(
+               &_CordParityFanoutTarget_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    36;
+
+  friend void swap(CordParityFanoutTarget& a, CordParityFanoutTarget& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(CordParityFanoutTarget* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CordParityFanoutTarget* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  CordParityFanoutTarget* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<CordParityFanoutTarget>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const CordParityFanoutTarget& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const CordParityFanoutTarget& from) {
+    CordParityFanoutTarget::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(CordParityFanoutTarget* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.CordParityFanoutTarget";
+  }
+  protected:
+  explicit CordParityFanoutTarget(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kBlockKeyFieldNumber = 2,
+    kDatanodeIpFieldNumber = 3,
+    kProxyIpFieldNumber = 6,
+    kParityBlockIdFieldNumber = 1,
+    kDatanodePortFieldNumber = 4,
+    kProxyClusterIdFieldNumber = 5,
+    kProxyPortFieldNumber = 7,
+  };
+  // string block_key = 2;
+  void clear_block_key();
+  const std::string& block_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_block_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_block_key();
+  PROTOBUF_NODISCARD std::string* release_block_key();
+  void set_allocated_block_key(std::string* block_key);
+  private:
+  const std::string& _internal_block_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_block_key(const std::string& value);
+  std::string* _internal_mutable_block_key();
+  public:
+
+  // string datanode_ip = 3;
+  void clear_datanode_ip();
+  const std::string& datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_datanode_ip();
+  void set_allocated_datanode_ip(std::string* datanode_ip);
+  private:
+  const std::string& _internal_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_datanode_ip();
+  public:
+
+  // string proxy_ip = 6;
+  void clear_proxy_ip();
+  const std::string& proxy_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_proxy_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_proxy_ip();
+  PROTOBUF_NODISCARD std::string* release_proxy_ip();
+  void set_allocated_proxy_ip(std::string* proxy_ip);
+  private:
+  const std::string& _internal_proxy_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_proxy_ip(const std::string& value);
+  std::string* _internal_mutable_proxy_ip();
+  public:
+
+  // int32 parity_block_id = 1;
+  void clear_parity_block_id();
+  int32_t parity_block_id() const;
+  void set_parity_block_id(int32_t value);
+  private:
+  int32_t _internal_parity_block_id() const;
+  void _internal_set_parity_block_id(int32_t value);
+  public:
+
+  // int32 datanode_port = 4;
+  void clear_datanode_port();
+  int32_t datanode_port() const;
+  void set_datanode_port(int32_t value);
+  private:
+  int32_t _internal_datanode_port() const;
+  void _internal_set_datanode_port(int32_t value);
+  public:
+
+  // int32 proxy_cluster_id = 5;
+  void clear_proxy_cluster_id();
+  int32_t proxy_cluster_id() const;
+  void set_proxy_cluster_id(int32_t value);
+  private:
+  int32_t _internal_proxy_cluster_id() const;
+  void _internal_set_proxy_cluster_id(int32_t value);
+  public:
+
+  // int32 proxy_port = 7;
+  void clear_proxy_port();
+  int32_t proxy_port() const;
+  void set_proxy_port(int32_t value);
+  private:
+  int32_t _internal_proxy_port() const;
+  void _internal_set_proxy_port(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.CordParityFanoutTarget)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr block_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr datanode_ip_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr proxy_ip_;
+    int32_t parity_block_id_;
+    int32_t datanode_port_;
+    int32_t proxy_cluster_id_;
+    int32_t proxy_port_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class CordDataSliceFanout final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.CordDataSliceFanout) */ {
+ public:
+  inline CordDataSliceFanout() : CordDataSliceFanout(nullptr) {}
+  ~CordDataSliceFanout() override;
+  explicit PROTOBUF_CONSTEXPR CordDataSliceFanout(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  CordDataSliceFanout(const CordDataSliceFanout& from);
+  CordDataSliceFanout(CordDataSliceFanout&& from) noexcept
+    : CordDataSliceFanout() {
+    *this = ::std::move(from);
+  }
+
+  inline CordDataSliceFanout& operator=(const CordDataSliceFanout& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CordDataSliceFanout& operator=(CordDataSliceFanout&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const CordDataSliceFanout& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const CordDataSliceFanout* internal_default_instance() {
+    return reinterpret_cast<const CordDataSliceFanout*>(
+               &_CordDataSliceFanout_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    37;
+
+  friend void swap(CordDataSliceFanout& a, CordDataSliceFanout& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(CordDataSliceFanout* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CordDataSliceFanout* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  CordDataSliceFanout* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<CordDataSliceFanout>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const CordDataSliceFanout& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const CordDataSliceFanout& from) {
+    CordDataSliceFanout::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(CordDataSliceFanout* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.CordDataSliceFanout";
+  }
+  protected:
+  explicit CordDataSliceFanout(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kTargetsFieldNumber = 1,
+  };
+  // repeated .proxy_proto.CordParityFanoutTarget targets = 1;
+  int targets_size() const;
+  private:
+  int _internal_targets_size() const;
+  public:
+  void clear_targets();
+  ::proxy_proto::CordParityFanoutTarget* mutable_targets(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::CordParityFanoutTarget >*
+      mutable_targets();
+  private:
+  const ::proxy_proto::CordParityFanoutTarget& _internal_targets(int index) const;
+  ::proxy_proto::CordParityFanoutTarget* _internal_add_targets();
+  public:
+  const ::proxy_proto::CordParityFanoutTarget& targets(int index) const;
+  ::proxy_proto::CordParityFanoutTarget* add_targets();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::CordParityFanoutTarget >&
+      targets() const;
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.CordDataSliceFanout)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::CordParityFanoutTarget > targets_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
 class CordDataUpdatePlacement final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.CordDataUpdatePlacement) */ {
  public:
@@ -8950,7 +9344,7 @@ class CordDataUpdatePlacement final :
                &_CordDataUpdatePlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    36;
+    38;
 
   friend void swap(CordDataUpdatePlacement& a, CordDataUpdatePlacement& b) {
     a.Swap(&b);
@@ -9029,6 +9423,7 @@ class CordDataUpdatePlacement final :
     kBlockidsFieldNumber = 8,
     kOffsetsFieldNumber = 9,
     kSizesFieldNumber = 10,
+    kSliceFanoutsFieldNumber = 18,
     kKeyFieldNumber = 1,
     kDeltaBlobKeyFieldNumber = 11,
     kDeltaDatanodeIpFieldNumber = 12,
@@ -9036,6 +9431,10 @@ class CordDataUpdatePlacement final :
     kStripeIdFieldNumber = 3,
     kUpdatePayloadSizeFieldNumber = 4,
     kDeltaDatanodePortFieldNumber = 13,
+    kDirectParityFanoutFieldNumber = 14,
+    kKFieldNumber = 15,
+    kRFieldNumber = 16,
+    kZFieldNumber = 17,
   };
   // repeated string datanodeip = 5;
   int datanodeip_size() const;
@@ -9173,6 +9572,24 @@ class CordDataUpdatePlacement final :
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t >*
       mutable_sizes();
 
+  // repeated .proxy_proto.CordDataSliceFanout slice_fanouts = 18;
+  int slice_fanouts_size() const;
+  private:
+  int _internal_slice_fanouts_size() const;
+  public:
+  void clear_slice_fanouts();
+  ::proxy_proto::CordDataSliceFanout* mutable_slice_fanouts(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::CordDataSliceFanout >*
+      mutable_slice_fanouts();
+  private:
+  const ::proxy_proto::CordDataSliceFanout& _internal_slice_fanouts(int index) const;
+  ::proxy_proto::CordDataSliceFanout* _internal_add_slice_fanouts();
+  public:
+  const ::proxy_proto::CordDataSliceFanout& slice_fanouts(int index) const;
+  ::proxy_proto::CordDataSliceFanout* add_slice_fanouts();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::CordDataSliceFanout >&
+      slice_fanouts() const;
+
   // string key = 1;
   void clear_key();
   const std::string& key() const;
@@ -9251,6 +9668,42 @@ class CordDataUpdatePlacement final :
   void _internal_set_delta_datanode_port(int32_t value);
   public:
 
+  // bool direct_parity_fanout = 14;
+  void clear_direct_parity_fanout();
+  bool direct_parity_fanout() const;
+  void set_direct_parity_fanout(bool value);
+  private:
+  bool _internal_direct_parity_fanout() const;
+  void _internal_set_direct_parity_fanout(bool value);
+  public:
+
+  // int32 k = 15;
+  void clear_k();
+  int32_t k() const;
+  void set_k(int32_t value);
+  private:
+  int32_t _internal_k() const;
+  void _internal_set_k(int32_t value);
+  public:
+
+  // int32 r = 16;
+  void clear_r();
+  int32_t r() const;
+  void set_r(int32_t value);
+  private:
+  int32_t _internal_r() const;
+  void _internal_set_r(int32_t value);
+  public:
+
+  // int32 z = 17;
+  void clear_z();
+  int32_t z() const;
+  void set_z(int32_t value);
+  private:
+  int32_t _internal_z() const;
+  void _internal_set_z(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:proxy_proto.CordDataUpdatePlacement)
  private:
   class _Internal;
@@ -9269,6 +9722,7 @@ class CordDataUpdatePlacement final :
     mutable std::atomic<int> _offsets_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< uint64_t > sizes_;
     mutable std::atomic<int> _sizes_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::CordDataSliceFanout > slice_fanouts_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr delta_blob_key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr delta_datanode_ip_;
@@ -9276,6 +9730,10 @@ class CordDataUpdatePlacement final :
     int32_t stripe_id_;
     uint64_t update_payload_size_;
     int32_t delta_datanode_port_;
+    bool direct_parity_fanout_;
+    int32_t k_;
+    int32_t r_;
+    int32_t z_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -9331,7 +9789,7 @@ class CordLpDeltaFetch final :
                &_CordLpDeltaFetch_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    37;
+    39;
 
   friend void swap(CordLpDeltaFetch& a, CordLpDeltaFetch& b) {
     a.Swap(&b);
@@ -9544,7 +10002,7 @@ class CordLpWorkItem final :
                &_CordLpWorkItem_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    38;
+    40;
 
   friend void swap(CordLpWorkItem& a, CordLpWorkItem& b) {
     a.Swap(&b);
@@ -9777,7 +10235,7 @@ class CordLocalParityBundle final :
                &_CordLocalParityBundle_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    39;
+    41;
 
   friend void swap(CordLocalParityBundle& a, CordLocalParityBundle& b) {
     a.Swap(&b);
@@ -9961,7 +10419,7 @@ class CordLpHubSessionBegin final :
                &_CordLpHubSessionBegin_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    40;
+    42;
 
   friend void swap(CordLpHubSessionBegin& a, CordLpHubSessionBegin& b) {
     a.Swap(&b);
@@ -10250,7 +10708,7 @@ class CordLpHubPartialPush final :
                &_CordLpHubPartialPush_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    41;
+    43;
 
   friend void swap(CordLpHubPartialPush& a, CordLpHubPartialPush& b) {
     a.Swap(&b);
@@ -10419,7 +10877,7 @@ class CordLpComputePartialAndPush final :
                &_CordLpComputePartialAndPush_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    42;
+    44;
 
   friend void swap(CordLpComputePartialAndPush& a, CordLpComputePartialAndPush& b) {
     a.Swap(&b);
@@ -10673,7 +11131,7 @@ class CordLpParityApplyDelta final :
                &_CordLpParityApplyDelta_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    43;
+    45;
 
   friend void swap(CordLpParityApplyDelta& a, CordLpParityApplyDelta& b) {
     a.Swap(&b);
@@ -10913,7 +11371,7 @@ class SetReply final :
                &_SetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    44;
+    46;
 
   friend void swap(SetReply& a, SetReply& b) {
     a.Swap(&b);
@@ -11105,7 +11563,7 @@ class GetReply final :
                &_GetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    45;
+    47;
 
   friend void swap(GetReply& a, GetReply& b) {
     a.Swap(&b);
@@ -11253,7 +11711,7 @@ class StripeAndBlockIDs final :
                &_StripeAndBlockIDs_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    46;
+    48;
 
   friend void swap(StripeAndBlockIDs& a, StripeAndBlockIDs& b) {
     a.Swap(&b);
@@ -19847,6 +20305,284 @@ inline void CordPlanMstDataDeltaReq::set_src_data_block_id(int32_t value) {
 
 // -------------------------------------------------------------------
 
+// CordParityFanoutTarget
+
+// int32 parity_block_id = 1;
+inline void CordParityFanoutTarget::clear_parity_block_id() {
+  _impl_.parity_block_id_ = 0;
+}
+inline int32_t CordParityFanoutTarget::_internal_parity_block_id() const {
+  return _impl_.parity_block_id_;
+}
+inline int32_t CordParityFanoutTarget::parity_block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordParityFanoutTarget.parity_block_id)
+  return _internal_parity_block_id();
+}
+inline void CordParityFanoutTarget::_internal_set_parity_block_id(int32_t value) {
+  
+  _impl_.parity_block_id_ = value;
+}
+inline void CordParityFanoutTarget::set_parity_block_id(int32_t value) {
+  _internal_set_parity_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordParityFanoutTarget.parity_block_id)
+}
+
+// string block_key = 2;
+inline void CordParityFanoutTarget::clear_block_key() {
+  _impl_.block_key_.ClearToEmpty();
+}
+inline const std::string& CordParityFanoutTarget::block_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordParityFanoutTarget.block_key)
+  return _internal_block_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void CordParityFanoutTarget::set_block_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.CordParityFanoutTarget.block_key)
+}
+inline std::string* CordParityFanoutTarget::mutable_block_key() {
+  std::string* _s = _internal_mutable_block_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.CordParityFanoutTarget.block_key)
+  return _s;
+}
+inline const std::string& CordParityFanoutTarget::_internal_block_key() const {
+  return _impl_.block_key_.Get();
+}
+inline void CordParityFanoutTarget::_internal_set_block_key(const std::string& value) {
+  
+  _impl_.block_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* CordParityFanoutTarget::_internal_mutable_block_key() {
+  
+  return _impl_.block_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* CordParityFanoutTarget::release_block_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.CordParityFanoutTarget.block_key)
+  return _impl_.block_key_.Release();
+}
+inline void CordParityFanoutTarget::set_allocated_block_key(std::string* block_key) {
+  if (block_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.block_key_.SetAllocated(block_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.block_key_.IsDefault()) {
+    _impl_.block_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.CordParityFanoutTarget.block_key)
+}
+
+// string datanode_ip = 3;
+inline void CordParityFanoutTarget::clear_datanode_ip() {
+  _impl_.datanode_ip_.ClearToEmpty();
+}
+inline const std::string& CordParityFanoutTarget::datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordParityFanoutTarget.datanode_ip)
+  return _internal_datanode_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void CordParityFanoutTarget::set_datanode_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.CordParityFanoutTarget.datanode_ip)
+}
+inline std::string* CordParityFanoutTarget::mutable_datanode_ip() {
+  std::string* _s = _internal_mutable_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.CordParityFanoutTarget.datanode_ip)
+  return _s;
+}
+inline const std::string& CordParityFanoutTarget::_internal_datanode_ip() const {
+  return _impl_.datanode_ip_.Get();
+}
+inline void CordParityFanoutTarget::_internal_set_datanode_ip(const std::string& value) {
+  
+  _impl_.datanode_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* CordParityFanoutTarget::_internal_mutable_datanode_ip() {
+  
+  return _impl_.datanode_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* CordParityFanoutTarget::release_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.CordParityFanoutTarget.datanode_ip)
+  return _impl_.datanode_ip_.Release();
+}
+inline void CordParityFanoutTarget::set_allocated_datanode_ip(std::string* datanode_ip) {
+  if (datanode_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.datanode_ip_.SetAllocated(datanode_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.datanode_ip_.IsDefault()) {
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.CordParityFanoutTarget.datanode_ip)
+}
+
+// int32 datanode_port = 4;
+inline void CordParityFanoutTarget::clear_datanode_port() {
+  _impl_.datanode_port_ = 0;
+}
+inline int32_t CordParityFanoutTarget::_internal_datanode_port() const {
+  return _impl_.datanode_port_;
+}
+inline int32_t CordParityFanoutTarget::datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordParityFanoutTarget.datanode_port)
+  return _internal_datanode_port();
+}
+inline void CordParityFanoutTarget::_internal_set_datanode_port(int32_t value) {
+  
+  _impl_.datanode_port_ = value;
+}
+inline void CordParityFanoutTarget::set_datanode_port(int32_t value) {
+  _internal_set_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordParityFanoutTarget.datanode_port)
+}
+
+// int32 proxy_cluster_id = 5;
+inline void CordParityFanoutTarget::clear_proxy_cluster_id() {
+  _impl_.proxy_cluster_id_ = 0;
+}
+inline int32_t CordParityFanoutTarget::_internal_proxy_cluster_id() const {
+  return _impl_.proxy_cluster_id_;
+}
+inline int32_t CordParityFanoutTarget::proxy_cluster_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordParityFanoutTarget.proxy_cluster_id)
+  return _internal_proxy_cluster_id();
+}
+inline void CordParityFanoutTarget::_internal_set_proxy_cluster_id(int32_t value) {
+  
+  _impl_.proxy_cluster_id_ = value;
+}
+inline void CordParityFanoutTarget::set_proxy_cluster_id(int32_t value) {
+  _internal_set_proxy_cluster_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordParityFanoutTarget.proxy_cluster_id)
+}
+
+// string proxy_ip = 6;
+inline void CordParityFanoutTarget::clear_proxy_ip() {
+  _impl_.proxy_ip_.ClearToEmpty();
+}
+inline const std::string& CordParityFanoutTarget::proxy_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordParityFanoutTarget.proxy_ip)
+  return _internal_proxy_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void CordParityFanoutTarget::set_proxy_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.proxy_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.CordParityFanoutTarget.proxy_ip)
+}
+inline std::string* CordParityFanoutTarget::mutable_proxy_ip() {
+  std::string* _s = _internal_mutable_proxy_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.CordParityFanoutTarget.proxy_ip)
+  return _s;
+}
+inline const std::string& CordParityFanoutTarget::_internal_proxy_ip() const {
+  return _impl_.proxy_ip_.Get();
+}
+inline void CordParityFanoutTarget::_internal_set_proxy_ip(const std::string& value) {
+  
+  _impl_.proxy_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* CordParityFanoutTarget::_internal_mutable_proxy_ip() {
+  
+  return _impl_.proxy_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* CordParityFanoutTarget::release_proxy_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.CordParityFanoutTarget.proxy_ip)
+  return _impl_.proxy_ip_.Release();
+}
+inline void CordParityFanoutTarget::set_allocated_proxy_ip(std::string* proxy_ip) {
+  if (proxy_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.proxy_ip_.SetAllocated(proxy_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.proxy_ip_.IsDefault()) {
+    _impl_.proxy_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.CordParityFanoutTarget.proxy_ip)
+}
+
+// int32 proxy_port = 7;
+inline void CordParityFanoutTarget::clear_proxy_port() {
+  _impl_.proxy_port_ = 0;
+}
+inline int32_t CordParityFanoutTarget::_internal_proxy_port() const {
+  return _impl_.proxy_port_;
+}
+inline int32_t CordParityFanoutTarget::proxy_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordParityFanoutTarget.proxy_port)
+  return _internal_proxy_port();
+}
+inline void CordParityFanoutTarget::_internal_set_proxy_port(int32_t value) {
+  
+  _impl_.proxy_port_ = value;
+}
+inline void CordParityFanoutTarget::set_proxy_port(int32_t value) {
+  _internal_set_proxy_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordParityFanoutTarget.proxy_port)
+}
+
+// -------------------------------------------------------------------
+
+// CordDataSliceFanout
+
+// repeated .proxy_proto.CordParityFanoutTarget targets = 1;
+inline int CordDataSliceFanout::_internal_targets_size() const {
+  return _impl_.targets_.size();
+}
+inline int CordDataSliceFanout::targets_size() const {
+  return _internal_targets_size();
+}
+inline void CordDataSliceFanout::clear_targets() {
+  _impl_.targets_.Clear();
+}
+inline ::proxy_proto::CordParityFanoutTarget* CordDataSliceFanout::mutable_targets(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.CordDataSliceFanout.targets)
+  return _impl_.targets_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::CordParityFanoutTarget >*
+CordDataSliceFanout::mutable_targets() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataSliceFanout.targets)
+  return &_impl_.targets_;
+}
+inline const ::proxy_proto::CordParityFanoutTarget& CordDataSliceFanout::_internal_targets(int index) const {
+  return _impl_.targets_.Get(index);
+}
+inline const ::proxy_proto::CordParityFanoutTarget& CordDataSliceFanout::targets(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataSliceFanout.targets)
+  return _internal_targets(index);
+}
+inline ::proxy_proto::CordParityFanoutTarget* CordDataSliceFanout::_internal_add_targets() {
+  return _impl_.targets_.Add();
+}
+inline ::proxy_proto::CordParityFanoutTarget* CordDataSliceFanout::add_targets() {
+  ::proxy_proto::CordParityFanoutTarget* _add = _internal_add_targets();
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataSliceFanout.targets)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::CordParityFanoutTarget >&
+CordDataSliceFanout::targets() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataSliceFanout.targets)
+  return _impl_.targets_;
+}
+
+// -------------------------------------------------------------------
+
 // CordDataUpdatePlacement
 
 // string key = 1;
@@ -20415,6 +21151,126 @@ inline void CordDataUpdatePlacement::_internal_set_delta_datanode_port(int32_t v
 inline void CordDataUpdatePlacement::set_delta_datanode_port(int32_t value) {
   _internal_set_delta_datanode_port(value);
   // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.delta_datanode_port)
+}
+
+// bool direct_parity_fanout = 14;
+inline void CordDataUpdatePlacement::clear_direct_parity_fanout() {
+  _impl_.direct_parity_fanout_ = false;
+}
+inline bool CordDataUpdatePlacement::_internal_direct_parity_fanout() const {
+  return _impl_.direct_parity_fanout_;
+}
+inline bool CordDataUpdatePlacement::direct_parity_fanout() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.direct_parity_fanout)
+  return _internal_direct_parity_fanout();
+}
+inline void CordDataUpdatePlacement::_internal_set_direct_parity_fanout(bool value) {
+  
+  _impl_.direct_parity_fanout_ = value;
+}
+inline void CordDataUpdatePlacement::set_direct_parity_fanout(bool value) {
+  _internal_set_direct_parity_fanout(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.direct_parity_fanout)
+}
+
+// int32 k = 15;
+inline void CordDataUpdatePlacement::clear_k() {
+  _impl_.k_ = 0;
+}
+inline int32_t CordDataUpdatePlacement::_internal_k() const {
+  return _impl_.k_;
+}
+inline int32_t CordDataUpdatePlacement::k() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.k)
+  return _internal_k();
+}
+inline void CordDataUpdatePlacement::_internal_set_k(int32_t value) {
+  
+  _impl_.k_ = value;
+}
+inline void CordDataUpdatePlacement::set_k(int32_t value) {
+  _internal_set_k(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.k)
+}
+
+// int32 r = 16;
+inline void CordDataUpdatePlacement::clear_r() {
+  _impl_.r_ = 0;
+}
+inline int32_t CordDataUpdatePlacement::_internal_r() const {
+  return _impl_.r_;
+}
+inline int32_t CordDataUpdatePlacement::r() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.r)
+  return _internal_r();
+}
+inline void CordDataUpdatePlacement::_internal_set_r(int32_t value) {
+  
+  _impl_.r_ = value;
+}
+inline void CordDataUpdatePlacement::set_r(int32_t value) {
+  _internal_set_r(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.r)
+}
+
+// int32 z = 17;
+inline void CordDataUpdatePlacement::clear_z() {
+  _impl_.z_ = 0;
+}
+inline int32_t CordDataUpdatePlacement::_internal_z() const {
+  return _impl_.z_;
+}
+inline int32_t CordDataUpdatePlacement::z() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.z)
+  return _internal_z();
+}
+inline void CordDataUpdatePlacement::_internal_set_z(int32_t value) {
+  
+  _impl_.z_ = value;
+}
+inline void CordDataUpdatePlacement::set_z(int32_t value) {
+  _internal_set_z(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordDataUpdatePlacement.z)
+}
+
+// repeated .proxy_proto.CordDataSliceFanout slice_fanouts = 18;
+inline int CordDataUpdatePlacement::_internal_slice_fanouts_size() const {
+  return _impl_.slice_fanouts_.size();
+}
+inline int CordDataUpdatePlacement::slice_fanouts_size() const {
+  return _internal_slice_fanouts_size();
+}
+inline void CordDataUpdatePlacement::clear_slice_fanouts() {
+  _impl_.slice_fanouts_.Clear();
+}
+inline ::proxy_proto::CordDataSliceFanout* CordDataUpdatePlacement::mutable_slice_fanouts(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.CordDataUpdatePlacement.slice_fanouts)
+  return _impl_.slice_fanouts_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::CordDataSliceFanout >*
+CordDataUpdatePlacement::mutable_slice_fanouts() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordDataUpdatePlacement.slice_fanouts)
+  return &_impl_.slice_fanouts_;
+}
+inline const ::proxy_proto::CordDataSliceFanout& CordDataUpdatePlacement::_internal_slice_fanouts(int index) const {
+  return _impl_.slice_fanouts_.Get(index);
+}
+inline const ::proxy_proto::CordDataSliceFanout& CordDataUpdatePlacement::slice_fanouts(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordDataUpdatePlacement.slice_fanouts)
+  return _internal_slice_fanouts(index);
+}
+inline ::proxy_proto::CordDataSliceFanout* CordDataUpdatePlacement::_internal_add_slice_fanouts() {
+  return _impl_.slice_fanouts_.Add();
+}
+inline ::proxy_proto::CordDataSliceFanout* CordDataUpdatePlacement::add_slice_fanouts() {
+  ::proxy_proto::CordDataSliceFanout* _add = _internal_add_slice_fanouts();
+  // @@protoc_insertion_point(field_add:proxy_proto.CordDataUpdatePlacement.slice_fanouts)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::CordDataSliceFanout >&
+CordDataUpdatePlacement::slice_fanouts() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.CordDataUpdatePlacement.slice_fanouts)
+  return _impl_.slice_fanouts_;
 }
 
 // -------------------------------------------------------------------
@@ -22454,6 +23310,10 @@ StripeAndBlockIDs::mutable_datanodeports() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

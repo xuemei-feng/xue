@@ -26,11 +26,11 @@ namespace ECProject
     double wall_sec = 0.0;
     double plan_sec = 0.0;         // uploadCordUpdate（coordinator 规划）
     double payload_prep_sec = 0.0; // 随机负载生成等
-    double upload_sec = 0.0;         // TCP 上传各 cluster slice + checkCommitAbort
+    double upload_sec = 0.0;         // TCP 上传各 cluster slice + checkCommitAbort（BoundedRandom 含扇出）
     double xfer_begin_sec = 0.0;     // 保留字段；auto-start 模式下恒为 0
-    double xfer_wait_sec = 0.0;      // cordPlanWaitTransferComplete 总 wall time
-    double xfer_pure_sec = 0.0;      // 跨 cluster 真实传输（proxy 上报 wall span）
-    double xfer_grpc_sec = 0.0;      // xfer_wait 中非 pure 部分（gRPC + 编排 + Client↔Coordinator RTT）
+    double xfer_wait_sec = 0.0;      // CoRD: cordPlanWaitTransferComplete；BoundedRandom: 直推扇出 wall(max)
+    double xfer_pure_sec = 0.0;      // CoRD/BoundedRandom: 跨 cluster 或校验落盘传输（proxy 上报）
+    double xfer_grpc_sec = 0.0;      // xfer_wait - xfer_pure（编码/编排等）
   };
 
   /** upload 完成后、xfer wait 之前的状态；用于流水线 batch（defer xfer wait）。 */
@@ -42,6 +42,9 @@ namespace ECProject
     double plan_sec = 0.0;
     double payload_prep_sec = 0.0;
     double upload_sec = 0.0;
+    /** BoundedRandom 直推：各数据 cluster 扇出耗时取 max（嵌在 upload 内，无 CordTransferPlan） */
+    double direct_xfer_wait_sec = 0.0;
+    double direct_xfer_pure_sec = 0.0;
   };
 
   class Client
@@ -68,7 +71,7 @@ namespace ECProject
       m_sys_config = ECProject::Config::getInstance(config_path);
       m_toolbox = ECProject::ToolBox::getInstance();
       m_pre_allocated_buffer = new char[static_cast<size_t> (m_sys_config->BlockSize) * static_cast<size_t> (m_sys_config->n)];
-      memset(m_pre_allocated_buffer, 0xaa, (m_sys_config->BlockSize) * static_cast<size_t> (m_sys_config->n));
+      // 写入负载在 set/update 时按次随机填充，此处不预填恒定值
       if (m_sys_config->AppendMode == "CACHED_MODE")
       {
         m_cached_buffer = new char *[m_sys_config->r + m_sys_config->z];
@@ -104,7 +107,7 @@ namespace ECProject
     /** CoRD：半开区间列表；全局校验由 uploadCordUpdate 下发的传输计划在 proxy 侧完成，
      * 本地校验由随后的 uploadCordLocalParityApply 完成（无需二选一）。
      * interval_count 由客户端按区间条数自动填充。
-     * 若 update_payload==nullptr 且 update_payload_bytes==0，则在 coordinator 返回长度后用 0xBB 填充负载。 */
+     * 若 update_payload==nullptr 且 update_payload_bytes==0，则在 coordinator 返回长度后用随机字节填充负载。 */
     bool cord_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges,
                      const char *update_payload, size_t update_payload_bytes,
                      CordUpdateTiming *out_timing = nullptr);
@@ -146,7 +149,8 @@ namespace ECProject
                                        int index,
                                        bool *if_commit_arr,
                                        std::shared_ptr<std::atomic<int>> pending_counter);
-    void async_cord_update_to_proxies(char *cluster_slice_data, std::string cord_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr);
+    void async_cord_update_to_proxies(char *cluster_slice_data, std::string cord_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr,
+                                      double *out_xfer_wait_sec = nullptr, double *out_xfer_pure_sec = nullptr);
     void get_cached_parity_slices(std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array, const int parity_slice_size, const int parity_slice_offset);
     void cache_latest_parity_slices(std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array, const int parity_slice_size, const int parity_slice_offset);
     std::vector<int> get_parameters();
@@ -166,7 +170,7 @@ namespace ECProject
     ECProject::ToolBox *m_toolbox;
     char *m_pre_allocated_buffer = nullptr;
     char **m_cached_buffer = nullptr;
-    /** 预计算校验块缓存：测试数据恒定（0xaa），校验块只需编码一次，后续直接复用。 */
+    /** 已废弃：随机写入后每条 set 必须重新编码，不再复用校验块。 */
     bool m_parity_precomputed = false;
     /** 串行化发往各 proxy 数据口的 TCP，避免与 coordinator 并行 notify 导致的 accept/期望长度错配。 */
     std::mutex m_proxy_tcp_mu;

@@ -1316,8 +1316,11 @@ class CommitAbortKey final :
 
   enum : int {
     kKeyFieldNumber = 1,
-    kIfcommitmetadataFieldNumber = 2,
     kOppFieldNumber = 3,
+    kIfcommitmetadataFieldNumber = 2,
+    kCordXferTimingPresentFieldNumber = 5,
+    kCordXferPureSecFieldNumber = 6,
+    kCordXferWaitSecFieldNumber = 7,
     kStripeIdFieldNumber = 4,
   };
   // string key = 1;
@@ -1334,6 +1337,15 @@ class CommitAbortKey final :
   std::string* _internal_mutable_key();
   public:
 
+  // int32 opp = 3;
+  void clear_opp();
+  int32_t opp() const;
+  void set_opp(int32_t value);
+  private:
+  int32_t _internal_opp() const;
+  void _internal_set_opp(int32_t value);
+  public:
+
   // bool ifcommitmetadata = 2;
   void clear_ifcommitmetadata();
   bool ifcommitmetadata() const;
@@ -1343,13 +1355,31 @@ class CommitAbortKey final :
   void _internal_set_ifcommitmetadata(bool value);
   public:
 
-  // int32 opp = 3;
-  void clear_opp();
-  int32_t opp() const;
-  void set_opp(int32_t value);
+  // bool cord_xfer_timing_present = 5;
+  void clear_cord_xfer_timing_present();
+  bool cord_xfer_timing_present() const;
+  void set_cord_xfer_timing_present(bool value);
   private:
-  int32_t _internal_opp() const;
-  void _internal_set_opp(int32_t value);
+  bool _internal_cord_xfer_timing_present() const;
+  void _internal_set_cord_xfer_timing_present(bool value);
+  public:
+
+  // double cord_xfer_pure_sec = 6;
+  void clear_cord_xfer_pure_sec();
+  double cord_xfer_pure_sec() const;
+  void set_cord_xfer_pure_sec(double value);
+  private:
+  double _internal_cord_xfer_pure_sec() const;
+  void _internal_set_cord_xfer_pure_sec(double value);
+  public:
+
+  // double cord_xfer_wait_sec = 7;
+  void clear_cord_xfer_wait_sec();
+  double cord_xfer_wait_sec() const;
+  void set_cord_xfer_wait_sec(double value);
+  private:
+  double _internal_cord_xfer_wait_sec() const;
+  void _internal_set_cord_xfer_wait_sec(double value);
   public:
 
   // int32 stripe_id = 4;
@@ -1370,8 +1400,11 @@ class CommitAbortKey final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
-    bool ifcommitmetadata_;
     int32_t opp_;
+    bool ifcommitmetadata_;
+    bool cord_xfer_timing_present_;
+    double cord_xfer_pure_sec_;
+    double cord_xfer_wait_sec_;
     int32_t stripe_id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -5502,6 +5535,66 @@ inline void CommitAbortKey::_internal_set_stripe_id(int32_t value) {
 inline void CommitAbortKey::set_stripe_id(int32_t value) {
   _internal_set_stripe_id(value);
   // @@protoc_insertion_point(field_set:coordinator_proto.CommitAbortKey.stripe_id)
+}
+
+// bool cord_xfer_timing_present = 5;
+inline void CommitAbortKey::clear_cord_xfer_timing_present() {
+  _impl_.cord_xfer_timing_present_ = false;
+}
+inline bool CommitAbortKey::_internal_cord_xfer_timing_present() const {
+  return _impl_.cord_xfer_timing_present_;
+}
+inline bool CommitAbortKey::cord_xfer_timing_present() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.CommitAbortKey.cord_xfer_timing_present)
+  return _internal_cord_xfer_timing_present();
+}
+inline void CommitAbortKey::_internal_set_cord_xfer_timing_present(bool value) {
+  
+  _impl_.cord_xfer_timing_present_ = value;
+}
+inline void CommitAbortKey::set_cord_xfer_timing_present(bool value) {
+  _internal_set_cord_xfer_timing_present(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.CommitAbortKey.cord_xfer_timing_present)
+}
+
+// double cord_xfer_pure_sec = 6;
+inline void CommitAbortKey::clear_cord_xfer_pure_sec() {
+  _impl_.cord_xfer_pure_sec_ = 0;
+}
+inline double CommitAbortKey::_internal_cord_xfer_pure_sec() const {
+  return _impl_.cord_xfer_pure_sec_;
+}
+inline double CommitAbortKey::cord_xfer_pure_sec() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.CommitAbortKey.cord_xfer_pure_sec)
+  return _internal_cord_xfer_pure_sec();
+}
+inline void CommitAbortKey::_internal_set_cord_xfer_pure_sec(double value) {
+  
+  _impl_.cord_xfer_pure_sec_ = value;
+}
+inline void CommitAbortKey::set_cord_xfer_pure_sec(double value) {
+  _internal_set_cord_xfer_pure_sec(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.CommitAbortKey.cord_xfer_pure_sec)
+}
+
+// double cord_xfer_wait_sec = 7;
+inline void CommitAbortKey::clear_cord_xfer_wait_sec() {
+  _impl_.cord_xfer_wait_sec_ = 0;
+}
+inline double CommitAbortKey::_internal_cord_xfer_wait_sec() const {
+  return _impl_.cord_xfer_wait_sec_;
+}
+inline double CommitAbortKey::cord_xfer_wait_sec() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.CommitAbortKey.cord_xfer_wait_sec)
+  return _internal_cord_xfer_wait_sec();
+}
+inline void CommitAbortKey::_internal_set_cord_xfer_wait_sec(double value) {
+  
+  _impl_.cord_xfer_wait_sec_ = value;
+}
+inline void CommitAbortKey::set_cord_xfer_wait_sec(double value) {
+  _internal_set_cord_xfer_wait_sec(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.CommitAbortKey.cord_xfer_wait_sec)
 }
 
 // -------------------------------------------------------------------
