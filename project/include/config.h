@@ -38,7 +38,7 @@ namespace ECProject
     int CoordinatorPort = 55555;
     std::string AppendMode = "UNILRC_MODE";
     std::string CodeType = "UniLRC";
-    /** 0: placement uses random_device where applicable. Non-zero: deterministic placement for same seed, stripe_id, topology (RandomLRC + encode Ran). */
+    /** 0: placement uses random_device where applicable. Non-zero: deterministic placement for same seed, stripe_id, topology (RandomLRC / BoundedRandomLRC + encode Ran). */
     std::uint64_t PlacementRandomSeed = 0;
     /** SET 阶段放置的条带数；有效 stripe_id 为 0 .. ClientStripeNum-1 */
     int ClientStripeNum = 100;

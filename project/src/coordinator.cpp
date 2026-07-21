@@ -49,7 +49,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   {
     bool is_azure_like_code(const std::string &code_type) // 辅助函数：判断是否为 Azure 系列分组规则编码
     {
-      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC";
+      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "BoundedRandomLRC" ||
+             code_type == "SplitParityLRC" || code_type == "CordXueLRC";
     }
 
     /** Deterministic seed for placement RNG: same placement_seed + stripe_id -> same sequence (shuffle / cluster / node). */
@@ -1212,6 +1213,148 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     stripe->num_groups = stripe->group_to_blocks.size();
   }
 
+  void CoordinatorImpl::initialize_bounded_random_lrc_stripe_placement(Stripe *stripe)
+  {
+    // BoundedRandomLRC：
+    // 1) 全部数据块 + 全局/本地校验块随机放入全部 ClusterNum 个机架
+    // 2) 约束：每个机架上的总块数（D+G+L）<= r+1
+    // 3) 编码分组保持 Azure 风格（map2group）；机架内节点随机选择
+    Block *blocks_info = new Block[stripe->n];
+    assert(stripe->object_keys.size() == 1);
+
+    const int cluster_num = m_sys_config->ClusterNum;
+    if (cluster_num <= 0)
+    {
+      throw std::runtime_error("ClusterNum must be positive for BoundedRandomLRC placement");
+    }
+    if (stripe->n > cluster_num * (stripe->r + 1))
+    {
+      throw std::runtime_error(
+          "BoundedRandomLRC requires n <= ClusterNum*(r+1) (total blocks fit under per-rack cap)");
+    }
+    if (stripe->z <= 0 || stripe->k % stripe->z != 0)
+    {
+      throw std::runtime_error("BoundedRandomLRC requires z > 0 and k divisible by z");
+    }
+
+    std::vector<int> all_clusters(cluster_num);
+    std::iota(all_clusters.begin(), all_clusters.end(), 0);
+
+    std::mt19937 gen;
+    const std::uint64_t placement_seed = m_sys_config->PlacementRandomSeed;
+    if (placement_seed != 0ULL)
+    {
+      seed_placement_mt19937(gen, placement_seed, stripe->stripe_id);
+    }
+    else
+    {
+      std::random_device rd;
+      gen.seed(rd());
+    }
+
+    const int global_parity_group_id = stripe->z;
+    const int data_per_group = stripe->k / stripe->z;
+    for (int i = 0; i < stripe->n; i++)
+    {
+      blocks_info[i].block_size = m_sys_config->BlockSize;
+      blocks_info[i].map2stripe = stripe->stripe_id;
+      blocks_info[i].map2key = stripe->object_keys[0];
+      if (i < stripe->k)
+      {
+        std::string tmp = "_D";
+        if (i < 10)
+          tmp = "_D0";
+        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i);
+        blocks_info[i].block_id = i;
+        blocks_info[i].block_type = 'D';
+        blocks_info[i].map2group = i / data_per_group;
+      }
+      else if (i < stripe->k + stripe->r)
+      {
+        std::string tmp = "_G";
+        if (i - stripe->k < 10)
+          tmp = "_G0";
+        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i - stripe->k);
+        blocks_info[i].block_id = i;
+        blocks_info[i].block_type = 'G';
+        blocks_info[i].map2group = global_parity_group_id;
+      }
+      else
+      {
+        std::string tmp = "_L";
+        if (i - stripe->k - stripe->r < 10)
+          tmp = "_L0";
+        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i - stripe->k - stripe->r);
+        blocks_info[i].block_id = i;
+        blocks_info[i].block_type = 'L';
+        blocks_info[i].map2group = i - stripe->k - stripe->r;
+      }
+    }
+
+    std::vector<int> block_order(stripe->n);
+    std::iota(block_order.begin(), block_order.end(), 0);
+    const int max_attempts = 256;
+    const int max_blocks_per_cluster = stripe->r + 1;
+    bool placed = false;
+    std::vector<int> assigned_cluster(stripe->n, -1);
+
+    for (int attempt = 0; attempt < max_attempts && !placed; ++attempt)
+    {
+      std::shuffle(block_order.begin(), block_order.end(), gen);
+      std::fill(assigned_cluster.begin(), assigned_cluster.end(), -1);
+      std::map<int, int> cluster_block_count;
+      for (int cid : all_clusters)
+      {
+        cluster_block_count[cid] = 0;
+      }
+      bool ok = true;
+
+      for (int block_idx : block_order)
+      {
+        std::vector<int> candidates = all_clusters;
+        std::shuffle(candidates.begin(), candidates.end(), gen);
+        bool assigned = false;
+        for (int cid : candidates)
+        {
+          if (cluster_block_count[cid] + 1 <= max_blocks_per_cluster)
+          {
+            assigned_cluster[block_idx] = cid;
+            cluster_block_count[cid]++;
+            assigned = true;
+            break;
+          }
+        }
+        if (!assigned)
+        {
+          ok = false;
+          break;
+        }
+      }
+      placed = ok;
+    }
+
+    if (!placed)
+    {
+      throw std::runtime_error(
+          "BoundedRandomLRC placement failed to satisfy per-cluster total block count <= r+1");
+    }
+
+    for (int i = 0; i < stripe->n; i++)
+    {
+      blocks_info[i].map2cluster = assigned_cluster[i];
+      int t_node_id = randomly_select_a_node(blocks_info[i].map2cluster, stripe->stripe_id, gen);
+      blocks_info[i].map2node = t_node_id;
+      update_stripe_info_in_node(t_node_id, stripe->stripe_id, i);
+      m_cluster_table[blocks_info[i].map2cluster].blocks.push_back(&blocks_info[i]);
+      m_cluster_table[blocks_info[i].map2cluster].stripes.insert(stripe->stripe_id);
+      stripe->blocks.push_back(&blocks_info[i]);
+      stripe->place2clusters.insert(blocks_info[i].map2cluster);
+      add_to_map(stripe->group_to_blocks, blocks_info[i].map2group, i);
+    }
+
+    stripe->num_groups = stripe->group_to_blocks.size();
+  }
+
   void CoordinatorImpl::initialize_split_parity_lrc_stripe_placement(Stripe *stripe)
   {
     // 6-cluster 轮询放置（stripe_id % 6）：
@@ -2030,6 +2173,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       else if (code_type == "RandomLRC")
       {
         initialize_random_lrc_stripe_placement(&t_stripe);
+      }
+      else if (code_type == "BoundedRandomLRC")
+      {
+        initialize_bounded_random_lrc_stripe_placement(&t_stripe);
       }
       else if (code_type == "SplitParityLRC")
       {
@@ -3131,7 +3278,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     size_t setSizeBytes = keyValueSize->valuesizebytes();
     std::string code_type = m_sys_config->CodeType;
     assert(setSizeBytes == static_cast<size_t>(m_sys_config->BlockSize) * static_cast<size_t>(m_sys_config->k) && "set size is not equal to the block stripe size!");
-    assert((code_type == "UniLRC" || code_type == "AzureLRC" || code_type == "OptimalLRC" || code_type == "UniformLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC") && "Error: code type must be UniLRC, AzureLRC, OptimalLRC, UniformLRC, RandomLRC, SplitParityLRC, or CordXueLRC!");
+    assert((code_type == "UniLRC" || code_type == "AzureLRC" || code_type == "OptimalLRC" || code_type == "UniformLRC" || code_type == "RandomLRC" || code_type == "BoundedRandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC") && "Error: code type must be UniLRC, AzureLRC, OptimalLRC, UniformLRC, RandomLRC, BoundedRandomLRC, SplitParityLRC, or CordXueLRC!");
 
     Stripe t_stripe;
     t_stripe.stripe_id = m_cur_stripe_id++;
@@ -3157,6 +3304,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     else if (code_type == "RandomLRC")
     {
       initialize_random_lrc_stripe_placement(&t_stripe);
+    }
+    else if (code_type == "BoundedRandomLRC")
+    {
+      initialize_bounded_random_lrc_stripe_placement(&t_stripe);
     }
     else if (code_type == "SplitParityLRC")
     {
@@ -3219,7 +3370,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     size_t setSizeBytes = keyValueSize->valuesizebytes();
     std::string code_type = m_sys_config->CodeType;
     assert(setSizeBytes <= static_cast<size_t>(m_sys_config->BlockSize) * static_cast<size_t>(m_sys_config->k) && "subset size is larger than the block size!");
-    assert((code_type == "UniLRC" || code_type == "AzureLRC" || code_type == "OptimalLRC" || code_type == "UniformLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC") && "Error: code type must be UniLRC, AzureLRC, OptimalLRC, UniformLRC, RandomLRC, SplitParityLRC, or CordXueLRC!");
+    assert((code_type == "UniLRC" || code_type == "AzureLRC" || code_type == "OptimalLRC" || code_type == "UniformLRC" || code_type == "RandomLRC" || code_type == "BoundedRandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC") && "Error: code type must be UniLRC, AzureLRC, OptimalLRC, UniformLRC, RandomLRC, BoundedRandomLRC, SplitParityLRC, or CordXueLRC!");
 
     Stripe t_stripe;
     t_stripe.stripe_id = m_cur_stripe_id++;
@@ -3245,6 +3396,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     else if (code_type == "RandomLRC")
     {
       initialize_random_lrc_stripe_placement(&t_stripe);
+    }
+    else if (code_type == "BoundedRandomLRC")
+    {
+      initialize_bounded_random_lrc_stripe_placement(&t_stripe);
     }
     else if (code_type == "SplitParityLRC")
     {

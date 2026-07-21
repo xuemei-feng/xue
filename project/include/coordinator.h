@@ -176,6 +176,7 @@ namespace ECProject
     void initialize_optimal_lrc_stripe_placement(Stripe *stripe);
     void initialize_uniform_lrc_stripe_placement(Stripe *stripe);
     void initialize_random_lrc_stripe_placement(Stripe *stripe);
+    void initialize_bounded_random_lrc_stripe_placement(Stripe *stripe);
     void initialize_split_parity_lrc_stripe_placement(Stripe *stripe);
     void initialize_cord_xue_lrc_stripe_placement(Stripe *stripe);
     void initialize_xue_tripe_placement(Stripe *stripe);

@@ -32,7 +32,8 @@ namespace ECProject
 
     bool is_azure_like_code(const std::string &code_type)
     {
-      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC";
+      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "BoundedRandomLRC" ||
+             code_type == "SplitParityLRC" || code_type == "CordXueLRC";
     }
 
     using CordClock = std::chrono::steady_clock;
