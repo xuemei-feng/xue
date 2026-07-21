@@ -11,11 +11,22 @@
 #include <cstring>
 #include <sstream>
 #include <sys/socket.h>
+#include <random>
 #include "unilrc_encoder.h"
 namespace ECProject
 {
   namespace
   {
+    void fill_random_bytes(char *buf, size_t n)
+    {
+      if (buf == nullptr || n == 0)
+        return;
+      thread_local std::mt19937 gen{std::random_device{}()};
+      std::uniform_int_distribution<int> dist(0, 255);
+      for (size_t i = 0; i < n; ++i)
+        buf[i] = static_cast<char>(dist(gen));
+    }
+
     std::string cord_client_hex_preview(const char *p, size_t len, size_t max_show = 48)
     {
       if (!p || len == 0)
@@ -836,6 +847,11 @@ namespace ECProject
     }
     else
     {
+      // 每条 stripe 使用独立随机数据；校验块必须随数据重新编码
+      const size_t buf_bytes =
+          static_cast<size_t>(m_sys_config->BlockSize) * static_cast<size_t>(m_sys_config->n);
+      fill_random_bytes(m_pre_allocated_buffer, buf_bytes);
+
       std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
@@ -850,27 +866,23 @@ namespace ECProject
       parity_ptr_array.insert(parity_ptr_array.end(), global_parity_ptr_array.begin(), global_parity_ptr_array.end());
       parity_ptr_array.insert(parity_ptr_array.end(), local_parity_ptr_array.begin(), local_parity_ptr_array.end());
 
-      // 测试数据恒定（0xaa），校验块只需编码一次，后续条带直接复用
-      if (!m_parity_precomputed)
+      if (m_sys_config->CodeType == "UniLRC")
       {
-        if (m_sys_config->CodeType == "UniLRC")
-        {
-          ECProject::encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-        }
-        else if (m_sys_config->CodeType == "OptimalLRC")
-        {
-          ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-        }
-        else if (m_sys_config->CodeType == "UniformLRC")
-        {
-          ECProject::encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-        }
-        else if (is_azure_like_code(m_sys_config->CodeType))
-        {
-          ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-        }
-        m_parity_precomputed = true;
+        ECProject::encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
+      else if (m_sys_config->CodeType == "OptimalLRC")
+      {
+        ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+      }
+      else if (m_sys_config->CodeType == "UniformLRC")
+      {
+        ECProject::encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+      }
+      else if (is_azure_like_code(m_sys_config->CodeType))
+      {
+        ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+      }
+      (void)m_parity_precomputed;
       // 回退到 client 直接并发发送给所有 proxy（旧逻辑），先跑通带宽测试
       // 使用 Asio 多路复用实现真正的异步并发发送（单线程事件循环）
       asio::io_context io_context;
@@ -954,6 +966,10 @@ namespace ECProject
     }
     else
     {
+      const size_t buf_bytes =
+          static_cast<size_t>(m_sys_config->BlockSize) * static_cast<size_t>(m_sys_config->n);
+      fill_random_bytes(m_pre_allocated_buffer, buf_bytes);
+
       std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
@@ -1093,6 +1109,7 @@ namespace ECProject
       return false;
     }
 
+    fill_random_bytes(m_pre_allocated_buffer, static_cast<size_t>(reply.sum_append_size()));
     std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
     std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
     std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
@@ -1221,13 +1238,13 @@ namespace ECProject
       }
       const auto prep_t0 = std::chrono::steady_clock::now();
       owned_payload.resize(static_cast<size_t>(reply.sum_append_size()));
-      std::memset(owned_payload.data(), 0xbb, owned_payload.size());
+      fill_random_bytes(owned_payload.data(), owned_payload.size());
       pending->payload_prep_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - prep_t0).count();
       payload_send = owned_payload.data();
       if (cord_trace_log(IF_DEBUG))
       {
         std::cout << "[CoRD][Client " << m_clientID << "] stripe_id=" << stripe_id
-                  << " auto 0xBB fill payload total_bytes=" << owned_payload.size() << " intervals:";
+                  << " auto random fill payload total_bytes=" << owned_payload.size() << " intervals:";
         for (const auto &r : logical_ranges)
           std::cout << " [" << r.first << "," << r.second << ")";
         std::cout << '\n'
