@@ -14,7 +14,7 @@ namespace ECProject
       return code_type == "CordXueLRC";
     }
 
-    /** Uniform 风格本地组：每组 (k+r)/z 个槽位，最后一组含 r 个全局校验块。 */
+    /** Uniform 风格本地组：槽位尽量均分为 (k+r)/z 或 +1（较大组在末尾），最后一组含 r 个全局校验块。 */
     inline int local_group_slot_size(int k, int r, int z)
     {
       return (k + r) / z;

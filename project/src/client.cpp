@@ -830,48 +830,173 @@ namespace ECProject
     }
     else
     {
-      // 每次 set 重新生成随机负载，再按 placement 切分并编码校验（不再使用恒定 0xaa / 预计算校验）
-      fill_random_bytes(m_pre_allocated_buffer,
-                        static_cast<size_t>(m_sys_config->BlockSize) * static_cast<size_t>(m_sys_config->n));
-      std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
+      const int k = m_sys_config->k;
+      const int r = m_sys_config->r;
+      const int z = m_sys_config->z;
+      const int n = m_sys_config->n;
+      const int block_size = static_cast<int>(m_sys_config->BlockSize);
+      const size_t stripe_bytes = static_cast<size_t>(block_size) * static_cast<size_t>(n);
+
+      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" ||
+             m_sys_config->CodeType == "UniformLRC" || is_cord_xue_code(m_sys_config->CodeType) ||
+             is_azure_like_code(m_sys_config->CodeType));
+
+      fill_random_bytes(m_pre_allocated_buffer, stripe_bytes);
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
 
-      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_cord_xue_code(m_sys_config->CodeType) || is_azure_like_code(m_sys_config->CodeType));
-      std::vector<int> data_block_num_per_group = get_data_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      std::vector<int> global_parity_block_num_per_group = get_global_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      std::vector<int> local_parity_block_num_per_group = get_local_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      std::vector<char *> data_ptr_array, global_parity_ptr_array, local_parity_ptr_array;
-      split_for_set_data_and_parity(&reply, cluster_slice_data, data_block_num_per_group, global_parity_block_num_per_group, local_parity_block_num_per_group, data_ptr_array, global_parity_ptr_array, local_parity_ptr_array);
-      std::vector<char *> parity_ptr_array;
-      parity_ptr_array.insert(parity_ptr_array.end(), global_parity_ptr_array.begin(), global_parity_ptr_array.end());
-      parity_ptr_array.insert(parity_ptr_array.end(), local_parity_ptr_array.begin(), local_parity_ptr_array.end());
+      std::vector<char *> send_slice_ptrs;
+      // CordXue：重排后的发送缓冲需在 io_context.run() 期间保持存活
+      std::vector<std::vector<char>> cord_send_bufs;
 
-      if (m_sys_config->CodeType == "UniLRC")
+      if (is_cord_xue_code(m_sys_config->CodeType))
       {
-        ECProject::encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+        // 1) 按逻辑本地组布局编码
+        std::vector<int> data_block_num_per_group =
+            get_data_block_num_per_group(k, r, z, m_sys_config->CodeType);
+        std::vector<int> global_parity_block_num_per_group =
+            get_global_parity_block_num_per_group(k, r, z, m_sys_config->CodeType);
+        std::vector<int> local_parity_block_num_per_group =
+            get_local_parity_block_num_per_group(k, r, z, m_sys_config->CodeType);
+
+        std::vector<size_t> group_slice_sizes;
+        group_slice_sizes.reserve(data_block_num_per_group.size());
+        size_t logical_sum = 0;
+        for (size_t gi = 0; gi < data_block_num_per_group.size(); ++gi)
+        {
+          const int blocks_in_group = data_block_num_per_group[gi] + global_parity_block_num_per_group[gi] +
+                                      local_parity_block_num_per_group[gi];
+          const size_t sz = static_cast<size_t>(blocks_in_group) * static_cast<size_t>(block_size);
+          group_slice_sizes.push_back(sz);
+          logical_sum += sz;
+        }
+        assert(logical_sum == stripe_bytes && "CordXue SET: logical group layout size mismatch");
+
+        std::vector<char *> group_slices =
+            m_toolbox->splitCharPointer(m_pre_allocated_buffer, stripe_bytes, group_slice_sizes);
+
+        std::vector<char *> data_ptr_array, global_parity_ptr_array, local_parity_ptr_array;
+        for (size_t gi = 0; gi < group_slices.size(); ++gi)
+        {
+          char *p = group_slices[gi];
+          for (int d = 0; d < data_block_num_per_group[gi]; ++d)
+          {
+            data_ptr_array.push_back(p);
+            p += block_size;
+          }
+          for (int g = 0; g < global_parity_block_num_per_group[gi]; ++g)
+          {
+            global_parity_ptr_array.push_back(p);
+            p += block_size;
+          }
+          for (int l = 0; l < local_parity_block_num_per_group[gi]; ++l)
+          {
+            local_parity_ptr_array.push_back(p);
+            p += block_size;
+          }
+        }
+        assert(static_cast<int>(data_ptr_array.size()) == k);
+        assert(static_cast<int>(global_parity_ptr_array.size()) == r);
+        assert(static_cast<int>(local_parity_ptr_array.size()) == z);
+
+        std::vector<char *> parity_ptr_array;
+        parity_ptr_array.insert(parity_ptr_array.end(), global_parity_ptr_array.begin(),
+                                global_parity_ptr_array.end());
+        parity_ptr_array.insert(parity_ptr_array.end(), local_parity_ptr_array.begin(),
+                                local_parity_ptr_array.end());
+        ECProject::encode_uniform_lrc(k, r, z,
+                                      reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                      reinterpret_cast<unsigned char **>(parity_ptr_array.data()),
+                                      block_size);
+
+        std::vector<char *> block_ptrs(static_cast<size_t>(n), nullptr);
+        for (int i = 0; i < k; ++i)
+          block_ptrs[static_cast<size_t>(i)] = data_ptr_array[static_cast<size_t>(i)];
+        for (int i = 0; i < r; ++i)
+          block_ptrs[static_cast<size_t>(k + i)] = global_parity_ptr_array[static_cast<size_t>(i)];
+        for (int i = 0; i < z; ++i)
+          block_ptrs[static_cast<size_t>(k + r + i)] = local_parity_ptr_array[static_cast<size_t>(i)];
+
+        // 2) 按物理 cluster plan（set_block_ids）重排后并发发给各 rack proxy
+        assert(reply.set_block_ids_size() == n &&
+               "CordXue SET: set_block_ids must cover all stripe blocks");
+        int block_cursor = 0;
+        cord_send_bufs.resize(static_cast<size_t>(reply.append_keys_size()));
+        send_slice_ptrs.resize(static_cast<size_t>(reply.append_keys_size()), nullptr);
+        for (int i = 0; i < reply.append_keys_size(); ++i)
+        {
+          const int nblocks =
+              static_cast<int>(reply.cluster_slice_sizes(i) / static_cast<uint64_t>(block_size));
+          assert(nblocks > 0);
+          assert(static_cast<uint64_t>(nblocks) * static_cast<uint64_t>(block_size) ==
+                 reply.cluster_slice_sizes(i));
+          auto &buf = cord_send_bufs[static_cast<size_t>(i)];
+          buf.resize(static_cast<size_t>(nblocks) * static_cast<size_t>(block_size));
+          for (int j = 0; j < nblocks; ++j)
+          {
+            const int bid = reply.set_block_ids(block_cursor++);
+            assert(bid >= 0 && bid < n && block_ptrs[static_cast<size_t>(bid)] != nullptr);
+            std::memcpy(buf.data() + static_cast<size_t>(j) * static_cast<size_t>(block_size),
+                        block_ptrs[static_cast<size_t>(bid)], static_cast<size_t>(block_size));
+          }
+          send_slice_ptrs[static_cast<size_t>(i)] = buf.data();
+        }
+        assert(block_cursor == n);
       }
-      else if (m_sys_config->CodeType == "OptimalLRC")
+      else
       {
-        ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+        // 非 CordXue：仍按 group≡发送切片 的旧路径
+        std::vector<char *> cluster_slice_data =
+            m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
+        std::vector<int> data_block_num_per_group =
+            get_data_block_num_per_group(k, r, z, m_sys_config->CodeType);
+        std::vector<int> global_parity_block_num_per_group =
+            get_global_parity_block_num_per_group(k, r, z, m_sys_config->CodeType);
+        std::vector<int> local_parity_block_num_per_group =
+            get_local_parity_block_num_per_group(k, r, z, m_sys_config->CodeType);
+        std::vector<char *> data_ptr_array, global_parity_ptr_array, local_parity_ptr_array;
+        split_for_set_data_and_parity(&reply, cluster_slice_data, data_block_num_per_group,
+                                      global_parity_block_num_per_group, local_parity_block_num_per_group,
+                                      data_ptr_array, global_parity_ptr_array, local_parity_ptr_array);
+        std::vector<char *> parity_ptr_array;
+        parity_ptr_array.insert(parity_ptr_array.end(), global_parity_ptr_array.begin(),
+                                global_parity_ptr_array.end());
+        parity_ptr_array.insert(parity_ptr_array.end(), local_parity_ptr_array.begin(),
+                                local_parity_ptr_array.end());
+
+        if (m_sys_config->CodeType == "UniLRC")
+        {
+          ECProject::encode_unilrc(k, r, z, reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                   reinterpret_cast<unsigned char **>(parity_ptr_array.data()), block_size);
+        }
+        else if (m_sys_config->CodeType == "OptimalLRC")
+        {
+          ECProject::encode_optimal_lrc(k, r, z, reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                        reinterpret_cast<unsigned char **>(parity_ptr_array.data()),
+                                        block_size);
+        }
+        else if (m_sys_config->CodeType == "UniformLRC")
+        {
+          ECProject::encode_uniform_lrc(k, r, z, reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                        reinterpret_cast<unsigned char **>(parity_ptr_array.data()),
+                                        block_size);
+        }
+        else if (is_azure_like_code(m_sys_config->CodeType))
+        {
+          ECProject::encode_azure_lrc(k, r, z, reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                      reinterpret_cast<unsigned char **>(parity_ptr_array.data()),
+                                      block_size);
+        }
+        send_slice_ptrs = std::move(cluster_slice_data);
       }
-      else if (m_sys_config->CodeType == "UniformLRC" || is_cord_xue_code(m_sys_config->CodeType))
-      {
-        ECProject::encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-      }
-      else if (is_azure_like_code(m_sys_config->CodeType))
-      {
-        ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-      }
-      // 回退到 client 直接并发发送给所有 proxy（旧逻辑），先跑通带宽测试
-      // 使用 Asio 多路复用实现真正的异步并发发送（单线程事件循环）
+
       asio::io_context io_context;
       auto pending = std::make_shared<std::atomic<int>>(reply.append_keys_size());
 
       for (int i = 0; i < reply.append_keys_size(); i++)
       {
         async_append_to_proxies_async(io_context,
-                                      cluster_slice_data[i],
+                                      send_slice_ptrs[static_cast<size_t>(i)],
                                       reply.append_keys(i),
                                       reply.cluster_slice_sizes(i),
                                       reply.proxyips(i),
@@ -881,9 +1006,8 @@ namespace ECProject
                                       pending);
       }
 
-      io_context.run();  // 等待所有异步 TCP 发送完成
+      io_context.run();
 
-      // 并行 gRPC 检查（每个 slice 独立 checkCommitAbort，减少尾延迟）
       const int slice_count = reply.append_keys_size();
       std::vector<std::thread> check_threads;
       check_threads.reserve(static_cast<size_t>(slice_count));
@@ -903,16 +1027,16 @@ namespace ECProject
           }
           else if (!st.ok())
           {
-            std::cout << "[SET-ASYNC] checkCommitAbort failed for key=" << reply.append_keys(i) << std::endl;
+            std::cout << "[SET-ASYNC] checkCommitAbort failed for key=" << reply.append_keys(i)
+                      << std::endl;
           }
         });
       }
       for (auto &t : check_threads)
         t.join();
 
-      // check if all appends are successful
-      bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + slice_count, [](bool val)
-                                  { return val == true; });
+      bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + slice_count,
+                                  [](bool val) { return val == true; });
 
       if (all_true)
       {

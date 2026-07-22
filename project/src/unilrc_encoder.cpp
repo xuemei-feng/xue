@@ -1,4 +1,5 @@
 #include "unilrc_encoder.h"
+#include "cord_xue_lrc.h"
 #include <iostream>
 #include <unordered_map>
 
@@ -394,9 +395,12 @@ void ECProject::gen_uniform_lrc_matrix(unsigned char *encode_matrix, int k, int 
     gf_gen_cauchy_matrix1(encode_matrix, m, k);
     unsigned char *local_vector = new unsigned char[k];
     gf_gen_local_vector(local_vector, k, r);
-    int group_size = (k + r) / z;
-    for(int i = 0; i < k; i++){
-        int row = i / group_size;
+    // 与 cord_xue_lrc 分组一致：支持 (k+r)%z != 0（较大组在末尾，全局块占最后一组槽位）
+    for (int i = 0; i < k; i++)
+    {
+        const int row = cord_xue_lrc::data_block_map2group(i, k, r, z);
+        if (row < 0 || row >= z)
+            continue;
         encode_matrix[(m + row) * k + i] = local_vector[i];
     }
     for(int i = 0; i < r; i++){

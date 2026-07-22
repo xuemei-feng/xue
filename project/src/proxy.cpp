@@ -3820,6 +3820,18 @@ namespace ECProject
     int slice_num = append_stripe_data_placement->blockkeys_size();
     bool is_serialized = append_stripe_data_placement->is_serialized();
 
+    // CordXueLRC SET：plan 必须发给目标物理 rack 的 proxy，该 proxy 只写本架 DN
+    if (is_cord_xue_code(m_sys_config->CodeType) &&
+        append_stripe_data_placement->cluster_id() != m_self_cluster_id)
+    {
+      std::cout << "[Proxy" << m_self_cluster_id << "][Append] reject plan key="
+                << append_stripe_data_placement->key()
+                << " cluster_id=" << append_stripe_data_placement->cluster_id()
+                << " (self=" << m_self_cluster_id << ")" << std::endl;
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT,
+                          "append plan cluster_id must match proxy self cluster");
+    }
+
     auto placement_copy = std::make_shared<proxy_proto::AppendStripeDataPlacement>(*append_stripe_data_placement);
 
     auto append_and_save = [this, stripe_id, cluster_append_size, slice_num, placement_copy, is_serialized]() mutable

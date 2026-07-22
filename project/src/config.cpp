@@ -41,7 +41,12 @@ namespace ECProject
     }
     if (CodeType == "CordXueLRC")
     {
-      assert((k + r) % z == 0 && "Error: CordXueLRC requires (k + r) divisible by z");
+      assert(k > 0 && r > 0 && z > 0 && "Error: CordXueLRC requires k, r, z > 0");
+      // 允许 (k+r)%z != 0：本地组槽位按 floor/ceil 分配（较大组在末尾），全局块仍全部放入最后一组。
+      // 因此要求最后一组槽位数足以容纳 r 个全局块。
+      const int last_group_slots = (k + r) / z + (((k + r) % z) > 0 ? 1 : 0);
+      assert(last_group_slots >= r &&
+             "Error: CordXueLRC requires last local group slots >= r");
       // Cord 放置会把本地组拆到多个 cluster，单 cluster 最密约：
       // global: r+z；primary/batch: r+1；remainder: 最多 z*r。
       // 同 stripe 同 cluster 要求不同 datanode，故节点数需大于该上界。
