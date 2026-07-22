@@ -1110,7 +1110,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::vector<int> selected_clusters;
     selected_clusters.reserve(target_cluster_num);
     // 轮询选择紧邻 cluster：以 stripe_id 为起点，按环形连续取 4 个。
-    const int start_cluster = stripe->stripe_id % cluster_num;
+    // 布局固定按 stripe 0
+    const int layout_sid = 0;
+    const int start_cluster = layout_sid % cluster_num;
     for (int i = 0; i < target_cluster_num; ++i)
     {
       selected_clusters.push_back((start_cluster + i) % cluster_num);
@@ -1120,7 +1122,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     const std::uint64_t placement_seed = m_sys_config->PlacementRandomSeed;
     if (placement_seed != 0ULL)
     {
-      seed_placement_mt19937(gen, placement_seed, stripe->stripe_id);
+      seed_placement_mt19937(gen, placement_seed, 0 /* same layout as stripe 0 */);
     }
     else
     {
@@ -1241,44 +1243,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   }
 
 
-  bool CoordinatorImpl::apply_fixed_placement_layout_if_ready(Stripe *stripe, Block *blocks_info)
-  {
-    if (!m_fixed_placement_layout_ready)
-      return false;
-    if (static_cast<int>(m_fixed_placement_clusters.size()) != stripe->n ||
-        static_cast<int>(m_fixed_placement_nodes.size()) != stripe->n)
-      return false;
-
-    std::cout << "[PLACE] stripe " << stripe->stripe_id
-              << " reuse cached layout (clusters/nodes) from first placement" << std::endl;
-    for (int i = 0; i < stripe->n; i++)
-    {
-      blocks_info[i].map2cluster = m_fixed_placement_clusters[static_cast<size_t>(i)];
-      blocks_info[i].map2node = m_fixed_placement_nodes[static_cast<size_t>(i)];
-      update_stripe_info_in_node(blocks_info[i].map2node, stripe->stripe_id, i);
-      m_cluster_table[blocks_info[i].map2cluster].blocks.push_back(&blocks_info[i]);
-      m_cluster_table[blocks_info[i].map2cluster].stripes.insert(stripe->stripe_id);
-      stripe->blocks.push_back(&blocks_info[i]);
-      stripe->place2clusters.insert(blocks_info[i].map2cluster);
-      add_to_map(stripe->group_to_blocks, blocks_info[i].map2group, i);
-    }
-    stripe->num_groups = static_cast<int>(stripe->group_to_blocks.size());
-    return true;
-  }
-
-  void CoordinatorImpl::save_fixed_placement_layout(const Stripe *stripe)
-  {
-    m_fixed_placement_clusters.resize(static_cast<size_t>(stripe->n));
-    m_fixed_placement_nodes.resize(static_cast<size_t>(stripe->n));
-    for (int i = 0; i < stripe->n; i++)
-    {
-      m_fixed_placement_clusters[static_cast<size_t>(i)] = stripe->blocks[static_cast<size_t>(i)]->map2cluster;
-      m_fixed_placement_nodes[static_cast<size_t>(i)] = stripe->blocks[static_cast<size_t>(i)]->map2node;
-    }
-    m_fixed_placement_layout_ready = true;
-    std::cout << "[PLACE] cached layout from stripe " << stripe->stripe_id
-              << " for subsequent stripes" << std::endl;
-  }
 
   void CoordinatorImpl::initialize_split_parity_lrc_stripe_placement(Stripe *stripe)
   {
@@ -1308,7 +1272,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     // 以 stripe_id 为起点环形选取 ceil(n/(r+1)) 个机架
     std::vector<int> selected_clusters;
     selected_clusters.reserve(static_cast<size_t>(target_rack_num));
-    const int start_cluster = stripe->stripe_id % cluster_num;
+    // 布局固定按 stripe 0
+    const int layout_sid = 0;
+    const int start_cluster = layout_sid % cluster_num;
     for (int i = 0; i < target_rack_num; ++i)
     {
       selected_clusters.push_back((start_cluster + i) % cluster_num);
@@ -1326,7 +1292,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     const std::uint64_t placement_seed = m_sys_config->PlacementRandomSeed;
     if (placement_seed != 0ULL)
     {
-      seed_placement_mt19937(gen, placement_seed, stripe->stripe_id);
+      seed_placement_mt19937(gen, placement_seed, 0 /* same layout as stripe 0 */);
     }
     else
     {
@@ -1374,9 +1340,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
     std::vector<int> block_order(stripe->n);
     std::iota(block_order.begin(), block_order.end(), 0);
-    if (apply_fixed_placement_layout_if_ready(stripe, blocks_info))
-      return;
-
     std::vector<int> assigned_cluster(stripe->n, -1);
     const int max_attempts = 256;
     bool placed = false;
@@ -1460,8 +1423,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
 
     stripe->num_groups = stripe->group_to_blocks.size();
-    if (!m_fixed_placement_layout_ready)
-      save_fixed_placement_layout(stripe);
   }
 
   void CoordinatorImpl::initialize_cord_xue_lrc_stripe_placement(Stripe *stripe)
@@ -1486,7 +1447,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
 
     const int h = stripe->k / stripe->z;
-    const int global_cluster = stripe->stripe_id % cluster_num;
+    // 布局固定按 stripe 0
+    const int layout_sid = 0;
+    const int global_cluster = layout_sid % cluster_num;
     int cluster_cursor = global_cluster + 1;
 
     auto next_non_global_cluster = [&]() -> int {
@@ -1504,7 +1467,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     const std::uint64_t placement_seed = m_sys_config->PlacementRandomSeed;
     if (placement_seed != 0ULL)
     {
-      seed_placement_mt19937(gen, placement_seed, stripe->stripe_id);
+      seed_placement_mt19937(gen, placement_seed, 0 /* same layout as stripe 0 */);
     }
     else
     {
@@ -1549,9 +1512,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         blocks_info[i].map2group = i - stripe->k - stripe->r;
       }
     }
-
-    if (apply_fixed_placement_layout_if_ready(stripe, blocks_info))
-      return;
 
     std::vector<int> assigned_cluster(stripe->n, -1);
 
@@ -1638,8 +1598,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
 
     stripe->num_groups = stripe->group_to_blocks.size();
-    if (!m_fixed_placement_layout_ready)
-      save_fixed_placement_layout(stripe);
   }
 
   void CoordinatorImpl::add_to_map(std::map<int, std::vector<int>> &map, int key, int value)
