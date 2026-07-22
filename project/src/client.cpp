@@ -1608,7 +1608,7 @@ namespace ECProject
     request.set_clientport(m_clientPortForGet);
     coordinator_proto::ReplyProxyIPsPorts reply;
 
-    // 与文档一致：先 getStripe，再开 k 个 accept
+    // 与文档一致：先 getStripe，再按机架数开 accept
     grpc::Status status = m_coordinator_ptr->getStripe(&context, request, &reply);
     if (!status.ok())
     {
@@ -1616,38 +1616,68 @@ namespace ECProject
       return nullptr;
     }
 
+    // 每个机架一条连接批量回传：连接数 = 参与回传的机架数
+    const int conn_num = reply.proxyips_size();
+    if (conn_num <= 0)
+    {
+      std::cout << "[Client] get stripe: no rack connection expected" << std::endl;
+      return nullptr;
+    }
+
     std::atomic<int> bad_blocks{0};
     std::vector<std::thread> threads;
-    threads.reserve(static_cast<size_t>(data_block_num));
-    for (int i = 0; i < data_block_num; i++)
+    threads.reserve(static_cast<size_t>(conn_num));
+    for (int c = 0; c < conn_num; c++)
     {
       threads.emplace_back([this, data_ptr_array, block_size, data_size, &bad_blocks]() mutable {
         asio::io_context io_context;
         asio::ip::tcp::socket socket_data(io_context);
         this->acceptor.accept(socket_data);
-        uint32_t block_id = 0;
-        asio::read(socket_data, asio::buffer(&block_id, sizeof(uint32_t)));
-        if (static_cast<size_t>(block_id) * static_cast<size_t>(block_size) + static_cast<size_t>(block_size) > data_size)
+        asio::error_code error;
+
+        // 连接头：本机架回传的块数
+        uint32_t num_blocks = 0;
+        asio::read(socket_data, asio::buffer(&num_blocks, sizeof(uint32_t)), error);
+        if (error)
         {
-          std::cout << "[Client] get stripe invalid block_id=" << block_id << std::endl;
+          std::cout << "[Client] get stripe read num_blocks failed: " << error.message() << std::endl;
           bad_blocks.fetch_add(1);
           asio::error_code ignore_ec;
           socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
           socket_data.close(ignore_ec);
           return;
         }
-        asio::error_code error;
-        size_t len = asio::read(
-            socket_data,
-            asio::buffer(data_ptr_array.get() + static_cast<size_t>(block_id) * static_cast<size_t>(block_size),
-                         static_cast<size_t>(block_size)),
-            error);
-        if (len != static_cast<size_t>(block_size))
+
+        for (uint32_t b = 0; b < num_blocks; b++)
         {
-          std::cout << "[Client] get stripe block failed! block_id=" << block_id
-                    << " len=" << len << " ec=" << error.message() << std::endl;
-          bad_blocks.fetch_add(1);
+          uint32_t block_id = 0;
+          asio::read(socket_data, asio::buffer(&block_id, sizeof(uint32_t)), error);
+          if (error)
+          {
+            std::cout << "[Client] get stripe read block_id failed: " << error.message() << std::endl;
+            bad_blocks.fetch_add(1);
+            break;
+          }
+          if (static_cast<size_t>(block_id) * static_cast<size_t>(block_size) + static_cast<size_t>(block_size) > data_size)
+          {
+            std::cout << "[Client] get stripe invalid block_id=" << block_id << std::endl;
+            bad_blocks.fetch_add(1);
+            break;
+          }
+          size_t len = asio::read(
+              socket_data,
+              asio::buffer(data_ptr_array.get() + static_cast<size_t>(block_id) * static_cast<size_t>(block_size),
+                           static_cast<size_t>(block_size)),
+              error);
+          if (len != static_cast<size_t>(block_size))
+          {
+            std::cout << "[Client] get stripe block failed! block_id=" << block_id
+                      << " len=" << len << " ec=" << error.message() << std::endl;
+            bad_blocks.fetch_add(1);
+            break;
+          }
         }
+
         asio::error_code ignore_ec;
         socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
         socket_data.close(ignore_ec);
