@@ -3207,75 +3207,88 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     return grpc::Status::OK;
   }
 
+  // SET 按物理机架（cluster）聚合：Client 并发发到各接收 rack 的 Proxy，再由 Proxy 写本 rack DN。
   std::vector<proxy_proto::AppendStripeDataPlacement> CoordinatorImpl::generate_add_plans(Stripe *stripe)
   {
-    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans;
-    for (int i = 0; i < stripe->num_groups; i++)
+    std::map<int, std::vector<const Block *>> cluster_blocks;
+    for (const Block *b : stripe->blocks)
     {
-      proxy_proto::AppendStripeDataPlacement plan;
-      int mapped_cluster_id = stripe->blocks[stripe->group_to_blocks[i][0]]->map2cluster;
-      size_t append_size = stripe->group_to_blocks[i].size() * m_sys_config->BlockSize;
+      cluster_blocks[b->map2cluster].push_back(b);
+    }
 
-      plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, i));
+    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans;
+    add_plans.reserve(cluster_blocks.size());
+    for (auto &kv : cluster_blocks)
+    {
+      const int cluster_id = kv.first;
+      auto &blocks = kv.second;
+      std::sort(blocks.begin(), blocks.end(), [](const Block *a, const Block *b) {
+        return a->block_id < b->block_id;
+      });
+
+      proxy_proto::AppendStripeDataPlacement plan;
+      const size_t append_size = blocks.size() * static_cast<size_t>(m_sys_config->BlockSize);
+      plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, cluster_id));
       plan.set_stripe_id(stripe->stripe_id);
       plan.set_append_size(append_size);
       plan.set_is_merge_parity(false);
-      plan.set_cluster_id(mapped_cluster_id);
+      plan.set_cluster_id(cluster_id);
       plan.set_append_mode("UNILRC_MODE");
       plan.set_is_serialized(false);
 
-      for (int j = 0; j < stripe->group_to_blocks[i].size(); j++)
+      for (const Block *b : blocks)
       {
-        addBlockToAppendPlan(plan, stripe->blocks[stripe->group_to_blocks[i][j]], m_node_table[stripe->blocks[stripe->group_to_blocks[i][j]]->map2node], std::make_pair(m_sys_config->BlockSize, 0));
+        addBlockToAppendPlan(plan, b, m_node_table[b->map2node], std::make_pair(m_sys_config->BlockSize, 0));
       }
-
-      add_plans.push_back(plan);
+      add_plans.push_back(std::move(plan));
     }
-
     return add_plans;
   }
 
   std::vector<proxy_proto::AppendStripeDataPlacement> CoordinatorImpl::generate_sub_add_plans(Stripe *stripe, size_t subset_size)
   {
-    int data_block_num = subset_size / m_sys_config->BlockSize;
-    int k = m_sys_config->k;
-    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans;
-    for (int i = 0; i < stripe->num_groups; i++)
+    const int data_block_num = static_cast<int>(subset_size / m_sys_config->BlockSize);
+    const int k = m_sys_config->k;
+    std::map<int, std::vector<const Block *>> cluster_blocks;
+    for (const Block *b : stripe->blocks)
     {
+      if (b->block_id < k && b->block_id >= data_block_num)
+      {
+        continue;
+      }
+      cluster_blocks[b->map2cluster].push_back(b);
+    }
+
+    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans;
+    add_plans.reserve(cluster_blocks.size());
+    for (auto &kv : cluster_blocks)
+    {
+      const int cluster_id = kv.first;
+      auto &blocks = kv.second;
+      if (blocks.empty())
+      {
+        continue;
+      }
+      std::sort(blocks.begin(), blocks.end(), [](const Block *a, const Block *b) {
+        return a->block_id < b->block_id;
+      });
+
       proxy_proto::AppendStripeDataPlacement plan;
-      int block_num = 0;
-      for (int j = 0; j < stripe->group_to_blocks[i].size(); j++)
-      {
-        int block_id = stripe->group_to_blocks[i][j];
-        if(block_id < k && block_id >= data_block_num)
-        {
-          continue;
-        }
-        addBlockToAppendPlan(plan, stripe->blocks[stripe->group_to_blocks[i][j]], m_node_table[stripe->blocks[stripe->group_to_blocks[i][j]]->map2node], std::make_pair(m_sys_config->BlockSize, 0));
-        block_num++;
-      }
-
-      size_t append_size = block_num * m_sys_config->BlockSize;
-      if(append_size == 0)
-      {
-        //plan.set_append_size(0);
-        //add_plans.push_back(plan);
-        continue; // no data to append
-      }
-
-      int mapped_cluster_id = stripe->blocks[stripe->group_to_blocks[i][0]]->map2cluster;
-
-      plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, i));
+      const size_t append_size = blocks.size() * static_cast<size_t>(m_sys_config->BlockSize);
+      plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, cluster_id));
       plan.set_stripe_id(stripe->stripe_id);
       plan.set_is_merge_parity(false);
-      plan.set_cluster_id(mapped_cluster_id);
+      plan.set_cluster_id(cluster_id);
       plan.set_append_mode("UNILRC_MODE");
       plan.set_is_serialized(false);
       plan.set_append_size(append_size);
 
-      add_plans.push_back(plan);
+      for (const Block *b : blocks)
+      {
+        addBlockToAppendPlan(plan, b, m_node_table[b->map2node], std::make_pair(m_sys_config->BlockSize, 0));
+      }
+      add_plans.push_back(std::move(plan));
     }
-
     return add_plans;
   }
 
@@ -3399,13 +3412,18 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         t.join();
     }
 
-    // 串行填充 proxyIPPort（protobuf 非线程安全）
+    // 串行填充 proxyIPPort（protobuf 非线程安全）：按物理机架，附带 set_block_ids
     for (const auto &plan : add_plans)
     {
       proxyIPPort->add_append_keys(plan.key());
       proxyIPPort->add_proxyips(m_cluster_table[plan.cluster_id()].proxy_ip);
       proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::SET_XFER_PORT_OFFSET); // use another port to accept data
       proxyIPPort->add_cluster_slice_sizes(plan.append_size());
+      proxyIPPort->add_group_ids(plan.cluster_id());
+      for (int j = 0; j < plan.blockids_size(); ++j)
+      {
+        proxyIPPort->add_set_block_ids(plan.blockids(j));
+      }
       sum_append_size += plan.append_size();
     }
     proxyIPPort->set_sum_append_size(sum_append_size);
@@ -3487,16 +3505,19 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         t.join();
     }
 
-    // 串行填充 proxyIPPort（protobuf 非线程安全）
+    // 串行填充 proxyIPPort（protobuf 非线程安全）：按物理机架，附带 set_block_ids
     for (const auto &plan : add_plans)
     {
       proxyIPPort->add_append_keys(plan.key());
       proxyIPPort->add_proxyips(m_cluster_table[plan.cluster_id()].proxy_ip);
       proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::SET_XFER_PORT_OFFSET); // use another port to accept data
       proxyIPPort->add_cluster_slice_sizes(plan.append_size());
-      //proxyIPPort->add_group_ids(group_id);
+      proxyIPPort->add_group_ids(plan.cluster_id());
+      for (int j = 0; j < plan.blockids_size(); ++j)
+      {
+        proxyIPPort->add_set_block_ids(plan.blockids(j));
+      }
       sum_append_size += plan.append_size();
-      //group_id++;
     }
     proxyIPPort->set_sum_append_size(sum_append_size);
 
@@ -3870,8 +3891,16 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       stripe_block_ids[idx].add_datanodeips(m_node_table[m_stripe_table[stripe_ids[i]].blocks[block_ids[i]]->map2node].node_ip);
       stripe_block_ids[idx].add_datanodeports(m_node_table[m_stripe_table[stripe_ids[i]].blocks[block_ids[i]]->map2node].node_port);
     }
+    // 回填机架数，供 Client 并行收包时解锁多余 accept worker
+    for (int cid : unique_cluster_ids)
+    {
+      proxyIPPort->add_proxyips(m_cluster_table[cid].proxy_ip);
+      proxyIPPort->add_proxyports(m_cluster_table[cid].proxy_port);
+      proxyIPPort->add_group_ids(cid);
+    }
+
     std::vector<std::thread> get_threads;
-    for(int i = 0; i < unique_cluster_ids.size(); i++){
+    for(int i = 0; i < static_cast<int>(unique_cluster_ids.size()); i++){
       get_threads.push_back(std::thread([this, &stripe_block_ids, &client_ip, &client_port, &unique_cluster_ids, i](){
         grpc::ClientContext cont;
         proxy_proto::GetReply stripe_reply;

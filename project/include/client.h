@@ -13,6 +13,7 @@
 #include "config.h"
 #include "toolbox.h"
 #include "devcommon.h"
+#include <atomic>
 #include <chrono>
 #include <memory>
 #include <mutex>
@@ -138,6 +139,19 @@ namespace ECProject
     int get_append_slice_plans(std::string append_mode, int curr_logical_offset, int append_size, std::vector<std::vector<int>> *node_slice_sizes_per_cluster, std::vector<int> *modified_data_block_nums_per_cluster, std::vector<int> *data_ptr_size_array, int &parity_slice_size, int &parity_slice_offset);
     void split_for_append_data_and_parity(const coordinator_proto::ReplyProxyIPsPorts *reply_proxy_ips_ports, const std::vector<char *> &cluster_slice_data, const std::vector<std::vector<int>> &node_slice_sizes_per_cluster, const std::vector<int> &modified_data_block_nums_per_cluster, std::vector<char *> &data_ptr_array, std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array);
     void split_for_set_data_and_parity(const coordinator_proto::ReplyProxyIPsPorts *reply_proxy_ips_ports, const std::vector<char *> &cluster_slice_data, const std::vector<int> &data_block_num_per_group, const std::vector<int> &global_parity_block_num_per_group, const std::vector<int> &local_parity_block_num_per_group, std::vector<char *> &data_ptr_array, std::vector<char *> &global_parity_ptr_array, std::vector<char *> &local_parity_ptr_array);
+    /** SET：在 m_pre_allocated_buffer 按 block_id 顺序编码整条带 */
+    bool encode_full_stripe_in_preallocated_buffer();
+    /** SET：按 reply.set_block_ids 将块 pack 到各物理机架，并发发往对应 Proxy */
+    bool pack_and_send_set_by_physical_cluster(const coordinator_proto::ReplyProxyIPsPorts &reply);
+    /**
+     * GET：按机架批量收包，多机架并行 accept/读。
+     * 每条连接：uint32_t n + n×(uint32_t block_id + BlockSize)。
+     * expected_racks：notify 完成后写入实际机架数（>=0）；未就绪时为 -1。
+     * 用于对多余的 ClusterNum accept worker 发送 n=0 探测包解锁。
+     */
+    bool recv_rack_batched_blocks(char *buf, size_t buf_bytes, int expect_blocks,
+                                  std::atomic<int> *expected_racks, int *out_bad_blocks);
+    void poke_get_acceptor_unlock();
     void async_append_to_proxies(char *cluster_slice_data, std::string append_key, int cluster_slice_size, std::string proxy_ip, int proxy_port, int index, bool *if_commit_arr);
     // 真正的异步版本（Asio 多路复用）
     void async_append_to_proxies_async(asio::io_context &io_context,

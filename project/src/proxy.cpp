@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <condition_variable>
 #include <cstring>
 #include <cstdlib>
 #include <ctime>
@@ -5838,75 +5839,218 @@ namespace ECProject
       std::cout << "[Proxy" << m_self_cluster_id << "][GET] getBlocks empty block list" << std::endl;
       return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "empty block list");
     }
-    std::cout << "[Proxy" << m_self_cluster_id << "][GET] getting blocks ["
-              << request->block_ids(0) << "] to ["
-              << request->block_ids(request->block_ids_size() - 1) << "]" << std::endl;
-    const int BlockSize = m_sys_config->BlockSize;
     const int block_count = request->block_ids_size();
+    std::cout << "[Proxy" << m_self_cluster_id << "][GET] batch get " << block_count
+              << " blocks on one client connection (parallel DN load), first=["
+              << request->block_ids(0) << "] last=[" << request->block_ids(block_count - 1) << "]"
+              << std::endl;
+
+    const size_t block_size = static_cast<size_t>(m_sys_config->BlockSize);
+    size_t chunk_size = static_cast<size_t>(m_sys_config->UnitSize);
+    if (chunk_size < 8192u)
+      chunk_size = 8192u;
+    if (chunk_size > block_size)
+      chunk_size = block_size;
+
     const std::string client_ip = request->clientip();
     const std::string client_port_str = std::to_string(request->clientport());
 
-    // 按块流水线：每个块 DN 读完立刻发给 client；多块并行时，一块在发送时可与其它块的 DN 读重叠
-    std::atomic<int> fail_cnt{0};
-    std::vector<std::thread> workers;
-    workers.reserve(static_cast<size_t>(block_count));
-    for (int i = 0; i < block_count; i++)
-    {
-      workers.emplace_back([this, i, request, BlockSize, client_ip, client_port_str, &fail_cnt]() {
-        std::unique_ptr<char[]> buf(new char[static_cast<size_t>(BlockSize)]);
-        const bool got = this->GetFromDatanode(
-            request->block_keys(i),
-            buf.get(),
-            static_cast<size_t>(BlockSize),
-            request->datanodeips(i).c_str(),
-            static_cast<int>(request->datanodeports(i)));
-        if (!got)
-        {
-          std::cout << "[Proxy" << m_self_cluster_id << "][GET] DN read failed for block "
-                    << request->block_ids(i) << std::endl;
-          fail_cnt.fetch_add(1);
-          return;
-        }
+    // 同架：多 DN 并行读入内存；Client：单连接按 block 顺序写出（块就绪即发，与后续 DN 读重叠）。
+    std::vector<std::vector<char>> block_bufs(static_cast<size_t>(block_count));
+    std::vector<uint32_t> block_ids(static_cast<size_t>(block_count));
+    std::vector<char> ready(static_cast<size_t>(block_count), 0); // 0=pending,1=ok,2=fail
+    std::mutex ready_mu;
+    std::condition_variable ready_cv;
+    std::atomic<bool> any_fail{false};
 
-        asio::error_code error;
-        asio::io_context io_context;
-        asio::ip::tcp::socket socket_data(io_context);
-        asio::ip::tcp::resolver resolver(io_context);
-        auto endpoints = resolver.resolve(client_ip, client_port_str, error);
-        if (error)
+    std::vector<std::thread> loaders;
+    loaders.reserve(static_cast<size_t>(block_count));
+    for (int i = 0; i < block_count; ++i)
+    {
+      block_ids[static_cast<size_t>(i)] = static_cast<uint32_t>(request->block_ids(i));
+      const std::string block_key = request->block_keys(i);
+      const std::string dn_ip = request->datanodeips(i);
+      const int dn_port = static_cast<int>(request->datanodeports(i));
+      loaders.emplace_back([this, i, block_key, dn_ip, dn_port, block_size, &block_bufs, &ready,
+                            &ready_mu, &ready_cv, &any_fail]() {
+        try
         {
-          std::cout << "[Proxy" << m_self_cluster_id << "][GET] resolve client failed: "
-                    << error.message() << std::endl;
-          fail_cnt.fetch_add(1);
-          return;
+          block_bufs[static_cast<size_t>(i)].resize(block_size);
+          grpc::ClientContext grpc_ctx;
+          datanode_proto::GetInfo get_info;
+          datanode_proto::RequestResult result;
+          get_info.set_block_key(block_key);
+          get_info.set_block_size(static_cast<int>(block_size));
+          get_info.set_proxy_ip(m_ip);
+          get_info.set_proxy_port(m_port);
+          const std::string node_ip_port = dn_ip + ":" + std::to_string(dn_port);
+          auto stub_it = m_datanode_ptrs.find(node_ip_port);
+          if (stub_it == m_datanode_ptrs.end())
+          {
+            any_fail.store(true);
+            {
+              std::lock_guard<std::mutex> lk(ready_mu);
+              ready[static_cast<size_t>(i)] = 2;
+            }
+            ready_cv.notify_all();
+            return;
+          }
+          grpc::Status st = stub_it->second->handleGet(&grpc_ctx, get_info, &result);
+          if (!st.ok())
+          {
+            any_fail.store(true);
+            {
+              std::lock_guard<std::mutex> lk(ready_mu);
+              ready[static_cast<size_t>(i)] = 2;
+            }
+            ready_cv.notify_all();
+            return;
+          }
+
+          asio::error_code error;
+          asio::io_context io_context;
+          asio::ip::tcp::resolver resolver(io_context);
+          asio::ip::tcp::socket dn_sock(io_context);
+          asio::connect(dn_sock,
+                        resolver.resolve({dn_ip, std::to_string(dn_port + ECProject::DATANODE_PORT_SHIFT)}),
+                        error);
+          if (error)
+          {
+            any_fail.store(true);
+            {
+              std::lock_guard<std::mutex> lk(ready_mu);
+              ready[static_cast<size_t>(i)] = 2;
+            }
+            ready_cv.notify_all();
+            return;
+          }
+          proxy_write_dn_plain_get_magic(dn_sock);
+          asio::read(dn_sock, asio::buffer(block_bufs[static_cast<size_t>(i)].data(), block_size), error);
+          asio::error_code ignore_ec;
+          dn_sock.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+          dn_sock.close(ignore_ec);
+          if (error)
+          {
+            any_fail.store(true);
+            {
+              std::lock_guard<std::mutex> lk(ready_mu);
+              ready[static_cast<size_t>(i)] = 2;
+            }
+            ready_cv.notify_all();
+            return;
+          }
+          {
+            std::lock_guard<std::mutex> lk(ready_mu);
+            ready[static_cast<size_t>(i)] = 1;
+          }
+          ready_cv.notify_all();
         }
-        socket_data.connect(*endpoints, error);
-        if (error)
+        catch (...)
         {
-          std::cout << "[Proxy" << m_self_cluster_id << "][GET] connect client failed: "
-                    << error.message() << std::endl;
-          fail_cnt.fetch_add(1);
-          return;
+          any_fail.store(true);
+          {
+            std::lock_guard<std::mutex> lk(ready_mu);
+            ready[static_cast<size_t>(i)] = 2;
+          }
+          ready_cv.notify_all();
         }
-        const uint32_t block_id = static_cast<uint32_t>(request->block_ids(i));
-        asio::write(socket_data, asio::buffer(&block_id, sizeof(uint32_t)), error);
-        if (!error)
-          asio::write(socket_data, asio::buffer(buf.get(), static_cast<size_t>(BlockSize)), error);
-        if (error)
-        {
-          std::cout << "[Proxy" << m_self_cluster_id << "][GET] send to client failed: "
-                    << error.message() << std::endl;
-          fail_cnt.fetch_add(1);
-        }
-        asio::error_code ignore_ec;
-        socket_data.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
-        socket_data.close(ignore_ec);
       });
     }
-    for (auto &t : workers)
-      t.join();
 
-    if (fail_cnt.load() > 0)
+    try
+    {
+      asio::error_code error;
+      asio::io_context io_context;
+      asio::ip::tcp::resolver resolver(io_context);
+      asio::ip::tcp::socket client_sock(io_context);
+      auto client_eps = resolver.resolve(client_ip, client_port_str, error);
+      if (error)
+      {
+        any_fail.store(true);
+        for (auto &t : loaders)
+          t.join();
+        return grpc::Status(grpc::StatusCode::INTERNAL, "resolve client failed");
+      }
+      asio::connect(client_sock, client_eps, error);
+      if (error)
+      {
+        any_fail.store(true);
+        for (auto &t : loaders)
+          t.join();
+        return grpc::Status(grpc::StatusCode::INTERNAL, "connect client failed");
+      }
+
+      const uint32_t n_blocks = static_cast<uint32_t>(block_count);
+      asio::write(client_sock, asio::buffer(&n_blocks, sizeof(uint32_t)), error);
+      if (error)
+      {
+        any_fail.store(true);
+        for (auto &t : loaders)
+          t.join();
+        return grpc::Status(grpc::StatusCode::INTERNAL, "send block count failed");
+      }
+
+      for (int i = 0; i < block_count; ++i)
+      {
+        {
+          std::unique_lock<std::mutex> lk(ready_mu);
+          ready_cv.wait(lk, [&]() { return ready[static_cast<size_t>(i)] != 0; });
+          if (ready[static_cast<size_t>(i)] != 1)
+          {
+            lk.unlock();
+            any_fail.store(true);
+            for (auto &t : loaders)
+              t.join();
+            return grpc::Status(grpc::StatusCode::INTERNAL, "DN load failed");
+          }
+        }
+
+        const uint32_t block_id = block_ids[static_cast<size_t>(i)];
+        asio::write(client_sock, asio::buffer(&block_id, sizeof(uint32_t)), error);
+        if (error)
+        {
+          any_fail.store(true);
+          for (auto &t : loaders)
+            t.join();
+          return grpc::Status(grpc::StatusCode::INTERNAL, "send block_id failed");
+        }
+
+        // 分片写出，避免单次大写；同时后续块的 DN 读可继续进行
+        const char *p = block_bufs[static_cast<size_t>(i)].data();
+        size_t remaining = block_size;
+        while (remaining > 0)
+        {
+          const size_t nbytes = std::min(chunk_size, remaining);
+          asio::write(client_sock, asio::buffer(p, nbytes), error);
+          if (error)
+          {
+            any_fail.store(true);
+            for (auto &t : loaders)
+              t.join();
+            return grpc::Status(grpc::StatusCode::INTERNAL, "write client failed");
+          }
+          p += nbytes;
+          remaining -= nbytes;
+        }
+      }
+
+      asio::error_code ignore_ec;
+      client_sock.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
+      client_sock.close(ignore_ec);
+    }
+    catch (const std::exception &e)
+    {
+      any_fail.store(true);
+      for (auto &t : loaders)
+        t.join();
+      std::cout << "[Proxy" << m_self_cluster_id << "][GET] batch exception: "
+                << e.what() << std::endl;
+      return grpc::Status(grpc::StatusCode::INTERNAL, e.what());
+    }
+
+    for (auto &t : loaders)
+      t.join();
+    if (any_fail.load())
       return grpc::Status(grpc::StatusCode::INTERNAL, "getBlocks partial failure");
     return grpc::Status::OK;
   }

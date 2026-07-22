@@ -394,7 +394,7 @@ int main(int argc, char **argv)
     const double total_write_size = static_cast<double>(stripe_num) * block_size * static_cast<double>(n); // MB
     const double stripe_read_mb = block_size * static_cast<double>(k); // MB per stripe (data only)
     const size_t expect_bytes = static_cast<size_t>(parameters[3]) * static_cast<size_t>(k);
-    const int rw_trials = 5;
+    const int rw_trials = 10;
     const int set_threads = parse_cord_batch_threads();
     std::cout << "RW test: trials=" << rw_trials
               << ", ClientStripeNum=" << stripe_num

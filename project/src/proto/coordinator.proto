@@ -121,8 +121,12 @@ message ReplyProxyIPsPorts {
   repeated string proxyips = 3;
   repeated int32 proxyports = 4;
   repeated uint64 cluster_slice_sizes = 5;
+  // SET/CoRD: 每个 slice 对应的物理 cluster_id（与 append_keys 对齐）
   repeated int32 group_ids = 6;
   string cord_transfer_plan_key = 7;
+  // SET: 各物理机架 slice 内按发送顺序拼接的 block_id 列表
+  // 分段方式：第 i 个 slice 含 cluster_slice_sizes[i]/BlockSize 个 block_id
+  repeated int32 set_block_ids = 8;
 }
 
 message CordPlanKeyOnly {
