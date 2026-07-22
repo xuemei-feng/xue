@@ -3148,8 +3148,57 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     return grpc::Status::OK;
   }
 
+  std::vector<proxy_proto::AppendStripeDataPlacement> CoordinatorImpl::generate_add_plans_by_cluster(Stripe *stripe)
+  {
+    // 按物理 cluster 聚合：每个 plan 只含本架块，发给本架 proxy，proxy 只写本架 DN。
+    std::map<int, std::vector<Block *>> cluster_to_blocks;
+    for (Block *blk : stripe->blocks)
+    {
+      assert(blk != nullptr);
+      cluster_to_blocks[blk->map2cluster].push_back(blk);
+    }
+
+    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans;
+    add_plans.reserve(cluster_to_blocks.size());
+    for (auto &kv : cluster_to_blocks)
+    {
+      const int cluster_id = kv.first;
+      std::vector<Block *> &blks = kv.second;
+      std::sort(blks.begin(), blks.end(),
+                [](const Block *a, const Block *b) { return a->block_id < b->block_id; });
+
+      proxy_proto::AppendStripeDataPlacement plan;
+      const size_t append_size = blks.size() * static_cast<size_t>(m_sys_config->BlockSize);
+      plan.set_key(m_toolbox->gen_cord_key(stripe->stripe_id, cluster_id));
+      plan.set_stripe_id(stripe->stripe_id);
+      plan.set_append_size(append_size);
+      plan.set_is_merge_parity(false);
+      plan.set_cluster_id(cluster_id);
+      plan.set_append_mode("UNILRC_MODE");
+      plan.set_is_serialized(false);
+      plan.set_require_local_datanode(true);
+
+      for (Block *blk : blks)
+      {
+        const Node &node = m_node_table[blk->map2node];
+        assert(blk->map2cluster == cluster_id &&
+               "CordXue SET plan: block map2cluster mismatch");
+        assert(node.cluster_id == cluster_id &&
+               "CordXue SET plan: DN must belong to the same physical cluster as proxy");
+        addBlockToAppendPlan(plan, blk, node, std::make_pair(m_sys_config->BlockSize, 0));
+      }
+      add_plans.push_back(std::move(plan));
+    }
+    return add_plans;
+  }
+
   std::vector<proxy_proto::AppendStripeDataPlacement> CoordinatorImpl::generate_add_plans(Stripe *stripe)
   {
+    if (m_sys_config->CodeType == "CordXueLRC")
+    {
+      return generate_add_plans_by_cluster(stripe);
+    }
+
     std::vector<proxy_proto::AppendStripeDataPlacement> add_plans;
     for (int i = 0; i < stripe->num_groups; i++)
     {
@@ -3348,6 +3397,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::PROXY_PORT_SHIFT); // use another port to accept data
       proxyIPPort->add_cluster_slice_sizes(plan.append_size());
       sum_append_size += plan.append_size();
+      // CordXueLRC SET：下发每 plan 内块顺序，供 client 编码后按物理 cluster 重排发送
+      if (code_type == "CordXueLRC")
+      {
+        for (int bi = 0; bi < plan.blockids_size(); ++bi)
+        {
+          proxyIPPort->add_set_block_ids(plan.blockids(bi));
+        }
+      }
     }
     proxyIPPort->set_sum_append_size(sum_append_size);
 

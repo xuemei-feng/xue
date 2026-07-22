@@ -123,6 +123,9 @@ message ReplyProxyIPsPorts {
   repeated uint64 cluster_slice_sizes = 5;
   repeated int32 group_ids = 6;
   string cord_transfer_plan_key = 7;
+  // CordXueLRC SET：按物理 cluster 发送时，各 plan 内块 ID 按发送顺序拼接；
+  // 第 i 个 plan 的块数为 cluster_slice_sizes[i] / BlockSize。
+  repeated int32 set_block_ids = 8;
 }
 
 message CordPlanKeyOnly {

@@ -18,6 +18,7 @@
 #include <map>
 #include <mutex>
 #include <memory>
+#include <unordered_set>
 // #define IF_DEBUG true
 #define IF_DEBUG false
 namespace ECProject
@@ -213,6 +214,8 @@ namespace ECProject
     void cord_handle_xfer_tcp_connection(asio::ip::tcp::socket socket);
     std::unique_ptr<coordinator_proto::coordinatorService::Stub> m_coordinator_ptr;
     std::map<std::string, std::unique_ptr<datanode_proto::datanodeService::Stub>> m_datanode_ptrs;
+    /** 本物理机架内 DN 的 ip:port，用于 CordXue SET 本架落盘校验 */
+    std::unordered_set<std::string> m_local_datanode_uris;
     std::string config_path;
     std::string proxy_ip_port;
     std::string m_ip;

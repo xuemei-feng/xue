@@ -273,6 +273,8 @@ message AppendStripeDataPlacement{
   repeated string forward_proxy_ips = 15;
   repeated int32 forward_proxy_ports = 16;
   repeated int32 forward_cluster_ids = 17;  // 仅用于日志/调试
+  // CordXueLRC SET：为 true 时 proxy 只接受本架 plan，且只写本架 DN
+  bool require_local_datanode = 18;
 }
 
 // 算法二链路类型，与 cord_alg2::TrainLinkKind 一致

@@ -2214,7 +2214,8 @@ namespace ECProject
     {
       std::string cluster_id(cluster->Attribute("id"));
       std::string proxy(cluster->Attribute("proxy"));
-      if (proxy == proxy_ip_port)
+      const bool is_self_cluster = (proxy == proxy_ip_port);
+      if (is_self_cluster)
       {
         m_self_cluster_id = std::stoi(cluster_id);
       }
@@ -2238,6 +2239,10 @@ namespace ECProject
         //   std::cout << "[Datanode Check] failed to connect " << node_uri << std::endl;
         // }
         m_datanode_ptrs.insert(std::make_pair(node_uri, std::move(_stub)));
+        if (is_self_cluster)
+        {
+          m_local_datanode_uris.insert(node_uri);
+        }
       }
     }
     return true;
@@ -3676,6 +3681,32 @@ namespace ECProject
     // number of slices allocated to this proxy
     int slice_num = append_stripe_data_placement->blockkeys_size();
     bool is_serialized = append_stripe_data_placement->is_serialized();
+
+    // CordXueLRC SET：plan 必须发给目标物理 rack 的 proxy，且只写本架 DN
+    if (append_stripe_data_placement->require_local_datanode())
+    {
+      if (append_stripe_data_placement->cluster_id() != m_self_cluster_id)
+      {
+        std::cout << "[Proxy" << m_self_cluster_id << "][Append] reject plan key="
+                  << append_stripe_data_placement->key()
+                  << " cluster_id=" << append_stripe_data_placement->cluster_id()
+                  << " (self=" << m_self_cluster_id << ")" << std::endl;
+        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT,
+                            "append plan cluster_id must match proxy self cluster");
+      }
+      for (int i = 0; i < append_stripe_data_placement->datanodeip_size(); ++i)
+      {
+        const std::string dn_uri = append_stripe_data_placement->datanodeip(i) + ":" +
+                                   std::to_string(append_stripe_data_placement->datanodeport(i));
+        if (m_local_datanode_uris.find(dn_uri) == m_local_datanode_uris.end())
+        {
+          std::cout << "[Proxy" << m_self_cluster_id << "][Append] reject non-local DN "
+                    << dn_uri << " key=" << append_stripe_data_placement->key() << std::endl;
+          return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT,
+                              "append plan DN must belong to proxy self cluster");
+        }
+      }
+    }
 
     auto placement_copy = std::make_shared<proxy_proto::AppendStripeDataPlacement>(*append_stripe_data_placement);
 

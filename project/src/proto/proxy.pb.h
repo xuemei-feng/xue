@@ -5056,6 +5056,7 @@ class AppendStripeDataPlacement final :
     kIsMergeParityFieldNumber = 11,
     kIsSerializedFieldNumber = 13,
     kIsMainEntryFieldNumber = 14,
+    kRequireLocalDatanodeFieldNumber = 18,
   };
   // repeated string datanodeip = 5;
   int datanodeip_size() const;
@@ -5343,6 +5344,15 @@ class AppendStripeDataPlacement final :
   void _internal_set_is_main_entry(bool value);
   public:
 
+  // bool require_local_datanode = 18;
+  void clear_require_local_datanode();
+  bool require_local_datanode() const;
+  void set_require_local_datanode(bool value);
+  private:
+  bool _internal_require_local_datanode() const;
+  void _internal_set_require_local_datanode(bool value);
+  public:
+
   // @@protoc_insertion_point(class_scope:proxy_proto.AppendStripeDataPlacement)
  private:
   class _Internal;
@@ -5374,6 +5384,7 @@ class AppendStripeDataPlacement final :
     bool is_merge_parity_;
     bool is_serialized_;
     bool is_main_entry_;
+    bool require_local_datanode_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -17331,6 +17342,26 @@ inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
 AppendStripeDataPlacement::mutable_forward_cluster_ids() {
   // @@protoc_insertion_point(field_mutable_list:proxy_proto.AppendStripeDataPlacement.forward_cluster_ids)
   return _internal_mutable_forward_cluster_ids();
+}
+
+// bool require_local_datanode = 18;
+inline void AppendStripeDataPlacement::clear_require_local_datanode() {
+  _impl_.require_local_datanode_ = false;
+}
+inline bool AppendStripeDataPlacement::_internal_require_local_datanode() const {
+  return _impl_.require_local_datanode_;
+}
+inline bool AppendStripeDataPlacement::require_local_datanode() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.AppendStripeDataPlacement.require_local_datanode)
+  return _internal_require_local_datanode();
+}
+inline void AppendStripeDataPlacement::_internal_set_require_local_datanode(bool value) {
+  
+  _impl_.require_local_datanode_ = value;
+}
+inline void AppendStripeDataPlacement::set_require_local_datanode(bool value) {
+  _internal_set_require_local_datanode(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.AppendStripeDataPlacement.require_local_datanode)
 }
 
 // -------------------------------------------------------------------
