@@ -1242,32 +1242,44 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
   void CoordinatorImpl::initialize_split_parity_lrc_stripe_placement(Stripe *stripe)
   {
-    // 轮询放置（stripe_id % ClusterNum）：
-    //   slot0 -> 全部全局校验块；slot1 -> 全部本地校验块；
-    //   随后连续 ceil(k/(r+1)) 个 slot -> 仅数据块（随机混置，且每 cluster 数据块数 <= r+1）
+    // 随机放置全部数据块与校验块到 ceil(n/(r+1)) 个机架：
+    //   1) 每个选用机架至少放置 1 个块
+    //   2) 每个机架总块数（数据+校验）<= r+1
     Block *blocks_info = new Block[stripe->n];
     assert(stripe->object_keys.size() == 1);
 
+    const int max_blocks_per_rack = stripe->r + 1;
+    // ceil(n / (r+1))
+    const int target_rack_num = (stripe->n + max_blocks_per_rack - 1) / max_blocks_per_rack;
     const int cluster_num = m_sys_config->ClusterNum;
-    // ceil(k / (r+1))
-    const int data_rack_num = (stripe->k + stripe->r) / (stripe->r + 1);
-    const int required_clusters = 2 + data_rack_num;
-    if (cluster_num < required_clusters)
+    if (target_rack_num <= 0)
     {
-      throw std::runtime_error("ClusterNum must be >= 2 + ceil(k/(r+1)) for SplitParityLRC placement");
+      throw std::runtime_error("SplitParityLRC: invalid target rack number");
+    }
+    if (cluster_num < target_rack_num)
+    {
+      throw std::runtime_error("ClusterNum must be >= ceil((k+r+z)/(r+1)) for SplitParityLRC placement");
+    }
+    if (stripe->n < target_rack_num)
+    {
+      throw std::runtime_error("SplitParityLRC requires n >= ceil(n/(r+1)) so each selected rack can hold at least one block");
     }
 
-    const int base = stripe->stripe_id % cluster_num;
-    auto slot_cluster = [&](int slot_offset) -> int {
-      return (base + slot_offset) % cluster_num;
-    };
-    const int global_cluster = slot_cluster(0);
-    const int local_cluster = slot_cluster(1);
-    std::vector<int> data_clusters;
-    data_clusters.reserve(static_cast<size_t>(data_rack_num));
-    for (int slot = 2; slot < 2 + data_rack_num; ++slot)
+    // 以 stripe_id 为起点环形选取 ceil(n/(r+1)) 个机架
+    std::vector<int> selected_clusters;
+    selected_clusters.reserve(static_cast<size_t>(target_rack_num));
+    const int start_cluster = stripe->stripe_id % cluster_num;
+    for (int i = 0; i < target_rack_num; ++i)
     {
-      data_clusters.push_back(slot_cluster(slot));
+      selected_clusters.push_back((start_cluster + i) % cluster_num);
+    }
+
+    for (int cid : selected_clusters)
+    {
+      if (static_cast<int>(m_cluster_table[cid].nodes.size()) < max_blocks_per_rack)
+      {
+        throw std::runtime_error("SplitParityLRC requires each selected rack to have >= r+1 nodes");
+      }
     }
 
     std::mt19937 gen;
@@ -1320,43 +1332,51 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
     }
 
+    std::vector<int> block_order(stripe->n);
+    std::iota(block_order.begin(), block_order.end(), 0);
     std::vector<int> assigned_cluster(stripe->n, -1);
-    for (int i = stripe->k; i < stripe->k + stripe->r; ++i)
-    {
-      assigned_cluster[i] = global_cluster;
-    }
-    for (int i = stripe->k + stripe->r; i < stripe->n; ++i)
-    {
-      assigned_cluster[i] = local_cluster;
-    }
-
-    std::vector<int> data_order(stripe->k);
-    std::iota(data_order.begin(), data_order.end(), 0);
     const int max_attempts = 256;
     bool placed = false;
     for (int attempt = 0; attempt < max_attempts && !placed; ++attempt)
     {
-      std::shuffle(data_order.begin(), data_order.end(), gen);
-      std::map<int, int> data_cluster_count;
-      for (int cid : data_clusters)
+      std::shuffle(block_order.begin(), block_order.end(), gen);
+      std::fill(assigned_cluster.begin(), assigned_cluster.end(), -1);
+      std::map<int, int> cluster_block_count;
+      for (int cid : selected_clusters)
       {
-        data_cluster_count[cid] = 0;
+        cluster_block_count[cid] = 0;
       }
+
+      std::vector<int> rack_order = selected_clusters;
+      std::shuffle(rack_order.begin(), rack_order.end(), gen);
+
       bool ok = true;
-      for (int block_idx : data_order)
+      // Phase 1: 每个选用机架先放 1 块，保证非空
+      for (int i = 0; i < target_rack_num; ++i)
       {
-        std::vector<int> candidates = data_clusters;
+        const int block_idx = block_order[i];
+        const int cid = rack_order[i];
+        assigned_cluster[block_idx] = cid;
+        cluster_block_count[cid]++;
+      }
+
+      // Phase 2: 剩余块随机放入总块数仍 <= r+1 的机架
+      for (int i = target_rack_num; i < stripe->n; ++i)
+      {
+        const int block_idx = block_order[i];
+        std::vector<int> candidates = selected_clusters;
         std::shuffle(candidates.begin(), candidates.end(), gen);
         bool assigned = false;
         for (int cid : candidates)
         {
-          if (data_cluster_count[cid] + 1 <= stripe->r + 1)
+          if (cluster_block_count[cid] + 1 > max_blocks_per_rack)
           {
-            assigned_cluster[block_idx] = cid;
-            data_cluster_count[cid]++;
-            assigned = true;
-            break;
+            continue;
           }
+          assigned_cluster[block_idx] = cid;
+          cluster_block_count[cid]++;
+          assigned = true;
+          break;
         }
         if (!assigned)
         {
@@ -1364,11 +1384,23 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           break;
         }
       }
+
+      if (ok)
+      {
+        for (int cid : selected_clusters)
+        {
+          if (cluster_block_count[cid] < 1 || cluster_block_count[cid] > max_blocks_per_rack)
+          {
+            ok = false;
+            break;
+          }
+        }
+      }
       placed = ok;
     }
     if (!placed)
     {
-      throw std::runtime_error("SplitParityLRC placement failed to satisfy per-cluster data block count <= r+1");
+      throw std::runtime_error("SplitParityLRC placement failed: need each selected rack non-empty and blocks/rack <= r+1");
     }
 
     for (int i = 0; i < stripe->n; i++)
@@ -1386,7 +1418,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
     stripe->num_groups = stripe->group_to_blocks.size();
   }
-
 
   void CoordinatorImpl::initialize_cord_xue_lrc_stripe_placement(Stripe *stripe)
   {
