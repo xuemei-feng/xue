@@ -261,6 +261,13 @@ namespace ECProject
     std::vector<std::vector<int>> m_merge_groups;
     std::vector<int> m_free_clusters;
     int m_agg_start_cid = 0;
+
+    /** 首次条带放置后缓存 cluster/node 布局，后续条带复用（RW 多轮测吞吐时布局一致）。 */
+    bool m_fixed_placement_layout_ready = false;
+    std::vector<int> m_fixed_placement_clusters;
+    std::vector<int> m_fixed_placement_nodes;
+    bool apply_fixed_placement_layout_if_ready(Stripe *stripe, Block *blocks_info);
+    void save_fixed_placement_layout(const Stripe *stripe);
   };
 
   class Coordinator
@@ -304,6 +311,9 @@ namespace ECProject
       }
       m_coordinatorImpl.m_stripe_table.clear();
       m_coordinatorImpl.m_cur_offset_table.clear();
+      m_coordinatorImpl.m_fixed_placement_layout_ready = false;
+      m_coordinatorImpl.m_fixed_placement_clusters.clear();
+      m_coordinatorImpl.m_fixed_placement_nodes.clear();
     };
     // Coordinator
     void Run()
