@@ -1,4 +1,5 @@
 #include "unilrc_encoder.h"
+#include <algorithm>
 #include <iostream>
 #include <unordered_map>
 
@@ -387,6 +388,18 @@ void ECProject::gen_optimal_lrc_matrix(unsigned char *encode_matrix, int k, int 
     delete[] local_vector;
 }
 
+int ECProject::uniform_lrc_group_of_data_block(int data_block_id, int k, int r, int z)
+{
+    (void)k;
+    if (z <= 1)
+        return 0;
+    const int group_size = std::max(1, (k + r) / z);
+    int row = data_block_id / group_size;
+    if (row >= z)
+        row = z - 1;
+    return row;
+}
+
 void ECProject::gen_uniform_lrc_matrix(unsigned char *encode_matrix, int k, int r, int z)
 {
     int m = k + r;
@@ -394,13 +407,16 @@ void ECProject::gen_uniform_lrc_matrix(unsigned char *encode_matrix, int k, int 
     gf_gen_cauchy_matrix1(encode_matrix, m, k);
     unsigned char *local_vector = new unsigned char[k];
     gf_gen_local_vector(local_vector, k, r);
-    int group_size = (k + r) / z;
-    for(int i = 0; i < k; i++){
-        int row = i / group_size;
+    // 前 z-1 组各 floor((k+r)/z)，余量（含全局 fold）进最后一组
+    for (int i = 0; i < k; i++)
+    {
+        const int row = uniform_lrc_group_of_data_block(i, k, r, z);
         encode_matrix[(m + row) * k + i] = local_vector[i];
     }
-    for(int i = 0; i < r; i++){
-        for(int j = 0; j < k; j++){
+    for (int i = 0; i < r; i++)
+    {
+        for (int j = 0; j < k; j++)
+        {
             encode_matrix[(m + z - 1) * k + j] ^= encode_matrix[(k + i) * k + j];
         }
     }

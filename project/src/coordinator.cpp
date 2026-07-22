@@ -1286,9 +1286,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'D';
-        // Uniform 式本地分组：按 (k+r)/z；全局校验物理独立组，编码上折入 L_{z-1}
-        const int uniform_group_size = (stripe->k + stripe->r) / stripe->z;
-        blocks_info[i].map2group = int(i / uniform_group_size);
+        // Uniform 不均分组：前 z-1 组各 floor((k+r)/z)，余量进最后一组；G 物理独立组，编码 fold 进 L_{z-1}
+        blocks_info[i].map2group =
+            uniform_lrc_group_of_data_block(i, stripe->k, stripe->r, stripe->z);
       }
       else if (i < stripe->k + stripe->r)
       {
@@ -3620,7 +3620,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::vector<int> data_block_num_per_group;
     if (code_type == "SplitParityLRC")
     {
-      const int gs = (k + r) / z;
+      // Uniform 不均分组：前 z-1 组各 floor((k+r)/z) 个数据，余量进最后本地组
+      const int gs = std::max(1, (k + r) / z);
       for (int i = 0; i < z - 1; i++)
         data_block_num_per_group.push_back(gs);
       data_block_num_per_group.push_back(k - (z - 1) * gs);

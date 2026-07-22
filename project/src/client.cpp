@@ -2,6 +2,7 @@
 #include "coordinator.grpc.pb.h"
 
 #include <asio.hpp>
+#include <algorithm>
 #include <thread>
 #include <atomic>
 #include <memory>
@@ -623,8 +624,8 @@ namespace ECProject
     std::vector<int> data_block_num_per_group;
     if (code_type == "SplitParityLRC")
     {
-      // Uniform 分组：前 z-1 组各 (k+r)/z 个数据块，最后本地组 k-(z-1)*gs，全局仍单独一组
-      const int gs = (k + r) / z;
+      // Uniform 不均分组：前 z-1 组各 floor((k+r)/z) 个数据，余量进最后本地组；末尾再加全局物理组(0 data)
+      const int gs = std::max(1, (k + r) / z);
       for (int i = 0; i < z - 1; i++)
         data_block_num_per_group.push_back(gs);
       data_block_num_per_group.push_back(k - (z - 1) * gs);

@@ -1,5 +1,6 @@
 #include "config.h"
 #include "tinyxml2.h"
+#include <algorithm>
 #include <cassert>
 
 namespace ECProject
@@ -34,8 +35,12 @@ namespace ECProject
     }
     if (CodeType == "SplitParityLRC")
     {
-      assert((k + r) % z == 0 && "Error: SplitParityLRC (Uniform encode) requires (k+r) divisible by z");
-      assert(DatanodeNumPerCluster > (k + r) / z && "Error: DatanodeNumPerCluster must be greater than (k+r)/z");
+      // Uniform 不均分组：前 z-1 组各 floor((k+r)/z)，余量进最后一组；不再要求 (k+r)%z==0
+      assert(z > 0 && r > 0 && k > 0 && "Error: SplitParityLRC requires positive k,r,z");
+      assert((k + r) / z >= 1 && "Error: SplitParityLRC requires (k+r)/z >= 1");
+      // 物理放置：每数据机架最多 r+1 块，与逻辑组大小无关
+      assert(DatanodeNumPerCluster > r + 1 &&
+             "Error: SplitParityLRC requires DatanodeNumPerCluster > r+1");
       assert(ClusterNum >= 6 && "Error: SplitParityLRC requires ClusterNum >= 6");
       assert(k <= 4 * (r + 1) && "Error: SplitParityLRC requires k <= 4*(r+1)");
     }
