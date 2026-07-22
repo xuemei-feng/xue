@@ -114,6 +114,11 @@ message CommitAbortKey {
   int32 stripe_id = 4;
 }
 
+// 每个 SET/子集 slice 内按发送顺序排列的 block_id（与 proxy AppendStripeDataPlacement.blockids 一致）
+message SliceBlockList {
+  repeated int32 block_ids = 1;
+}
+
 // append
 message ReplyProxyIPsPorts {
   uint64 sum_append_size = 1;
@@ -123,6 +128,7 @@ message ReplyProxyIPsPorts {
   repeated uint64 cluster_slice_sizes = 5;
   repeated int32 group_ids = 6;
   string cord_transfer_plan_key = 7;
+  repeated SliceBlockList slice_block_lists = 8;
 }
 
 message CordPlanKeyOnly {

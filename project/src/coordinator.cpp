@@ -3071,6 +3071,38 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   std::vector<proxy_proto::AppendStripeDataPlacement> CoordinatorImpl::generate_add_plans(Stripe *stripe)
   {
     std::vector<proxy_proto::AppendStripeDataPlacement> add_plans;
+
+    // SplitParity：按物理机架 map2cluster 出 plan（同机架块发到该机架 Proxy）
+    if (m_sys_config->CodeType == "SplitParityLRC")
+    {
+      std::map<int, std::vector<int>> cluster_to_blocks;
+      for (int i = 0; i < stripe->n; ++i)
+      {
+        const int cid = stripe->blocks[i]->map2cluster;
+        cluster_to_blocks[cid].push_back(i);
+      }
+      for (auto &kv : cluster_to_blocks)
+      {
+        std::sort(kv.second.begin(), kv.second.end());
+        const int cid = kv.first;
+        proxy_proto::AppendStripeDataPlacement plan;
+        plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, cid));
+        plan.set_stripe_id(stripe->stripe_id);
+        plan.set_append_size(kv.second.size() * m_sys_config->BlockSize);
+        plan.set_is_merge_parity(false);
+        plan.set_cluster_id(cid);
+        plan.set_append_mode("UNILRC_MODE");
+        plan.set_is_serialized(false);
+        for (int bid : kv.second)
+        {
+          addBlockToAppendPlan(plan, stripe->blocks[bid], m_node_table[stripe->blocks[bid]->map2node],
+                               std::make_pair(m_sys_config->BlockSize, 0));
+        }
+        add_plans.push_back(plan);
+      }
+      return add_plans;
+    }
+
     for (int i = 0; i < stripe->num_groups; i++)
     {
       proxy_proto::AppendStripeDataPlacement plan;
@@ -3101,6 +3133,40 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     int data_block_num = subset_size / m_sys_config->BlockSize;
     int k = m_sys_config->k;
     std::vector<proxy_proto::AppendStripeDataPlacement> add_plans;
+
+    if (m_sys_config->CodeType == "SplitParityLRC")
+    {
+      std::map<int, std::vector<int>> cluster_to_blocks;
+      for (int i = 0; i < stripe->n; ++i)
+      {
+        if (i < k && i >= data_block_num)
+          continue;
+        cluster_to_blocks[stripe->blocks[i]->map2cluster].push_back(i);
+      }
+      for (auto &kv : cluster_to_blocks)
+      {
+        if (kv.second.empty())
+          continue;
+        std::sort(kv.second.begin(), kv.second.end());
+        const int cid = kv.first;
+        proxy_proto::AppendStripeDataPlacement plan;
+        plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, cid));
+        plan.set_stripe_id(stripe->stripe_id);
+        plan.set_append_size(kv.second.size() * m_sys_config->BlockSize);
+        plan.set_is_merge_parity(false);
+        plan.set_cluster_id(cid);
+        plan.set_append_mode("UNILRC_MODE");
+        plan.set_is_serialized(false);
+        for (int bid : kv.second)
+        {
+          addBlockToAppendPlan(plan, stripe->blocks[bid], m_node_table[stripe->blocks[bid]->map2node],
+                               std::make_pair(m_sys_config->BlockSize, 0));
+        }
+        add_plans.push_back(plan);
+      }
+      return add_plans;
+    }
+
     for (int i = 0; i < stripe->num_groups; i++)
     {
       proxy_proto::AppendStripeDataPlacement plan;
@@ -3267,6 +3333,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       proxyIPPort->add_proxyips(m_cluster_table[plan.cluster_id()].proxy_ip);
       proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::PROXY_PORT_SHIFT); // use another port to accept data
       proxyIPPort->add_cluster_slice_sizes(plan.append_size());
+      proxyIPPort->add_group_ids(plan.cluster_id());
+      auto *slist = proxyIPPort->add_slice_block_lists();
+      for (int bi = 0; bi < plan.blockids_size(); ++bi)
+        slist->add_block_ids(plan.blockids(bi));
       sum_append_size += plan.append_size();
     }
     proxyIPPort->set_sum_append_size(sum_append_size);
@@ -3355,9 +3425,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       proxyIPPort->add_proxyips(m_cluster_table[plan.cluster_id()].proxy_ip);
       proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::PROXY_PORT_SHIFT); // use another port to accept data
       proxyIPPort->add_cluster_slice_sizes(plan.append_size());
-      //proxyIPPort->add_group_ids(group_id);
+      proxyIPPort->add_group_ids(plan.cluster_id());
+      auto *slist = proxyIPPort->add_slice_block_lists();
+      for (int bi = 0; bi < plan.blockids_size(); ++bi)
+        slist->add_block_ids(plan.blockids(bi));
       sum_append_size += plan.append_size();
-      //group_id++;
     }
     proxyIPPort->set_sum_append_size(sum_append_size);
 
