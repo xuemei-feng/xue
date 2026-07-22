@@ -859,6 +859,111 @@ namespace ECProject
     }
   }
 
+  bool Client::upload_split_parity_rack_set(const coordinator_proto::ReplyProxyIPsPorts &reply, int data_block_num)
+  {
+    const int k = m_sys_config->k;
+    const int r = m_sys_config->r;
+    const int z = m_sys_config->z;
+    const int bs = m_sys_config->BlockSize;
+    assert(data_block_num > 0 && data_block_num <= k);
+    assert(reply.append_keys_size() == reply.append_block_counts_size());
+    assert(reply.append_block_ids_size() > 0);
+
+    // 规范布局：[D0..Dk-1][G0..Gr-1][L0..Lz-1]
+    fill_random_bytes(m_pre_allocated_buffer, static_cast<size_t>(bs) * static_cast<size_t>(data_block_num));
+    std::vector<char *> data_ptr_array;
+    data_ptr_array.reserve(static_cast<size_t>(data_block_num));
+    for (int i = 0; i < data_block_num; ++i)
+      data_ptr_array.push_back(m_pre_allocated_buffer + static_cast<size_t>(i) * static_cast<size_t>(bs));
+    std::vector<char *> parity_ptr_array;
+    parity_ptr_array.reserve(static_cast<size_t>(r + z));
+    for (int i = 0; i < r + z; ++i)
+      parity_ptr_array.push_back(m_pre_allocated_buffer + static_cast<size_t>(k + i) * static_cast<size_t>(bs));
+
+    if (data_block_num == k)
+      ECProject::encode_uniform_lrc(k, r, z, reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                   reinterpret_cast<unsigned char **>(parity_ptr_array.data()), bs);
+    else
+      ECProject::partial_encode_uniform_lrc(k, r, z, data_block_num,
+                                           reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                           reinterpret_cast<unsigned char **>(parity_ptr_array.data()), bs);
+
+    // 按物理 rack plan 重打包（顺序与 coordinator plan.blockids / proxy 收包一致）
+    const int slice_count = reply.append_keys_size();
+    std::vector<std::unique_ptr<char[]>> send_bufs(static_cast<size_t>(slice_count));
+    std::vector<char *> send_ptrs(static_cast<size_t>(slice_count), nullptr);
+    int bid_offset = 0;
+    for (int i = 0; i < slice_count; ++i)
+    {
+      const int count = reply.append_block_counts(i);
+      const size_t slice_sz = static_cast<size_t>(reply.cluster_slice_sizes(i));
+      assert(slice_sz == static_cast<size_t>(count) * static_cast<size_t>(bs));
+      send_bufs[static_cast<size_t>(i)].reset(new char[slice_sz]);
+      char *dst = send_bufs[static_cast<size_t>(i)].get();
+      size_t off = 0;
+      for (int j = 0; j < count; ++j)
+      {
+        const int block_id = reply.append_block_ids(bid_offset++);
+        assert(block_id >= 0 && block_id < m_sys_config->n);
+        std::memcpy(dst + off, m_pre_allocated_buffer + static_cast<size_t>(block_id) * static_cast<size_t>(bs),
+                    static_cast<size_t>(bs));
+        off += static_cast<size_t>(bs);
+      }
+      send_ptrs[static_cast<size_t>(i)] = dst;
+      std::cout << "[SET-RACK] slice=" << i << " key=" << reply.append_keys(i)
+                << " cluster=" << reply.group_ids(i) << " blocks=" << count
+                << " proxy=" << reply.proxyips(i) << ":" << reply.proxyports(i) << std::endl;
+    }
+    assert(bid_offset == reply.append_block_ids_size());
+
+    std::unique_ptr<bool[]> if_commit_arr(new bool[slice_count]);
+    std::fill_n(if_commit_arr.get(), slice_count, false);
+
+    asio::io_context io_context;
+    auto pending = std::make_shared<std::atomic<int>>(slice_count);
+    for (int i = 0; i < slice_count; ++i)
+    {
+      async_append_to_proxies_async(io_context,
+                                    send_ptrs[static_cast<size_t>(i)],
+                                    reply.append_keys(i),
+                                    static_cast<int>(reply.cluster_slice_sizes(i)),
+                                    reply.proxyips(i),
+                                    reply.proxyports(i),
+                                    i,
+                                    if_commit_arr.get(),
+                                    pending);
+    }
+    io_context.run();
+
+    std::vector<std::thread> check_threads;
+    check_threads.reserve(static_cast<size_t>(slice_count));
+    for (int i = 0; i < slice_count; ++i)
+    {
+      check_threads.emplace_back([this, i, &reply, if_commit_arr = if_commit_arr.get()]() {
+        grpc::ClientContext check_commit;
+        coordinator_proto::AskIfSuccess request;
+        request.set_key(reply.append_keys(i));
+        request.set_opp(APPEND);
+        coordinator_proto::RepIfSuccess reply_chk;
+        grpc::Status st = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply_chk);
+        if (st.ok() && reply_chk.ifcommit())
+          if_commit_arr[i] = true;
+        else if (!st.ok())
+          std::cout << "[SET-RACK] checkCommitAbort failed for key=" << reply.append_keys(i) << std::endl;
+      });
+    }
+    for (auto &t : check_threads)
+      t.join();
+
+    const bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + slice_count,
+                                      [](bool val) { return val; });
+    if (all_true)
+      std::cout << "[SET-RACK] Client " << m_clientID << " set successfully!" << std::endl;
+    else
+      std::cout << "[SET-RACK] Client " << m_clientID << " set failed!" << std::endl;
+    return all_true;
+  }
+
   // add a stripe each time
   bool Client::set()
   {
@@ -875,7 +980,10 @@ namespace ECProject
       std::cout << "[SET402] upload data failed!" << std::endl;
       return false;
     }
-    else
+
+    if (m_sys_config->CodeType == "SplitParityLRC")
+      return upload_split_parity_rack_set(reply, m_sys_config->k);
+
     {
       // 每次 SET 随机填充数据区，再重新编码校验块（避免恒定 0xaa 导致后续 update Δ=0）
       const size_t data_bytes = static_cast<size_t>(m_sys_config->BlockSize) * static_cast<size_t>(m_sys_config->k);
@@ -992,7 +1100,10 @@ namespace ECProject
       std::cout << "[SET402] upload data failed!" << std::endl;
       return false;
     }
-    else
+
+    if (m_sys_config->CodeType == "SplitParityLRC")
+      return upload_split_parity_rack_set(reply, block_num);
+
     {
       fill_random_bytes(m_pre_allocated_buffer,
                         static_cast<size_t>(m_sys_config->BlockSize) * static_cast<size_t>(m_sys_config->n));

@@ -123,6 +123,10 @@ message ReplyProxyIPsPorts {
   repeated uint64 cluster_slice_sizes = 5;
   repeated int32 group_ids = 6;
   string cord_transfer_plan_key = 7;
+  // SET/subset：各 append plan 内 block_id 拼接顺序（与 proxy plan / TCP 打包一致）
+  repeated int32 append_block_ids = 8;
+  // 每个 append plan 对应的 block 个数；sum(counts) == len(append_block_ids)
+  repeated int32 append_block_counts = 9;
 }
 
 message CordPlanKeyOnly {

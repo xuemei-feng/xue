@@ -182,6 +182,10 @@ namespace ECProject
     void add_to_map(std::map<int, std::vector<int>> &map, int key, int value);
     std::vector<proxy_proto::AppendStripeDataPlacement> generate_add_plans(Stripe *stripe);
     std::vector<proxy_proto::AppendStripeDataPlacement> generate_sub_add_plans(Stripe *stripe, size_t subset_size);
+    /** SplitParityLRC SET/subset：按物理 cluster 聚合 plan；块顺序=遍历 group 时 group_to_blocks 的相对顺序 */
+    std::vector<proxy_proto::AppendStripeDataPlacement> generate_split_parity_rack_add_plans(Stripe *stripe, int data_block_num);
+    void fill_set_reply_from_add_plans(const std::vector<proxy_proto::AppendStripeDataPlacement> &add_plans,
+                                       coordinator_proto::ReplyProxyIPsPorts *proxyIPPort);
     std::vector<proxy_proto::AppendStripeDataPlacement> generateAppendPlan(Stripe *stripe, int curr_logical_offset, int append_size);
     /** 与 generateAppendPlan 相同：由条带逻辑偏移区间得到各块 (size, 块内offset) 及校验条带尺寸 */
     bool build_slice_plan_for_logical_range(Stripe *stripe, int logical_offset_start, int append_size,
