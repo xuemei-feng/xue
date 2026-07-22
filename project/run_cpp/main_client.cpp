@@ -391,22 +391,20 @@ int main(int argc, char **argv)
         }
     }
     const double total_write_size = static_cast<double>(stripe_num) * block_size * static_cast<double>(n); // MB
-    std::cout << "Set phase: ClientStripeNum=" << stripe_num << ", total_write_size_mb=" << total_write_size << std::endl;
+    const double stripe_read_mb = block_size * static_cast<double>(k); // MB per stripe (data only)
+    const size_t expect_bytes = static_cast<size_t>(parameters[3]) * static_cast<size_t>(k);
+    const int rw_trials = 5;
     const int set_threads = parse_cord_batch_threads();
-    std::cout << "Set phase concurrency (CORD_BATCH_THREADS)=" << set_threads << std::endl;
-    std::cout << "Starting set stripe operation" << std::endl;
-    std::chrono::high_resolution_clock::time_point set_start = std::chrono::high_resolution_clock::now();
-    if (set_threads <= 1)
+    std::cout << "RW test: trials=" << rw_trials
+              << ", ClientStripeNum=" << stripe_num
+              << ", write_size_mb/trial=" << total_write_size
+              << ", read_size_mb/stripe=" << stripe_read_mb
+              << ", set_threads=" << set_threads << std::endl;
+
+    // 多线程写时复用 worker Client，避免每轮重新绑端口
+    std::vector<std::unique_ptr<ECProject::Client>> worker_clients;
+    if (set_threads > 1)
     {
-      for (int i = 0; i < stripe_num; i++)
-      {
-        client.set();
-      }
-    }
-    else
-    {
-      // 每个线程独立 Client 实例，避免共享 m_pre_allocated_buffer
-      std::vector<std::unique_ptr<ECProject::Client>> worker_clients;
       worker_clients.reserve(static_cast<size_t>(set_threads));
       for (int t = 0; t < set_threads; ++t)
       {
@@ -414,37 +412,149 @@ int main(int argc, char **argv)
         worker_clients.push_back(std::make_unique<ECProject::Client>(
             client_ip, port, config->CoordinatorIP + ":" + std::to_string(config->CoordinatorPort), sys_config_path));
       }
-      std::vector<std::thread> workers;
-      std::atomic<int> next_idx{0};
-      std::mutex set_log_mu;
-      for (int t = 0; t < set_threads; ++t)
-      {
-        workers.emplace_back([&, t]() {
-          ECProject::Client &wc = *worker_clients[static_cast<size_t>(t)];
-          while (true)
-          {
-            int idx = next_idx.fetch_add(1);
-            if (idx >= stripe_num)
-              break;
-            if (t == 0)
-            {
-              std::lock_guard<std::mutex> lk(set_log_mu);
-              std::cout << "[set] stripe " << idx << " ..." << std::endl;
-            }
-            wc.set();
-          }
-        });
-      }
-      for (auto &th : workers)
-        th.join();
     }
-    std::chrono::high_resolution_clock::time_point set_end = std::chrono::high_resolution_clock::now();
-    std::cout << "Set stripe operation finished" << std::endl;
-    std::cout << "Conducting experiments, please wait..." << std::endl;
-    std::chrono::duration<double> set_time = std::chrono::duration_cast<std::chrono::duration<double>>(set_end - set_start);
-    std::cout << "write throughput: " << (static_cast<double> (total_write_size) / set_time.count() / 1024) << "MB/s" << std::endl;
+
+    std::vector<double> write_times;
+    std::vector<double> write_throughputs;
+    std::vector<double> read_times;
+    std::vector<double> read_speeds;
+    write_times.reserve(static_cast<size_t>(rw_trials));
+    write_throughputs.reserve(static_cast<size_t>(rw_trials));
+    read_times.reserve(static_cast<size_t>(rw_trials));
+    read_speeds.reserve(static_cast<size_t>(rw_trials));
+
+    int next_stripe_id = 0;
+    for (int trial = 1; trial <= rw_trials; ++trial)
+    {
+      std::cout << "========== RW trial " << trial << "/" << rw_trials
+                << " (stripes " << next_stripe_id << ".." << (next_stripe_id + stripe_num - 1) << ") ==========" << std::endl;
+
+      // ---- write ----
+      std::cout << "[write] trial " << trial << " start" << std::endl;
+      std::chrono::high_resolution_clock::time_point set_start = std::chrono::high_resolution_clock::now();
+      if (set_threads <= 1)
+      {
+        for (int i = 0; i < stripe_num; i++)
+          client.set();
+      }
+      else
+      {
+        std::vector<std::thread> workers;
+        std::atomic<int> next_idx{0};
+        for (int t = 0; t < set_threads; ++t)
+        {
+          workers.emplace_back([&, t]() {
+            ECProject::Client &wc = *worker_clients[static_cast<size_t>(t)];
+            while (true)
+            {
+              int idx = next_idx.fetch_add(1);
+              if (idx >= stripe_num)
+                break;
+              wc.set();
+            }
+          });
+        }
+        for (auto &th : workers)
+          th.join();
+      }
+      std::chrono::high_resolution_clock::time_point set_end = std::chrono::high_resolution_clock::now();
+      const double set_sec =
+          std::chrono::duration_cast<std::chrono::duration<double>>(set_end - set_start).count();
+      const double write_mbs = total_write_size / set_sec;
+      write_times.push_back(set_sec);
+      write_throughputs.push_back(write_mbs);
+      std::cout << "[write] trial " << trial << " time=" << set_sec
+                << " s, throughput=" << write_mbs << " MB/s" << std::endl;
+
+      // ---- read（读本轮刚写入的条带）----
+      std::cout << "[read] trial " << trial << " start" << std::endl;
+      std::vector<std::chrono::duration<double>> read_time_spans;
+      read_time_spans.reserve(static_cast<size_t>(stripe_num));
+      int read_ok = 0;
+      int verify_ok = 0;
+      for (int i = 0; i < stripe_num; i++)
+      {
+        const int sid = next_stripe_id + i;
+        size_t data_size = 0;
+        const std::string key = std::to_string(sid);
+        std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+        std::shared_ptr<char[]> data = client.get(key, data_size);
+        std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> time_span =
+            std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+        if (!data || data_size != expect_bytes)
+        {
+          std::cout << "[read] trial " << trial << " stripe " << sid << " failed"
+                    << (data ? (" size=" + std::to_string(data_size)) : "") << std::endl;
+          continue;
+        }
+        read_time_spans.push_back(time_span);
+        ++read_ok;
+        bool payload_ok = true;
+        const unsigned char *p = reinterpret_cast<const unsigned char *>(data.get());
+        for (size_t b = 0; b < data_size; ++b)
+        {
+          if (p[b] != 0xaa)
+          {
+            payload_ok = false;
+            break;
+          }
+        }
+        if (payload_ok)
+          ++verify_ok;
+        else
+          std::cout << "[read] trial " << trial << " stripe " << sid
+                    << " payload mismatch (expect 0xaa)" << std::endl;
+        std::cout << "[read] trial " << trial << " stripe " << sid
+                  << " time=" << time_span.count() << " s" << std::endl;
+      }
+      std::cout << "[read] trial " << trial << " success: " << read_ok << "/" << stripe_num
+                << ", verify ok: " << verify_ok << "/" << stripe_num << std::endl;
+      if (!read_time_spans.empty())
+      {
+        const std::chrono::duration<double> read_total =
+            std::accumulate(read_time_spans.begin(), read_time_spans.end(),
+                            std::chrono::duration<double>(0));
+        const double avg_sec = read_total.count() / static_cast<double>(read_time_spans.size());
+        const double read_mbs = stripe_read_mb / avg_sec;
+        read_times.push_back(avg_sec);
+        read_speeds.push_back(read_mbs);
+        std::cout << "[read] trial " << trial << " avg_time=" << avg_sec
+                  << " s, avg_speed=" << read_mbs << " MB/s" << std::endl;
+      }
+      else
+      {
+        std::cout << "[read] trial " << trial << " no successful reads" << std::endl;
+      }
+      std::cout << std::endl;
+      next_stripe_id += stripe_num;
+    }
+
+    auto print_stats = [](const char *name, const std::vector<double> &vals) {
+      if (vals.empty())
+      {
+        std::cout << name << ": no samples" << std::endl;
+        return;
+      }
+      const double sum = std::accumulate(vals.begin(), vals.end(), 0.0);
+      const double avg = sum / static_cast<double>(vals.size());
+      const double mx = *std::max_element(vals.begin(), vals.end());
+      const double mn = *std::min_element(vals.begin(), vals.end());
+      std::cout << name << " per-trial:";
+      for (size_t i = 0; i < vals.size(); ++i)
+        std::cout << " [" << (i + 1) << "]=" << vals[i];
+      std::cout << std::endl;
+      std::cout << name << " avg=" << avg << ", max=" << mx << ", min=" << mn << std::endl;
+    };
+    std::cout << "========== RW summary (" << rw_trials << " trials) ==========" << std::endl;
+    print_stats("write time(s)", write_times);
+    print_stats("write throughput(MB/s)", write_throughputs);
+    print_stats("read avg time(s)", read_times);
+    print_stats("read avg speed(MB/s)", read_speeds);
+    std::cout << std::endl;
+
     char input = 0;
-    std::cout << "Start CoRD batch update? (type 'y' to proceed): " << std::endl;
+    std::cout << "Start CoRD batch update? (type 'y' to proceed, other to skip): " << std::endl;
     std::cin >> input;
     if (input == 'y')
     {
@@ -911,6 +1021,8 @@ int main(int argc, char **argv)
     // std::cout << "Degraded read test end" << std::endl;
     // std::cout << std::endl;
     
+
+    /*
     // single block recovery: repair all n blocks of stripe 0 and report average / max / min
     {
         std::cout << "Single block recovery test start (stripe 0, blocks 0.." << (n - 1) << ")" << std::endl;
@@ -943,6 +1055,8 @@ int main(int argc, char **argv)
         std::cout << "Single block recovery test end" << std::endl;
         std::cout << std::endl;
     }
+  */
+    
     /*
     //for full node repair
     std::cout << "Full node repair test start" << std::endl;
