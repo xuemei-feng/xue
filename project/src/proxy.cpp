@@ -1138,14 +1138,6 @@ namespace ECProject
     return true;
   }
 
-  static bool bounded_random_parity_delta_all_zero(const std::vector<uint8_t> &v)
-  {
-    for (uint8_t b : v)
-      if (b != 0)
-        return false;
-    return true;
-  }
-
   static bool cord_apply_mst_data_delta(ProxyImpl *proxy, const proxy_proto::CordPlanMstDataDeltaReq &request,
                                           const char *chunk_data, size_t chunk_size)
   {
@@ -2876,8 +2868,6 @@ namespace ECProject
                   return;
                 }
                 const auto &pdelta = coded[static_cast<size_t>(row)];
-                if (bounded_random_parity_delta_all_zero(pdelta))
-                  return;
                 proxy_proto::CordPlanApplyParityXorReq req;
                 req.set_plan_key(placement_copy->key());
                 req.set_dst_block_id(pbid);
