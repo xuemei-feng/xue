@@ -123,6 +123,9 @@ message ReplyProxyIPsPorts {
   repeated uint64 cluster_slice_sizes = 5;
   repeated int32 group_ids = 6;
   string cord_transfer_plan_key = 7;
+  // SET/SUBSET: concatenated block_ids in TCP send order across cluster slices
+  // (same order as AppendStripeDataPlacement.blockids within each plan)
+  repeated int32 slice_block_ids = 8;
 }
 
 message CordPlanKeyOnly {
@@ -153,6 +156,8 @@ message KeyAndClientIP {
   string key = 1;
   string clientip = 2;
   int32 clientport = 3;
+  // getStripe: true = 只返回各机架 proxy/块数，不启动传输
+  bool plan_only = 4;
 }
 message RepIfGetSuccess {
   bool ifgetsuccess = 1;
@@ -164,6 +169,8 @@ message BlockIDsAndClientIP{
   string clientip = 3;
   int32 clientport = 4;
   int32 failed_block_id = 5;
+  // getBlocks: true = 只返回涉及机架数，不启动传输
+  bool plan_only = 6;
 }
 
 message LogicalRange {

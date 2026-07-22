@@ -5,6 +5,8 @@
 #include <thread>
 #include <atomic>
 #include <memory>
+#include <mutex>
+#include <functional>
 #include <assert.h>
 #include <chrono>
 #include <iomanip>
@@ -831,102 +833,122 @@ namespace ECProject
       std::cout << "[SET402] upload data failed!" << std::endl;
       return false;
     }
-    else
+
+    assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
+    const int k = m_sys_config->k;
+    const int r = m_sys_config->r;
+    const int z = m_sys_config->z;
+    const int n = m_sys_config->n;
+    const size_t bs = static_cast<size_t>(m_sys_config->BlockSize);
+
+    // 1) 按 block_id 顺序在本地条带缓冲中编码
+    std::vector<char *> data_ptr_array;
+    std::vector<char *> parity_ptr_array;
+    data_ptr_array.reserve(static_cast<size_t>(k));
+    parity_ptr_array.reserve(static_cast<size_t>(r + z));
+    for (int i = 0; i < k; ++i)
     {
-      std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
-      std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
-      std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
-
-      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
-      std::vector<int> data_block_num_per_group = get_data_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      std::vector<int> global_parity_block_num_per_group = get_global_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      std::vector<int> local_parity_block_num_per_group = get_local_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      std::vector<char *> data_ptr_array, global_parity_ptr_array, local_parity_ptr_array;
-      split_for_set_data_and_parity(&reply, cluster_slice_data, data_block_num_per_group, global_parity_block_num_per_group, local_parity_block_num_per_group, data_ptr_array, global_parity_ptr_array, local_parity_ptr_array);
-      std::vector<char *> parity_ptr_array;
-      parity_ptr_array.insert(parity_ptr_array.end(), global_parity_ptr_array.begin(), global_parity_ptr_array.end());
-      parity_ptr_array.insert(parity_ptr_array.end(), local_parity_ptr_array.begin(), local_parity_ptr_array.end());
-
-      // 每次 set 都重新编码，避免测试数据恒定时复用校验块导致写吞吐偏高
-      if (m_sys_config->CodeType == "UniLRC")
-      {
-        ECProject::encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-      }
-      else if (m_sys_config->CodeType == "OptimalLRC")
-      {
-        ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-      }
-      else if (m_sys_config->CodeType == "UniformLRC")
-      {
-        ECProject::encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-      }
-      else if (is_azure_like_code(m_sys_config->CodeType))
-      {
-        ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-      }
-      // 回退到 client 直接并发发送给所有 proxy（旧逻辑），先跑通带宽测试
-      // 使用 Asio 多路复用实现真正的异步并发发送（单线程事件循环）
-      asio::io_context io_context;
-      auto pending = std::make_shared<std::atomic<int>>(reply.append_keys_size());
-
-      for (int i = 0; i < reply.append_keys_size(); i++)
-      {
-        async_append_to_proxies_async(io_context,
-                                      cluster_slice_data[i],
-                                      reply.append_keys(i),
-                                      reply.cluster_slice_sizes(i),
-                                      reply.proxyips(i),
-                                      reply.proxyports(i),
-                                      i,
-                                      if_commit_arr.get(),
-                                      pending);
-      }
-
-      io_context.run();  // 等待所有异步 TCP 发送完成
-
-      // 并行 gRPC 检查（每个 slice 独立 checkCommitAbort，减少尾延迟）
-      const int slice_count = reply.append_keys_size();
-      std::vector<std::thread> check_threads;
-      check_threads.reserve(static_cast<size_t>(slice_count));
-      for (int i = 0; i < slice_count; i++)
-      {
-        check_threads.emplace_back([this, i, &reply, if_commit_arr = if_commit_arr.get()]() {
-          grpc::ClientContext check_commit;
-          coordinator_proto::AskIfSuccess request;
-          request.set_key(reply.append_keys(i));
-          OpperateType opp = APPEND;
-          request.set_opp(opp);
-          coordinator_proto::RepIfSuccess reply_chk;
-          grpc::Status st = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply_chk);
-          if (st.ok() && reply_chk.ifcommit())
-          {
-            if_commit_arr[i] = true;
-          }
-          else if (!st.ok())
-          {
-            std::cout << "[SET-ASYNC] checkCommitAbort failed for key=" << reply.append_keys(i) << std::endl;
-          }
-        });
-      }
-      for (auto &t : check_threads)
-        t.join();
-
-      // check if all appends are successful
-      bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + slice_count, [](bool val)
-                                  { return val == true; });
-
-      if (all_true)
-      {
-        std::cout << "[SET437] Client " << m_clientID << " set successfully!" << std::endl;
-        return true;
-      }
-      else
-      {
-        std::cout << "[SET441] Client " << m_clientID << " set failed!" << std::endl;
-        return false;
-      }
+      data_ptr_array.push_back(m_pre_allocated_buffer + static_cast<size_t>(i) * bs);
+    }
+    for (int i = 0; i < r + z; ++i)
+    {
+      parity_ptr_array.push_back(m_pre_allocated_buffer + static_cast<size_t>(k + i) * bs);
     }
 
+    if (m_sys_config->CodeType == "UniLRC")
+    {
+      ECProject::encode_unilrc(k, r, z, reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                              reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+    }
+    else if (m_sys_config->CodeType == "OptimalLRC")
+    {
+      ECProject::encode_optimal_lrc(k, r, z, reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                   reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+    }
+    else if (m_sys_config->CodeType == "UniformLRC")
+    {
+      ECProject::encode_uniform_lrc(k, r, z, reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                   reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+    }
+    else if (is_azure_like_code(m_sys_config->CodeType))
+    {
+      ECProject::encode_azure_lrc(k, r, z, reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                 reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+    }
+
+    // 2) 按物理机架 plan 的 block 序打包，再并发发到各接收机架 proxy
+    assert(reply.slice_block_ids_size() > 0);
+    assert(static_cast<size_t>(reply.slice_block_ids_size()) * bs == static_cast<size_t>(reply.sum_append_size()));
+    auto send_buf = std::make_shared<std::vector<char>>(static_cast<size_t>(reply.sum_append_size()));
+    size_t off = 0;
+    for (int i = 0; i < reply.slice_block_ids_size(); ++i)
+    {
+      const int bid = reply.slice_block_ids(i);
+      assert(bid >= 0 && bid < n);
+      std::memcpy(send_buf->data() + off, m_pre_allocated_buffer + static_cast<size_t>(bid) * bs, bs);
+      off += bs;
+    }
+
+    std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(send_buf->data(), &reply);
+    std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
+    std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
+
+    asio::io_context io_context;
+    auto pending = std::make_shared<std::atomic<int>>(reply.append_keys_size());
+
+    for (int i = 0; i < reply.append_keys_size(); i++)
+    {
+      async_append_to_proxies_async(io_context,
+                                    cluster_slice_data[i],
+                                    reply.append_keys(i),
+                                    reply.cluster_slice_sizes(i),
+                                    reply.proxyips(i),
+                                    reply.proxyports(i),
+                                    i,
+                                    if_commit_arr.get(),
+                                    pending);
+    }
+
+    io_context.run();  // 等待所有异步 TCP 发送完成
+    (void)send_buf;
+
+    // 并行 gRPC 检查（每个 slice 独立 checkCommitAbort，减少尾延迟）
+    const int slice_count = reply.append_keys_size();
+    std::vector<std::thread> check_threads;
+    check_threads.reserve(static_cast<size_t>(slice_count));
+    for (int i = 0; i < slice_count; i++)
+    {
+      check_threads.emplace_back([this, i, &reply, if_commit_arr = if_commit_arr.get()]() {
+        grpc::ClientContext check_commit;
+        coordinator_proto::AskIfSuccess request;
+        request.set_key(reply.append_keys(i));
+        OpperateType opp = APPEND;
+        request.set_opp(opp);
+        coordinator_proto::RepIfSuccess reply_chk;
+        grpc::Status st = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply_chk);
+        if (st.ok() && reply_chk.ifcommit())
+        {
+          if_commit_arr[i] = true;
+        }
+        else if (!st.ok())
+        {
+          std::cout << "[SET-ASYNC] checkCommitAbort failed for key=" << reply.append_keys(i) << std::endl;
+        }
+      });
+    }
+    for (auto &t : check_threads)
+      t.join();
+
+    bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + slice_count, [](bool val)
+                                { return val == true; });
+
+    if (all_true)
+    {
+      std::cout << "[SET437] Client " << m_clientID << " set successfully!" << std::endl;
+      return true;
+    }
+
+    std::cout << "[SET441] Client " << m_clientID << " set failed!" << std::endl;
     return false;
   }
 
@@ -945,112 +967,118 @@ namespace ECProject
       std::cout << "[SET402] upload data failed!" << std::endl;
       return false;
     }
-    else
+
+    assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
+    const int k = m_sys_config->k;
+    const int r = m_sys_config->r;
+    const int z = m_sys_config->z;
+    const int n = m_sys_config->n;
+    const size_t bs = static_cast<size_t>(m_sys_config->BlockSize);
+
+    std::vector<char *> data_ptr_array;
+    std::vector<char *> parity_ptr_array;
+    data_ptr_array.reserve(static_cast<size_t>(k));
+    parity_ptr_array.reserve(static_cast<size_t>(r + z));
+    for (int i = 0; i < k; ++i)
     {
-      std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
-      std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
-      std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
-
-      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
-      std::vector<int> data_block_num_per_group = get_data_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      int capacity = block_num;
-      for(int i = 0; i < data_block_num_per_group.size(); i++)
-      {
-        if(data_block_num_per_group[i] > capacity){
-          data_block_num_per_group[i] = capacity;
-        } 
-        capacity -= data_block_num_per_group[i];
-      }
-      std::vector<int> global_parity_block_num_per_group = get_global_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      std::vector<int> local_parity_block_num_per_group = get_local_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      m_toolbox->remove_common_zeros(data_block_num_per_group, global_parity_block_num_per_group, local_parity_block_num_per_group);
-
-      std::vector<char *> data_ptr_array, global_parity_ptr_array, local_parity_ptr_array;
-      split_for_set_data_and_parity(&reply, cluster_slice_data, data_block_num_per_group, global_parity_block_num_per_group, local_parity_block_num_per_group, data_ptr_array, global_parity_ptr_array, local_parity_ptr_array);
-      std::vector<char *> parity_ptr_array;
-      parity_ptr_array.insert(parity_ptr_array.end(), global_parity_ptr_array.begin(), global_parity_ptr_array.end());
-      parity_ptr_array.insert(parity_ptr_array.end(), local_parity_ptr_array.begin(), local_parity_ptr_array.end());
-      if (m_sys_config->CodeType == "UniLRC")
-      {
-        //ECProject::encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
-        ECProject::partial_encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-      }
-      else if (m_sys_config->CodeType == "OptimalLRC")
-      {
-        //ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
-        ECProject::partial_encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-      }
-      else if (m_sys_config->CodeType == "UniformLRC")
-      {
-        //ECProject::encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
-        ECProject::partial_encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-      }
-      else if (is_azure_like_code(m_sys_config->CodeType))
-      {
-        //ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
-        ECProject::partial_encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-      }
-      // 使用 Asio 多路复用实现真正的异步并发发送（单线程事件循环）
-      asio::io_context io_context;
-      auto pending = std::make_shared<std::atomic<int>>(reply.append_keys_size());
-
-      for (int i = 0; i < reply.append_keys_size(); i++)
-      {
-        async_append_to_proxies_async(io_context,
-                                      cluster_slice_data[i],
-                                      reply.append_keys(i),
-                                      reply.cluster_slice_sizes(i),
-                                      reply.proxyips(i),
-                                      reply.proxyports(i),
-                                      i,
-                                      if_commit_arr.get(),
-                                      pending);
-      }
-
-      io_context.run();  // 等待所有异步 TCP 发送完成
-
-      // 并行 gRPC 检查（每个 slice 独立 checkCommitAbort，减少尾延迟）
-      const int slice_count = reply.append_keys_size();
-      std::vector<std::thread> check_threads;
-      check_threads.reserve(static_cast<size_t>(slice_count));
-      for (int i = 0; i < slice_count; i++)
-      {
-        check_threads.emplace_back([this, i, &reply, if_commit_arr = if_commit_arr.get()]() {
-          grpc::ClientContext check_commit;
-          coordinator_proto::AskIfSuccess request;
-          request.set_key(reply.append_keys(i));
-          OpperateType opp = APPEND;
-          request.set_opp(opp);
-          coordinator_proto::RepIfSuccess reply_chk;
-          grpc::Status st = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply_chk);
-          if (st.ok() && reply_chk.ifcommit())
-          {
-            if_commit_arr[i] = true;
-          }
-          else if (!st.ok())
-          {
-            std::cout << "[SET-ASYNC] checkCommitAbort failed for key=" << reply.append_keys(i) << std::endl;
-          }
-        });
-      }
-      for (auto &t : check_threads)
-        t.join();
-
-      // check if all appends are successful
-      bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + slice_count, [](bool val)
-                                  { return val == true; });
-
-      if (all_true)
-      {
-        return true;
-      }
-      else
-      {
-        std::cout << "[SET441] Client " << m_clientID << " set failed!" << std::endl;
-        return false;
-      }
+      data_ptr_array.push_back(m_pre_allocated_buffer + static_cast<size_t>(i) * bs);
+    }
+    for (int i = 0; i < r + z; ++i)
+    {
+      parity_ptr_array.push_back(m_pre_allocated_buffer + static_cast<size_t>(k + i) * bs);
     }
 
+    if (m_sys_config->CodeType == "UniLRC")
+    {
+      ECProject::partial_encode_unilrc(k, r, z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                      reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+    }
+    else if (m_sys_config->CodeType == "OptimalLRC")
+    {
+      ECProject::partial_encode_optimal_lrc(k, r, z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                           reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+    }
+    else if (m_sys_config->CodeType == "UniformLRC")
+    {
+      ECProject::partial_encode_uniform_lrc(k, r, z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                           reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+    }
+    else if (is_azure_like_code(m_sys_config->CodeType))
+    {
+      ECProject::partial_encode_azure_lrc(k, r, z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                         reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+    }
+
+    assert(reply.slice_block_ids_size() > 0);
+    assert(static_cast<size_t>(reply.slice_block_ids_size()) * bs == static_cast<size_t>(reply.sum_append_size()));
+    auto send_buf = std::make_shared<std::vector<char>>(static_cast<size_t>(reply.sum_append_size()));
+    size_t off = 0;
+    for (int i = 0; i < reply.slice_block_ids_size(); ++i)
+    {
+      const int bid = reply.slice_block_ids(i);
+      assert(bid >= 0 && bid < n);
+      std::memcpy(send_buf->data() + off, m_pre_allocated_buffer + static_cast<size_t>(bid) * bs, bs);
+      off += bs;
+    }
+
+    std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(send_buf->data(), &reply);
+    std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
+    std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
+
+    asio::io_context io_context;
+    auto pending = std::make_shared<std::atomic<int>>(reply.append_keys_size());
+
+    for (int i = 0; i < reply.append_keys_size(); i++)
+    {
+      async_append_to_proxies_async(io_context,
+                                    cluster_slice_data[i],
+                                    reply.append_keys(i),
+                                    reply.cluster_slice_sizes(i),
+                                    reply.proxyips(i),
+                                    reply.proxyports(i),
+                                    i,
+                                    if_commit_arr.get(),
+                                    pending);
+    }
+
+    io_context.run();
+    (void)send_buf;
+
+    const int slice_count = reply.append_keys_size();
+    std::vector<std::thread> check_threads;
+    check_threads.reserve(static_cast<size_t>(slice_count));
+    for (int i = 0; i < slice_count; i++)
+    {
+      check_threads.emplace_back([this, i, &reply, if_commit_arr = if_commit_arr.get()]() {
+        grpc::ClientContext check_commit;
+        coordinator_proto::AskIfSuccess request;
+        request.set_key(reply.append_keys(i));
+        OpperateType opp = APPEND;
+        request.set_opp(opp);
+        coordinator_proto::RepIfSuccess reply_chk;
+        grpc::Status st = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply_chk);
+        if (st.ok() && reply_chk.ifcommit())
+        {
+          if_commit_arr[i] = true;
+        }
+        else if (!st.ok())
+        {
+          std::cout << "[SET-ASYNC] checkCommitAbort failed for key=" << reply.append_keys(i) << std::endl;
+        }
+      });
+    }
+    for (auto &t : check_threads)
+      t.join();
+
+    bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + slice_count, [](bool val)
+                                { return val == true; });
+
+    if (all_true)
+    {
+      return true;
+    }
+
+    std::cout << "[SET441] Client " << m_clientID << " set failed!" << std::endl;
     return false;
   }
 
@@ -1535,46 +1563,73 @@ namespace ECProject
     data_size = static_cast<size_t>(data_block_num) * static_cast<size_t>(block_size);
     std::shared_ptr<char[]> data_ptr_array(new char[data_size]);
 
-    grpc::ClientContext context;
-    coordinator_proto::KeyAndClientIP request;
-    request.set_key(key);
-    request.set_clientip(m_clientIPForGet);
-    request.set_clientport(m_clientPortForGet);
-    coordinator_proto::ReplyProxyIPsPorts reply;
-    bool grpc_ok = false;
-    std::atomic<int> bad_blocks{0};
-
-    // 先起 accept，再异步通知 coordinator，避免 proxy 先连上来时无人 accept
-    std::vector<std::thread> threads;
-    threads.reserve(static_cast<size_t>(data_block_num));
-    for (int i = 0; i < data_block_num; i++)
+    // 两阶段：先 plan 拿确切机架连接数，再按该数量 sync accept，最后 pull
+    // 协议：uint32 nblocks | (uint32 block_id + BlockSize) * nblocks
+    coordinator_proto::ReplyProxyIPsPorts plan_reply;
     {
-      threads.emplace_back([this, data_ptr_array, block_size, data_size, &bad_blocks]() mutable {
-        asio::io_context io_context;
-        asio::ip::tcp::socket socket_data(io_context);
-        this->acceptor.accept(socket_data);
-        uint32_t block_id = 0;
-        asio::read(socket_data, asio::buffer(&block_id, sizeof(uint32_t)));
-        if (static_cast<size_t>(block_id) * static_cast<size_t>(block_size) + static_cast<size_t>(block_size) > data_size)
+      grpc::ClientContext plan_ctx;
+      coordinator_proto::KeyAndClientIP plan_req;
+      plan_req.set_key(key);
+      plan_req.set_clientip(m_clientIPForGet);
+      plan_req.set_clientport(m_clientPortForGet);
+      plan_req.set_plan_only(true);
+      grpc::Status st = m_coordinator_ptr->getStripe(&plan_ctx, plan_req, &plan_reply);
+      if (!st.ok() || plan_reply.proxyips_size() <= 0)
+      {
+        std::cout << "[Client] get stripe plan failed!" << std::endl;
+        return nullptr;
+      }
+    }
+
+    const int rack_conns = plan_reply.proxyips_size();
+    std::atomic<int> bad_blocks{0};
+    std::atomic<int> got_blocks{0};
+    std::vector<std::thread> readers;
+    readers.reserve(static_cast<size_t>(rack_conns));
+    for (int i = 0; i < rack_conns; ++i)
+    {
+      readers.emplace_back([this, data_ptr_array, block_size, data_size, &bad_blocks, &got_blocks]() {
+        asio::error_code ec;
+        asio::io_context ioc;
+        asio::ip::tcp::socket socket_data(ioc);
+        this->acceptor.accept(socket_data, ec);
+        if (ec)
         {
-          std::cout << "[Client] get stripe invalid block_id=" << block_id << std::endl;
           bad_blocks.fetch_add(1);
-          asio::error_code ignore_ec;
-          socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
-          socket_data.close(ignore_ec);
           return;
         }
-        asio::error_code error;
-        size_t len = asio::read(
-            socket_data,
-            asio::buffer(data_ptr_array.get() + static_cast<size_t>(block_id) * static_cast<size_t>(block_size),
-                         static_cast<size_t>(block_size)),
-            error);
-        if (len != static_cast<size_t>(block_size))
+        uint32_t nblocks = 0;
+        asio::read(socket_data, asio::buffer(&nblocks, sizeof(uint32_t)), ec);
+        if (ec || nblocks == 0)
         {
-          std::cout << "[Client] get stripe block failed! block_id=" << block_id
-                    << " len=" << len << " ec=" << error.message() << std::endl;
           bad_blocks.fetch_add(1);
+          return;
+        }
+        for (uint32_t j = 0; j < nblocks; ++j)
+        {
+          uint32_t block_id = 0;
+          asio::read(socket_data, asio::buffer(&block_id, sizeof(uint32_t)), ec);
+          if (ec ||
+              static_cast<size_t>(block_id) * static_cast<size_t>(block_size) + static_cast<size_t>(block_size) >
+                  data_size)
+          {
+            std::cout << "[Client] get stripe invalid block_id=" << block_id << std::endl;
+            bad_blocks.fetch_add(1);
+            break;
+          }
+          size_t len = asio::read(
+              socket_data,
+              asio::buffer(data_ptr_array.get() + static_cast<size_t>(block_id) * static_cast<size_t>(block_size),
+                           static_cast<size_t>(block_size)),
+              ec);
+          if (len != static_cast<size_t>(block_size) || ec)
+          {
+            std::cout << "[Client] get stripe block failed! block_id=" << block_id
+                      << " len=" << len << " ec=" << ec.message() << std::endl;
+            bad_blocks.fetch_add(1);
+            break;
+          }
+          got_blocks.fetch_add(1);
         }
         asio::error_code ignore_ec;
         socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
@@ -1582,18 +1637,26 @@ namespace ECProject
       });
     }
 
-    std::thread notify_thread([&]() {
-      grpc::Status status = m_coordinator_ptr->getStripe(&context, request, &reply);
-      grpc_ok = status.ok();
-      if (!grpc_ok)
-        std::cout << "[Client] get stripe failed!" << std::endl;
+    bool pull_ok = false;
+    std::thread pull_thread([&]() {
+      grpc::ClientContext pull_ctx;
+      coordinator_proto::KeyAndClientIP pull_req;
+      pull_req.set_key(key);
+      pull_req.set_clientip(m_clientIPForGet);
+      pull_req.set_clientport(m_clientPortForGet);
+      pull_req.set_plan_only(false);
+      coordinator_proto::ReplyProxyIPsPorts pull_reply;
+      grpc::Status st = m_coordinator_ptr->getStripe(&pull_ctx, pull_req, &pull_reply);
+      pull_ok = st.ok();
+      if (!pull_ok)
+        std::cout << "[Client] get stripe pull failed!" << std::endl;
     });
 
-    for (auto &thread : threads)
-      thread.join();
-    notify_thread.join();
+    for (auto &t : readers)
+      t.join();
+    pull_thread.join();
 
-    if (!grpc_ok || bad_blocks.load() > 0)
+    if (!pull_ok || bad_blocks.load() > 0 || got_blocks.load() < data_block_num)
       return nullptr;
     return data_ptr_array;
   }
@@ -1601,65 +1664,105 @@ namespace ECProject
   //for workload
   std::shared_ptr<char[]> Client::get_blocks(int start_block_id, int end_block_id)
   {
-    grpc::ClientContext context;
-    coordinator_proto::BlockIDsAndClientIP request;
-    request.set_start_block_id(start_block_id);
-    request.set_end_block_id(end_block_id);
-    request.set_clientip(m_clientIPForGet);
-    request.set_clientport(m_clientPortForGet);
-
-    coordinator_proto::ReplyProxyIPsPorts reply;
-    bool is_get_blocks = false;
-    std::thread notify_thread([&context, &request, &reply, this, &is_get_blocks]() {
-      grpc::Status status;
-      status = m_coordinator_ptr->getBlocks(&context, request, &reply);
-      if (status.ok())
-      {
-        is_get_blocks = true;
-      }
-      else
-      {
-        std::cout << "[Client] get blocks failed!" << std::endl;
-      }
-    });
-
-    int block_num = end_block_id - start_block_id + 1;
-    int block_size = m_sys_config->BlockSize;
-    //char * data_ptr_array = new char[static_cast<size_t>(block_num) * static_cast<size_t>(block_size)];
+    const int block_num = end_block_id - start_block_id + 1;
+    const int block_size = m_sys_config->BlockSize;
     std::shared_ptr<char[]> data_ptr_array(new char[static_cast<size_t>(block_num) * static_cast<size_t>(block_size)]);
-    char * data_ptr_array_raw = data_ptr_array.get();
-    std::vector<std::thread> threads;
-    for(int i = 0; i < block_num; i++)
+    char *data_ptr_array_raw = data_ptr_array.get();
+
+    coordinator_proto::ReplyProxyIPsPorts plan_reply;
     {
-      threads.push_back(std::thread(([this, &reply, i, data_ptr_array_raw, block_size]()mutable {
-        asio::io_context io_context;
-        asio::ip::tcp::socket socket_data(io_context);
-        this->acceptor.accept(socket_data);
-        uint32_t block_id;
-        asio::read(socket_data, asio::buffer(&block_id, sizeof(uint32_t)));
-        asio::error_code error;
-        size_t len = asio::read(socket_data, asio::buffer(data_ptr_array_raw + block_id * static_cast<size_t>(block_size), block_size), error);
-        if(len != block_size)
+      grpc::ClientContext plan_ctx;
+      coordinator_proto::BlockIDsAndClientIP plan_req;
+      plan_req.set_start_block_id(start_block_id);
+      plan_req.set_end_block_id(end_block_id);
+      plan_req.set_clientip(m_clientIPForGet);
+      plan_req.set_clientport(m_clientPortForGet);
+      plan_req.set_plan_only(true);
+      grpc::Status st = m_coordinator_ptr->getBlocks(&plan_ctx, plan_req, &plan_reply);
+      if (!st.ok() || plan_reply.proxyips_size() <= 0)
+      {
+        std::cout << "[Client] get blocks plan failed!" << std::endl;
+        return nullptr;
+      }
+    }
+
+    const int rack_conns = plan_reply.proxyips_size();
+    std::atomic<int> bad_blocks{0};
+    std::atomic<int> got_blocks{0};
+    std::vector<std::thread> readers;
+    readers.reserve(static_cast<size_t>(rack_conns));
+    for (int i = 0; i < rack_conns; ++i)
+    {
+      readers.emplace_back([this, data_ptr_array_raw, block_size, block_num, &bad_blocks, &got_blocks]() {
+        asio::error_code ec;
+        asio::io_context ioc;
+        asio::ip::tcp::socket socket_data(ioc);
+        this->acceptor.accept(socket_data, ec);
+        if (ec)
         {
-          std::cout << "[Client] get blocks failed!" << std::endl;
+          bad_blocks.fetch_add(1);
+          return;
+        }
+        uint32_t nblocks = 0;
+        asio::read(socket_data, asio::buffer(&nblocks, sizeof(uint32_t)), ec);
+        if (ec || nblocks == 0)
+        {
+          bad_blocks.fetch_add(1);
+          return;
+        }
+        for (uint32_t j = 0; j < nblocks; ++j)
+        {
+          uint32_t block_id = 0;
+          asio::read(socket_data, asio::buffer(&block_id, sizeof(uint32_t)), ec);
+          if (ec || static_cast<int>(block_id) >= block_num)
+          {
+            std::cout << "[Client] get blocks invalid block_id=" << block_id << std::endl;
+            bad_blocks.fetch_add(1);
+            break;
+          }
+          size_t len = asio::read(
+              socket_data,
+              asio::buffer(data_ptr_array_raw + static_cast<size_t>(block_id) * static_cast<size_t>(block_size),
+                           static_cast<size_t>(block_size)),
+              ec);
+          if (len != static_cast<size_t>(block_size) || ec)
+          {
+            std::cout << "[Client] get blocks failed! block_id=" << block_id << std::endl;
+            bad_blocks.fetch_add(1);
+            break;
+          }
+          got_blocks.fetch_add(1);
         }
         asio::error_code ignore_ec;
         socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
         socket_data.close(ignore_ec);
-      })));
+      });
     }
-    for(auto &thread : threads)
-    {
-      thread.join();
-    }
-    notify_thread.join();
-    if (!is_get_blocks)
+
+    bool pull_ok = false;
+    std::thread pull_thread([&]() {
+      grpc::ClientContext pull_ctx;
+      coordinator_proto::BlockIDsAndClientIP pull_req;
+      pull_req.set_start_block_id(start_block_id);
+      pull_req.set_end_block_id(end_block_id);
+      pull_req.set_clientip(m_clientIPForGet);
+      pull_req.set_clientport(m_clientPortForGet);
+      pull_req.set_plan_only(false);
+      coordinator_proto::ReplyProxyIPsPorts pull_reply;
+      grpc::Status st = m_coordinator_ptr->getBlocks(&pull_ctx, pull_req, &pull_reply);
+      pull_ok = st.ok();
+      if (!pull_ok)
+        std::cout << "[Client] get blocks pull failed!" << std::endl;
+    });
+
+    for (auto &t : readers)
+      t.join();
+    pull_thread.join();
+    if (!pull_ok || bad_blocks.load() > 0 || got_blocks.load() < block_num)
     {
       std::cout << "[Client] get blocks failed!" << std::endl;
       return nullptr;
     }
-    //std::cout << "[Client] get blocks success!" << std::endl;
-    
     return data_ptr_array;
   }
 

@@ -1506,6 +1506,7 @@ class ReplyProxyIPsPorts final :
     kProxyportsFieldNumber = 4,
     kClusterSliceSizesFieldNumber = 5,
     kGroupIdsFieldNumber = 6,
+    kSliceBlockIdsFieldNumber = 8,
     kCordTransferPlanKeyFieldNumber = 7,
     kSumAppendSizeFieldNumber = 1,
   };
@@ -1623,6 +1624,28 @@ class ReplyProxyIPsPorts final :
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
       mutable_group_ids();
 
+  // repeated int32 slice_block_ids = 8;
+  int slice_block_ids_size() const;
+  private:
+  int _internal_slice_block_ids_size() const;
+  public:
+  void clear_slice_block_ids();
+  private:
+  int32_t _internal_slice_block_ids(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_slice_block_ids() const;
+  void _internal_add_slice_block_ids(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_slice_block_ids();
+  public:
+  int32_t slice_block_ids(int index) const;
+  void set_slice_block_ids(int index, int32_t value);
+  void add_slice_block_ids(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      slice_block_ids() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_slice_block_ids();
+
   // string cord_transfer_plan_key = 7;
   void clear_cord_transfer_plan_key();
   const std::string& cord_transfer_plan_key() const;
@@ -1662,6 +1685,8 @@ class ReplyProxyIPsPorts final :
     mutable std::atomic<int> _cluster_slice_sizes_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > group_ids_;
     mutable std::atomic<int> _group_ids_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > slice_block_ids_;
+    mutable std::atomic<int> _slice_block_ids_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr cord_transfer_plan_key_;
     uint64_t sum_append_size_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -2457,6 +2482,7 @@ class KeyAndClientIP final :
     kKeyFieldNumber = 1,
     kClientipFieldNumber = 2,
     kClientportFieldNumber = 3,
+    kPlanOnlyFieldNumber = 4,
   };
   // string key = 1;
   void clear_key();
@@ -2495,6 +2521,15 @@ class KeyAndClientIP final :
   void _internal_set_clientport(int32_t value);
   public:
 
+  // bool plan_only = 4;
+  void clear_plan_only();
+  bool plan_only() const;
+  void set_plan_only(bool value);
+  private:
+  bool _internal_plan_only() const;
+  void _internal_set_plan_only(bool value);
+  public:
+
   // @@protoc_insertion_point(class_scope:coordinator_proto.KeyAndClientIP)
  private:
   class _Internal;
@@ -2506,6 +2541,7 @@ class KeyAndClientIP final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr clientip_;
     int32_t clientport_;
+    bool plan_only_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -2798,6 +2834,7 @@ class BlockIDsAndClientIP final :
     kEndBlockIdFieldNumber = 2,
     kClientportFieldNumber = 4,
     kFailedBlockIdFieldNumber = 5,
+    kPlanOnlyFieldNumber = 6,
   };
   // string clientip = 3;
   void clear_clientip();
@@ -2849,6 +2886,15 @@ class BlockIDsAndClientIP final :
   void _internal_set_failed_block_id(int32_t value);
   public:
 
+  // bool plan_only = 6;
+  void clear_plan_only();
+  bool plan_only() const;
+  void set_plan_only(bool value);
+  private:
+  bool _internal_plan_only() const;
+  void _internal_set_plan_only(bool value);
+  public:
+
   // @@protoc_insertion_point(class_scope:coordinator_proto.BlockIDsAndClientIP)
  private:
   class _Internal;
@@ -2862,6 +2908,7 @@ class BlockIDsAndClientIP final :
     int32_t end_block_id_;
     int32_t clientport_;
     int32_t failed_block_id_;
+    bool plan_only_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -5869,6 +5916,53 @@ inline void ReplyProxyIPsPorts::set_allocated_cord_transfer_plan_key(std::string
   // @@protoc_insertion_point(field_set_allocated:coordinator_proto.ReplyProxyIPsPorts.cord_transfer_plan_key)
 }
 
+// repeated int32 slice_block_ids = 8;
+inline int ReplyProxyIPsPorts::_internal_slice_block_ids_size() const {
+  return _impl_.slice_block_ids_.size();
+}
+inline int ReplyProxyIPsPorts::slice_block_ids_size() const {
+  return _internal_slice_block_ids_size();
+}
+inline void ReplyProxyIPsPorts::clear_slice_block_ids() {
+  _impl_.slice_block_ids_.Clear();
+}
+inline int32_t ReplyProxyIPsPorts::_internal_slice_block_ids(int index) const {
+  return _impl_.slice_block_ids_.Get(index);
+}
+inline int32_t ReplyProxyIPsPorts::slice_block_ids(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.ReplyProxyIPsPorts.slice_block_ids)
+  return _internal_slice_block_ids(index);
+}
+inline void ReplyProxyIPsPorts::set_slice_block_ids(int index, int32_t value) {
+  _impl_.slice_block_ids_.Set(index, value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.ReplyProxyIPsPorts.slice_block_ids)
+}
+inline void ReplyProxyIPsPorts::_internal_add_slice_block_ids(int32_t value) {
+  _impl_.slice_block_ids_.Add(value);
+}
+inline void ReplyProxyIPsPorts::add_slice_block_ids(int32_t value) {
+  _internal_add_slice_block_ids(value);
+  // @@protoc_insertion_point(field_add:coordinator_proto.ReplyProxyIPsPorts.slice_block_ids)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+ReplyProxyIPsPorts::_internal_slice_block_ids() const {
+  return _impl_.slice_block_ids_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+ReplyProxyIPsPorts::slice_block_ids() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.ReplyProxyIPsPorts.slice_block_ids)
+  return _internal_slice_block_ids();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+ReplyProxyIPsPorts::_internal_mutable_slice_block_ids() {
+  return &_impl_.slice_block_ids_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+ReplyProxyIPsPorts::mutable_slice_block_ids() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.ReplyProxyIPsPorts.slice_block_ids)
+  return _internal_mutable_slice_block_ids();
+}
+
 // -------------------------------------------------------------------
 
 // CordPlanKeyOnly
@@ -6279,6 +6373,26 @@ inline void KeyAndClientIP::set_clientport(int32_t value) {
   // @@protoc_insertion_point(field_set:coordinator_proto.KeyAndClientIP.clientport)
 }
 
+// bool plan_only = 4;
+inline void KeyAndClientIP::clear_plan_only() {
+  _impl_.plan_only_ = false;
+}
+inline bool KeyAndClientIP::_internal_plan_only() const {
+  return _impl_.plan_only_;
+}
+inline bool KeyAndClientIP::plan_only() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.KeyAndClientIP.plan_only)
+  return _internal_plan_only();
+}
+inline void KeyAndClientIP::_internal_set_plan_only(bool value) {
+  
+  _impl_.plan_only_ = value;
+}
+inline void KeyAndClientIP::set_plan_only(bool value) {
+  _internal_set_plan_only(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.KeyAndClientIP.plan_only)
+}
+
 // -------------------------------------------------------------------
 
 // RepIfGetSuccess
@@ -6455,6 +6569,26 @@ inline void BlockIDsAndClientIP::_internal_set_failed_block_id(int32_t value) {
 inline void BlockIDsAndClientIP::set_failed_block_id(int32_t value) {
   _internal_set_failed_block_id(value);
   // @@protoc_insertion_point(field_set:coordinator_proto.BlockIDsAndClientIP.failed_block_id)
+}
+
+// bool plan_only = 6;
+inline void BlockIDsAndClientIP::clear_plan_only() {
+  _impl_.plan_only_ = false;
+}
+inline bool BlockIDsAndClientIP::_internal_plan_only() const {
+  return _impl_.plan_only_;
+}
+inline bool BlockIDsAndClientIP::plan_only() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.BlockIDsAndClientIP.plan_only)
+  return _internal_plan_only();
+}
+inline void BlockIDsAndClientIP::_internal_set_plan_only(bool value) {
+  
+  _impl_.plan_only_ = value;
+}
+inline void BlockIDsAndClientIP::set_plan_only(bool value) {
+  _internal_set_plan_only(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.BlockIDsAndClientIP.plan_only)
 }
 
 // -------------------------------------------------------------------

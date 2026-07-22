@@ -5349,74 +5349,164 @@ namespace ECProject
     }
     std::cout << "[Proxy" << m_self_cluster_id << "][GET] getting blocks ["
               << request->block_ids(0) << "] to ["
-              << request->block_ids(request->block_ids_size() - 1) << "]" << std::endl;
+              << request->block_ids(request->block_ids_size() - 1) << "]"
+              << " (batch " << request->block_ids_size()
+              << " blocks / 1 client conn, stream DN→Client)" << std::endl;
     const int BlockSize = m_sys_config->BlockSize;
+    const size_t pipe_chunk =
+        std::max(static_cast<size_t>(m_sys_config->UnitSize), static_cast<size_t>(8192));
     const int block_count = request->block_ids_size();
     const std::string client_ip = request->clientip();
     const std::string client_port_str = std::to_string(request->clientport());
 
-    // 按块流水线：每个块 DN 读完立刻发给 client；多块并行时，一块在发送时可与其它块的 DN 读重叠
+    // 对本机架 Client 1 条连接批量回传；块内边读边发（不整块缓冲）：
+    //   uint32 nblocks | (uint32 block_id + BlockSize payload) * nblocks
+    // 多块并行：gRPC 通知 + 连 DN；向 Client 发送时加锁保证帧序。
+    asio::error_code error;
+    asio::io_context io_context;
+    asio::ip::tcp::resolver resolver(io_context);
+    asio::ip::tcp::socket client_sock(io_context);
+    {
+      auto client_eps = resolver.resolve(client_ip, client_port_str, error);
+      if (error)
+      {
+        std::cout << "[Proxy" << m_self_cluster_id << "][GET] resolve client failed: "
+                  << error.message() << std::endl;
+        return grpc::Status(grpc::StatusCode::INTERNAL, "resolve client failed");
+      }
+      client_sock.connect(*client_eps, error);
+      if (error)
+      {
+        std::cout << "[Proxy" << m_self_cluster_id << "][GET] connect client failed: "
+                  << error.message() << std::endl;
+        return grpc::Status(grpc::StatusCode::INTERNAL, "connect client failed");
+      }
+    }
+
+    const uint32_t nblocks = static_cast<uint32_t>(block_count);
+    asio::write(client_sock, asio::buffer(&nblocks, sizeof(uint32_t)), error);
+    if (error)
+    {
+      std::cout << "[Proxy" << m_self_cluster_id << "][GET] send nblocks failed: "
+                << error.message() << std::endl;
+      return grpc::Status(grpc::StatusCode::INTERNAL, "send nblocks failed");
+    }
+
+    std::mutex client_send_mu;
     std::atomic<int> fail_cnt{0};
     std::vector<std::thread> workers;
     workers.reserve(static_cast<size_t>(block_count));
     for (int i = 0; i < block_count; i++)
     {
-      workers.emplace_back([this, i, request, BlockSize, client_ip, client_port_str, &fail_cnt]() {
-        std::unique_ptr<char[]> buf(new char[static_cast<size_t>(BlockSize)]);
-        const bool got = this->GetFromDatanode(
-            request->block_keys(i),
-            buf.get(),
-            static_cast<size_t>(BlockSize),
-            request->datanodeips(i).c_str(),
-            static_cast<int>(request->datanodeports(i)));
-        if (!got)
+      workers.emplace_back([this, i, request, BlockSize, pipe_chunk, &client_sock, &client_send_mu,
+                            &fail_cnt]() {
+        const std::string block_key = request->block_keys(i);
+        const std::string dn_ip = request->datanodeips(i);
+        const int dn_port = static_cast<int>(request->datanodeports(i));
+        const uint32_t block_id = static_cast<uint32_t>(request->block_ids(i));
+
+        // 1) gRPC 通知 DN
+        grpc::ClientContext grpc_ctx;
+        datanode_proto::GetInfo get_info;
+        datanode_proto::RequestResult result;
+        get_info.set_block_key(block_key);
+        get_info.set_block_size(BlockSize);
+        get_info.set_proxy_ip(m_ip);
+        get_info.set_proxy_port(m_port);
+        const std::string node_ip_port = dn_ip + ":" + std::to_string(dn_port);
+        auto stub_it = m_datanode_ptrs.find(node_ip_port);
+        if (stub_it == m_datanode_ptrs.end())
         {
-          std::cout << "[Proxy" << m_self_cluster_id << "][GET] DN read failed for block "
-                    << request->block_ids(i) << std::endl;
+          std::cout << "[Proxy" << m_self_cluster_id << "][GET] unknown DN " << node_ip_port
+                    << " for block " << block_id << std::endl;
+          fail_cnt.fetch_add(1);
+          return;
+        }
+        grpc::Status stat = stub_it->second->handleGet(&grpc_ctx, get_info, &result);
+        if (!stat.ok())
+        {
+          std::cout << "[Proxy" << m_self_cluster_id << "][GET] handleGet failed for block "
+                    << block_id << ": " << stat.error_message() << std::endl;
           fail_cnt.fetch_add(1);
           return;
         }
 
-        asio::error_code error;
-        asio::io_context io_context;
-        asio::ip::tcp::socket socket_data(io_context);
-        asio::ip::tcp::resolver resolver(io_context);
-        auto endpoints = resolver.resolve(client_ip, client_port_str, error);
-        if (error)
+        // 2) 连 DN 数据口
+        asio::error_code ec;
+        asio::io_context dn_ioc;
+        asio::ip::tcp::resolver dn_resolver(dn_ioc);
+        asio::ip::tcp::socket dn_sock(dn_ioc);
         {
-          std::cout << "[Proxy" << m_self_cluster_id << "][GET] resolve client failed: "
-                    << error.message() << std::endl;
-          fail_cnt.fetch_add(1);
-          return;
+          auto dn_eps =
+              dn_resolver.resolve(dn_ip, std::to_string(dn_port + ECProject::DATANODE_PORT_SHIFT), ec);
+          if (ec)
+          {
+            std::cout << "[Proxy" << m_self_cluster_id << "][GET] resolve DN failed: "
+                      << ec.message() << std::endl;
+            fail_cnt.fetch_add(1);
+            return;
+          }
+          asio::connect(dn_sock, dn_eps, ec);
+          if (ec)
+          {
+            std::cout << "[Proxy" << m_self_cluster_id << "][GET] connect DN failed: "
+                      << ec.message() << std::endl;
+            fail_cnt.fetch_add(1);
+            return;
+          }
         }
-        socket_data.connect(*endpoints, error);
-        if (error)
+
+        // 3) 持锁向 Client 写 block_id，再按 UnitSize：read(DN)→write(Client)
+        std::unique_ptr<char[]> chunk_buf(new char[pipe_chunk]);
         {
-          std::cout << "[Proxy" << m_self_cluster_id << "][GET] connect client failed: "
-                    << error.message() << std::endl;
-          fail_cnt.fetch_add(1);
-          return;
+          std::lock_guard<std::mutex> lk(client_send_mu);
+          asio::write(client_sock, asio::buffer(&block_id, sizeof(uint32_t)), ec);
+          if (ec)
+          {
+            std::cout << "[Proxy" << m_self_cluster_id << "][GET] send block_id failed: "
+                      << ec.message() << std::endl;
+            fail_cnt.fetch_add(1);
+            return;
+          }
+
+          size_t remaining = static_cast<size_t>(BlockSize);
+          while (remaining > 0)
+          {
+            const size_t n = std::min(pipe_chunk, remaining);
+            asio::read(dn_sock, asio::buffer(chunk_buf.get(), n), ec);
+            if (ec)
+            {
+              std::cout << "[Proxy" << m_self_cluster_id << "][GET] read DN failed block="
+                        << block_id << " left=" << remaining << ": " << ec.message() << std::endl;
+              fail_cnt.fetch_add(1);
+              return;
+            }
+            asio::write(client_sock, asio::buffer(chunk_buf.get(), n), ec);
+            if (ec)
+            {
+              std::cout << "[Proxy" << m_self_cluster_id << "][GET] write client failed block="
+                        << block_id << ": " << ec.message() << std::endl;
+              fail_cnt.fetch_add(1);
+              return;
+            }
+            remaining -= n;
+          }
         }
-        const uint32_t block_id = static_cast<uint32_t>(request->block_ids(i));
-        asio::write(socket_data, asio::buffer(&block_id, sizeof(uint32_t)), error);
-        if (!error)
-          asio::write(socket_data, asio::buffer(buf.get(), static_cast<size_t>(BlockSize)), error);
-        if (error)
-        {
-          std::cout << "[Proxy" << m_self_cluster_id << "][GET] send to client failed: "
-                    << error.message() << std::endl;
-          fail_cnt.fetch_add(1);
-        }
+
         asio::error_code ignore_ec;
-        socket_data.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
-        socket_data.close(ignore_ec);
+        dn_sock.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+        dn_sock.close(ignore_ec);
       });
     }
     for (auto &t : workers)
       t.join();
 
+    asio::error_code ignore_ec;
+    client_sock.shutdown(asio::ip::tcp::socket::shutdown_send, ignore_ec);
+    client_sock.close(ignore_ec);
+
     if (fail_cnt.load() > 0)
-      return grpc::Status(grpc::StatusCode::INTERNAL, "getBlocks partial failure");
+      return grpc::Status(grpc::StatusCode::INTERNAL, "getBlocks stream failure");
     return grpc::Status::OK;
   }
 
