@@ -595,27 +595,30 @@ namespace ECProject
                               << ") group=" << gnum << " est=" << L.est_transfer_sec << "s\n";
                     out.train_route.push_back(std::move(L));
                   }
-                  // 终态：各 collector 发送各自偏量 ΣΔG → L_{z-1}
-                  if (last_local_block >= 0 && parity_at_col > 0)
-                  {
-                    int lc_final = block_cluster(stripe, last_local_block);
-                    TrainLink Lf;
-                    Lf.src_block_id = col;
-                    Lf.dst_block_id = last_local_block;
-                    Lf.src_cluster = cc;
-                    Lf.dst_cluster = lc_final;
-                    Lf.payload_bytes = parity_at_col;
-                    Lf.est_transfer_sec = transfer_sec(cc, lc_final, parity_at_col, tp);
-                    Lf.group_index = gi;
-                    Lf.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
-                    Lf.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
-                    Lf.parity_merge_data_block_ids = blocks_to_col;
-                    Lf.parity_from_global_delta_xor = true;
-                    std::cout << "[CoRD-Alg2]     CTR_TO_LOCAL(ΣΔG): global_blk" << col << "(c" << cc
-                              << ") --ΣΔG " << parity_at_col << "B --> local_blk" << last_local_block
-                              << "(c" << lc_final << ") est=" << Lf.est_transfer_sec << "s\n";
-                    out.train_route.push_back(std::move(Lf));
-                  }
+                }
+                // 终态：只发一条 ΣΔG → L_{z-1}（合并各 collector 偏量，而非每份 ΔG/偏量单独发送）
+                if (last_local_block >= 0 && parity_global_b > 0 && !used_collectors.empty())
+                {
+                  const int primary = *used_collectors.begin();
+                  int pc = block_cluster(stripe, primary);
+                  int lc_final = block_cluster(stripe, last_local_block);
+                  TrainLink Lf;
+                  Lf.src_block_id = primary;
+                  Lf.dst_block_id = last_local_block;
+                  Lf.src_cluster = pc;
+                  Lf.dst_cluster = lc_final;
+                  Lf.payload_bytes = parity_global_b;
+                  Lf.est_transfer_sec = transfer_sec(pc, lc_final, parity_global_b, tp);
+                  Lf.group_index = gi;
+                  Lf.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
+                  Lf.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
+                  Lf.parity_merge_data_block_ids.assign(N.begin(), N.end());
+                  Lf.parity_from_global_delta_xor = true;
+                  std::cout << "[CoRD-Alg2]     CTR_TO_LOCAL(ΣΔG): primary=global_blk" << primary
+                            << "(c" << pc << ") --ΣΔG " << parity_global_b << "B --> local_blk"
+                            << last_local_block << "(c" << lc_final
+                            << ") (merge all collectors) est=" << Lf.est_transfer_sec << "s\n";
+                  out.train_route.push_back(std::move(Lf));
                 }
                 out.center_global_block_id = *used_collectors.begin();
               }
@@ -842,32 +845,27 @@ namespace ECProject
         const TrainLink &L = out.train_route[i];
         if (L.parity_from_global_delta_xor && L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL)
         {
-          // 终态 ΣΔG：等同 collector 的全部 CTR_TO_GLOBAL；若无 GLOBAL（r=1），等 DATA_TO_CENTER；
-          // MST 路径：等发往该全局块的 MST_FORWARD 完成。
+          // 终态 ΣΔG：等本组全部 CTR_TO_GLOBAL 完成（合并各 collector 偏量后再发一条）；
+          // 若无 GLOBAL（r=1），等本组全部 DATA_TO_CENTER；MST：等 ΔD 到达 src。
           bool any_ctr_global = false;
           for (size_t j = 0; j < out.train_route.size(); ++j)
           {
             const TrainLink &J = out.train_route[j];
             if (J.kind != TrainLinkKind::STAR_CENTER_TO_GLOBAL)
               continue;
-            if (J.group_index != L.group_index || J.src_block_id != L.src_block_id)
+            if (J.group_index != L.group_index)
               continue;
             any_ctr_global = true;
             if (remaining[j] > 0)
               return false;
           }
           if (any_ctr_global)
-          {
-            if (!collector_star_data_ingress_done(L.group_index, L.src_block_id))
-              return false;
             return true;
-          }
           bool any_data_to_center = false;
           for (size_t j = 0; j < out.train_route.size(); ++j)
           {
             const TrainLink &J = out.train_route[j];
-            if (J.kind == TrainLinkKind::STAR_DATA_TO_CENTER && J.group_index == L.group_index &&
-                J.dst_block_id == L.src_block_id)
+            if (J.kind == TrainLinkKind::STAR_DATA_TO_CENTER && J.group_index == L.group_index)
             {
               any_data_to_center = true;
               if (remaining[j] > 0)

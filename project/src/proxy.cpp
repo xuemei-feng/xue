@@ -367,6 +367,27 @@ namespace ECProject
     }
   }
 
+  /** 合并同 plan+group 下各 collector 的偏量 ΣΔG（Alg3 多中心 → 一条终态发送） */
+  static bool cord_merge_sigma_dg_for_group_locked(const std::string &plan_key, int group_index,
+                                                   size_t need_off, size_t need_len, char *out)
+  {
+    const std::string prefix = plan_key + ":gxor:" + std::to_string(group_index) + ":";
+    bool any = false;
+    std::memset(out, 0, need_len);
+    for (const auto &kv : g_cord_global_delta_xor_for_l1)
+    {
+      if (kv.first.size() < prefix.size() || kv.first.compare(0, prefix.size(), prefix) != 0)
+        continue;
+      if (kv.second.size() < need_off + need_len)
+        return false;
+      for (size_t i = 0; i < need_len; ++i)
+        out[i] = static_cast<char>(static_cast<unsigned char>(out[i]) ^
+                                   kv.second[need_off + i]);
+      any = true;
+    }
+    return any;
+  }
+
   static int cord_plan_data_block_stripe_group(const proxy_proto::CordTransferPlan &plan, int data_block_id)
   {
     for (int i = 0; i < plan.cord_block_stripe_groups_size(); ++i)
@@ -1559,10 +1580,10 @@ namespace ECProject
               st.has_parity_ingest_stripe_group() ? st.parity_ingest_stripe_group() : -1;
           const int mst_origin_for_sigma =
               st.has_mst_origin_data_block_id() ? st.mst_origin_data_block_id() : -1;
-          // 终态 ΣΔG → L_{z-1}：直接取累加缓冲
+          // 终态 ΣΔG → L_{z-1}：合并各 collector 偏量后只发一条
           if (st.parity_from_global_delta_xor())
           {
-            // STAR 路径：确保已编码并累加；MST 路径：累加在 apply_mst 时完成
+            // STAR/Alg3：确保本 primary 已编码累加；其余 collector 应已在各自 GLOBAL 扇出前累加
             if (mst_origin_for_sigma < 0 && cord_uses_matrix_encode(plan))
             {
               if (!cord_ensure_collector_parity_coded(plan, st.group_index(), st.src_block_id(), -1))
@@ -1573,21 +1594,33 @@ namespace ECProject
                 return stats;
               }
             }
-            const std::string sk =
-                cord_sigma_dg_key(plan.plan_key(), st.group_index(), st.src_block_id(), mst_origin_for_sigma);
             std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
-            auto sit = g_cord_global_delta_xor_for_l1.find(sk);
-            if (sit == g_cord_global_delta_xor_for_l1.end() ||
-                sit->second.size() < static_cast<size_t>(st.chunk_byte_offset()) + chunk_len)
+            if (mst_origin_for_sigma >= 0)
             {
-              plan_log_both_sync("FAIL PARITY_FANOUT(ΣΔG) buffer_short key=" + sk +
-                           " step=" + std::to_string(st.step_index()));
+              const std::string sk =
+                  cord_sigma_dg_key(plan.plan_key(), st.group_index(), st.src_block_id(), mst_origin_for_sigma);
+              auto sit = g_cord_global_delta_xor_for_l1.find(sk);
+              if (sit == g_cord_global_delta_xor_for_l1.end() ||
+                  sit->second.size() < static_cast<size_t>(st.chunk_byte_offset()) + chunk_len)
+              {
+                plan_log_both_sync("FAIL PARITY_FANOUT(ΣΔG) buffer_short key=" + sk +
+                             " step=" + std::to_string(st.step_index()));
+                stats.failed = 1;
+                return stats;
+              }
+              std::memcpy(buf.data(), sit->second.data() + static_cast<size_t>(st.chunk_byte_offset()), chunk_len);
+            }
+            else if (!cord_merge_sigma_dg_for_group_locked(plan.plan_key(), st.group_index(),
+                                                          static_cast<size_t>(st.chunk_byte_offset()), chunk_len,
+                                                          buf.data()))
+            {
+              plan_log_both_sync("FAIL PARITY_FANOUT(ΣΔG) merge_empty grp=" +
+                           std::to_string(st.group_index()) + " step=" + std::to_string(st.step_index()));
               stats.failed = 1;
               return stats;
             }
-            std::memcpy(buf.data(), sit->second.data() + static_cast<size_t>(st.chunk_byte_offset()), chunk_len);
             filled = true;
-            parity_compute_src = "sigma_delta_g";
+            parity_compute_src = "sigma_delta_g_merged";
           }
           else if (cord_uses_matrix_encode(plan))
           {
