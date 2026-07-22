@@ -853,42 +853,95 @@ namespace ECProject
     }
     else
     {
-      // 每次 SET 随机填充数据区，再重新编码校验块（避免恒定 0xaa 导致后续 update Δ=0）
-      const size_t data_bytes = static_cast<size_t>(m_sys_config->BlockSize) * static_cast<size_t>(m_sys_config->k);
+      const int k = m_sys_config->k;
+      const int r = m_sys_config->r;
+      const int z = m_sys_config->z;
+      const int n = m_sys_config->n;
+      const size_t block_size = static_cast<size_t>(m_sys_config->BlockSize);
+      const size_t data_bytes = block_size * static_cast<size_t>(k);
       fill_random_bytes(m_pre_allocated_buffer, data_bytes);
 
-      std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
+      std::vector<char *> cluster_slice_data;
+      // SplitParity 按架打包时需额外发送缓冲，生命周期覆盖 TCP 发送
+      std::vector<char> rack_send_buf;
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
 
       assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
-      std::vector<int> data_block_num_per_group = get_data_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      std::vector<int> global_parity_block_num_per_group = get_global_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      std::vector<int> local_parity_block_num_per_group = get_local_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
-      std::vector<char *> data_ptr_array, global_parity_ptr_array, local_parity_ptr_array;
-      split_for_set_data_and_parity(&reply, cluster_slice_data, data_block_num_per_group, global_parity_block_num_per_group, local_parity_block_num_per_group, data_ptr_array, global_parity_ptr_array, local_parity_ptr_array);
-      std::vector<char *> parity_ptr_array;
-      parity_ptr_array.insert(parity_ptr_array.end(), global_parity_ptr_array.begin(), global_parity_ptr_array.end());
-      parity_ptr_array.insert(parity_ptr_array.end(), local_parity_ptr_array.begin(), local_parity_ptr_array.end());
 
-      if (m_sys_config->CodeType == "UniLRC")
+      if (m_sys_config->CodeType == "SplitParityLRC")
       {
-        ECProject::encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+        // 扁平布局编码：[D0..Dk-1][G0..Gr-1][L0..Lz-1]，再按物理机架 plan 重排发送
+        assert(reply.slice_block_lists_size() == reply.append_keys_size() &&
+               "SplitParityLRC SET requires per-rack block id lists");
+        std::vector<char *> data_ptr_array(static_cast<size_t>(k));
+        std::vector<char *> parity_ptr_array(static_cast<size_t>(r + z));
+        for (int i = 0; i < k; ++i)
+        {
+          data_ptr_array[static_cast<size_t>(i)] = m_pre_allocated_buffer + static_cast<size_t>(i) * block_size;
+        }
+        for (int i = 0; i < r + z; ++i)
+        {
+          parity_ptr_array[static_cast<size_t>(i)] =
+              m_pre_allocated_buffer + static_cast<size_t>(k + i) * block_size;
+        }
+        ECProject::encode_azure_lrc(k, r, z,
+                                    reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                    reinterpret_cast<unsigned char **>(parity_ptr_array.data()),
+                                    m_sys_config->BlockSize);
+
+        rack_send_buf.resize(static_cast<size_t>(reply.sum_append_size()));
+        size_t pack_off = 0;
+        cluster_slice_data.resize(static_cast<size_t>(reply.append_keys_size()));
+        for (int i = 0; i < reply.append_keys_size(); ++i)
+        {
+          cluster_slice_data[static_cast<size_t>(i)] = rack_send_buf.data() + pack_off;
+          const auto &bl = reply.slice_block_lists(i);
+          size_t slice_bytes = 0;
+          for (int j = 0; j < bl.block_ids_size(); ++j)
+          {
+            const int bid = bl.block_ids(j);
+            assert(bid >= 0 && bid < n);
+            std::memcpy(rack_send_buf.data() + pack_off,
+                        m_pre_allocated_buffer + static_cast<size_t>(bid) * block_size,
+                        block_size);
+            pack_off += block_size;
+            slice_bytes += block_size;
+          }
+          assert(slice_bytes == static_cast<size_t>(reply.cluster_slice_sizes(i)));
+        }
+        assert(pack_off == static_cast<size_t>(reply.sum_append_size()));
       }
-      else if (m_sys_config->CodeType == "OptimalLRC")
+      else
       {
-        ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+        cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
+        std::vector<int> data_block_num_per_group = get_data_block_num_per_group(k, r, z, m_sys_config->CodeType);
+        std::vector<int> global_parity_block_num_per_group = get_global_parity_block_num_per_group(k, r, z, m_sys_config->CodeType);
+        std::vector<int> local_parity_block_num_per_group = get_local_parity_block_num_per_group(k, r, z, m_sys_config->CodeType);
+        std::vector<char *> data_ptr_array, global_parity_ptr_array, local_parity_ptr_array;
+        split_for_set_data_and_parity(&reply, cluster_slice_data, data_block_num_per_group, global_parity_block_num_per_group, local_parity_block_num_per_group, data_ptr_array, global_parity_ptr_array, local_parity_ptr_array);
+        std::vector<char *> parity_ptr_array;
+        parity_ptr_array.insert(parity_ptr_array.end(), global_parity_ptr_array.begin(), global_parity_ptr_array.end());
+        parity_ptr_array.insert(parity_ptr_array.end(), local_parity_ptr_array.begin(), local_parity_ptr_array.end());
+
+        if (m_sys_config->CodeType == "UniLRC")
+        {
+          ECProject::encode_unilrc(k, r, z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+        }
+        else if (m_sys_config->CodeType == "OptimalLRC")
+        {
+          ECProject::encode_optimal_lrc(k, r, z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+        }
+        else if (m_sys_config->CodeType == "UniformLRC")
+        {
+          ECProject::encode_uniform_lrc(k, r, z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+        }
+        else if (is_azure_like_code(m_sys_config->CodeType))
+        {
+          ECProject::encode_azure_lrc(k, r, z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
+        }
       }
-      else if (m_sys_config->CodeType == "UniformLRC")
-      {
-        ECProject::encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-      }
-      else if (is_azure_like_code(m_sys_config->CodeType))
-      {
-        ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
-      }
-      // 回退到 client 直接并发发送给所有 proxy（旧逻辑），先跑通带宽测试
-      // 使用 Asio 多路复用实现真正的异步并发发送（单线程事件循环）
+      // Client 并发发送到各接收架 proxy；proxy 再写本架 DN
       asio::io_context io_context;
       auto pending = std::make_shared<std::atomic<int>>(reply.append_keys_size());
 

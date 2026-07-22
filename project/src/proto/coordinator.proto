@@ -114,6 +114,11 @@ message CommitAbortKey {
   int32 stripe_id = 4;
 }
 
+// SET SplitParityLRC：每个 slice（物理机架）内的块 ID 顺序，与 TCP 发送 / proxy plan 一致
+message SliceBlockList {
+  repeated int32 block_ids = 1;
+}
+
 // append
 message ReplyProxyIPsPorts {
   uint64 sum_append_size = 1;
@@ -123,6 +128,8 @@ message ReplyProxyIPsPorts {
   repeated uint64 cluster_slice_sizes = 5;
   repeated int32 group_ids = 6;
   string cord_transfer_plan_key = 7;
+  // 与 append_keys 平行；仅 SplitParityLRC SET 按物理机架派单时填充
+  repeated SliceBlockList slice_block_lists = 8;
 }
 
 message CordPlanKeyOnly {
