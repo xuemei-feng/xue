@@ -123,6 +123,8 @@ message ReplyProxyIPsPorts {
   repeated uint64 cluster_slice_sizes = 5;
   repeated int32 group_ids = 6;
   string cord_transfer_plan_key = 7;
+  // SET/SUBSET: flattened block_ids in the same order client must send to each proxy plan
+  repeated int32 blockids = 8;
 }
 
 message CordPlanKeyOnly {

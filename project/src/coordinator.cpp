@@ -9,6 +9,7 @@
 #include <chrono>
 #include <limits>
 #include <iostream>
+#include <map>
 #include <set>
 #include <cmath>
 #include <stdexcept>
@@ -3037,14 +3038,25 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
   std::vector<proxy_proto::AppendStripeDataPlacement> CoordinatorImpl::generate_add_plans(Stripe *stripe)
   {
-    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans;
-    for (int i = 0; i < stripe->num_groups; i++)
+    // One plan per physical rack/cluster: client fans out to that rack's proxy,
+    // and the proxy only writes to local DNs on the same rack.
+    std::map<int, std::vector<int>> cluster_to_block_ids;
+    for (int block_id = 0; block_id < stripe->n; ++block_id)
     {
-      proxy_proto::AppendStripeDataPlacement plan;
-      int mapped_cluster_id = stripe->blocks[stripe->group_to_blocks[i][0]]->map2cluster;
-      size_t append_size = stripe->group_to_blocks[i].size() * m_sys_config->BlockSize;
+      const int cluster_id = stripe->blocks[block_id]->map2cluster;
+      cluster_to_block_ids[cluster_id].push_back(block_id);
+    }
 
-      plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, i));
+    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans;
+    add_plans.reserve(cluster_to_block_ids.size());
+    for (const auto &kv : cluster_to_block_ids)
+    {
+      const int mapped_cluster_id = kv.first;
+      const std::vector<int> &block_ids = kv.second;
+      proxy_proto::AppendStripeDataPlacement plan;
+      const size_t append_size = block_ids.size() * static_cast<size_t>(m_sys_config->BlockSize);
+
+      plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, mapped_cluster_id));
       plan.set_stripe_id(stripe->stripe_id);
       plan.set_append_size(append_size);
       plan.set_is_merge_parity(false);
@@ -3052,11 +3064,18 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       plan.set_append_mode("UNILRC_MODE");
       plan.set_is_serialized(false);
 
-      for (int j = 0; j < stripe->group_to_blocks[i].size(); j++)
+      for (int block_id : block_ids)
       {
-        addBlockToAppendPlan(plan, stripe->blocks[stripe->group_to_blocks[i][j]], m_node_table[stripe->blocks[stripe->group_to_blocks[i][j]]->map2node], std::make_pair(m_sys_config->BlockSize, 0));
+        Block *block = stripe->blocks[block_id];
+        assert(block->map2cluster == mapped_cluster_id);
+        addBlockToAppendPlan(plan, block, m_node_table[block->map2node],
+                             std::make_pair(m_sys_config->BlockSize, 0));
       }
 
+      std::cout << "[ADD_PLAN] stripe=" << stripe->stripe_id
+                << " physical_cluster=" << mapped_cluster_id
+                << " blocks=" << block_ids.size()
+                << " append_size=" << append_size << std::endl;
       add_plans.push_back(plan);
     }
 
@@ -3065,35 +3084,35 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
   std::vector<proxy_proto::AppendStripeDataPlacement> CoordinatorImpl::generate_sub_add_plans(Stripe *stripe, size_t subset_size)
   {
-    int data_block_num = subset_size / m_sys_config->BlockSize;
-    int k = m_sys_config->k;
-    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans;
-    for (int i = 0; i < stripe->num_groups; i++)
+    const int data_block_num = static_cast<int>(subset_size / m_sys_config->BlockSize);
+    const int k = m_sys_config->k;
+
+    std::map<int, std::vector<int>> cluster_to_block_ids;
+    for (int block_id = 0; block_id < stripe->n; ++block_id)
     {
+      if (block_id < k && block_id >= data_block_num)
+      {
+        continue;
+      }
+      const int cluster_id = stripe->blocks[block_id]->map2cluster;
+      cluster_to_block_ids[cluster_id].push_back(block_id);
+    }
+
+    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans;
+    add_plans.reserve(cluster_to_block_ids.size());
+    for (const auto &kv : cluster_to_block_ids)
+    {
+      const int mapped_cluster_id = kv.first;
+      const std::vector<int> &block_ids = kv.second;
+      if (block_ids.empty())
+      {
+        continue;
+      }
+
       proxy_proto::AppendStripeDataPlacement plan;
-      int block_num = 0;
-      for (int j = 0; j < stripe->group_to_blocks[i].size(); j++)
-      {
-        int block_id = stripe->group_to_blocks[i][j];
-        if(block_id < k && block_id >= data_block_num)
-        {
-          continue;
-        }
-        addBlockToAppendPlan(plan, stripe->blocks[stripe->group_to_blocks[i][j]], m_node_table[stripe->blocks[stripe->group_to_blocks[i][j]]->map2node], std::make_pair(m_sys_config->BlockSize, 0));
-        block_num++;
-      }
+      const size_t append_size = block_ids.size() * static_cast<size_t>(m_sys_config->BlockSize);
 
-      size_t append_size = block_num * m_sys_config->BlockSize;
-      if(append_size == 0)
-      {
-        //plan.set_append_size(0);
-        //add_plans.push_back(plan);
-        continue; // no data to append
-      }
-
-      int mapped_cluster_id = stripe->blocks[stripe->group_to_blocks[i][0]]->map2cluster;
-
-      plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, i));
+      plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, mapped_cluster_id));
       plan.set_stripe_id(stripe->stripe_id);
       plan.set_is_merge_parity(false);
       plan.set_cluster_id(mapped_cluster_id);
@@ -3101,6 +3120,18 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       plan.set_is_serialized(false);
       plan.set_append_size(append_size);
 
+      for (int block_id : block_ids)
+      {
+        Block *block = stripe->blocks[block_id];
+        assert(block->map2cluster == mapped_cluster_id);
+        addBlockToAppendPlan(plan, block, m_node_table[block->map2node],
+                             std::make_pair(m_sys_config->BlockSize, 0));
+      }
+
+      std::cout << "[SUB_ADD_PLAN] stripe=" << stripe->stripe_id
+                << " physical_cluster=" << mapped_cluster_id
+                << " blocks=" << block_ids.size()
+                << " append_size=" << append_size << std::endl;
       add_plans.push_back(plan);
     }
 
@@ -3234,6 +3265,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       proxyIPPort->add_proxyips(m_cluster_table[plan.cluster_id()].proxy_ip);
       proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::PROXY_PORT_SHIFT); // use another port to accept data
       proxyIPPort->add_cluster_slice_sizes(plan.append_size());
+      for (int j = 0; j < plan.blockids_size(); ++j)
+      {
+        proxyIPPort->add_blockids(plan.blockids(j));
+      }
       sum_append_size += plan.append_size();
     }
     proxyIPPort->set_sum_append_size(sum_append_size);
@@ -3322,9 +3357,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       proxyIPPort->add_proxyips(m_cluster_table[plan.cluster_id()].proxy_ip);
       proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::PROXY_PORT_SHIFT); // use another port to accept data
       proxyIPPort->add_cluster_slice_sizes(plan.append_size());
-      //proxyIPPort->add_group_ids(group_id);
+      for (int j = 0; j < plan.blockids_size(); ++j)
+      {
+        proxyIPPort->add_blockids(plan.blockids(j));
+      }
       sum_append_size += plan.append_size();
-      //group_id++;
     }
     proxyIPPort->set_sum_append_size(sum_append_size);
 

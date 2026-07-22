@@ -1506,6 +1506,7 @@ class ReplyProxyIPsPorts final :
     kProxyportsFieldNumber = 4,
     kClusterSliceSizesFieldNumber = 5,
     kGroupIdsFieldNumber = 6,
+    kBlockidsFieldNumber = 8,
     kCordTransferPlanKeyFieldNumber = 7,
     kSumAppendSizeFieldNumber = 1,
   };
@@ -1623,6 +1624,28 @@ class ReplyProxyIPsPorts final :
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
       mutable_group_ids();
 
+  // repeated int32 blockids = 8;
+  int blockids_size() const;
+  private:
+  int _internal_blockids_size() const;
+  public:
+  void clear_blockids();
+  private:
+  int32_t _internal_blockids(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_blockids() const;
+  void _internal_add_blockids(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_blockids();
+  public:
+  int32_t blockids(int index) const;
+  void set_blockids(int index, int32_t value);
+  void add_blockids(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      blockids() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_blockids();
+
   // string cord_transfer_plan_key = 7;
   void clear_cord_transfer_plan_key();
   const std::string& cord_transfer_plan_key() const;
@@ -1662,6 +1685,8 @@ class ReplyProxyIPsPorts final :
     mutable std::atomic<int> _cluster_slice_sizes_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > group_ids_;
     mutable std::atomic<int> _group_ids_cached_byte_size_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > blockids_;
+    mutable std::atomic<int> _blockids_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr cord_transfer_plan_key_;
     uint64_t sum_append_size_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -5867,6 +5892,53 @@ inline void ReplyProxyIPsPorts::set_allocated_cord_transfer_plan_key(std::string
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:coordinator_proto.ReplyProxyIPsPorts.cord_transfer_plan_key)
+}
+
+// repeated int32 blockids = 8;
+inline int ReplyProxyIPsPorts::_internal_blockids_size() const {
+  return _impl_.blockids_.size();
+}
+inline int ReplyProxyIPsPorts::blockids_size() const {
+  return _internal_blockids_size();
+}
+inline void ReplyProxyIPsPorts::clear_blockids() {
+  _impl_.blockids_.Clear();
+}
+inline int32_t ReplyProxyIPsPorts::_internal_blockids(int index) const {
+  return _impl_.blockids_.Get(index);
+}
+inline int32_t ReplyProxyIPsPorts::blockids(int index) const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.ReplyProxyIPsPorts.blockids)
+  return _internal_blockids(index);
+}
+inline void ReplyProxyIPsPorts::set_blockids(int index, int32_t value) {
+  _impl_.blockids_.Set(index, value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.ReplyProxyIPsPorts.blockids)
+}
+inline void ReplyProxyIPsPorts::_internal_add_blockids(int32_t value) {
+  _impl_.blockids_.Add(value);
+}
+inline void ReplyProxyIPsPorts::add_blockids(int32_t value) {
+  _internal_add_blockids(value);
+  // @@protoc_insertion_point(field_add:coordinator_proto.ReplyProxyIPsPorts.blockids)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+ReplyProxyIPsPorts::_internal_blockids() const {
+  return _impl_.blockids_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+ReplyProxyIPsPorts::blockids() const {
+  // @@protoc_insertion_point(field_list:coordinator_proto.ReplyProxyIPsPorts.blockids)
+  return _internal_blockids();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+ReplyProxyIPsPorts::_internal_mutable_blockids() {
+  return &_impl_.blockids_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+ReplyProxyIPsPorts::mutable_blockids() {
+  // @@protoc_insertion_point(field_mutable_list:coordinator_proto.ReplyProxyIPsPorts.blockids)
+  return _internal_mutable_blockids();
 }
 
 // -------------------------------------------------------------------
