@@ -276,8 +276,10 @@ namespace ECProject
       Algorithm2Result out;
       const int k = stripe.k;
       const int r = stripe.r;
+      const int z = stripe.z;
       if (cluster_num <= 0 || k <= 0)
         return out;
+      const int last_local_block = (z > 0) ? (k + r + z - 1) : -1;
 
       int gi = 0;
       std::cout << "[CoRD-Alg2] ===== build_algorithm2 start: |U|=" << U.size() << " r=" << r
@@ -412,6 +414,27 @@ namespace ECProject
                         << ") group=" << gnum << " est=" << L.est_transfer_sec
                         << "s merge_src=" << blocks_same_local_group.size() << " blocks\n";
               out.train_route.push_back(std::move(L));
+            }
+            // 终态：ΣΔG → L_{z-1}（额外一步；跨 proxy；等全部 CTR_TO_GLOBAL 完成）
+            if (last_local_block >= 0 && parity_global_b > 0)
+            {
+              int lc_final = block_cluster(stripe, last_local_block);
+              TrainLink Lf;
+              Lf.src_block_id = best_c;
+              Lf.dst_block_id = last_local_block;
+              Lf.src_cluster = cc_center;
+              Lf.dst_cluster = lc_final;
+              Lf.payload_bytes = parity_global_b;
+              Lf.est_transfer_sec = transfer_sec(cc_center, lc_final, parity_global_b, tp);
+              Lf.group_index = gi;
+              Lf.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
+              Lf.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
+              Lf.parity_merge_data_block_ids.assign(N.begin(), N.end());
+              Lf.parity_from_global_delta_xor = true;
+              std::cout << "[CoRD-Alg2]     CTR_TO_LOCAL(ΣΔG): global_blk" << best_c << "(c" << cc_center
+                        << ") --ΣΔG " << parity_global_b << "B --> local_blk" << last_local_block
+                        << "(c" << lc_final << ") est=" << Lf.est_transfer_sec << "s\n";
+              out.train_route.push_back(std::move(Lf));
             }
           };
 
@@ -572,6 +595,27 @@ namespace ECProject
                               << ") group=" << gnum << " est=" << L.est_transfer_sec << "s\n";
                     out.train_route.push_back(std::move(L));
                   }
+                  // 终态：各 collector 发送各自偏量 ΣΔG → L_{z-1}
+                  if (last_local_block >= 0 && parity_at_col > 0)
+                  {
+                    int lc_final = block_cluster(stripe, last_local_block);
+                    TrainLink Lf;
+                    Lf.src_block_id = col;
+                    Lf.dst_block_id = last_local_block;
+                    Lf.src_cluster = cc;
+                    Lf.dst_cluster = lc_final;
+                    Lf.payload_bytes = parity_at_col;
+                    Lf.est_transfer_sec = transfer_sec(cc, lc_final, parity_at_col, tp);
+                    Lf.group_index = gi;
+                    Lf.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
+                    Lf.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
+                    Lf.parity_merge_data_block_ids = blocks_to_col;
+                    Lf.parity_from_global_delta_xor = true;
+                    std::cout << "[CoRD-Alg2]     CTR_TO_LOCAL(ΣΔG): global_blk" << col << "(c" << cc
+                              << ") --ΣΔG " << parity_at_col << "B --> local_blk" << last_local_block
+                              << "(c" << lc_final << ") est=" << Lf.est_transfer_sec << "s\n";
+                    out.train_route.push_back(std::move(Lf));
+                  }
                 }
                 out.center_global_block_id = *used_collectors.begin();
               }
@@ -708,6 +752,30 @@ namespace ECProject
                       << ") est=" << L.est_transfer_sec << "s\n";
             out.train_route.push_back(std::move(L));
           }
+          // |N|=1 终态：由首个全局块所在 proxy 在收到 ΔD 后累计 ΣΔG，再发往 L_{z-1}
+          if (last_local_block >= 0 && bd > 0)
+          {
+            const int g0 = k;
+            int gc0 = block_cluster(stripe, g0);
+            int lc_final = block_cluster(stripe, last_local_block);
+            TrainLink Lf;
+            Lf.src_block_id = g0;
+            Lf.dst_block_id = last_local_block;
+            Lf.src_cluster = gc0;
+            Lf.dst_cluster = lc_final;
+            Lf.payload_bytes = bd;
+            Lf.est_transfer_sec = transfer_sec(gc0, lc_final, bd, tp);
+            Lf.group_index = gi;
+            Lf.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
+            Lf.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
+            Lf.mst_origin_data_block = d;
+            Lf.parity_merge_data_block_ids = {d};
+            Lf.parity_from_global_delta_xor = true;
+            std::cout << "[CoRD-Alg2]     CTR_TO_LOCAL(ΣΔG/MST): global_blk" << g0 << "(c" << gc0
+                      << ") --ΣΔG " << bd << "B --> local_blk" << last_local_block
+                      << "(c" << lc_final << ") origin_d=" << d << " est=" << Lf.est_transfer_sec << "s\n";
+            out.train_route.push_back(std::move(Lf));
+          }
         }
         ++gi;
       }
@@ -772,6 +840,57 @@ namespace ECProject
       };
       auto link_eligible_for_step = [&](size_t i) -> bool {
         const TrainLink &L = out.train_route[i];
+        if (L.parity_from_global_delta_xor && L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL)
+        {
+          // 终态 ΣΔG：等同 collector 的全部 CTR_TO_GLOBAL；若无 GLOBAL（r=1），等 DATA_TO_CENTER；
+          // MST 路径：等发往该全局块的 MST_FORWARD 完成。
+          bool any_ctr_global = false;
+          for (size_t j = 0; j < out.train_route.size(); ++j)
+          {
+            const TrainLink &J = out.train_route[j];
+            if (J.kind != TrainLinkKind::STAR_CENTER_TO_GLOBAL)
+              continue;
+            if (J.group_index != L.group_index || J.src_block_id != L.src_block_id)
+              continue;
+            any_ctr_global = true;
+            if (remaining[j] > 0)
+              return false;
+          }
+          if (any_ctr_global)
+          {
+            if (!collector_star_data_ingress_done(L.group_index, L.src_block_id))
+              return false;
+            return true;
+          }
+          bool any_data_to_center = false;
+          for (size_t j = 0; j < out.train_route.size(); ++j)
+          {
+            const TrainLink &J = out.train_route[j];
+            if (J.kind == TrainLinkKind::STAR_DATA_TO_CENTER && J.group_index == L.group_index &&
+                J.dst_block_id == L.src_block_id)
+            {
+              any_data_to_center = true;
+              if (remaining[j] > 0)
+                return false;
+            }
+          }
+          if (any_data_to_center)
+            return true;
+          // MST：等 ΔD 到达 src（全局块）
+          for (size_t j = 0; j < out.train_route.size(); ++j)
+          {
+            const TrainLink &J = out.train_route[j];
+            if (J.kind != TrainLinkKind::MST_FORWARD)
+              continue;
+            if (L.mst_origin_data_block >= 0 && J.mst_origin_data_block != L.mst_origin_data_block)
+              continue;
+            if (J.dst_block_id != L.src_block_id)
+              continue;
+            if (remaining[j] > 0)
+              return false;
+          }
+          return true;
+        }
         if (L.kind == TrainLinkKind::STAR_CENTER_TO_GLOBAL || L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL)
         {
           if (!collector_star_data_ingress_done(L.group_index, L.src_block_id))

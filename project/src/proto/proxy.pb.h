@@ -6465,6 +6465,7 @@ class CordTransferStep final :
     kChunkByteLengthFieldNumber = 14,
     kParityIngestStripeGroupFieldNumber = 15,
     kMstOriginDataBlockIdFieldNumber = 16,
+    kParityFromGlobalDeltaXorFieldNumber = 18,
   };
   // repeated int32 parity_merge_data_block_ids = 17;
   int parity_merge_data_block_ids_size() const;
@@ -6640,6 +6641,19 @@ class CordTransferStep final :
   void _internal_set_mst_origin_data_block_id(int32_t value);
   public:
 
+  // optional bool parity_from_global_delta_xor = 18;
+  bool has_parity_from_global_delta_xor() const;
+  private:
+  bool _internal_has_parity_from_global_delta_xor() const;
+  public:
+  void clear_parity_from_global_delta_xor();
+  bool parity_from_global_delta_xor() const;
+  void set_parity_from_global_delta_xor(bool value);
+  private:
+  bool _internal_parity_from_global_delta_xor() const;
+  void _internal_set_parity_from_global_delta_xor(bool value);
+  public:
+
   // @@protoc_insertion_point(class_scope:proxy_proto.CordTransferStep)
  private:
   class _Internal;
@@ -6668,6 +6682,7 @@ class CordTransferStep final :
     uint64_t chunk_byte_length_;
     int32_t parity_ingest_stripe_group_;
     int32_t mst_origin_data_block_id_;
+    bool parity_from_global_delta_xor_;
   };
   union { Impl_ _impl_; };
   friend struct ::TableStruct_proxy_2eproto;
@@ -17899,6 +17914,34 @@ inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
 CordTransferStep::mutable_parity_merge_data_block_ids() {
   // @@protoc_insertion_point(field_mutable_list:proxy_proto.CordTransferStep.parity_merge_data_block_ids)
   return _internal_mutable_parity_merge_data_block_ids();
+}
+
+// optional bool parity_from_global_delta_xor = 18;
+inline bool CordTransferStep::_internal_has_parity_from_global_delta_xor() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
+  return value;
+}
+inline bool CordTransferStep::has_parity_from_global_delta_xor() const {
+  return _internal_has_parity_from_global_delta_xor();
+}
+inline void CordTransferStep::clear_parity_from_global_delta_xor() {
+  _impl_.parity_from_global_delta_xor_ = false;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline bool CordTransferStep::_internal_parity_from_global_delta_xor() const {
+  return _impl_.parity_from_global_delta_xor_;
+}
+inline bool CordTransferStep::parity_from_global_delta_xor() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.CordTransferStep.parity_from_global_delta_xor)
+  return _internal_parity_from_global_delta_xor();
+}
+inline void CordTransferStep::_internal_set_parity_from_global_delta_xor(bool value) {
+  _impl_._has_bits_[0] |= 0x00000004u;
+  _impl_.parity_from_global_delta_xor_ = value;
+}
+inline void CordTransferStep::set_parity_from_global_delta_xor(bool value) {
+  _internal_set_parity_from_global_delta_xor(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.CordTransferStep.parity_from_global_delta_xor)
 }
 
 // -------------------------------------------------------------------

@@ -528,7 +528,8 @@ PROTOBUF_CONSTEXPR CordTransferStep::CordTransferStep(
   , /*decltype(_impl_.chunk_byte_offset_)*/uint64_t{0u}
   , /*decltype(_impl_.chunk_byte_length_)*/uint64_t{0u}
   , /*decltype(_impl_.parity_ingest_stripe_group_)*/0
-  , /*decltype(_impl_.mst_origin_data_block_id_)*/0} {}
+  , /*decltype(_impl_.mst_origin_data_block_id_)*/0
+  , /*decltype(_impl_.parity_from_global_delta_xor_)*/false} {}
 struct CordTransferStepDefaultTypeInternal {
   PROTOBUF_CONSTEXPR CordTransferStepDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -1269,6 +1270,7 @@ const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   PROTOBUF_FIELD_OFFSET(::proxy_proto::CordTransferStep, _impl_.parity_ingest_stripe_group_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::CordTransferStep, _impl_.mst_origin_data_block_id_),
   PROTOBUF_FIELD_OFFSET(::proxy_proto::CordTransferStep, _impl_.parity_merge_data_block_ids_),
+  PROTOBUF_FIELD_OFFSET(::proxy_proto::CordTransferStep, _impl_.parity_from_global_delta_xor_),
   ~0u,
   ~0u,
   ~0u,
@@ -1286,6 +1288,7 @@ const uint32_t TableStruct_proxy_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   0,
   1,
   ~0u,
+  2,
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proxy_proto::CordBlockStripeGroup, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -1573,28 +1576,28 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 279, -1, -1, sizeof(::proxy_proto::CordTransferDeltaBlobRef)},
   { 290, -1, -1, sizeof(::proxy_proto::CordTransferGroupXorHint)},
   { 298, -1, -1, sizeof(::proxy_proto::CordTransferClusterDeltaLayout)},
-  { 308, 331, -1, sizeof(::proxy_proto::CordTransferStep)},
-  { 348, -1, -1, sizeof(::proxy_proto::CordBlockStripeGroup)},
-  { 356, -1, -1, sizeof(::proxy_proto::CordBlockHalfOpenSeg)},
-  { 365, -1, -1, sizeof(::proxy_proto::CordTransferEncodeMeta)},
-  { 377, -1, -1, sizeof(::proxy_proto::CordCollectorIngressExpect)},
-  { 387, -1, -1, sizeof(::proxy_proto::CordDataStripDesc)},
-  { 396, -1, -1, sizeof(::proxy_proto::CordPlanKeyMsg)},
-  { 403, -1, -1, sizeof(::proxy_proto::CordTransferPlan)},
-  { 425, -1, -1, sizeof(::proxy_proto::CordPlanCollectorIngestReq)},
-  { 438, -1, -1, sizeof(::proxy_proto::CordPlanApplyParityXorReq)},
-  { 452, -1, -1, sizeof(::proxy_proto::CordPlanMstDataDeltaReq)},
-  { 469, -1, -1, sizeof(::proxy_proto::CordDataUpdatePlacement)},
-  { 488, -1, -1, sizeof(::proxy_proto::CordLpDeltaFetch)},
-  { 500, -1, -1, sizeof(::proxy_proto::CordLpWorkItem)},
-  { 513, -1, -1, sizeof(::proxy_proto::CordLocalParityBundle)},
-  { 522, -1, -1, sizeof(::proxy_proto::CordLpHubSessionBegin)},
-  { 540, -1, -1, sizeof(::proxy_proto::CordLpHubPartialPush)},
-  { 548, -1, -1, sizeof(::proxy_proto::CordLpComputePartialAndPush)},
-  { 562, -1, -1, sizeof(::proxy_proto::CordLpParityApplyDelta)},
-  { 576, -1, -1, sizeof(::proxy_proto::SetReply)},
-  { 587, -1, -1, sizeof(::proxy_proto::GetReply)},
-  { 594, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
+  { 308, 332, -1, sizeof(::proxy_proto::CordTransferStep)},
+  { 350, -1, -1, sizeof(::proxy_proto::CordBlockStripeGroup)},
+  { 358, -1, -1, sizeof(::proxy_proto::CordBlockHalfOpenSeg)},
+  { 367, -1, -1, sizeof(::proxy_proto::CordTransferEncodeMeta)},
+  { 379, -1, -1, sizeof(::proxy_proto::CordCollectorIngressExpect)},
+  { 389, -1, -1, sizeof(::proxy_proto::CordDataStripDesc)},
+  { 398, -1, -1, sizeof(::proxy_proto::CordPlanKeyMsg)},
+  { 405, -1, -1, sizeof(::proxy_proto::CordTransferPlan)},
+  { 427, -1, -1, sizeof(::proxy_proto::CordPlanCollectorIngestReq)},
+  { 440, -1, -1, sizeof(::proxy_proto::CordPlanApplyParityXorReq)},
+  { 454, -1, -1, sizeof(::proxy_proto::CordPlanMstDataDeltaReq)},
+  { 471, -1, -1, sizeof(::proxy_proto::CordDataUpdatePlacement)},
+  { 490, -1, -1, sizeof(::proxy_proto::CordLpDeltaFetch)},
+  { 502, -1, -1, sizeof(::proxy_proto::CordLpWorkItem)},
+  { 515, -1, -1, sizeof(::proxy_proto::CordLocalParityBundle)},
+  { 524, -1, -1, sizeof(::proxy_proto::CordLpHubSessionBegin)},
+  { 542, -1, -1, sizeof(::proxy_proto::CordLpHubPartialPush)},
+  { 550, -1, -1, sizeof(::proxy_proto::CordLpComputePartialAndPush)},
+  { 564, -1, -1, sizeof(::proxy_proto::CordLpParityApplyDelta)},
+  { 578, -1, -1, sizeof(::proxy_proto::SetReply)},
+  { 589, -1, -1, sizeof(::proxy_proto::GetReply)},
+  { 596, -1, -1, sizeof(::proxy_proto::StripeAndBlockIDs)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -1750,7 +1753,7 @@ const char descriptor_table_protodef_proxy_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "(\004\"\203\001\n\036CordTransferClusterDeltaLayout\022\022\n"
   "\ncluster_id\030\001 \001(\005\022\026\n\016data_block_ids\030\002 \003("
   "\005\022\031\n\021delta_base_offset\030\003 \003(\004\022\032\n\022delta_to"
-  "tal_length\030\004 \003(\004\"\355\004\n\020CordTransferStep\022\022\n"
+  "tal_length\030\004 \003(\004\"\271\005\n\020CordTransferStep\022\022\n"
   "\nstep_index\030\001 \001(\005\022\034\n\024src_proxy_cluster_i"
   "d\030\002 \001(\005\022\034\n\024dst_proxy_cluster_id\030\003 \001(\005\022\024\n"
   "\014src_block_id\030\004 \001(\005\022\024\n\014dst_block_id\030\005 \001("
@@ -1764,180 +1767,182 @@ const char descriptor_table_protodef_proxy_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "chunk_byte_length\030\016 \001(\004\022\'\n\032parity_ingest"
   "_stripe_group\030\017 \001(\005H\000\210\001\001\022%\n\030mst_origin_d"
   "ata_block_id\030\020 \001(\005H\001\210\001\001\022#\n\033parity_merge_"
-  "data_block_ids\030\021 \003(\005B\035\n\033_parity_ingest_s"
-  "tripe_groupB\033\n\031_mst_origin_data_block_id"
-  "\">\n\024CordBlockStripeGroup\022\020\n\010block_id\030\001 \001"
-  "(\005\022\024\n\014stripe_group\030\002 \001(\005\"E\n\024CordBlockHal"
-  "fOpenSeg\022\020\n\010block_id\030\001 \001(\005\022\n\n\002lo\030\002 \001(\005\022\017"
-  "\n\007hi_excl\030\003 \001(\005\"\210\001\n\026CordTransferEncodeMe"
-  "ta\022\023\n\013encode_type\030\001 \001(\005\022\t\n\001k\030\002 \001(\005\022\013\n\003g_"
-  "m\030\003 \001(\005\022\t\n\001l\030\004 \001(\005\022\033\n\023parity_slice_offse"
-  "t\030\005 \001(\005\022\031\n\021parity_slice_size\030\006 \001(\005\"\210\001\n\032C"
-  "ordCollectorIngressExpect\022\023\n\013group_index"
-  "\030\001 \001(\005\022\032\n\022collector_block_id\030\002 \001(\005\022\032\n\022sr"
-  "c_data_block_ids\030\003 \003(\005\022\035\n\025src_delta_tota"
-  "l_bytes\030\004 \003(\004\"N\n\021CordDataStripDesc\022\020\n\010bl"
-  "ock_id\030\001 \001(\005\022\024\n\014slice_offset\030\002 \001(\005\022\021\n\tsl"
-  "ice_len\030\003 \001(\005\"\"\n\016CordPlanKeyMsg\022\020\n\010plan_"
-  "key\030\001 \001(\t\"\313\006\n\020CordTransferPlan\022\021\n\tstripe"
-  "_id\030\001 \001(\005\022\020\n\010plan_key\030\002 \001(\t\022\024\n\014total_rou"
-  "nds\030\003 \001(\r\022,\n\005steps\030\004 \003(\0132\035.proxy_proto.C"
-  "ordTransferStep\022\027\n\017slot_unit_bytes\030\005 \001(\005"
-  "\022\023\n\013k_datablock\030\006 \001(\005\022C\n\021cluster_endpoin"
-  "ts\030\007 \003(\0132(.proxy_proto.CordTransferClust"
-  "erEndpoint\022A\n\020block_placements\030\010 \003(\0132\'.p"
-  "roxy_proto.CordTransferBlockPlacement\022>\n"
-  "\017delta_blob_refs\030\t \003(\0132%.proxy_proto.Cor"
-  "dTransferDeltaBlobRef\022>\n\017group_xor_hints"
-  "\030\n \003(\0132%.proxy_proto.CordTransferGroupXo"
-  "rHint\022J\n\025cluster_delta_layouts\030\013 \003(\0132+.p"
-  "roxy_proto.CordTransferClusterDeltaLayou"
-  "t\022=\n\020cord_encode_meta\030\014 \001(\0132#.proxy_prot"
-  "o.CordTransferEncodeMeta\022G\n\026cord_collect"
-  "or_expects\030\r \003(\0132\'.proxy_proto.CordColle"
-  "ctorIngressExpect\022=\n\025cord_data_strip_des"
-  "cs\030\016 \003(\0132\036.proxy_proto.CordDataStripDesc"
-  "\022C\n\030cord_block_stripe_groups\030\017 \003(\0132!.pro"
-  "xy_proto.CordBlockStripeGroup\022@\n\025cord_bl"
-  "ock_delta_segs\030\020 \003(\0132!.proxy_proto.CordB"
-  "lockHalfOpenSeg\"\313\001\n\032CordPlanCollectorIng"
-  "estReq\022\020\n\010plan_key\030\001 \001(\t\022\023\n\013group_index\030"
-  "\002 \001(\005\022\032\n\022collector_block_id\030\003 \001(\005\022\031\n\021chu"
-  "nk_byte_offset\030\004 \001(\004\022\025\n\rchunk_payload\030\005 "
-  "\001(\014\022\035\n\025xor_accum_byte_length\030\006 \001(\004\022\031\n\021sr"
-  "c_data_block_id\030\007 \001(\005\"\332\001\n\031CordPlanApplyP"
-  "arityXorReq\022\020\n\010plan_key\030\001 \001(\t\022\024\n\014dst_blo"
-  "ck_id\030\002 \001(\005\022\021\n\tblock_key\030\003 \001(\t\022\023\n\013datano"
-  "de_ip\030\004 \001(\t\022\025\n\rdatanode_port\030\005 \001(\005\022\033\n\023pa"
-  "rity_slice_offset\030\006 \001(\005\022\033\n\023parity_slice_"
-  "length\030\007 \001(\005\022\034\n\024parity_delta_payload\030\010 \001"
-  "(\014\"\263\002\n\027CordPlanMstDataDeltaReq\022\020\n\010plan_k"
-  "ey\030\001 \001(\t\022\034\n\024dst_proxy_cluster_id\030\002 \001(\005\022\024"
-  "\n\014dst_block_id\030\003 \001(\005\022\023\n\013k_datablock\030\004 \001("
-  "\005\022\031\n\021chunk_byte_offset\030\005 \001(\004\022\025\n\rchunk_pa"
-  "yload\030\006 \001(\014\022\034\n\024total_expected_bytes\030\007 \001("
-  "\004\022\030\n\020parity_block_key\030\010 \001(\t\022\032\n\022parity_da"
-  "tanode_ip\030\t \001(\t\022\034\n\024parity_datanode_port\030"
-  "\n \001(\005\022\031\n\021src_data_block_id\030\013 \001(\005\"\251\002\n\027Cor"
-  "dDataUpdatePlacement\022\013\n\003key\030\001 \001(\t\022\022\n\nclu"
-  "ster_id\030\002 \001(\005\022\021\n\tstripe_id\030\003 \001(\005\022\033\n\023upda"
-  "te_payload_size\030\004 \001(\004\022\022\n\ndatanodeip\030\005 \003("
-  "\t\022\024\n\014datanodeport\030\006 \003(\005\022\021\n\tblockkeys\030\007 \003"
-  "(\t\022\020\n\010blockids\030\010 \003(\005\022\017\n\007offsets\030\t \003(\004\022\r\n"
-  "\005sizes\030\n \003(\004\022\026\n\016delta_blob_key\030\013 \001(\t\022\031\n\021"
-  "delta_datanode_ip\030\014 \001(\t\022\033\n\023delta_datanod"
-  "e_port\030\r \001(\005\"\213\001\n\020CordLpDeltaFetch\022\020\n\010blo"
-  "b_key\030\001 \001(\t\022\023\n\013datanode_ip\030\002 \001(\t\022\025\n\rdata"
-  "node_port\030\003 \001(\005\022\023\n\013blob_offset\030\004 \001(\004\022\020\n\010"
-  "read_len\030\005 \001(\004\022\022\n\nacc_offset\030\006 \001(\005\"\341\001\n\016C"
-  "ordLpWorkItem\022\026\n\016local_block_id\030\001 \001(\005\022\027\n"
-  "\017local_block_key\030\002 \001(\t\022\031\n\021local_datanode"
-  "_ip\030\003 \001(\t\022\033\n\023local_datanode_port\030\004 \001(\005\022\033"
-  "\n\023parity_slice_offset\030\005 \001(\005\022\031\n\021parity_sl"
-  "ice_size\030\006 \001(\005\022.\n\007fetches\030\007 \003(\0132\035.proxy_"
-  "proto.CordLpDeltaFetch\"c\n\025CordLocalParit"
-  "yBundle\022\013\n\003key\030\001 \001(\t\022\021\n\tstripe_id\030\002 \001(\005\022"
-  "*\n\005items\030\003 \003(\0132\033.proxy_proto.CordLpWorkI"
-  "tem\"\316\002\n\025CordLpHubSessionBegin\022\023\n\013session"
-  "_key\030\001 \001(\t\022\031\n\021expected_partials\030\002 \001(\005\022\031\n"
-  "\021parity_slice_size\030\003 \001(\005\022\033\n\023parity_slice"
-  "_offset\030\004 \001(\005\022\026\n\016local_block_id\030\005 \001(\005\022\027\n"
-  "\017local_block_key\030\006 \001(\t\022\031\n\021local_datanode"
-  "_ip\030\007 \001(\t\022\033\n\023local_datanode_port\030\010 \001(\005\022\030"
-  "\n\020dest_lp_proxy_ip\030\t \001(\t\022\032\n\022dest_lp_prox"
-  "y_port\030\n \001(\005\022\021\n\tstripe_id\030\013 \001(\005\022\033\n\023hub_g"
-  "lobal_block_id\030\014 \001(\005\"D\n\024CordLpHubPartial"
-  "Push\022\023\n\013session_key\030\001 \001(\t\022\027\n\017partial_pay"
-  "load\030\002 \001(\014\"\373\001\n\033CordLpComputePartialAndPu"
-  "sh\022\023\n\013session_key\030\001 \001(\t\022\024\n\014hub_proxy_ip\030"
-  "\002 \001(\t\022\026\n\016hub_proxy_port\030\003 \001(\005\022\026\n\016delta_b"
-  "lob_key\030\004 \001(\t\022\031\n\021delta_datanode_ip\030\005 \001(\t"
-  "\022\033\n\023delta_datanode_port\030\006 \001(\005\022\031\n\021parity_"
-  "slice_size\030\007 \001(\005\022.\n\007fetches\030\010 \003(\0132\035.prox"
-  "y_proto.CordLpDeltaFetch\"\343\001\n\026CordLpParit"
-  "yApplyDelta\022\021\n\tstripe_id\030\001 \001(\005\022\026\n\016local_"
-  "block_id\030\002 \001(\005\022\027\n\017local_block_key\030\003 \001(\t\022"
-  "\031\n\021local_datanode_ip\030\004 \001(\t\022\033\n\023local_data"
-  "node_port\030\005 \001(\005\022\033\n\023parity_slice_offset\030\006"
-  " \001(\005\022\031\n\021parity_slice_size\030\007 \001(\005\022\025\n\rdelta"
-  "_payload\030\010 \001(\014\"\270\001\n\010SetReply\022\020\n\010ifcommit\030"
-  "\001 \001(\010\022%\n\035cord_join_xfer_timing_present\030\002"
-  " \001(\010\022\037\n\027cord_join_pure_xfer_sec\030\003 \001(\001\022)\n"
-  "!cord_join_pure_xfer_start_unix_ms\030\004 \001(\003"
-  "\022\'\n\037cord_join_pure_xfer_end_unix_ms\030\005 \001("
-  "\003\"\036\n\010GetReply\022\022\n\ngetsuccess\030\001 \001(\010\"\261\001\n\021St"
-  "ripeAndBlockIDs\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010gr"
-  "oup_id\030\002 \001(\005\022\020\n\010clientip\030\003 \001(\t\022\022\n\nclient"
-  "port\030\004 \001(\005\022\021\n\tblock_ids\030\005 \003(\005\022\022\n\nblock_k"
-  "eys\030\006 \003(\t\022\023\n\013datanodeips\030\007 \003(\t\022\025\n\rdatano"
-  "deports\030\010 \003(\005*\255\001\n\024CordTransferLinkKind\022%"
-  "\n!CORD_TRANSFER_STAR_DATA_TO_CENTER\020\000\022\'\n"
-  "#CORD_TRANSFER_STAR_CENTER_TO_GLOBAL\020\001\022&"
-  "\n\"CORD_TRANSFER_STAR_CENTER_TO_LOCAL\020\002\022\035"
-  "\n\031CORD_TRANSFER_MST_FORWARD\020\003*B\n\024CordDel"
-  "taPayloadKind\022\023\n\017CORD_DELTA_DATA\020\000\022\025\n\021CO"
-  "RD_DELTA_PARITY\020\0012\336\021\n\014proxyService\022D\n\nch"
-  "eckalive\022\032.proxy_proto.CheckaliveCMD\032\032.p"
-  "roxy_proto.RequestResult\022L\n\022encodeAndSet"
-  "Object\022\037.proxy_proto.ObjectAndPlacement\032"
-  "\025.proxy_proto.SetReply\022L\n\022decodeAndGetOb"
-  "ject\022\037.proxy_proto.ObjectAndPlacement\032\025."
-  "proxy_proto.GetReply\022P\n\014degradedRead\022 .p"
-  "roxy_proto.DegradedReadRequest\032\036.proxy_p"
-  "roto.DegradedReadReply\022S\n\023degradedRead2C"
-  "lient\022\034.proxy_proto.RecoveryRequest\032\036.pr"
-  "oxy_proto.DegradedReadReply\022Y\n\025degradedR"
-  "eadBreakdown\022 .proxy_proto.DegradedReadR"
-  "equest\032\036.proxy_proto.DegradedReadReply\022\\"
-  "\n\034degradedRead2ClientBreakdown\022\034.proxy_p"
-  "roto.RecoveryRequest\032\036.proxy_proto.Degra"
-  "dedReadReply\022X\n\035degradedReadWithBlockStr"
-  "ipeID\022 .proxy_proto.DegradedReadRequest\032"
-  "\025.proxy_proto.GetReply\022V\n\017partialDecodin"
-  "g\022#.proxy_proto.PartialDecodingRequest\032\036"
-  ".proxy_proto.DegradedReadReply\022D\n\010recove"
-  "ry\022\034.proxy_proto.RecoveryRequest\032\032.proxy"
-  "_proto.RecoveryReply\022M\n\021recoveryBreakdow"
-  "n\022\034.proxy_proto.RecoveryRequest\032\032.proxy_"
-  "proto.RecoveryReply\022O\n\020multipleRecovery\022"
-  "$.proxy_proto.MultipleRecoveryRequest\032\025."
-  "proxy_proto.GetReply\022\?\n\013deleteBlock\022\031.pr"
-  "oxy_proto.NodeAndBlock\032\025.proxy_proto.Del"
-  "Reply\022X\n\027scheduleAppend2Datanode\022&.proxy"
-  "_proto.AppendStripeDataPlacement\032\025.proxy"
-  "_proto.SetReply\022U\n\026scheduleCordDataUpdat"
-  "e\022$.proxy_proto.CordDataUpdatePlacement\032"
-  "\025.proxy_proto.SetReply\022Y\n\034scheduleCordLo"
-  "calParityApply\022\".proxy_proto.CordLocalPa"
-  "rityBundle\032\025.proxy_proto.SetReply\022R\n\025cor"
-  "dLpHubSessionBegin\022\".proxy_proto.CordLpH"
-  "ubSessionBegin\032\025.proxy_proto.SetReply\022P\n"
-  "\024cordLpHubPartialPush\022!.proxy_proto.Cord"
-  "LpHubPartialPush\032\025.proxy_proto.SetReply\022"
-  "^\n\033cordLpComputePartialAndPush\022(.proxy_p"
-  "roto.CordLpComputePartialAndPush\032\025.proxy"
-  "_proto.SetReply\022T\n\026cordLpApplyParityDelt"
-  "a\022#.proxy_proto.CordLpParityApplyDelta\032\025"
-  ".proxy_proto.SetReply\022P\n\030scheduleCordTra"
-  "nsferPlan\022\035.proxy_proto.CordTransferPlan"
-  "\032\025.proxy_proto.SetReply\022L\n\026cordPlanStart"
-  "Execution\022\033.proxy_proto.CordPlanKeyMsg\032\025"
-  ".proxy_proto.SetReply\022K\n\025cordPlanJoinExe"
-  "cution\022\033.proxy_proto.CordPlanKeyMsg\032\025.pr"
-  "oxy_proto.SetReply\022b\n cordPlanCollectorI"
-  "ngestDataDelta\022\'.proxy_proto.CordPlanCol"
-  "lectorIngestReq\032\025.proxy_proto.SetReply\022\\"
-  "\n\033cordPlanApplyParityXorDelta\022&.proxy_pr"
-  "oto.CordPlanApplyParityXorReq\032\025.proxy_pr"
-  "oto.SetReply\022X\n\031cordPlanMstDataDeltaChun"
-  "k\022$.proxy_proto.CordPlanMstDataDeltaReq\032"
-  "\025.proxy_proto.SetReply\022B\n\tgetBlocks\022\036.pr"
-  "oxy_proto.StripeAndBlockIDs\032\025.proxy_prot"
-  "o.GetReplyb\006proto3"
+  "data_block_ids\030\021 \003(\005\022)\n\034parity_from_glob"
+  "al_delta_xor\030\022 \001(\010H\002\210\001\001B\035\n\033_parity_inges"
+  "t_stripe_groupB\033\n\031_mst_origin_data_block"
+  "_idB\037\n\035_parity_from_global_delta_xor\">\n\024"
+  "CordBlockStripeGroup\022\020\n\010block_id\030\001 \001(\005\022\024"
+  "\n\014stripe_group\030\002 \001(\005\"E\n\024CordBlockHalfOpe"
+  "nSeg\022\020\n\010block_id\030\001 \001(\005\022\n\n\002lo\030\002 \001(\005\022\017\n\007hi"
+  "_excl\030\003 \001(\005\"\210\001\n\026CordTransferEncodeMeta\022\023"
+  "\n\013encode_type\030\001 \001(\005\022\t\n\001k\030\002 \001(\005\022\013\n\003g_m\030\003 "
+  "\001(\005\022\t\n\001l\030\004 \001(\005\022\033\n\023parity_slice_offset\030\005 "
+  "\001(\005\022\031\n\021parity_slice_size\030\006 \001(\005\"\210\001\n\032CordC"
+  "ollectorIngressExpect\022\023\n\013group_index\030\001 \001"
+  "(\005\022\032\n\022collector_block_id\030\002 \001(\005\022\032\n\022src_da"
+  "ta_block_ids\030\003 \003(\005\022\035\n\025src_delta_total_by"
+  "tes\030\004 \003(\004\"N\n\021CordDataStripDesc\022\020\n\010block_"
+  "id\030\001 \001(\005\022\024\n\014slice_offset\030\002 \001(\005\022\021\n\tslice_"
+  "len\030\003 \001(\005\"\"\n\016CordPlanKeyMsg\022\020\n\010plan_key\030"
+  "\001 \001(\t\"\313\006\n\020CordTransferPlan\022\021\n\tstripe_id\030"
+  "\001 \001(\005\022\020\n\010plan_key\030\002 \001(\t\022\024\n\014total_rounds\030"
+  "\003 \001(\r\022,\n\005steps\030\004 \003(\0132\035.proxy_proto.CordT"
+  "ransferStep\022\027\n\017slot_unit_bytes\030\005 \001(\005\022\023\n\013"
+  "k_datablock\030\006 \001(\005\022C\n\021cluster_endpoints\030\007"
+  " \003(\0132(.proxy_proto.CordTransferClusterEn"
+  "dpoint\022A\n\020block_placements\030\010 \003(\0132\'.proxy"
+  "_proto.CordTransferBlockPlacement\022>\n\017del"
+  "ta_blob_refs\030\t \003(\0132%.proxy_proto.CordTra"
+  "nsferDeltaBlobRef\022>\n\017group_xor_hints\030\n \003"
+  "(\0132%.proxy_proto.CordTransferGroupXorHin"
+  "t\022J\n\025cluster_delta_layouts\030\013 \003(\0132+.proxy"
+  "_proto.CordTransferClusterDeltaLayout\022=\n"
+  "\020cord_encode_meta\030\014 \001(\0132#.proxy_proto.Co"
+  "rdTransferEncodeMeta\022G\n\026cord_collector_e"
+  "xpects\030\r \003(\0132\'.proxy_proto.CordCollector"
+  "IngressExpect\022=\n\025cord_data_strip_descs\030\016"
+  " \003(\0132\036.proxy_proto.CordDataStripDesc\022C\n\030"
+  "cord_block_stripe_groups\030\017 \003(\0132!.proxy_p"
+  "roto.CordBlockStripeGroup\022@\n\025cord_block_"
+  "delta_segs\030\020 \003(\0132!.proxy_proto.CordBlock"
+  "HalfOpenSeg\"\313\001\n\032CordPlanCollectorIngestR"
+  "eq\022\020\n\010plan_key\030\001 \001(\t\022\023\n\013group_index\030\002 \001("
+  "\005\022\032\n\022collector_block_id\030\003 \001(\005\022\031\n\021chunk_b"
+  "yte_offset\030\004 \001(\004\022\025\n\rchunk_payload\030\005 \001(\014\022"
+  "\035\n\025xor_accum_byte_length\030\006 \001(\004\022\031\n\021src_da"
+  "ta_block_id\030\007 \001(\005\"\332\001\n\031CordPlanApplyParit"
+  "yXorReq\022\020\n\010plan_key\030\001 \001(\t\022\024\n\014dst_block_i"
+  "d\030\002 \001(\005\022\021\n\tblock_key\030\003 \001(\t\022\023\n\013datanode_i"
+  "p\030\004 \001(\t\022\025\n\rdatanode_port\030\005 \001(\005\022\033\n\023parity"
+  "_slice_offset\030\006 \001(\005\022\033\n\023parity_slice_leng"
+  "th\030\007 \001(\005\022\034\n\024parity_delta_payload\030\010 \001(\014\"\263"
+  "\002\n\027CordPlanMstDataDeltaReq\022\020\n\010plan_key\030\001"
+  " \001(\t\022\034\n\024dst_proxy_cluster_id\030\002 \001(\005\022\024\n\014ds"
+  "t_block_id\030\003 \001(\005\022\023\n\013k_datablock\030\004 \001(\005\022\031\n"
+  "\021chunk_byte_offset\030\005 \001(\004\022\025\n\rchunk_payloa"
+  "d\030\006 \001(\014\022\034\n\024total_expected_bytes\030\007 \001(\004\022\030\n"
+  "\020parity_block_key\030\010 \001(\t\022\032\n\022parity_datano"
+  "de_ip\030\t \001(\t\022\034\n\024parity_datanode_port\030\n \001("
+  "\005\022\031\n\021src_data_block_id\030\013 \001(\005\"\251\002\n\027CordDat"
+  "aUpdatePlacement\022\013\n\003key\030\001 \001(\t\022\022\n\ncluster"
+  "_id\030\002 \001(\005\022\021\n\tstripe_id\030\003 \001(\005\022\033\n\023update_p"
+  "ayload_size\030\004 \001(\004\022\022\n\ndatanodeip\030\005 \003(\t\022\024\n"
+  "\014datanodeport\030\006 \003(\005\022\021\n\tblockkeys\030\007 \003(\t\022\020"
+  "\n\010blockids\030\010 \003(\005\022\017\n\007offsets\030\t \003(\004\022\r\n\005siz"
+  "es\030\n \003(\004\022\026\n\016delta_blob_key\030\013 \001(\t\022\031\n\021delt"
+  "a_datanode_ip\030\014 \001(\t\022\033\n\023delta_datanode_po"
+  "rt\030\r \001(\005\"\213\001\n\020CordLpDeltaFetch\022\020\n\010blob_ke"
+  "y\030\001 \001(\t\022\023\n\013datanode_ip\030\002 \001(\t\022\025\n\rdatanode"
+  "_port\030\003 \001(\005\022\023\n\013blob_offset\030\004 \001(\004\022\020\n\010read"
+  "_len\030\005 \001(\004\022\022\n\nacc_offset\030\006 \001(\005\"\341\001\n\016CordL"
+  "pWorkItem\022\026\n\016local_block_id\030\001 \001(\005\022\027\n\017loc"
+  "al_block_key\030\002 \001(\t\022\031\n\021local_datanode_ip\030"
+  "\003 \001(\t\022\033\n\023local_datanode_port\030\004 \001(\005\022\033\n\023pa"
+  "rity_slice_offset\030\005 \001(\005\022\031\n\021parity_slice_"
+  "size\030\006 \001(\005\022.\n\007fetches\030\007 \003(\0132\035.proxy_prot"
+  "o.CordLpDeltaFetch\"c\n\025CordLocalParityBun"
+  "dle\022\013\n\003key\030\001 \001(\t\022\021\n\tstripe_id\030\002 \001(\005\022*\n\005i"
+  "tems\030\003 \003(\0132\033.proxy_proto.CordLpWorkItem\""
+  "\316\002\n\025CordLpHubSessionBegin\022\023\n\013session_key"
+  "\030\001 \001(\t\022\031\n\021expected_partials\030\002 \001(\005\022\031\n\021par"
+  "ity_slice_size\030\003 \001(\005\022\033\n\023parity_slice_off"
+  "set\030\004 \001(\005\022\026\n\016local_block_id\030\005 \001(\005\022\027\n\017loc"
+  "al_block_key\030\006 \001(\t\022\031\n\021local_datanode_ip\030"
+  "\007 \001(\t\022\033\n\023local_datanode_port\030\010 \001(\005\022\030\n\020de"
+  "st_lp_proxy_ip\030\t \001(\t\022\032\n\022dest_lp_proxy_po"
+  "rt\030\n \001(\005\022\021\n\tstripe_id\030\013 \001(\005\022\033\n\023hub_globa"
+  "l_block_id\030\014 \001(\005\"D\n\024CordLpHubPartialPush"
+  "\022\023\n\013session_key\030\001 \001(\t\022\027\n\017partial_payload"
+  "\030\002 \001(\014\"\373\001\n\033CordLpComputePartialAndPush\022\023"
+  "\n\013session_key\030\001 \001(\t\022\024\n\014hub_proxy_ip\030\002 \001("
+  "\t\022\026\n\016hub_proxy_port\030\003 \001(\005\022\026\n\016delta_blob_"
+  "key\030\004 \001(\t\022\031\n\021delta_datanode_ip\030\005 \001(\t\022\033\n\023"
+  "delta_datanode_port\030\006 \001(\005\022\031\n\021parity_slic"
+  "e_size\030\007 \001(\005\022.\n\007fetches\030\010 \003(\0132\035.proxy_pr"
+  "oto.CordLpDeltaFetch\"\343\001\n\026CordLpParityApp"
+  "lyDelta\022\021\n\tstripe_id\030\001 \001(\005\022\026\n\016local_bloc"
+  "k_id\030\002 \001(\005\022\027\n\017local_block_key\030\003 \001(\t\022\031\n\021l"
+  "ocal_datanode_ip\030\004 \001(\t\022\033\n\023local_datanode"
+  "_port\030\005 \001(\005\022\033\n\023parity_slice_offset\030\006 \001(\005"
+  "\022\031\n\021parity_slice_size\030\007 \001(\005\022\025\n\rdelta_pay"
+  "load\030\010 \001(\014\"\270\001\n\010SetReply\022\020\n\010ifcommit\030\001 \001("
+  "\010\022%\n\035cord_join_xfer_timing_present\030\002 \001(\010"
+  "\022\037\n\027cord_join_pure_xfer_sec\030\003 \001(\001\022)\n!cor"
+  "d_join_pure_xfer_start_unix_ms\030\004 \001(\003\022\'\n\037"
+  "cord_join_pure_xfer_end_unix_ms\030\005 \001(\003\"\036\n"
+  "\010GetReply\022\022\n\ngetsuccess\030\001 \001(\010\"\261\001\n\021Stripe"
+  "AndBlockIDs\022\021\n\tstripe_id\030\001 \001(\005\022\020\n\010group_"
+  "id\030\002 \001(\005\022\020\n\010clientip\030\003 \001(\t\022\022\n\nclientport"
+  "\030\004 \001(\005\022\021\n\tblock_ids\030\005 \003(\005\022\022\n\nblock_keys\030"
+  "\006 \003(\t\022\023\n\013datanodeips\030\007 \003(\t\022\025\n\rdatanodepo"
+  "rts\030\010 \003(\005*\255\001\n\024CordTransferLinkKind\022%\n!CO"
+  "RD_TRANSFER_STAR_DATA_TO_CENTER\020\000\022\'\n#COR"
+  "D_TRANSFER_STAR_CENTER_TO_GLOBAL\020\001\022&\n\"CO"
+  "RD_TRANSFER_STAR_CENTER_TO_LOCAL\020\002\022\035\n\031CO"
+  "RD_TRANSFER_MST_FORWARD\020\003*B\n\024CordDeltaPa"
+  "yloadKind\022\023\n\017CORD_DELTA_DATA\020\000\022\025\n\021CORD_D"
+  "ELTA_PARITY\020\0012\336\021\n\014proxyService\022D\n\nchecka"
+  "live\022\032.proxy_proto.CheckaliveCMD\032\032.proxy"
+  "_proto.RequestResult\022L\n\022encodeAndSetObje"
+  "ct\022\037.proxy_proto.ObjectAndPlacement\032\025.pr"
+  "oxy_proto.SetReply\022L\n\022decodeAndGetObject"
+  "\022\037.proxy_proto.ObjectAndPlacement\032\025.prox"
+  "y_proto.GetReply\022P\n\014degradedRead\022 .proxy"
+  "_proto.DegradedReadRequest\032\036.proxy_proto"
+  ".DegradedReadReply\022S\n\023degradedRead2Clien"
+  "t\022\034.proxy_proto.RecoveryRequest\032\036.proxy_"
+  "proto.DegradedReadReply\022Y\n\025degradedReadB"
+  "reakdown\022 .proxy_proto.DegradedReadReque"
+  "st\032\036.proxy_proto.DegradedReadReply\022\\\n\034de"
+  "gradedRead2ClientBreakdown\022\034.proxy_proto"
+  ".RecoveryRequest\032\036.proxy_proto.DegradedR"
+  "eadReply\022X\n\035degradedReadWithBlockStripeI"
+  "D\022 .proxy_proto.DegradedReadRequest\032\025.pr"
+  "oxy_proto.GetReply\022V\n\017partialDecoding\022#."
+  "proxy_proto.PartialDecodingRequest\032\036.pro"
+  "xy_proto.DegradedReadReply\022D\n\010recovery\022\034"
+  ".proxy_proto.RecoveryRequest\032\032.proxy_pro"
+  "to.RecoveryReply\022M\n\021recoveryBreakdown\022\034."
+  "proxy_proto.RecoveryRequest\032\032.proxy_prot"
+  "o.RecoveryReply\022O\n\020multipleRecovery\022$.pr"
+  "oxy_proto.MultipleRecoveryRequest\032\025.prox"
+  "y_proto.GetReply\022\?\n\013deleteBlock\022\031.proxy_"
+  "proto.NodeAndBlock\032\025.proxy_proto.DelRepl"
+  "y\022X\n\027scheduleAppend2Datanode\022&.proxy_pro"
+  "to.AppendStripeDataPlacement\032\025.proxy_pro"
+  "to.SetReply\022U\n\026scheduleCordDataUpdate\022$."
+  "proxy_proto.CordDataUpdatePlacement\032\025.pr"
+  "oxy_proto.SetReply\022Y\n\034scheduleCordLocalP"
+  "arityApply\022\".proxy_proto.CordLocalParity"
+  "Bundle\032\025.proxy_proto.SetReply\022R\n\025cordLpH"
+  "ubSessionBegin\022\".proxy_proto.CordLpHubSe"
+  "ssionBegin\032\025.proxy_proto.SetReply\022P\n\024cor"
+  "dLpHubPartialPush\022!.proxy_proto.CordLpHu"
+  "bPartialPush\032\025.proxy_proto.SetReply\022^\n\033c"
+  "ordLpComputePartialAndPush\022(.proxy_proto"
+  ".CordLpComputePartialAndPush\032\025.proxy_pro"
+  "to.SetReply\022T\n\026cordLpApplyParityDelta\022#."
+  "proxy_proto.CordLpParityApplyDelta\032\025.pro"
+  "xy_proto.SetReply\022P\n\030scheduleCordTransfe"
+  "rPlan\022\035.proxy_proto.CordTransferPlan\032\025.p"
+  "roxy_proto.SetReply\022L\n\026cordPlanStartExec"
+  "ution\022\033.proxy_proto.CordPlanKeyMsg\032\025.pro"
+  "xy_proto.SetReply\022K\n\025cordPlanJoinExecuti"
+  "on\022\033.proxy_proto.CordPlanKeyMsg\032\025.proxy_"
+  "proto.SetReply\022b\n cordPlanCollectorInges"
+  "tDataDelta\022\'.proxy_proto.CordPlanCollect"
+  "orIngestReq\032\025.proxy_proto.SetReply\022\\\n\033co"
+  "rdPlanApplyParityXorDelta\022&.proxy_proto."
+  "CordPlanApplyParityXorReq\032\025.proxy_proto."
+  "SetReply\022X\n\031cordPlanMstDataDeltaChunk\022$."
+  "proxy_proto.CordPlanMstDataDeltaReq\032\025.pr"
+  "oxy_proto.SetReply\022B\n\tgetBlocks\022\036.proxy_"
+  "proto.StripeAndBlockIDs\032\025.proxy_proto.Ge"
+  "tReplyb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_proxy_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_proxy_2eproto = {
-    false, false, 11418, descriptor_table_protodef_proxy_2eproto,
+    false, false, 11494, descriptor_table_protodef_proxy_2eproto,
     "proxy.proto",
     &descriptor_table_proxy_2eproto_once, nullptr, 0, 47,
     schemas, file_default_instances, TableStruct_proxy_2eproto::offsets,
@@ -11525,6 +11530,9 @@ class CordTransferStep::_Internal {
   static void set_has_mst_origin_data_block_id(HasBits* has_bits) {
     (*has_bits)[0] |= 2u;
   }
+  static void set_has_parity_from_global_delta_xor(HasBits* has_bits) {
+    (*has_bits)[0] |= 4u;
+  }
 };
 
 CordTransferStep::CordTransferStep(::PROTOBUF_NAMESPACE_ID::Arena* arena,
@@ -11556,12 +11564,13 @@ CordTransferStep::CordTransferStep(const CordTransferStep& from)
     , decltype(_impl_.chunk_byte_offset_){}
     , decltype(_impl_.chunk_byte_length_){}
     , decltype(_impl_.parity_ingest_stripe_group_){}
-    , decltype(_impl_.mst_origin_data_block_id_){}};
+    , decltype(_impl_.mst_origin_data_block_id_){}
+    , decltype(_impl_.parity_from_global_delta_xor_){}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::memcpy(&_impl_.step_index_, &from._impl_.step_index_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.mst_origin_data_block_id_) -
-    reinterpret_cast<char*>(&_impl_.step_index_)) + sizeof(_impl_.mst_origin_data_block_id_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.parity_from_global_delta_xor_) -
+    reinterpret_cast<char*>(&_impl_.step_index_)) + sizeof(_impl_.parity_from_global_delta_xor_));
   // @@protoc_insertion_point(copy_constructor:proxy_proto.CordTransferStep)
 }
 
@@ -11590,6 +11599,7 @@ inline void CordTransferStep::SharedCtor(
     , decltype(_impl_.chunk_byte_length_){uint64_t{0u}}
     , decltype(_impl_.parity_ingest_stripe_group_){0}
     , decltype(_impl_.mst_origin_data_block_id_){0}
+    , decltype(_impl_.parity_from_global_delta_xor_){false}
   };
 }
 
@@ -11622,10 +11632,10 @@ void CordTransferStep::Clear() {
       reinterpret_cast<char*>(&_impl_.chunk_byte_length_) -
       reinterpret_cast<char*>(&_impl_.step_index_)) + sizeof(_impl_.chunk_byte_length_));
   cached_has_bits = _impl_._has_bits_[0];
-  if (cached_has_bits & 0x00000003u) {
+  if (cached_has_bits & 0x00000007u) {
     ::memset(&_impl_.parity_ingest_stripe_group_, 0, static_cast<size_t>(
-        reinterpret_cast<char*>(&_impl_.mst_origin_data_block_id_) -
-        reinterpret_cast<char*>(&_impl_.parity_ingest_stripe_group_)) + sizeof(_impl_.mst_origin_data_block_id_));
+        reinterpret_cast<char*>(&_impl_.parity_from_global_delta_xor_) -
+        reinterpret_cast<char*>(&_impl_.parity_ingest_stripe_group_)) + sizeof(_impl_.parity_from_global_delta_xor_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
@@ -11781,6 +11791,15 @@ const char* CordTransferStep::_InternalParse(const char* ptr, ::_pbi::ParseConte
         } else
           goto handle_unusual;
         continue;
+      // optional bool parity_from_global_delta_xor = 18;
+      case 18:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 144)) {
+          _Internal::set_has_parity_from_global_delta_xor(&has_bits);
+          _impl_.parity_from_global_delta_xor_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
       default:
         goto handle_unusual;
     }  // switch
@@ -11922,6 +11941,12 @@ uint8_t* CordTransferStep::_InternalSerialize(
     }
   }
 
+  // optional bool parity_from_global_delta_xor = 18;
+  if (_internal_has_parity_from_global_delta_xor()) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(18, this->_internal_parity_from_global_delta_xor(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -12029,7 +12054,7 @@ size_t CordTransferStep::ByteSizeLong() const {
   }
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (cached_has_bits & 0x00000003u) {
+  if (cached_has_bits & 0x00000007u) {
     // optional int32 parity_ingest_stripe_group = 15;
     if (cached_has_bits & 0x00000001u) {
       total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_parity_ingest_stripe_group());
@@ -12040,6 +12065,11 @@ size_t CordTransferStep::ByteSizeLong() const {
       total_size += 2 +
         ::_pbi::WireFormatLite::Int32Size(
           this->_internal_mst_origin_data_block_id());
+    }
+
+    // optional bool parity_from_global_delta_xor = 18;
+    if (cached_has_bits & 0x00000004u) {
+      total_size += 2 + 1;
     }
 
   }
@@ -12109,12 +12139,15 @@ void CordTransferStep::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const
     _this->_internal_set_chunk_byte_length(from._internal_chunk_byte_length());
   }
   cached_has_bits = from._impl_._has_bits_[0];
-  if (cached_has_bits & 0x00000003u) {
+  if (cached_has_bits & 0x00000007u) {
     if (cached_has_bits & 0x00000001u) {
       _this->_impl_.parity_ingest_stripe_group_ = from._impl_.parity_ingest_stripe_group_;
     }
     if (cached_has_bits & 0x00000002u) {
       _this->_impl_.mst_origin_data_block_id_ = from._impl_.mst_origin_data_block_id_;
+    }
+    if (cached_has_bits & 0x00000004u) {
+      _this->_impl_.parity_from_global_delta_xor_ = from._impl_.parity_from_global_delta_xor_;
     }
     _this->_impl_._has_bits_[0] |= cached_has_bits;
   }
@@ -12138,8 +12171,8 @@ void CordTransferStep::InternalSwap(CordTransferStep* other) {
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   _impl_.parity_merge_data_block_ids_.InternalSwap(&other->_impl_.parity_merge_data_block_ids_);
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(CordTransferStep, _impl_.mst_origin_data_block_id_)
-      + sizeof(CordTransferStep::_impl_.mst_origin_data_block_id_)
+      PROTOBUF_FIELD_OFFSET(CordTransferStep, _impl_.parity_from_global_delta_xor_)
+      + sizeof(CordTransferStep::_impl_.parity_from_global_delta_xor_)
       - PROTOBUF_FIELD_OFFSET(CordTransferStep, _impl_.step_index_)>(
           reinterpret_cast<char*>(&_impl_.step_index_),
           reinterpret_cast<char*>(&other->_impl_.step_index_));

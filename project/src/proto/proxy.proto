@@ -346,6 +346,8 @@ message CordTransferStep {
   optional int32 mst_origin_data_block_id = 16;
   // 非空：STAR_CENTER 校验扇出合并跨度/XOR 仅含这些数据块（与算法三 collector 子集一致）；空则按 parity_ingest_stripe_group 全组
   repeated int32 parity_merge_data_block_ids = 17;
+  // 终态 STAR_CENTER_TO_LOCAL：载荷为 ΣΔG（各全局行 ΔG 异或），而非按本地组数据再编码
+  optional bool parity_from_global_delta_xor = 18;
 }
 
 message CordBlockStripeGroup {

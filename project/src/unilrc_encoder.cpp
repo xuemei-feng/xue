@@ -1,4 +1,5 @@
 #include "unilrc_encoder.h"
+#include <algorithm>
 #include <iostream>
 #include <unordered_map>
 
@@ -407,6 +408,24 @@ void ECProject::gen_uniform_lrc_matrix(unsigned char *encode_matrix, int k, int 
     delete[] local_vector;
 }
 
+void ECProject::gen_uniform_lrc_matrix_nofold(unsigned char *encode_matrix, int k, int r, int z)
+{
+    int m = k + r;
+    memset(encode_matrix, 0, (m + z) * k);
+    gf_gen_cauchy_matrix1(encode_matrix, m, k);
+    unsigned char *local_vector = new unsigned char[k];
+    gf_gen_local_vector(local_vector, k, r);
+    int group_size = std::max(1, (k + r) / z);
+    for (int i = 0; i < k; i++)
+    {
+        int row = i / group_size;
+        if (row >= z)
+            row = z - 1;
+        encode_matrix[(m + row) * k + i] = local_vector[i];
+    }
+    delete[] local_vector;
+}
+
 
 void ECProject::decode_unilrc(const int k, const int r, const int z, const int block_num,
                               const std::vector<int> *block_indexes, unsigned char **block_ptrs, unsigned char *res_ptr, int block_size)
@@ -759,13 +778,13 @@ ECProject::get_multi_decode_plan(int k, int r, int z, std::string code_type, con
     if(code_type == "UniLRC"){
         gen_unilrc_matrix(gen_matrix, k, r, z);
     }
-    else if(code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC"){
+    else if(code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "CordXueLRC"){
         gen_azure_lrc_matrix(gen_matrix, k, r, z);
     }
     else if(code_type == "OptimalLRC"){
         gen_optimal_lrc_matrix(gen_matrix, k, r, z);
     }
-    else if(code_type == "UniformLRC"){
+    else if(code_type == "UniformLRC" || code_type == "SplitParityLRC"){
         gen_uniform_lrc_matrix(gen_matrix, k, r, z);
     }
     else{

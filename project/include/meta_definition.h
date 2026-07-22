@@ -16,7 +16,9 @@ namespace ECProject
   enum EncodeType
   {
     Azure_LRC,
-    Optimal_Cauchy_LRC
+    Optimal_Cauchy_LRC,
+    /** Uniform 语义矩阵（CoRD 更新用无 fold 本地行；与 SET 的 fold 版等价于「数据本地 ⊕ ΣΔG」） */
+    Uniform_LRC
   };
   enum SingleStripePlacementType
   {
