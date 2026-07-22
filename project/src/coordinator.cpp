@@ -1525,12 +1525,17 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
     }
 
-    // Step 5: merge theta local groups' remainders into one cluster when m is equal
+    // Step 5: merge local groups' remainders.
+    // 注意：不能用「第一组 remainder 数 m」是否 >0 作为总开关——
+    // 例如 k=10,r=2,z=2 时组0 remainder=0、组1 remainder=1，旧逻辑会跳过整步导致 unassigned。
     int m = -1;
     bool equal_m = true;
+    bool has_remainder = false;
     for (int g = 0; g < stripe->z; ++g)
     {
       const int gm = static_cast<int>(group_remainder_blocks[g].size());
+      if (gm > 0)
+        has_remainder = true;
       if (m < 0)
       {
         m = gm;
@@ -1538,13 +1543,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       else if (gm != m)
       {
         equal_m = false;
-        break;
       }
     }
 
-    if (m > 0)
+    if (has_remainder)
     {
-      if (equal_m)
+      if (equal_m && m > 0)
       {
         int theta = 1;
         if (m == 1)
@@ -1575,7 +1579,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
       else
       {
-        // 各组 remainder 数量不等时，仍合并到同一非 global 机架（如 z=2 时组0+组1 remain 共架）
+        // 各组 remainder 数量不等（含部分组为 0）时，把所有剩余块放到同一非 global 机架
         const int remainder_cluster = next_non_global_cluster();
         for (int g = 0; g < stripe->z; ++g)
         {

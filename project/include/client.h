@@ -14,6 +14,7 @@
 #include "toolbox.h"
 #include "devcommon.h"
 #include <chrono>
+#include <cstddef>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -70,8 +71,10 @@ namespace ECProject
       m_clientID = ClientIP + ":" + std::to_string(ClientPort);
       m_sys_config = ECProject::Config::getInstance(config_path);
       m_toolbox = ECProject::ToolBox::getInstance();
-      m_pre_allocated_buffer = new char[static_cast<size_t> (m_sys_config->BlockSize) * static_cast<size_t> (m_sys_config->n)];
-      memset(m_pre_allocated_buffer, 0xaa, (m_sys_config->BlockSize) * static_cast<size_t> (m_sys_config->n));
+      const size_t prealloc_bytes =
+          static_cast<size_t>(m_sys_config->BlockSize) * static_cast<size_t>(m_sys_config->n);
+      m_pre_allocated_buffer = new char[prealloc_bytes];
+      fill_random_bytes(m_pre_allocated_buffer, prealloc_bytes);
       if (m_sys_config->AppendMode == "CACHED_MODE")
       {
         m_cached_buffer = new char *[m_sys_config->r + m_sys_config->z];
@@ -107,7 +110,7 @@ namespace ECProject
     /** CoRD：半开区间列表；全局校验由 uploadCordUpdate 下发的传输计划在 proxy 侧完成，
      * 本地校验由随后的 uploadCordLocalParityApply 完成（无需二选一）。
      * interval_count 由客户端按区间条数自动填充。
-     * 若 update_payload==nullptr 且 update_payload_bytes==0，则在 coordinator 返回长度后用 0xBB 填充负载。 */
+     * 若 update_payload==nullptr 且 update_payload_bytes==0，则在 coordinator 返回长度后用随机字节填充负载。 */
     bool cord_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges,
                      const char *update_payload, size_t update_payload_bytes,
                      CordUpdateTiming *out_timing = nullptr);
@@ -169,8 +172,8 @@ namespace ECProject
     ECProject::ToolBox *m_toolbox;
     char *m_pre_allocated_buffer = nullptr;
     char **m_cached_buffer = nullptr;
-    /** 预计算校验块缓存：测试数据恒定（0xaa），校验块只需编码一次，后续直接复用。 */
-    bool m_parity_precomputed = false;
+    /** 用伪随机字节填充缓冲区（set / cord_update 默认负载）。 */
+    static void fill_random_bytes(char *buf, size_t nbytes);
     /** 串行化发往各 proxy 数据口的 TCP，避免与 coordinator 并行 notify 导致的 accept/期望长度错配。 */
     std::mutex m_proxy_tcp_mu;
   };

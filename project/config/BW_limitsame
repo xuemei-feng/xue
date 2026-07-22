@@ -1,32 +1,31 @@
 #!/usr/bin/env bash
 # Bandwidth matrix for limit_bw_matrix.sh / limit_all_bw_matrix.sh
 #
-# Units: MB/s (megabytes per second), TABLE II — "Bandwidth measurements in Asia regions".
+# Units: MB/s (megabytes per second).
 # Region index matches CLUSTER_IPS in limit_bw_matrix.sh (proxy IP per cluster):
-#   0=TYO  1=MEL  2=SG  3=SEO  4=JAK  5=HK  6=BKK  7=TPE  8=DEL  9=BOM
+#   0=TYO  1=MEL  2=SG  3=SEO  4=JAK  5=HK
 #
 # Construction (for tc symmetric egress matrix):
-#   - Diagonal [i,i]: intra-region MB/s from TABLE II (0-5); 6-9 use placeholder ~42 MB/s.
-#   - Off-diagonal: 125 MB/s (cross-region cap).
+#   - Diagonal [i,i]: intra-cluster cap.
+#   - Off-diagonal: cross-cluster cap.
 #
 # Linux tc HTB uses Mbit/s ("mbit"). Convert MB/s → Mbit/s for tc by multiplying
 # bytes→bits factor (default 8). Override with BW_MATRIX_MB_PER_SEC_TO_TC_MBIT.
+#
+# Also consumed by C++ CoRD planner (load_bw_matrix_from_limitsame_file): must be
+# ClusterNum × ClusterNum values in row-major order.
 
-readonly BW_CLUSTER_NUM="${BW_CLUSTER_NUM:-10}"
+readonly BW_CLUSTER_NUM="${BW_CLUSTER_NUM:-6}"
 readonly BW_MATRIX_MB_PER_SEC_TO_TC_MBIT="${BW_MATRIX_MB_PER_SEC_TO_TC_MBIT:-8}"
 
-# Symmetric 10×10, row-major, units: MB/s
+# Symmetric 6×6, row-major, units: MB/s
 readonly BW_MATRIX_MB_PER_SEC=(
-  1000 125 125 125 125 125 125 125 125 125
-  125 1000 125 125 125 125 125 125 125 125
-  125 125 1000 125 125 125 125 125 125 125
-  125 125 125 1000 125 125 125 125 125 125
-  125 125 125 125 1000 125 125 125 125 125
-  125 125 125 125 125 1000 125 125 125 125
-  125 125 125 125 125 125 1000 125 125 125
-  125 125 125 125 125 125 125 1000 125 125
-  125 125 125 125 125 125 125 125 1000 125
-  125 125 125 125 125 125 125 125 125 1000
+  1000 125 125 125 125 125
+  125 1000 125 125 125 125
+  125 125 1000 125 125 125
+  125 125 125 1000 125 125
+  125 125 125 125 1000 125
+  125 125 125 125 125 1000
 )
 
 _get_bw_matrix_index() {

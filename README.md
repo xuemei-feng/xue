@@ -40,8 +40,8 @@ The architecture follows master-worker style, like many state-of-art distributed
   * `AlignedSize`: The size in bytes that data should be aligned to (4096 bytes)
   * `UnitSize`: The basic unit size for data operations (8192 bytes)
   * `BlockSize`: The size of data blocks (16384 bytes)
-  * `DatanodeNumPerCluster`: Number of datanodes in each cluster (15)
-  * `ClusterNum`: Total number of clusters in the system (12)
+  * `DatanodeNumPerCluster`: Number of datanodes in each cluster (8)
+  * `ClusterNum`: Total number of clusters in the system (6)
   * `CoordinatorIP`: IP address of the coordinator server (0.0.0.0)
   * `CoordinatorPort`: Port number for the coordinator server (55555)
   * `AppendMode`: The mode for append operations, can be:

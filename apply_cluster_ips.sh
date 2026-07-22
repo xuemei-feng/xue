@@ -6,8 +6,8 @@
 #   ./apply_cluster_ips.sh -              # stdin
 #   ./apply_cluster_ips.sh --dry-run ip_list.txt
 #
-# Expected: 92 IPs = 1 client + 1 coordinator + 10×(1 proxy + 8 datanodes).
-# Override: CLUSTER_NUM=10 DATANODES_PER_CLUSTER=8
+# Expected: 56 IPs = 1 client + 1 coordinator + 6×(1 proxy + 8 datanodes).
+# Override: CLUSTER_NUM=6 DATANODES_PER_CLUSTER=8
 
 if [ -z "${BASH_VERSION:-}" ]; then
   exec /bin/bash "$0" "$@"

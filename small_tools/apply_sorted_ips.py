@@ -2,7 +2,7 @@
 """
 Sort a column of IPs and rewrite cluster deployment configs.
 
-Role assignment (after numeric sort), default 10 clusters × 8 datanodes:
+Role assignment (after numeric sort), default 6 clusters × 8 datanodes:
   [0]       client
   [1]       coordinator
   per cluster c in 0..N-1:
@@ -34,7 +34,7 @@ except ImportError:
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-CLUSTER_NUM = int(os.environ.get("CLUSTER_NUM", "10"))
+CLUSTER_NUM = int(os.environ.get("CLUSTER_NUM", "6"))
 DATANODES_PER_CLUSTER = int(os.environ.get("DATANODES_PER_CLUSTER", "8"))
 PROXY_PORT_BASE = int(os.environ.get("PROXY_PORT_BASE", "50405"))
 DATANODE_PORT_START = int(os.environ.get("DATANODE_PORT_START", "17600"))
@@ -49,6 +49,7 @@ PATHS = {
     "param_xml": os.path.join(ROOT, "project", "config", "parameterConfiguration.xml"),
     "limit_bw": os.path.join(ROOT, "limit_bw_matrix.sh"),
     "unlimit_bw": os.path.join(ROOT, "unlimit_bw_matrix.sh"),
+    "bw_limitsame": os.path.join(ROOT, "project", "config", "BW_limitsame"),
     "generator_py": os.path.join(ROOT, "small_tools", "generator_sh.py"),
     "main_client": os.path.join(ROOT, "project", "run_cpp", "main_client.cpp"),
 }
@@ -200,6 +201,32 @@ def patch_bash_ip_array(path, var_name, ip_lines):
     print("  patched %s in %s" % (var_name, path))
 
 
+def patch_bw_limitsame_cluster_num(path, cluster_num):
+    """Keep BW_CLUSTER_NUM default aligned with ClusterNum (matrix size must match)."""
+    with open(path, "r") as f:
+        text = f.read()
+    new_text, n = re.subn(
+        r'(readonly BW_CLUSTER_NUM="\$\{BW_CLUSTER_NUM:-)\d+(\}")',
+        r"\g<1>%d\2" % cluster_num,
+        text,
+        count=1,
+    )
+    if n != 1:
+        raise RuntimeError("BW_CLUSTER_NUM default not found in %s" % path)
+    # Refresh the "Symmetric N×N" comment if present.
+    new_text2, n2 = re.subn(
+        r"(# Symmetric )\d+(×\d+, row-major)",
+        r"\g<1>%d×%d, row-major" % (cluster_num, cluster_num),
+        new_text,
+        count=1,
+    )
+    if n2 == 1:
+        new_text = new_text2
+    with open(path, "w") as f:
+        f.write(new_text)
+    print("  patched BW_CLUSTER_NUM default -> %d in %s" % (cluster_num, path))
+
+
 def patch_limit_scripts(client_ip, coordinator_ip, clusters):
     skip_lines = ['  "%s"' % client_ip, '  "%s"' % coordinator_ip]
     cluster_lines = []
@@ -212,6 +239,8 @@ def patch_limit_scripts(client_ip, coordinator_ip, clusters):
     for path in (PATHS["limit_bw"], PATHS["unlimit_bw"]):
         patch_bash_ip_array(path, "SKIP_BW_LIMIT_IPS", skip_lines)
         patch_bash_ip_array(path, "CLUSTER_IPS", cluster_lines)
+    if os.path.isfile(PATHS["bw_limitsame"]):
+        patch_bw_limitsame_cluster_num(PATHS["bw_limitsame"], CLUSTER_NUM)
 
 
 def patch_generator_py(path, coordinator_ip, clusters):
