@@ -102,6 +102,9 @@ namespace ECProject
     bool sub_append_in_rep_mode(int append_size);
     bool set();
     bool sub_set(int block_num);
+    /** BoundedRandomLRC：扁平编码后按物理机架打包并发 SET */
+    bool set_bounded_random_by_physical_cluster(const coordinator_proto::ReplyProxyIPsPorts &reply,
+                                               int data_block_num);
     /** 同一条带内多个不连续逻辑区间 [start, end] */
     bool xue_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges);
     /** CoRD：半开区间列表；全局校验由 uploadCordUpdate 下发的传输计划在 proxy 侧完成，

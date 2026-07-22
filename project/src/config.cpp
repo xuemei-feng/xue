@@ -34,7 +34,9 @@ namespace ECProject
     }
     if (CodeType == "BoundedRandomLRC")
     {
-      assert(z > 0 && k % z == 0 && "Error: BoundedRandomLRC requires z > 0 and k divisible by z");
+      // Uniform 风格编码：本地组均分 (k+r) 槽位，不要求 (k+r)%z==0 或 k%z==0
+      assert(z > 0 && "Error: BoundedRandomLRC requires z > 0");
+      assert(k + r >= z && "Error: BoundedRandomLRC requires k+r >= z");
       assert(DatanodeNumPerCluster > r && "Error: BoundedRandomLRC requires DatanodeNumPerCluster > r");
       assert(n <= ClusterNum * (r + 1) && "Error: BoundedRandomLRC requires n <= ClusterNum*(r+1)");
     }

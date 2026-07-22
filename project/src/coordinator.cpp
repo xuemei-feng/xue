@@ -1,6 +1,7 @@
 #include "coordinator.h"
 #include <cstdint>
 #include "cord_algorithm2.h"
+#include "cord_xue_lrc.h"
 #include "tinyxml2.h"
 #include <random>
 #include <unistd.h>
@@ -49,8 +50,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   {
     bool is_azure_like_code(const std::string &code_type) // 辅助函数：判断是否为 Azure 系列分组规则编码
     {
-      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "BoundedRandomLRC" ||
+      // BoundedRandomLRC 改为 Uniform 风格编码/分组，不再走 Azure 规则
+      return code_type == "AzureLRC" || code_type == "RandomLRC" ||
              code_type == "SplitParityLRC" || code_type == "CordXueLRC";
+    }
+
+    bool is_bounded_random_uniform_code(const std::string &code_type)
+    {
+      return code_type == "BoundedRandomLRC";
     }
 
     /** Deterministic seed for placement RNG: same placement_seed + stripe_id -> same sequence (shuffle / cluster / node). */
@@ -1218,7 +1225,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     // BoundedRandomLRC：
     // 1) 全部数据块 + 全局/本地校验块随机放入全部 ClusterNum 个机架
     // 2) 约束：每个机架上的总块数（D+G+L）<= r+1
-    // 3) 编码分组保持 Azure 风格（map2group）；机架内节点随机选择
+    // 3) 编码分组为 Uniform 风格：本地组均分 (k+r) 槽位，全局校验在最后一组并参与 L_{z-1}
     Block *blocks_info = new Block[stripe->n];
     assert(stripe->object_keys.size() == 1);
 
@@ -1232,9 +1239,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       throw std::runtime_error(
           "BoundedRandomLRC requires n <= ClusterNum*(r+1) (total blocks fit under per-rack cap)");
     }
-    if (stripe->z <= 0 || stripe->k % stripe->z != 0)
+    if (stripe->z <= 0 || stripe->k + stripe->r < stripe->z)
     {
-      throw std::runtime_error("BoundedRandomLRC requires z > 0 and k divisible by z");
+      throw std::runtime_error("BoundedRandomLRC requires z > 0 and k+r >= z");
     }
 
     std::vector<int> all_clusters(cluster_num);
@@ -1252,8 +1259,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       gen.seed(rd());
     }
 
-    const int global_parity_group_id = stripe->z;
-    const int data_per_group = stripe->k / stripe->z;
+    const int last_local_group = stripe->z - 1;
     for (int i = 0; i < stripe->n; i++)
     {
       blocks_info[i].block_size = m_sys_config->BlockSize;
@@ -1267,7 +1273,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'D';
-        blocks_info[i].map2group = i / data_per_group;
+        blocks_info[i].map2group =
+            cord_xue_lrc::data_block_map2group(i, stripe->k, stripe->r, stripe->z);
       }
       else if (i < stripe->k + stripe->r)
       {
@@ -1277,7 +1284,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i - stripe->k);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'G';
-        blocks_info[i].map2group = global_parity_group_id;
+        blocks_info[i].map2group = last_local_group;
       }
       else
       {
@@ -2454,10 +2461,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           plan.add_sizes(static_cast<uint64_t>(s.len));
 
           auto *fanout = plan.add_slice_fanouts();
-          // Azure-LRC：全部 r 个全局校验 + 所属本地组 1 个本地校验
+          // Uniform 风格：全部 r 个全局校验 + 所属本地组本地校验；
+          // L_{z-1} 始终放入 targets，供全局扇出后的 ΣΔG 终态跨 Proxy 更新
           for (int gi = 0; gi < stripe->r; ++gi)
             fill_parity_fanout_target(stripe->k + gi, fanout);
           fill_parity_fanout_target(stripe->k + stripe->r + b->map2group, fanout);
+          if (b->map2group != stripe->z - 1)
+            fill_parity_fanout_target(stripe->k + stripe->r + stripe->z - 1, fanout);
         }
 
         m_mutex.lock();
@@ -3288,6 +3298,43 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     return add_plans;
   }
 
+  std::vector<proxy_proto::AppendStripeDataPlacement> CoordinatorImpl::generate_add_plans_by_physical_cluster(Stripe *stripe)
+  {
+    // 按物理机架聚合；机架内按 block_id 升序，client 并发发到各机架 proxy，proxy 写本机架 DN
+    std::map<int, std::vector<int>> cluster_to_block_ids;
+    for (int i = 0; i < stripe->n; ++i)
+    {
+      Block *b = stripe->blocks[static_cast<size_t>(i)];
+      cluster_to_block_ids[b->map2cluster].push_back(b->block_id);
+    }
+    for (auto &kv : cluster_to_block_ids)
+      std::sort(kv.second.begin(), kv.second.end());
+
+    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans;
+    add_plans.reserve(cluster_to_block_ids.size());
+    for (const auto &kv : cluster_to_block_ids)
+    {
+      const int cid = kv.first;
+      proxy_proto::AppendStripeDataPlacement plan;
+      plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, cid));
+      plan.set_stripe_id(stripe->stripe_id);
+      plan.set_append_size(static_cast<uint64_t>(kv.second.size()) *
+                           static_cast<uint64_t>(m_sys_config->BlockSize));
+      plan.set_is_merge_parity(false);
+      plan.set_cluster_id(cid);
+      plan.set_append_mode("UNILRC_MODE");
+      plan.set_is_serialized(false);
+      for (int bid : kv.second)
+      {
+        Block *b = stripe->blocks[static_cast<size_t>(bid)];
+        addBlockToAppendPlan(plan, b, m_node_table[b->map2node],
+                             std::make_pair(m_sys_config->BlockSize, 0));
+      }
+      add_plans.push_back(std::move(plan));
+    }
+    return add_plans;
+  }
+
   std::vector<proxy_proto::AppendStripeDataPlacement> CoordinatorImpl::generate_sub_add_plans(Stripe *stripe, size_t subset_size)
   {
     int data_block_num = subset_size / m_sys_config->BlockSize;
@@ -3329,6 +3376,50 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       add_plans.push_back(plan);
     }
 
+    return add_plans;
+  }
+
+  std::vector<proxy_proto::AppendStripeDataPlacement>
+  CoordinatorImpl::generate_sub_add_plans_by_physical_cluster(Stripe *stripe, size_t subset_size)
+  {
+    const int data_block_num = static_cast<int>(subset_size / m_sys_config->BlockSize);
+    const int k = m_sys_config->k;
+    std::map<int, std::vector<int>> cluster_to_block_ids;
+    for (int i = 0; i < stripe->n; ++i)
+    {
+      Block *b = stripe->blocks[static_cast<size_t>(i)];
+      const int bid = b->block_id;
+      if (bid < k && bid >= data_block_num)
+        continue;
+      cluster_to_block_ids[b->map2cluster].push_back(bid);
+    }
+    for (auto &kv : cluster_to_block_ids)
+      std::sort(kv.second.begin(), kv.second.end());
+
+    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans;
+    add_plans.reserve(cluster_to_block_ids.size());
+    for (const auto &kv : cluster_to_block_ids)
+    {
+      if (kv.second.empty())
+        continue;
+      const int cid = kv.first;
+      proxy_proto::AppendStripeDataPlacement plan;
+      plan.set_key(m_toolbox->gen_append_key(stripe->stripe_id, cid));
+      plan.set_stripe_id(stripe->stripe_id);
+      plan.set_is_merge_parity(false);
+      plan.set_cluster_id(cid);
+      plan.set_append_mode("UNILRC_MODE");
+      plan.set_is_serialized(false);
+      plan.set_append_size(static_cast<uint64_t>(kv.second.size()) *
+                           static_cast<uint64_t>(m_sys_config->BlockSize));
+      for (int bid : kv.second)
+      {
+        Block *b = stripe->blocks[static_cast<size_t>(bid)];
+        addBlockToAppendPlan(plan, b, m_node_table[b->map2node],
+                             std::make_pair(m_sys_config->BlockSize, 0));
+      }
+      add_plans.push_back(std::move(plan));
+    }
     return add_plans;
   }
 
@@ -3430,7 +3521,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     print_stripe_data_placement(t_stripe);
 
-    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans = generate_add_plans(&t_stripe);
+    const bool bounded_by_rack = (code_type == "BoundedRandomLRC");
+    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans =
+        bounded_by_rack ? generate_add_plans_by_physical_cluster(&t_stripe) : generate_add_plans(&t_stripe);
 
     for (const auto &plan : add_plans)
     {
@@ -3463,6 +3556,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       proxyIPPort->add_proxyips(m_cluster_table[plan.cluster_id()].proxy_ip);
       proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::PROXY_PORT_SHIFT); // use another port to accept data
       proxyIPPort->add_cluster_slice_sizes(plan.append_size());
+      proxyIPPort->add_group_ids(plan.cluster_id());
+      if (bounded_by_rack)
+      {
+        auto *ids = proxyIPPort->add_slice_block_ids();
+        for (int bi = 0; bi < plan.blockids_size(); ++bi)
+          ids->add_block_ids(plan.blockids(bi));
+      }
       sum_append_size += plan.append_size();
     }
     proxyIPPort->set_sum_append_size(sum_append_size);
@@ -3522,7 +3622,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
     print_stripe_data_placement(t_stripe);
 
-    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans = generate_sub_add_plans(&t_stripe, setSizeBytes);
+    const bool bounded_by_rack = (code_type == "BoundedRandomLRC");
+    std::vector<proxy_proto::AppendStripeDataPlacement> add_plans =
+        bounded_by_rack ? generate_sub_add_plans_by_physical_cluster(&t_stripe, setSizeBytes)
+                        : generate_sub_add_plans(&t_stripe, setSizeBytes);
 
     for (const auto &plan : add_plans)
     {
@@ -3555,9 +3658,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       proxyIPPort->add_proxyips(m_cluster_table[plan.cluster_id()].proxy_ip);
       proxyIPPort->add_proxyports(m_cluster_table[plan.cluster_id()].proxy_port + ECProject::PROXY_PORT_SHIFT); // use another port to accept data
       proxyIPPort->add_cluster_slice_sizes(plan.append_size());
-      //proxyIPPort->add_group_ids(group_id);
+      proxyIPPort->add_group_ids(plan.cluster_id());
+      if (bounded_by_rack)
+      {
+        auto *ids = proxyIPPort->add_slice_block_ids();
+        for (int bi = 0; bi < plan.blockids_size(); ++bi)
+          ids->add_block_ids(plan.blockids(bi));
+      }
       sum_append_size += plan.append_size();
-      //group_id++;
     }
     proxyIPPort->set_sum_append_size(sum_append_size);
 
@@ -3730,7 +3838,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   std::vector<int> CoordinatorImpl::get_data_block_num_per_group(int k, int r, int z, std::string code_type)
   {
     std::vector<int> data_block_num_per_group;
-    if (is_azure_like_code(code_type))
+    if (is_bounded_random_uniform_code(code_type))
+    {
+      for (int g = 0; g < z; ++g)
+        data_block_num_per_group.push_back(cord_xue_lrc::data_block_count_in_local_group(g, k, r, z));
+    }
+    else if (is_azure_like_code(code_type))
     {
       for (int i = 0; i < z; i++)
       {

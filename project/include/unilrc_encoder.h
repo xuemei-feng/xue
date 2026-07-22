@@ -69,6 +69,9 @@ namespace ECProject
     void gen_azure_lrc_matrix(unsigned char *encode_matrix, int k, int r, int z);
     void gen_optimal_lrc_matrix(unsigned char *encode_matrix, int k, int r, int z);
     void gen_uniform_lrc_matrix(unsigned char *encode_matrix, int k, int r, int z);
+    /** 与 gen_uniform_lrc_matrix 相同分组，但本地行不 fold 全局行（供更新路径用 ΣΔG 单独补偿 L_{z-1}）。 */
+    void gen_uniform_lrc_matrix_nofold(unsigned char *encode_matrix, int k, int r, int z);
+    void encode_uniform_lrc_nofold(int k, int r, int z, unsigned char **data_ptrs, unsigned char **parity_ptrs, int block_size);
 
     void decode_unilrc(const int k, const int r, const int z, const int block_num,
                        const std::vector<int> *block_indexes, unsigned char **block_ptrs, unsigned char *res_ptr, int block_size);

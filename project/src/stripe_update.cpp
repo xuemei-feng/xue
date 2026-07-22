@@ -88,6 +88,8 @@ namespace ECProject
       unsigned char *encode_matrix = new unsigned char[static_cast<size_t>(k + r + z) * static_cast<size_t>(k)];
       if (code_type == "UniLRC")
         gen_unilrc_matrix(encode_matrix, k, r, z);
+      else if (code_type == "UniformLRC" || code_type == "BoundedRandomLRC")
+        gen_uniform_lrc_matrix(encode_matrix, k, r, z);
       else
         gen_azure_lrc_matrix(encode_matrix, k, r, z);
 

@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <random>
 #include "unilrc_encoder.h"
+#include "cord_xue_lrc.h"
 namespace ECProject
 {
   namespace
@@ -43,8 +44,14 @@ namespace ECProject
 
     bool is_azure_like_code(const std::string &code_type)
     {
-      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "BoundedRandomLRC" ||
+      // BoundedRandomLRC 改为 Uniform 风格编码/分组
+      return code_type == "AzureLRC" || code_type == "RandomLRC" ||
              code_type == "SplitParityLRC" || code_type == "CordXueLRC";
+    }
+
+    bool is_bounded_random_uniform_code(const std::string &code_type)
+    {
+      return code_type == "BoundedRandomLRC";
     }
 
     using CordClock = std::chrono::steady_clock;
@@ -627,7 +634,12 @@ namespace ECProject
   std::vector<int> Client::get_data_block_num_per_group(int k, int r, int z, std::string code_type)
   {
     std::vector<int> data_block_num_per_group;
-    if (is_azure_like_code(code_type))
+    if (is_bounded_random_uniform_code(code_type))
+    {
+      for (int g = 0; g < z; ++g)
+        data_block_num_per_group.push_back(cord_xue_lrc::data_block_count_in_local_group(g, k, r, z));
+    }
+    else if (is_azure_like_code(code_type))
     {
       for (int i = 0; i < z; i++)
       {
@@ -704,7 +716,13 @@ namespace ECProject
   std::vector<int> Client::get_global_parity_block_num_per_group(int k, int r, int z, std::string code_type)
   {
     std::vector<int> global_pairty_block_num_per_group;
-    if (is_azure_like_code(code_type))
+    if (is_bounded_random_uniform_code(code_type))
+    {
+      for (int i = 0; i < z - 1; ++i)
+        global_pairty_block_num_per_group.push_back(0);
+      global_pairty_block_num_per_group.push_back(r);
+    }
+    else if (is_azure_like_code(code_type))
     {
       for (int i = 0; i < z; i++)
       {
@@ -762,7 +780,12 @@ namespace ECProject
   std::vector<int> Client::get_local_parity_block_num_per_group(int k, int r, int z, std::string code_type)
   {
     std::vector<int> local_parity_block_num_per_group;
-    if (is_azure_like_code(code_type))
+    if (is_bounded_random_uniform_code(code_type))
+    {
+      for (int i = 0; i < z; ++i)
+        local_parity_block_num_per_group.push_back(1);
+    }
+    else if (is_azure_like_code(code_type))
     {
       for (int i = 0; i < z; i++)
       {
@@ -841,6 +864,115 @@ namespace ECProject
     }
   }
 
+  // BoundedRandomLRC：扁平编码整条带，再按物理机架 block_id 升序打包，并发发到各机架 proxy
+  bool Client::set_bounded_random_by_physical_cluster(const coordinator_proto::ReplyProxyIPsPorts &reply,
+                                                     int data_block_num)
+  {
+    const int k = m_sys_config->k;
+    const int r = m_sys_config->r;
+    const int z = m_sys_config->z;
+    const int n = m_sys_config->n;
+    const size_t bs = static_cast<size_t>(m_sys_config->BlockSize);
+    if (data_block_num <= 0 || data_block_num > k)
+    {
+      std::cout << "[BoundedRandom][SET] invalid data_block_num=" << data_block_num << std::endl;
+      return false;
+    }
+    if (reply.slice_block_ids_size() != reply.append_keys_size())
+    {
+      std::cout << "[BoundedRandom][SET] slice_block_ids size mismatch keys=" << reply.append_keys_size()
+                << " ids=" << reply.slice_block_ids_size() << std::endl;
+      return false;
+    }
+
+    std::vector<char> flat(static_cast<size_t>(n) * bs, 0);
+    fill_random_bytes(flat.data(), static_cast<size_t>(data_block_num) * bs);
+
+    std::vector<unsigned char *> data_ptrs(static_cast<size_t>(k));
+    std::vector<unsigned char *> parity_ptrs(static_cast<size_t>(r + z));
+    for (int i = 0; i < k; ++i)
+      data_ptrs[static_cast<size_t>(i)] = reinterpret_cast<unsigned char *>(flat.data() + static_cast<size_t>(i) * bs);
+    for (int j = 0; j < r + z; ++j)
+      parity_ptrs[static_cast<size_t>(j)] =
+          reinterpret_cast<unsigned char *>(flat.data() + static_cast<size_t>(k + j) * bs);
+    ECProject::encode_uniform_lrc(k, r, z, data_ptrs.data(), parity_ptrs.data(), m_sys_config->BlockSize);
+
+    std::vector<char> send_buf(static_cast<size_t>(reply.sum_append_size()));
+    std::vector<char *> slice_ptrs(static_cast<size_t>(reply.append_keys_size()), nullptr);
+    size_t off = 0;
+    for (int i = 0; i < reply.append_keys_size(); ++i)
+    {
+      slice_ptrs[static_cast<size_t>(i)] = send_buf.data() + off;
+      const auto &ids = reply.slice_block_ids(i);
+      size_t slice_bytes = 0;
+      for (int j = 0; j < ids.block_ids_size(); ++j)
+      {
+        const int bid = ids.block_ids(j);
+        if (bid < 0 || bid >= n)
+        {
+          std::cout << "[BoundedRandom][SET] bad block_id=" << bid << std::endl;
+          return false;
+        }
+        std::memcpy(send_buf.data() + off, flat.data() + static_cast<size_t>(bid) * bs, bs);
+        off += bs;
+        slice_bytes += bs;
+      }
+      if (slice_bytes != static_cast<size_t>(reply.cluster_slice_sizes(i)))
+      {
+        std::cout << "[BoundedRandom][SET] slice size mismatch i=" << i << " packed=" << slice_bytes
+                  << " expect=" << reply.cluster_slice_sizes(i) << std::endl;
+        return false;
+      }
+    }
+    if (off != static_cast<size_t>(reply.sum_append_size()))
+    {
+      std::cout << "[BoundedRandom][SET] total pack size mismatch" << std::endl;
+      return false;
+    }
+
+    std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
+    std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
+    asio::io_context io_context;
+    auto pending = std::make_shared<std::atomic<int>>(reply.append_keys_size());
+    for (int i = 0; i < reply.append_keys_size(); ++i)
+    {
+      async_append_to_proxies_async(io_context, slice_ptrs[static_cast<size_t>(i)], reply.append_keys(i),
+                                    static_cast<int>(reply.cluster_slice_sizes(i)), reply.proxyips(i),
+                                    reply.proxyports(i), i, if_commit_arr.get(), pending);
+    }
+    io_context.run();
+
+    const int slice_count = reply.append_keys_size();
+    std::vector<std::thread> check_threads;
+    check_threads.reserve(static_cast<size_t>(slice_count));
+    for (int i = 0; i < slice_count; ++i)
+    {
+      check_threads.emplace_back([this, i, &reply, if_commit_arr = if_commit_arr.get()]() {
+        grpc::ClientContext check_commit;
+        coordinator_proto::AskIfSuccess req;
+        req.set_key(reply.append_keys(i));
+        req.set_opp(APPEND);
+        coordinator_proto::RepIfSuccess reply_chk;
+        grpc::Status st = m_coordinator_ptr->checkCommitAbort(&check_commit, req, &reply_chk);
+        if (st.ok() && reply_chk.ifcommit())
+          if_commit_arr[i] = true;
+        else if (!st.ok())
+          std::cout << "[BoundedRandom][SET] checkCommitAbort failed key=" << reply.append_keys(i) << std::endl;
+      });
+    }
+    for (auto &t : check_threads)
+      t.join();
+
+    const bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + slice_count,
+                                      [](bool val) { return val; });
+    if (all_true)
+      std::cout << "[BoundedRandom][SET] Client " << m_clientID << " set by physical cluster ok, slices="
+                << slice_count << std::endl;
+    else
+      std::cout << "[BoundedRandom][SET] Client " << m_clientID << " set failed!" << std::endl;
+    return all_true;
+  }
+
   // add a stripe each time
   bool Client::set()
   {
@@ -857,7 +989,10 @@ namespace ECProject
       std::cout << "[SET402] upload data failed!" << std::endl;
       return false;
     }
-    else
+
+    if (is_bounded_random_uniform_code(m_sys_config->CodeType))
+      return set_bounded_random_by_physical_cluster(reply, m_sys_config->k);
+
     {
       // 每条 stripe 使用独立随机数据；校验块必须随数据重新编码
       const size_t buf_bytes =
@@ -868,7 +1003,8 @@ namespace ECProject
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
 
-      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
+      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" ||
+             m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
       std::vector<int> data_block_num_per_group = get_data_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
       std::vector<int> global_parity_block_num_per_group = get_global_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
       std::vector<int> local_parity_block_num_per_group = get_local_parity_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
@@ -976,7 +1112,10 @@ namespace ECProject
       std::cout << "[SET402] upload data failed!" << std::endl;
       return false;
     }
-    else
+
+    if (is_bounded_random_uniform_code(m_sys_config->CodeType))
+      return set_bounded_random_by_physical_cluster(reply, block_num);
+
     {
       const size_t buf_bytes =
           static_cast<size_t>(m_sys_config->BlockSize) * static_cast<size_t>(m_sys_config->n);
@@ -986,7 +1125,8 @@ namespace ECProject
       std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
       std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
 
-      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
+      assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" ||
+             m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
       std::vector<int> data_block_num_per_group = get_data_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
       int capacity = block_num;
       for(int i = 0; i < data_block_num_per_group.size(); i++)
@@ -1958,7 +2098,7 @@ namespace ECProject
     {
       parameters.push_back(1);
     }
-    else if(m_sys_config->CodeType == "UniformLRC")
+    else if(m_sys_config->CodeType == "UniformLRC" || is_bounded_random_uniform_code(m_sys_config->CodeType))
     {
       parameters.push_back(2);
     }

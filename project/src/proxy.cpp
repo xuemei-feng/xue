@@ -587,9 +587,47 @@ namespace ECProject
   {
     inline bool is_azure_like_code(const std::string &code_type)
     {
-      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "BoundedRandomLRC" ||
+      // BoundedRandomLRC 改为 Uniform 风格编码
+      return code_type == "AzureLRC" || code_type == "RandomLRC" ||
              code_type == "SplitParityLRC" || code_type == "CordXueLRC";
     }
+  }
+
+  /** BoundedRandom Uniform：在全局校验所在 Proxy 累加各行 ΔG，供终态 ΣΔG→L_{z-1} */
+  static std::map<std::string, std::vector<uint8_t>> g_cord_global_delta_xor_for_l1;
+  static std::mutex g_cord_global_delta_xor_for_l1_mu;
+
+  static std::string cord_global_xor_l1_key(const std::string &plan_key, int slice_off)
+  {
+    return plan_key + "|gxor_l1|" + std::to_string(slice_off);
+  }
+
+  static void cord_accum_global_delta_xor_for_l1(const std::string &plan_key, int slice_off,
+                                                const char *delta, size_t len)
+  {
+    if (!delta || len == 0)
+      return;
+    std::lock_guard<std::mutex> lk(g_cord_global_delta_xor_for_l1_mu);
+    auto &acc = g_cord_global_delta_xor_for_l1[cord_global_xor_l1_key(plan_key, slice_off)];
+    if (acc.size() < len)
+      acc.resize(len, 0);
+    for (size_t i = 0; i < len; ++i)
+      acc[i] ^= static_cast<uint8_t>(delta[i]);
+  }
+
+  static bool cord_take_global_delta_xor_for_l1(const std::string &plan_key, int slice_off,
+                                               std::vector<uint8_t> *out)
+  {
+    if (out == nullptr)
+      return false;
+    std::lock_guard<std::mutex> lk(g_cord_global_delta_xor_for_l1_mu);
+    const std::string key = cord_global_xor_l1_key(plan_key, slice_off);
+    auto it = g_cord_global_delta_xor_for_l1.find(key);
+    if (it == g_cord_global_delta_xor_for_l1.end() || it->second.empty())
+      return false;
+    *out = std::move(it->second);
+    g_cord_global_delta_xor_for_l1.erase(it);
+    return true;
   }
 
   static std::string cord_plan_wall_ts_ms()
@@ -1112,7 +1150,10 @@ namespace ECProject
     return true;
   }
 
-  /** 用 encode_azure_lrc 从单数据块 ΔD 生成全部校验增量（与 SET 编码一致） */
+  /**
+   * BoundedRandom Uniform：用 nofold 矩阵从单数据块 ΔD 生成校验增量。
+   * 本地行不含全局 fold；L_{z-1} 的全局贡献由终态 ΣΔG 单独补偿（与 SET 的 fold 版等价）。
+   */
   static bool bounded_random_encode_parity_deltas(int k, int r, int z, int data_block_id, const char *delta,
                                                    size_t delta_len, std::vector<std::vector<uint8_t>> *coded_out)
   {
@@ -1130,7 +1171,7 @@ namespace ECProject
           reinterpret_cast<unsigned char *>(data_strips[static_cast<size_t>(i)].data());
     for (int j = 0; j < r + z; ++j)
       pptrs[static_cast<size_t>(j)] = reinterpret_cast<unsigned char *>(parity[static_cast<size_t>(j)].data());
-    ECProject::encode_azure_lrc(k, r, z, dptrs.data(), pptrs.data(), static_cast<int>(delta_len));
+    ECProject::encode_uniform_lrc_nofold(k, r, z, dptrs.data(), pptrs.data(), static_cast<int>(delta_len));
     coded_out->resize(static_cast<size_t>(r + z));
     for (int j = 0; j < r + z; ++j)
       (*coded_out)[static_cast<size_t>(j)].assign(parity[static_cast<size_t>(j)].begin(),
@@ -1293,6 +1334,65 @@ namespace ECProject
     {
       return false;
     }
+  }
+
+  /** BoundedRandom：全局机架累加 ΣΔG / flush 直发 L_{z-1}；兼容旧 relay */
+  static bool cord_handle_parity_xor_req(ProxyImpl *proxy, proxy_proto::CordPlanApplyParityXorReq req,
+                                         const char *payload, size_t payload_len)
+  {
+    if (req.flush_sigma_to_dst())
+    {
+      std::vector<uint8_t> sigma;
+      if (!cord_take_global_delta_xor_for_l1(req.plan_key(), req.parity_slice_offset(), &sigma))
+      {
+        std::cout << "[BoundedRandom][Proxy] flush ΣΔG missing key=" << req.plan_key()
+                  << " off=" << req.parity_slice_offset() << std::endl;
+        return false;
+      }
+      if (req.parity_slice_length() > 0 &&
+          sigma.size() != static_cast<size_t>(req.parity_slice_length()))
+      {
+        std::cout << "[BoundedRandom][Proxy] flush ΣΔG size mismatch got=" << sigma.size()
+                  << " expect=" << req.parity_slice_length() << std::endl;
+        return false;
+      }
+      // 全局机架直接打到 L_{z-1} 所在 Proxy（无第三跳中转）
+      if (!req.next_proxy_ip().empty())
+      {
+        proxy_proto::CordPlanApplyParityXorReq fwd = req;
+        fwd.set_flush_sigma_to_dst(false);
+        fwd.set_accum_global_delta_for_l1(false);
+        fwd.set_skip_parity_apply(false);
+        fwd.set_relay_to_next_proxy(false);
+        fwd.clear_next_proxy_ip();
+        fwd.clear_next_proxy_port();
+        std::string meta;
+        fwd.SerializeToString(&meta);
+        return cord_tcp_xfer_send(req.next_proxy_ip(), req.next_proxy_port(), CORD_XFER_TCP_PARITY_XOR, meta,
+                                 sigma.data(), sigma.size());
+      }
+      return cord_apply_parity_xor_delta(proxy, req, reinterpret_cast<const char *>(sigma.data()), sigma.size());
+    }
+
+    if (req.relay_to_next_proxy())
+    {
+      proxy_proto::CordPlanApplyParityXorReq fwd = req;
+      fwd.set_relay_to_next_proxy(false);
+      fwd.clear_next_proxy_ip();
+      fwd.clear_next_proxy_port();
+      std::string fwd_meta;
+      fwd.SerializeToString(&fwd_meta);
+      return cord_tcp_xfer_send(req.next_proxy_ip(), req.next_proxy_port(), CORD_XFER_TCP_PARITY_XOR, fwd_meta,
+                               reinterpret_cast<const uint8_t *>(payload), payload_len);
+    }
+
+    if (req.accum_global_delta_for_l1() && payload != nullptr && payload_len > 0)
+      cord_accum_global_delta_xor_for_l1(req.plan_key(), req.parity_slice_offset(), payload, payload_len);
+
+    if (req.skip_parity_apply())
+      return true;
+
+    return cord_apply_parity_xor_delta(proxy, req, payload, payload_len);
   }
 
   /**
@@ -1957,7 +2057,7 @@ namespace ECProject
       {
         proxy_proto::CordPlanApplyParityXorReq req;
         if (req.ParseFromString(meta))
-          ok = cord_apply_parity_xor_delta(this, req, payload.data(), payload.size());
+          ok = cord_handle_parity_xor_req(this, std::move(req), payload.data(), payload.size());
         break;
       }
       case CORD_XFER_TCP_MST_CHUNK:
@@ -2827,9 +2927,61 @@ namespace ECProject
           const int r_enc = placement_copy->r();
           const int z_enc = placement_copy->z();
           const int self_cid = m_self_cluster_id;
+          const int l_last_bid = k_enc + r_enc + z_enc - 1;
           size_t delta_off = 0;
           const auto fanout_phase_t0 = std::chrono::steady_clock::now();
           double pure_acc_sec = 0.0;
+
+          struct BrFanoutJob
+          {
+            proxy_proto::CordParityFanoutTarget target;
+            const uint8_t *payload = nullptr;
+            size_t payload_len = 0;
+            bool accum_for_l1 = false;
+            bool skip_apply = false;
+            bool flush_sigma = false;
+            std::string direct_next_proxy_ip;
+            int direct_next_proxy_port = 0;
+          };
+
+          auto send_parity_job = [&](const BrFanoutJob &job, int slice_off, int slen, double *one_pure_out) -> bool {
+            proxy_proto::CordPlanApplyParityXorReq req;
+            req.set_plan_key(placement_copy->key());
+            req.set_dst_block_id(job.target.parity_block_id());
+            req.set_block_key(job.target.block_key());
+            req.set_datanode_ip(job.target.datanode_ip());
+            req.set_datanode_port(job.target.datanode_port());
+            req.set_parity_slice_offset(slice_off);
+            req.set_parity_slice_length(static_cast<int32_t>(slen));
+            req.set_accum_global_delta_for_l1(job.accum_for_l1);
+            req.set_skip_parity_apply(job.skip_apply);
+            req.set_flush_sigma_to_dst(job.flush_sigma);
+            if (!job.direct_next_proxy_ip.empty())
+            {
+              req.set_next_proxy_ip(job.direct_next_proxy_ip);
+              req.set_next_proxy_port(job.direct_next_proxy_port);
+            }
+
+            const auto t_pure0 = std::chrono::steady_clock::now();
+            bool ok = false;
+            if (job.target.proxy_cluster_id() == self_cid)
+            {
+              ok = cord_handle_parity_xor_req(this, req, reinterpret_cast<const char *>(job.payload),
+                                             job.payload_len);
+            }
+            else
+            {
+              std::string meta;
+              req.SerializeToString(&meta);
+              ok = cord_tcp_xfer_send(job.target.proxy_ip(), job.target.proxy_port(), CORD_XFER_TCP_PARITY_XOR, meta,
+                                     job.payload, job.payload_len);
+            }
+            if (one_pure_out != nullptr)
+              *one_pure_out =
+                  std::chrono::duration<double>(std::chrono::steady_clock::now() - t_pure0).count();
+            return ok;
+          };
+
           for (int j = 0; j < slice_num; ++j)
           {
             const size_t slen = sizes[static_cast<size_t>(j)];
@@ -2848,50 +3000,106 @@ namespace ECProject
               std::cout << "[BoundedRandom][Proxy] encode parity deltas failed data_blk=" << data_bid << std::endl;
               return;
             }
+
             const auto &fanout = placement_copy->slice_fanouts(j);
+            const proxy_proto::CordParityFanoutTarget *l_last_target = nullptr;
+            const proxy_proto::CordParityFanoutTarget *accum_global = nullptr;
+            std::vector<const proxy_proto::CordParityFanoutTarget *> global_targets;
+            global_targets.reserve(static_cast<size_t>(r_enc));
+            std::vector<BrFanoutJob> phase1_jobs;
+            phase1_jobs.reserve(static_cast<size_t>(fanout.targets_size()) + static_cast<size_t>(r_enc));
+
+            for (int ti = 0; ti < fanout.targets_size(); ++ti)
+            {
+              const auto &t = fanout.targets(ti);
+              const int pbid = t.parity_block_id();
+              if (pbid >= k_enc && pbid < k_enc + r_enc)
+              {
+                if (accum_global == nullptr)
+                  accum_global = &fanout.targets(ti);
+                global_targets.push_back(&fanout.targets(ti));
+              }
+              else if (pbid == l_last_bid)
+              {
+                l_last_target = &fanout.targets(ti);
+              }
+              else if (pbid >= k_enc + r_enc)
+              {
+                BrFanoutJob job;
+                job.target = t;
+                const int row = pbid - k_enc;
+                job.payload = coded[static_cast<size_t>(row)].data();
+                job.payload_len = coded[static_cast<size_t>(row)].size();
+                phase1_jobs.push_back(std::move(job));
+              }
+            }
+
+            // 全局：各 G_i 落盘；ΣΔG 在 accum_global 所在机架累加（同机架 apply 时累加，异机架另发 accum-only）
+            for (const auto *gt : global_targets)
+            {
+              const int row = gt->parity_block_id() - k_enc;
+              if (row < 0 || row >= static_cast<int>(coded.size()))
+                continue;
+              const auto &gd = coded[static_cast<size_t>(row)];
+              BrFanoutJob apply_job;
+              apply_job.target = *gt;
+              apply_job.payload = gd.data();
+              apply_job.payload_len = gd.size();
+              apply_job.accum_for_l1 =
+                  (accum_global != nullptr && gt->proxy_cluster_id() == accum_global->proxy_cluster_id());
+              phase1_jobs.push_back(apply_job);
+
+              if (accum_global != nullptr && gt->proxy_cluster_id() != accum_global->proxy_cluster_id())
+              {
+                BrFanoutJob accum_job;
+                accum_job.target = *accum_global;
+                accum_job.payload = gd.data();
+                accum_job.payload_len = gd.size();
+                accum_job.accum_for_l1 = true;
+                accum_job.skip_apply = true;
+                phase1_jobs.push_back(std::move(accum_job));
+              }
+            }
+
+            // 第一次：L_{z-1} 仅数据本地贡献（若有）
+            if (l_last_target != nullptr)
+            {
+              const int l_row = l_last_bid - k_enc;
+              bool has_data_local = (r_enc <= 0);
+              if (l_row >= 0 && l_row < static_cast<int>(coded.size()))
+              {
+                const auto &ld = coded[static_cast<size_t>(l_row)];
+                for (size_t u = 0; u < ld.size(); ++u)
+                {
+                  if (ld[u] != 0)
+                  {
+                    has_data_local = true;
+                    break;
+                  }
+                }
+                if (has_data_local)
+                {
+                  BrFanoutJob job;
+                  job.target = *l_last_target;
+                  job.payload = ld.data();
+                  job.payload_len = ld.size();
+                  phase1_jobs.push_back(std::move(job));
+                }
+              }
+            }
+
             std::atomic<bool> fanout_failed{false};
             std::mutex pure_mu;
             double slice_pure_max = 0.0;
             std::vector<std::thread> fanout_workers;
-            fanout_workers.reserve(static_cast<size_t>(fanout.targets_size()));
-            for (int ti = 0; ti < fanout.targets_size(); ++ti)
+            fanout_workers.reserve(phase1_jobs.size());
+            for (const auto &job : phase1_jobs)
             {
-              const auto target = fanout.targets(ti);
-              fanout_workers.emplace_back([&, target, slice_off, slen, k_enc]() {
+              fanout_workers.emplace_back([&, job, slice_off, slen]() {
                 if (fanout_failed.load(std::memory_order_relaxed))
                   return;
-                const int pbid = target.parity_block_id();
-                const int row = pbid - k_enc;
-                if (row < 0 || row >= static_cast<int>(coded.size()))
-                {
-                  fanout_failed.store(true, std::memory_order_relaxed);
-                  return;
-                }
-                const auto &pdelta = coded[static_cast<size_t>(row)];
-                proxy_proto::CordPlanApplyParityXorReq req;
-                req.set_plan_key(placement_copy->key());
-                req.set_dst_block_id(pbid);
-                req.set_block_key(target.block_key());
-                req.set_datanode_ip(target.datanode_ip());
-                req.set_datanode_port(target.datanode_port());
-                req.set_parity_slice_offset(slice_off);
-                req.set_parity_slice_length(static_cast<int32_t>(slen));
-                const auto t_pure0 = std::chrono::steady_clock::now();
-                bool ok = false;
-                if (target.proxy_cluster_id() == self_cid)
-                {
-                  ok = cord_apply_parity_xor_delta(this, req, reinterpret_cast<const char *>(pdelta.data()),
-                                                   pdelta.size());
-                }
-                else
-                {
-                  std::string meta;
-                  req.SerializeToString(&meta);
-                  ok = cord_tcp_xfer_send(target.proxy_ip(), target.proxy_port(), CORD_XFER_TCP_PARITY_XOR, meta,
-                                         pdelta.data(), pdelta.size());
-                }
-                const double one_pure =
-                    std::chrono::duration<double>(std::chrono::steady_clock::now() - t_pure0).count();
+                double one_pure = 0.0;
+                const bool ok = send_parity_job(job, slice_off, static_cast<int>(slen), &one_pure);
                 {
                   std::lock_guard<std::mutex> lk(pure_mu);
                   slice_pure_max = std::max(slice_pure_max, one_pure);
@@ -2899,7 +3107,9 @@ namespace ECProject
                 if (!ok)
                 {
                   std::cout << "[BoundedRandom][Proxy] parity fanout failed data_blk=" << data_bid
-                            << " parity_blk=" << pbid << " dst_c=" << target.proxy_cluster_id() << std::endl;
+                            << " parity_blk=" << job.target.parity_block_id()
+                            << " dst_c=" << job.target.proxy_cluster_id()
+                            << " accum=" << job.accum_for_l1 << " skip=" << job.skip_apply << std::endl;
                   fanout_failed.store(true, std::memory_order_relaxed);
                 }
               });
@@ -2908,6 +3118,44 @@ namespace ECProject
               th.join();
             if (fanout_failed.load(std::memory_order_relaxed))
               return;
+
+            // 第二次：通知 accum_global 所在机架取出 ΣΔG，直接发到 L_{z-1} 所在机架（无中转）
+            if (l_last_target != nullptr && accum_global != nullptr && r_enc > 0)
+            {
+              BrFanoutJob flush_job;
+              flush_job.target = *accum_global; // 发往全局累加机架
+              flush_job.flush_sigma = true;
+              flush_job.payload = nullptr;
+              flush_job.payload_len = 0;
+              // dst_* 填 L_{z-1}，供全局机架 flush 时直写/直发
+              flush_job.target.set_parity_block_id(l_last_target->parity_block_id());
+              flush_job.target.set_block_key(l_last_target->block_key());
+              flush_job.target.set_datanode_ip(l_last_target->datanode_ip());
+              flush_job.target.set_datanode_port(l_last_target->datanode_port());
+              // proxy_* 仍指向 accum_global（消息发到哪里）
+              flush_job.target.set_proxy_cluster_id(accum_global->proxy_cluster_id());
+              flush_job.target.set_proxy_ip(accum_global->proxy_ip());
+              flush_job.target.set_proxy_port(accum_global->proxy_port());
+              if (l_last_target->proxy_cluster_id() != accum_global->proxy_cluster_id())
+              {
+                flush_job.direct_next_proxy_ip = l_last_target->proxy_ip();
+                flush_job.direct_next_proxy_port = l_last_target->proxy_port();
+              }
+              double one_pure = 0.0;
+              const bool ok = send_parity_job(flush_job, slice_off, static_cast<int>(slen), &one_pure);
+              slice_pure_max = std::max(slice_pure_max, one_pure);
+              if (!ok)
+              {
+                std::cout << "[BoundedRandom][Proxy] ΣΔG flush→L_{z-1} failed data_blk=" << data_bid
+                          << " accum_c=" << accum_global->proxy_cluster_id()
+                          << " l_c=" << l_last_target->proxy_cluster_id() << std::endl;
+                return;
+              }
+              std::cout << "[BoundedRandom][Proxy] ΣΔG flush→L_{z-1} done data_blk=" << data_bid
+                        << " accum_c=" << accum_global->proxy_cluster_id()
+                        << " l_c=" << l_last_target->proxy_cluster_id() << std::endl;
+            }
+
             pure_acc_sec += slice_pure_max;
           }
           fanout_wait_sec =
@@ -4051,7 +4299,7 @@ namespace ECProject
           decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
           std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc success!" << std::endl;
         }
-        else if (code_type == "UniformLRC")
+        else if (code_type == "UniformLRC" || code_type == "BoundedRandomLRC")
         {
           std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_uniform_lrc" << " failed block id: " << request_copy->failed_block_id() << std::endl;
           decode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
@@ -4216,7 +4464,7 @@ namespace ECProject
           decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
           std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc success!" << std::endl;
         }
-        else if (code_type == "UniformLRC")
+        else if (code_type == "UniformLRC" || code_type == "BoundedRandomLRC")
         {
           std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_uniform_lrc" << " failed block id: " << request_copy->failed_block_id() << std::endl;
           decode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
@@ -4351,7 +4599,7 @@ namespace ECProject
         decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
         std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc success!" << std::endl;
       }
-      else if (code_type == "UniformLRC")
+      else if (code_type == "UniformLRC" || code_type == "BoundedRandomLRC")
       {
         std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_uniform_lrc" << " failed block id: " << request_copy->failed_block_id() << std::endl;
         decode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
@@ -4487,7 +4735,7 @@ namespace ECProject
       {
         decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
       }
-      else if (code_type == "UniformLRC")
+      else if (code_type == "UniformLRC" || code_type == "BoundedRandomLRC")
       {
         decode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
       }
@@ -4682,7 +4930,7 @@ namespace ECProject
       {
         decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
       }
-      else if (code_type == "UniformLRC")
+      else if (code_type == "UniformLRC" || code_type == "BoundedRandomLRC")
       {
         decode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
       }
@@ -4872,7 +5120,7 @@ namespace ECProject
         {
           decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
         }
-        else if (code_type == "UniformLRC")
+        else if (code_type == "UniformLRC" || code_type == "BoundedRandomLRC")
         {
           decode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
         }
@@ -5060,7 +5308,7 @@ namespace ECProject
         {
           decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
         }
-        else if (code_type == "UniformLRC")
+        else if (code_type == "UniformLRC" || code_type == "BoundedRandomLRC")
         {
           decode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
         }

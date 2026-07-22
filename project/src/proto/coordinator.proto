@@ -119,6 +119,10 @@ message CommitAbortKey {
 }
 
 // append
+message SliceBlockIds {
+  repeated int32 block_ids = 1;
+}
+
 message ReplyProxyIPsPorts {
   uint64 sum_append_size = 1;
   repeated string append_keys = 2;
@@ -127,6 +131,8 @@ message ReplyProxyIPsPorts {
   repeated uint64 cluster_slice_sizes = 5;
   repeated int32 group_ids = 6;
   string cord_transfer_plan_key = 7;
+  // BoundedRandomLRC 按物理机架 SET：与 append_keys 一一对应，块按 block_id 升序
+  repeated SliceBlockIds slice_block_ids = 8;
 }
 
 message CordPlanKeyOnly {

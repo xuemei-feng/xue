@@ -428,6 +428,14 @@ message CordPlanApplyParityXorReq {
   int32 parity_slice_offset = 6;
   int32 parity_slice_length = 7;
   bytes parity_delta_payload = 8;
+  // 旧字段保留；BoundedRandom 新路径不再使用 relay
+  bool relay_to_next_proxy = 9;
+  string next_proxy_ip = 10;
+  int32 next_proxy_port = 11; // gRPC 基端口
+  // BoundedRandom Uniform：在全局校验所在 Proxy 累加 ΣΔG，再直发 L_{z-1}
+  bool accum_global_delta_for_l1 = 12; // 将 payload 异或累加到本机 g_cord_global_delta_xor_for_l1
+  bool skip_parity_apply = 13;        // 仅累加，不写 DN（把远端 ΔG 汇到指定全局机架）
+  bool flush_sigma_to_dst = 14;       // 取出 ΣΔG，按 dst_* 写 L_{z-1}；若设 next_proxy_* 则直发该 Proxy
 }
 
 message CordPlanMstDataDeltaReq {
