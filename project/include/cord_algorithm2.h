@@ -56,6 +56,8 @@ namespace ECProject
       int mst_origin_data_block = -1;
       /** 非空：校验增量合并仅基于这些数据块（同一 collector 子集）；空则由 proxy 按 stripe_group 回落 */
       std::vector<int> parity_merge_data_block_ids;
+      /** 终态：向本地校验发送合并后的 ΣΔG（一条/本地；须等本组全部 STAR_CENTER_TO_GLOBAL 完成） */
+      bool parity_from_global_delta_xor = false;
     };
 
     struct TimeslotEntry

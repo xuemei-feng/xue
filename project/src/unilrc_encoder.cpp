@@ -1,4 +1,5 @@
 #include "unilrc_encoder.h"
+#include <algorithm>
 #include <iostream>
 #include <unordered_map>
 
@@ -383,6 +384,24 @@ void ECProject::gen_optimal_lrc_matrix(unsigned char *encode_matrix, int k, int 
                 encode_matrix[(m + i) * k + j] ^= encode_matrix[(k + l) * k + j];
             }
         }
+    }
+    delete[] local_vector;
+}
+
+void ECProject::gen_optimal_lrc_matrix_nofold(unsigned char *encode_matrix, int k, int r, int z)
+{
+    int m = k + r;
+    memset(encode_matrix, 0, (m + z) * k);
+    gf_gen_cauchy_matrix1(encode_matrix, m, k);
+    unsigned char *local_vector = new unsigned char[k];
+    gf_gen_local_vector(local_vector, k, r);
+    const int group_size = std::max(1, k / z);
+    for (int i = 0; i < k; i++)
+    {
+        int row = i / group_size;
+        if (row >= z)
+            row = z - 1;
+        encode_matrix[(m + row) * k + i] = local_vector[i];
     }
     delete[] local_vector;
 }

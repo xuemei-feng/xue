@@ -68,6 +68,8 @@ namespace ECProject
     void gen_unilrc_matrix(unsigned char *encode_matrix, int k, int r, int z);
     void gen_azure_lrc_matrix(unsigned char *encode_matrix, int k, int r, int z);
     void gen_optimal_lrc_matrix(unsigned char *encode_matrix, int k, int r, int z);
+    /** Optimal 分组 + Cauchy 全局，但本地行不折入全局（供 CoRD：组内 LOCAL + 终态 ΣΔG） */
+    void gen_optimal_lrc_matrix_nofold(unsigned char *encode_matrix, int k, int r, int z);
     void gen_uniform_lrc_matrix(unsigned char *encode_matrix, int k, int r, int z);
 
     void decode_unilrc(const int k, const int r, const int z, const int block_num,

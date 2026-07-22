@@ -478,6 +478,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         if (st->link_kind() != proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_LOCAL ||
             st->delta_payload_kind() != proxy_proto::CORD_DELTA_PARITY)
           continue;
+        // 终态 ΣΔG：不按本地组数据过滤编码
+        if (st->parity_from_global_delta_xor())
+          continue;
         const int dst = st->dst_block_id();
         if (dst < 0 || dst >= static_cast<int>(stripe->blocks.size()))
           continue;
@@ -714,6 +717,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           st->clear_parity_merge_data_block_ids();
           for (int pb : L.parity_merge_data_block_ids)
             st->add_parity_merge_data_block_ids(pb);
+          if (L.parity_from_global_delta_xor)
+            st->set_parity_from_global_delta_xor(true);
+          else
+            st->clear_parity_from_global_delta_xor();
         }
       }
       return plan;
@@ -1915,7 +1922,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return;
     }
     proxy_proto::CordTransferEncodeMeta *meta = plan->mutable_cord_encode_meta();
-    meta->set_encode_type(static_cast<int32_t>(m_encode_parameters.encodetype));
+    // SplitParity 放置 + Optimal 编码：CoRD 用 Optimal_Cauchy_LRC（proxy 侧 nofold + 终态 ΣΔG）
+    if (m_sys_config->CodeType == "SplitParityLRC" || m_sys_config->CodeType == "OptimalLRC")
+      meta->set_encode_type(static_cast<int32_t>(ECProject::Optimal_Cauchy_LRC));
+    else
+      meta->set_encode_type(static_cast<int32_t>(m_encode_parameters.encodetype));
     meta->set_k(stripe->k);
     // CoRD SET 路径只初始化 stripe->r/z，g_m/l 可能未赋值；与 proxy ingress 矩阵编码一致用 r/z
     meta->set_g_m(m_sys_config->r);
@@ -4087,14 +4098,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     
     unsigned char *res = static_cast<unsigned char*>(std::aligned_alloc(32, m_sys_config->BlockSize));
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-    if(is_azure_like_code(code_type)){
+    if (code_type == "SplitParityLRC" || code_type == "OptimalLRC"){
+      decode_optimal_lrc(k, r, z, block_num, &recovery_block_ids, recovery_data_ptrs.data(), res, block_size, failed_block_id);
+    }
+    else if(is_azure_like_code(code_type)){
       decode_azure_lrc(k, r, z, block_num, &recovery_block_ids, recovery_data_ptrs.data(), res, block_size, failed_block_id);
     }
     else if(code_type == "UniLRC"){
       decode_unilrc(k, r, z, block_num, &recovery_block_ids, recovery_data_ptrs.data(), res, block_size);
-    }
-    else if(code_type == "OptimalLRC"){
-      decode_optimal_lrc(k, r, z, block_num, &recovery_block_ids, recovery_data_ptrs.data(), res, block_size, failed_block_id);
     }
     else if(code_type == "UniformLRC"){
       decode_uniform_lrc(k, r, z, block_num, &recovery_block_ids, recovery_data_ptrs.data(), res, block_size, failed_block_id);

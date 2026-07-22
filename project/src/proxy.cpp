@@ -140,6 +140,8 @@ namespace ECProject
   static std::map<std::string, std::vector<uint8_t>> g_cord_mst_stream;
   static std::map<std::string, std::vector<uint8_t>> g_cord_collector_block_delta;
   static std::map<std::string, std::vector<std::vector<uint8_t>>> g_cord_collector_parity_coded;
+  /** 各全局行 ΔG 边算边异或累加，供终态 ΣΔG → 全部本地校验 */
+  static std::map<std::string, std::vector<uint8_t>> g_cord_global_delta_xor_for_l1;
   static std::mutex g_cord_plan_reg_mu;
   static std::map<std::string, std::shared_ptr<const proxy_proto::CordTransferPlan>> g_cord_plans_by_key;
   static std::mutex g_cord_plan_exec_mu;
@@ -337,6 +339,53 @@ namespace ECProject
   {
     return plan_key + ":" + std::to_string(group_index) + ":" + std::to_string(collector_block_id) + ":pig:" +
            std::to_string(parity_ingest_stripe_group);
+  }
+
+  static std::string cord_sigma_dg_key(const std::string &plan_key, int group_index, int collector_block_id,
+                                      int mst_origin_data_block)
+  {
+    if (mst_origin_data_block >= 0)
+      return plan_key + ":gxor:mst:" + std::to_string(mst_origin_data_block) + ":" +
+             std::to_string(collector_block_id);
+    return plan_key + ":gxor:" + std::to_string(group_index) + ":" + std::to_string(collector_block_id);
+  }
+
+  static void cord_accumulate_sigma_dg_locked(const std::string &key, int g_m, int strip_size,
+                                              const std::vector<std::vector<uint8_t>> &coded)
+  {
+    if (g_m <= 0 || strip_size <= 0 || static_cast<int>(coded.size()) < g_m)
+      return;
+    auto &acc = g_cord_global_delta_xor_for_l1[key];
+    if (static_cast<int>(acc.size()) < strip_size)
+      acc.assign(static_cast<size_t>(strip_size), 0);
+    for (int row = 0; row < g_m; ++row)
+    {
+      if (static_cast<int>(coded[static_cast<size_t>(row)].size()) < strip_size)
+        continue;
+      for (int b = 0; b < strip_size; ++b)
+        acc[static_cast<size_t>(b)] ^= coded[static_cast<size_t>(row)][static_cast<size_t>(b)];
+    }
+  }
+
+  /** 合并同 plan+group 下各 collector 的偏量 ΣΔG（Alg3 多中心 → 一条终态发送） */
+  static bool cord_merge_sigma_dg_for_group_locked(const std::string &plan_key, int group_index,
+                                                   size_t need_off, size_t need_len, char *out)
+  {
+    const std::string prefix = plan_key + ":gxor:" + std::to_string(group_index) + ":";
+    bool any = false;
+    std::memset(out, 0, need_len);
+    for (const auto &kv : g_cord_global_delta_xor_for_l1)
+    {
+      if (kv.first.size() < prefix.size() || kv.first.compare(0, prefix.size(), prefix) != 0)
+        continue;
+      if (kv.second.size() < need_off + need_len)
+        continue;
+      for (size_t i = 0; i < need_len; ++i)
+        out[i] = static_cast<char>(static_cast<unsigned char>(out[i]) ^
+                                   static_cast<unsigned char>(kv.second[need_off + i]));
+      any = true;
+    }
+    return any;
   }
 
   static int cord_plan_data_block_stripe_group(const proxy_proto::CordTransferPlan &plan, int data_block_id)
@@ -579,6 +628,13 @@ namespace ECProject
         else
           ++it;
       }
+      for (auto it = g_cord_global_delta_xor_for_l1.begin(); it != g_cord_global_delta_xor_for_l1.end();)
+      {
+        if (it->first.size() >= plan_key.size() && it->first.compare(0, plan_key.size(), plan_key) == 0)
+          it = g_cord_global_delta_xor_for_l1.erase(it);
+        else
+          ++it;
+      }
     }
     cord_pure_xfer_erase_tracker(plan_key);
   }
@@ -812,7 +868,24 @@ namespace ECProject
         dptrs[static_cast<size_t>(i)] = const_cast<char *>(data_strips[static_cast<size_t>(i)].data());
       for (int j = 0; j < coding_rows; ++j)
         cptrs[static_cast<size_t>(j)] = coding[static_cast<size_t>(j)].data();
-      if (!encode(k, g_m, l, dptrs.data(), cptrs.data(), strip_size, et))
+      if (et == Optimal_Cauchy_LRC)
+      {
+        // CoRD：Optimal 分组 + Cauchy 全局，本地行不折入全局（终态另发 ΣΔG 到全部本地）
+        unsigned char *encode_matrix = new unsigned char[static_cast<size_t>((k + g_m + l) * k)];
+        gen_optimal_lrc_matrix_nofold(encode_matrix, k, g_m, l);
+        unsigned char *g_tbls = new unsigned char[static_cast<size_t>(k * (g_m + l) * 32)];
+        ECProject::ec_init_tables(k, g_m + l, &encode_matrix[k * k], g_tbls);
+        std::vector<unsigned char *> uptrs(static_cast<size_t>(k));
+        std::vector<unsigned char *> c_uptrs(static_cast<size_t>(coding_rows));
+        for (int i = 0; i < k; ++i)
+          uptrs[static_cast<size_t>(i)] = reinterpret_cast<unsigned char *>(dptrs[static_cast<size_t>(i)]);
+        for (int j = 0; j < coding_rows; ++j)
+          c_uptrs[static_cast<size_t>(j)] = reinterpret_cast<unsigned char *>(cptrs[static_cast<size_t>(j)]);
+        ECProject::ec_encode_data_avx2(strip_size, k, g_m + l, g_tbls, uptrs.data(), c_uptrs.data());
+        delete[] encode_matrix;
+        delete[] g_tbls;
+      }
+      else if (!encode(k, g_m, l, dptrs.data(), cptrs.data(), strip_size, et))
         return false;
       coding_out->resize(static_cast<size_t>(coding_rows));
       for (int j = 0; j < coding_rows; ++j)
@@ -946,6 +1019,12 @@ namespace ECProject
     {
       std::cout << "[CoRD-PLAN] matrix encode failed" << std::endl;
       return false;
+    }
+    // 仅全量收集编码（无本地组过滤）时累加 ΣΔG，避免 LOCAL 过滤编码污染
+    if (parity_ingest_stripe_group < 0)
+    {
+      const std::string sk = cord_sigma_dg_key(plan.plan_key(), group, collector_block_id, -1);
+      cord_accumulate_sigma_dg_locked(sk, meta.g_m(), ps, coded);
     }
     g_cord_collector_parity_coded[ck] = std::move(coded);
     return true;
@@ -1157,6 +1236,14 @@ namespace ECProject
           const int row = request.dst_block_id() - kblk;
           if (row < 0 || row >= static_cast<int>(coded.size()))
             return false;
+          // MST：ΔD 到达首个全局块时累加 ΣΔG，供终态发往全部本地
+          if (request.dst_block_id() == kblk && request.src_data_block_id() >= 0)
+          {
+            std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+            const std::string sk =
+                cord_sigma_dg_key(pk, /*group*/ -1, kblk, request.src_data_block_id());
+            cord_accumulate_sigma_dg_locked(sk, meta.g_m(), ps, coded);
+          }
           const auto &pdelta = coded[static_cast<size_t>(row)];
           const auto nz =
               cord_parity_delta_nonzero_span(reinterpret_cast<const char *>(pdelta.data()), pdelta.size());
@@ -1485,7 +1572,51 @@ namespace ECProject
               static_cast<int64_t>(parity_payload_abs_lo) + static_cast<int64_t>(st.chunk_byte_offset()));
           const int parity_ingest =
               st.has_parity_ingest_stripe_group() ? st.parity_ingest_stripe_group() : -1;
-          if (cord_uses_matrix_encode(plan))
+          const int mst_origin_for_sigma =
+              st.has_mst_origin_data_block_id() ? st.mst_origin_data_block_id() : -1;
+          if (st.parity_from_global_delta_xor())
+          {
+            // 终态：先确保全量编码已产生并累加 ΣΔG，再取合并结果作为 ΔP（一条，非每 ΔG 单独发）
+            if (mst_origin_for_sigma < 0 && cord_uses_matrix_encode(plan))
+            {
+              if (!cord_ensure_collector_parity_coded(plan, st.group_index(), st.src_block_id(), -1))
+              {
+                plan_log_both_sync("FAIL PARITY_FANOUT(ΣΔG) ensure_full_encode_failed step=" +
+                             std::to_string(st.step_index()) + " collector_blk=" +
+                             std::to_string(st.src_block_id()));
+                stats.failed = 1;
+                return stats;
+              }
+            }
+            std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
+            if (mst_origin_for_sigma >= 0)
+            {
+              const std::string sk =
+                  cord_sigma_dg_key(plan.plan_key(), st.group_index(), st.src_block_id(), mst_origin_for_sigma);
+              auto sit = g_cord_global_delta_xor_for_l1.find(sk);
+              if (sit == g_cord_global_delta_xor_for_l1.end() ||
+                  sit->second.size() < static_cast<size_t>(st.chunk_byte_offset()) + chunk_len)
+              {
+                plan_log_both_sync("FAIL PARITY_FANOUT(ΣΔG) mst_sigma_missing key=" + sk +
+                             " step=" + std::to_string(st.step_index()));
+                stats.failed = 1;
+                return stats;
+              }
+              std::memcpy(buf.data(), sit->second.data() + static_cast<size_t>(st.chunk_byte_offset()), chunk_len);
+            }
+            else if (!cord_merge_sigma_dg_for_group_locked(plan.plan_key(), st.group_index(),
+                                                          static_cast<size_t>(st.chunk_byte_offset()), chunk_len,
+                                                          buf.data()))
+            {
+              plan_log_both_sync("FAIL PARITY_FANOUT(ΣΔG) merge_empty grp=" +
+                           std::to_string(st.group_index()) + " step=" + std::to_string(st.step_index()));
+              stats.failed = 1;
+              return stats;
+            }
+            filled = true;
+            parity_compute_src = "sigma_delta_g_merged";
+          }
+          else if (cord_uses_matrix_encode(plan))
           {
             if (!cord_ensure_collector_parity_coded(plan, st.group_index(), st.src_block_id(), parity_ingest))
             {
@@ -1609,7 +1740,8 @@ namespace ECProject
           const double step_ms = std::chrono::duration<double, std::milli>(t_tcp1 - t_step0).count();
           {
             const char *tag = (st.link_kind() == proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_GLOBAL)
-                                  ? "CTR_TO_GLOBAL" : "CTR_TO_LOCAL";
+                                  ? "CTR_TO_GLOBAL"
+                                  : (st.parity_from_global_delta_xor() ? "CTR_TO_LOCAL(ΣΔG)" : "CTR_TO_LOCAL");
             std::ostringstream ob;
             ob << (ok ? "OK" : "FAIL")
                << " " << tag << " step=" << st.step_index()
@@ -3882,17 +4014,17 @@ namespace ECProject
           std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_unilrc" << std::endl;
           decode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize);
         }
+        else if (code_type == "SplitParityLRC" || code_type == "OptimalLRC")
+        {
+          std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc" << std::endl;
+          decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
+          std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc success!" << std::endl;
+        }
         else if (is_azure_like_code(code_type))
         {
           std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_azure_lrc" << std::endl;
           decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
           std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_azure_lrc success!" << std::endl;
-        }
-        else if (code_type == "OptimalLRC")
-        {
-          std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc" << std::endl;
-          decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
-          std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc success!" << std::endl;
         }
         else if (code_type == "UniformLRC")
         {
@@ -4047,17 +4179,17 @@ namespace ECProject
           std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_unilrc" << std::endl;
           decode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize);
         }
+        else if (code_type == "SplitParityLRC" || code_type == "OptimalLRC")
+        {
+          std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc" << std::endl;
+          decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
+          std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc success!" << std::endl;
+        }
         else if (is_azure_like_code(code_type))
         {
           std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_azure_lrc" << std::endl;
           decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
           std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_azure_lrc success!" << std::endl;
-        }
-        else if (code_type == "OptimalLRC")
-        {
-          std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc" << std::endl;
-          decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
-          std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc success!" << std::endl;
         }
         else if (code_type == "UniformLRC")
         {
@@ -4182,17 +4314,17 @@ namespace ECProject
         std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_unilrc" << std::endl;
         decode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize);
       }
+      else if (code_type == "SplitParityLRC" || code_type == "OptimalLRC")
+      {
+        std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc" << std::endl;
+        decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
+        std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc success!" << std::endl;
+      }
       else if (is_azure_like_code(code_type))
       {
         std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_azure_lrc" << std::endl;
         decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
         std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_azure_lrc success!" << std::endl;
-      }
-      else if (code_type == "OptimalLRC")
-      {
-        std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc" << std::endl;
-        decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, request_copy->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, request_copy->failed_block_id());
-        std::cout << "[Proxy" << m_self_cluster_id << "][Degrade read] decode_optimal_lrc success!" << std::endl;
       }
       else if (code_type == "UniformLRC")
       {
@@ -4322,13 +4454,13 @@ namespace ECProject
       {
         decode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize);
       }
+      else if (code_type == "SplitParityLRC" || code_type == "OptimalLRC")
+      {
+        decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
+      }
       else if (is_azure_like_code(code_type))
       {
         decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
-      }
-      else if (code_type == "OptimalLRC")
-      {
-        decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
       }
       else if (code_type == "UniformLRC")
       {
@@ -4517,13 +4649,13 @@ namespace ECProject
       {
         decode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize);
       }
+      else if (code_type == "SplitParityLRC" || code_type == "OptimalLRC")
+      {
+        decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
+      }
       else if (is_azure_like_code(code_type))
       {
         decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
-      }
-      else if (code_type == "OptimalLRC")
-      {
-        decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
       }
       else if (code_type == "UniformLRC")
       {
@@ -4707,13 +4839,13 @@ namespace ECProject
         {
           decode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize);
         }
+        else if (code_type == "SplitParityLRC" || code_type == "OptimalLRC")
+        {
+          decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
+        }
         else if (is_azure_like_code(code_type))
         {
           decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
-        }
-        else if (code_type == "OptimalLRC")
-        {
-          decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
         }
         else if (code_type == "UniformLRC")
         {
@@ -4895,13 +5027,13 @@ namespace ECProject
         {
           decode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize);
         }
+        else if (code_type == "SplitParityLRC" || code_type == "OptimalLRC")
+        {
+          decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
+        }
         else if (is_azure_like_code(code_type))
         {
           decode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
-        }
-        else if (code_type == "OptimalLRC")
-        {
-          decode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, recovery_request->datanodeip_size(), &block_idxs, block_ptrs.data(), reinterpret_cast<unsigned char *>(res_buf), m_sys_config->BlockSize, failed_block_id);
         }
         else if (code_type == "UniformLRC")
         {

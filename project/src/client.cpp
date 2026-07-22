@@ -885,10 +885,11 @@ namespace ECProject
           parity_ptr_array[static_cast<size_t>(i)] =
               m_pre_allocated_buffer + static_cast<size_t>(k + i) * block_size;
         }
-        ECProject::encode_azure_lrc(k, r, z,
-                                    reinterpret_cast<unsigned char **>(data_ptr_array.data()),
-                                    reinterpret_cast<unsigned char **>(parity_ptr_array.data()),
-                                    m_sys_config->BlockSize);
+        // SplitParity 放置 + Optimal 编码：全部数据→r 全局；组内数据+全部全局→z 本地
+        ECProject::encode_optimal_lrc(k, r, z,
+                                      reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                      reinterpret_cast<unsigned char **>(parity_ptr_array.data()),
+                                      m_sys_config->BlockSize);
 
         rack_send_buf.resize(static_cast<size_t>(reply.sum_append_size()));
         size_t pack_off = 0;
@@ -1053,7 +1054,7 @@ namespace ECProject
         //ECProject::encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
-      else if (m_sys_config->CodeType == "OptimalLRC")
+      else if (m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "SplitParityLRC")
       {
         //ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
@@ -1962,13 +1963,14 @@ namespace ECProject
     parameters.push_back(m_sys_config->r);
     parameters.push_back(m_sys_config->z);
     parameters.push_back(m_sys_config->BlockSize);
-    if(is_azure_like_code(m_sys_config->CodeType))
+    if (m_sys_config->CodeType == "SplitParityLRC" || m_sys_config->CodeType == "OptimalLRC")
+    {
+      // SplitParity 放置仍走 azure-like 分组，但编码语义为 Optimal
+      parameters.push_back(1);
+    }
+    else if(is_azure_like_code(m_sys_config->CodeType))
     {
       parameters.push_back(0);
-    }
-    else if(m_sys_config->CodeType == "OptimalLRC")
-    {
-      parameters.push_back(1);
     }
     else if(m_sys_config->CodeType == "UniformLRC")
     {
