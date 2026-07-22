@@ -432,10 +432,24 @@ message CordPlanApplyParityXorReq {
   bool relay_to_next_proxy = 9;
   string next_proxy_ip = 10;
   int32 next_proxy_port = 11; // gRPC 基端口
-  // BoundedRandom Uniform：在全局校验所在 Proxy 累加 ΣΔG，再直发 L_{z-1}
-  bool accum_global_delta_for_l1 = 12; // 将 payload 异或累加到本机 g_cord_global_delta_xor_for_l1
-  bool skip_parity_apply = 13;        // 仅累加，不写 DN（把远端 ΔG 汇到指定全局机架）
-  bool flush_sigma_to_dst = 14;       // 取出 ΣΔG，按 dst_* 写 L_{z-1}；若设 next_proxy_* 则直发该 Proxy
+  // 旧 BoundedRandom hub 路径字段（保留兼容）
+  bool accum_global_delta_for_l1 = 12;
+  bool skip_parity_apply = 13;
+  bool flush_sigma_to_dst = 14;
+  // 每全局各自累加本次 update 的 ΔG，齐后直发 L_{z-1}；L 侧合并 r 份后一次 RMW
+  string stripe_update_key = 15;
+  int32 expected_global_delta_count = 16; // 本条带本次 update 的数据 slice 总数
+  bool after_apply_accum_own_global_delta = 17;
+  int32 l1_block_id = 18;
+  string l1_block_key = 19;
+  string l1_datanode_ip = 20;
+  int32 l1_datanode_port = 21;
+  int32 l1_proxy_cluster_id = 22;
+  string l1_proxy_ip = 23;
+  int32 l1_proxy_port = 24;
+  bool l1_merge_partial = 25;     // 发往 L_{z-1} 的单份全局 ΔP，先合并再落盘
+  int32 expected_l1_partials = 26; // 一般为 r
+  int32 src_global_block_id = 27;
 }
 
 message CordPlanMstDataDeltaReq {
@@ -486,6 +500,10 @@ message CordDataUpdatePlacement {
   int32 r = 16;
   int32 z = 17;
   repeated CordDataSliceFanout slice_fanouts = 18; // 与 blockids 一一对应
+  // 条带级：各数据 cluster 共享；每全局按 expected_global_delta_count 累加后自发送到 l_last_parity
+  string stripe_update_key = 19;
+  int32 expected_global_delta_count = 20;
+  CordParityFanoutTarget l_last_parity = 21;
 }
 
 message CordLpDeltaFetch {

@@ -1,4 +1,5 @@
 #include "coordinator.h"
+#include <atomic>
 #include <cstdint>
 #include "cord_algorithm2.h"
 #include "cord_xue_lrc.h"
@@ -2425,6 +2426,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         uint64_t cluster_payload = 0;
         bool ok = false;
       };
+      int total_slices = 0;
+      for (const auto &plan_entry : sorted_clusters)
+        total_slices += static_cast<int>(plan_entry.second.size());
+      static std::atomic<uint64_t> br_stripe_upd_seq{1};
+      const std::string stripe_update_key =
+          std::to_string(stripe_id) + "_brupd_" +
+          std::to_string(br_stripe_upd_seq.fetch_add(1, std::memory_order_relaxed));
+      const int l_last_bid = stripe->k + stripe->r + stripe->z - 1;
+
       std::vector<CordDeltaNotifyJob> notify_jobs;
       notify_jobs.reserve(sorted_clusters.size());
       for (const auto &plan_entry : sorted_clusters)
@@ -2446,6 +2456,21 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         plan.set_k(stripe->k);
         plan.set_r(stripe->r);
         plan.set_z(stripe->z);
+        plan.set_stripe_update_key(stripe_update_key);
+        plan.set_expected_global_delta_count(total_slices);
+        {
+          Block *lb = stripe->blocks[static_cast<size_t>(l_last_bid)];
+          const Node &ln = m_node_table[lb->map2node];
+          const Cluster &lc = m_cluster_table[lb->map2cluster];
+          auto *lt = plan.mutable_l_last_parity();
+          lt->set_parity_block_id(l_last_bid);
+          lt->set_block_key(lb->block_key);
+          lt->set_datanode_ip(ln.node_ip);
+          lt->set_datanode_port(ln.node_port);
+          lt->set_proxy_cluster_id(lb->map2cluster);
+          lt->set_proxy_ip(lc.proxy_ip);
+          lt->set_proxy_port(lc.proxy_port);
+        }
         for (const auto &s : slices)
           job.cluster_payload += static_cast<uint64_t>(s.len);
         plan.set_update_payload_size(job.cluster_payload);
@@ -2461,13 +2486,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           plan.add_sizes(static_cast<uint64_t>(s.len));
 
           auto *fanout = plan.add_slice_fanouts();
-          // Uniform 风格：全部 r 个全局校验 + 所属本地组本地校验；
-          // L_{z-1} 始终放入 targets，供全局扇出后的 ΣΔG 终态跨 Proxy 更新
+          // 全部 r 个全局 + 所属本地组本地校验（L_{z-1} 全局部分由各全局齐后自发送）
           for (int gi = 0; gi < stripe->r; ++gi)
             fill_parity_fanout_target(stripe->k + gi, fanout);
           fill_parity_fanout_target(stripe->k + stripe->r + b->map2group, fanout);
-          if (b->map2group != stripe->z - 1)
-            fill_parity_fanout_target(stripe->k + stripe->r + stripe->z - 1, fanout);
         }
 
         m_mutex.lock();

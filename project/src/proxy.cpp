@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <cstring>
 #include <cstdlib>
 #include <ctime>
@@ -593,41 +594,59 @@ namespace ECProject
     }
   }
 
-  /** BoundedRandom Uniform：在全局校验所在 Proxy 累加各行 ΔG，供终态 ΣΔG→L_{z-1} */
-  static std::map<std::string, std::vector<uint8_t>> g_cord_global_delta_xor_for_l1;
-  static std::mutex g_cord_global_delta_xor_for_l1_mu;
-
-  static std::string cord_global_xor_l1_key(const std::string &plan_key, int slice_off)
+  /** BoundedRandom：按绝对块内 offset 异或累加的可冲刷缓冲区 */
+  struct BrSpanXorAccum
   {
-    return plan_key + "|gxor_l1|" + std::to_string(slice_off);
+    std::vector<uint8_t> buf;
+    int min_off = std::numeric_limits<int>::max();
+    int max_end = 0;
+    int count = 0;
+    int expected = 0;
+    int l1_block_id = -1;
+    std::string l1_block_key;
+    std::string l1_datanode_ip;
+    int l1_datanode_port = 0;
+    int l1_proxy_cluster_id = -1;
+    std::string l1_proxy_ip;
+    int l1_proxy_port = 0;
+    int expected_l1_partials = 0; // 一般为 r；全局齐后发给 L 侧
+    std::set<int> seen_src_globals;
+  };
+
+  static std::mutex g_br_own_global_accum_mu;
+  static std::map<std::string, BrSpanXorAccum> g_br_own_global_accum; // upd_key|gbid
+  static std::mutex g_br_l1_merge_mu;
+  static std::map<std::string, BrSpanXorAccum> g_br_l1_merge; // upd_key|l1bid
+
+  static std::string br_own_global_accum_key(const std::string &upd, int gbid)
+  {
+    return upd + "|gow|" + std::to_string(gbid);
+  }
+  static std::string br_l1_merge_key(const std::string &upd, int l1bid)
+  {
+    return upd + "|l1m|" + std::to_string(l1bid);
   }
 
-  static void cord_accum_global_delta_xor_for_l1(const std::string &plan_key, int slice_off,
-                                                const char *delta, size_t len)
+  static void br_span_xor_in(BrSpanXorAccum &acc, int off, const char *delta, size_t len)
   {
-    if (!delta || len == 0)
+    if (!delta || len == 0 || off < 0)
       return;
-    std::lock_guard<std::mutex> lk(g_cord_global_delta_xor_for_l1_mu);
-    auto &acc = g_cord_global_delta_xor_for_l1[cord_global_xor_l1_key(plan_key, slice_off)];
-    if (acc.size() < len)
-      acc.resize(len, 0);
+    const size_t need = static_cast<size_t>(off) + len;
+    if (acc.buf.size() < need)
+      acc.buf.resize(need, 0);
     for (size_t i = 0; i < len; ++i)
-      acc[i] ^= static_cast<uint8_t>(delta[i]);
+      acc.buf[static_cast<size_t>(off) + i] ^= static_cast<uint8_t>(delta[i]);
+    acc.min_off = std::min(acc.min_off, off);
+    acc.max_end = std::max(acc.max_end, off + static_cast<int>(len));
   }
 
-  static bool cord_take_global_delta_xor_for_l1(const std::string &plan_key, int slice_off,
-                                               std::vector<uint8_t> *out)
+  static bool br_span_take(BrSpanXorAccum &acc, int *out_off, std::vector<uint8_t> *out)
   {
-    if (out == nullptr)
+    if (out_off == nullptr || out == nullptr || acc.min_off >= acc.max_end || acc.buf.empty())
       return false;
-    std::lock_guard<std::mutex> lk(g_cord_global_delta_xor_for_l1_mu);
-    const std::string key = cord_global_xor_l1_key(plan_key, slice_off);
-    auto it = g_cord_global_delta_xor_for_l1.find(key);
-    if (it == g_cord_global_delta_xor_for_l1.end() || it->second.empty())
-      return false;
-    *out = std::move(it->second);
-    g_cord_global_delta_xor_for_l1.erase(it);
-    return true;
+    *out_off = acc.min_off;
+    out->assign(acc.buf.begin() + acc.min_off, acc.buf.begin() + acc.max_end);
+    return !out->empty();
   }
 
   static std::string cord_plan_wall_ts_ms()
@@ -1336,42 +1355,14 @@ namespace ECProject
     }
   }
 
-  /** BoundedRandom：全局机架累加 ΣΔG / flush 直发 L_{z-1}；兼容旧 relay */
+  /** BoundedRandom：每全局累加 ΔG 齐后自发 L_{z-1}；L 侧合并 r 份后一次 RMW；兼容旧 relay */
   static bool cord_handle_parity_xor_req(ProxyImpl *proxy, proxy_proto::CordPlanApplyParityXorReq req,
                                          const char *payload, size_t payload_len)
   {
-    if (req.flush_sigma_to_dst())
+    if (req.flush_sigma_to_dst() || req.accum_global_delta_for_l1())
     {
-      std::vector<uint8_t> sigma;
-      if (!cord_take_global_delta_xor_for_l1(req.plan_key(), req.parity_slice_offset(), &sigma))
-      {
-        std::cout << "[BoundedRandom][Proxy] flush ΣΔG missing key=" << req.plan_key()
-                  << " off=" << req.parity_slice_offset() << std::endl;
-        return false;
-      }
-      if (req.parity_slice_length() > 0 &&
-          sigma.size() != static_cast<size_t>(req.parity_slice_length()))
-      {
-        std::cout << "[BoundedRandom][Proxy] flush ΣΔG size mismatch got=" << sigma.size()
-                  << " expect=" << req.parity_slice_length() << std::endl;
-        return false;
-      }
-      // 全局机架直接打到 L_{z-1} 所在 Proxy（无第三跳中转）
-      if (!req.next_proxy_ip().empty())
-      {
-        proxy_proto::CordPlanApplyParityXorReq fwd = req;
-        fwd.set_flush_sigma_to_dst(false);
-        fwd.set_accum_global_delta_for_l1(false);
-        fwd.set_skip_parity_apply(false);
-        fwd.set_relay_to_next_proxy(false);
-        fwd.clear_next_proxy_ip();
-        fwd.clear_next_proxy_port();
-        std::string meta;
-        fwd.SerializeToString(&meta);
-        return cord_tcp_xfer_send(req.next_proxy_ip(), req.next_proxy_port(), CORD_XFER_TCP_PARITY_XOR, meta,
-                                 sigma.data(), sigma.size());
-      }
-      return cord_apply_parity_xor_delta(proxy, req, reinterpret_cast<const char *>(sigma.data()), sigma.size());
+      std::cout << "[BoundedRandom][Proxy] obsolete hub/flush path rejected key=" << req.plan_key() << std::endl;
+      return false;
     }
 
     if (req.relay_to_next_proxy())
@@ -1386,13 +1377,152 @@ namespace ECProject
                                reinterpret_cast<const uint8_t *>(payload), payload_len);
     }
 
-    if (req.accum_global_delta_for_l1() && payload != nullptr && payload_len > 0)
-      cord_accum_global_delta_xor_for_l1(req.plan_key(), req.parity_slice_offset(), payload, payload_len);
+    // L_{z-1}：收齐 r 路全局 ΔP，异或合并后一次落盘（空载荷也计一份，避免全零时卡死）
+    if (req.l1_merge_partial())
+    {
+      if (req.stripe_update_key().empty() || req.expected_l1_partials() <= 0)
+      {
+        std::cout << "[BoundedRandom][Proxy] l1_merge missing stripe_update_key/expected" << std::endl;
+        return false;
+      }
+      const std::string mkey = br_l1_merge_key(req.stripe_update_key(), req.dst_block_id());
+      BrSpanXorAccum ready;
+      bool should_apply = false;
+      {
+        std::lock_guard<std::mutex> lk(g_br_l1_merge_mu);
+        auto &acc = g_br_l1_merge[mkey];
+        if (acc.expected == 0)
+          acc.expected = req.expected_l1_partials();
+        if (req.src_global_block_id() >= 0)
+        {
+          if (acc.seen_src_globals.count(req.src_global_block_id()) > 0)
+          {
+            std::cout << "[BoundedRandom][Proxy] l1_merge duplicate src_global=" << req.src_global_block_id()
+                      << " key=" << req.stripe_update_key() << std::endl;
+            return true;
+          }
+          acc.seen_src_globals.insert(req.src_global_block_id());
+        }
+        if (payload != nullptr && payload_len > 0)
+          br_span_xor_in(acc, req.parity_slice_offset(), payload, payload_len);
+        acc.count = static_cast<int>(acc.seen_src_globals.size());
+        if (acc.count >= acc.expected)
+        {
+          ready = std::move(acc);
+          g_br_l1_merge.erase(mkey);
+          should_apply = true;
+        }
+      }
+      if (!should_apply)
+        return true;
+      int off = 0;
+      std::vector<uint8_t> merged;
+      if (!br_span_take(ready, &off, &merged))
+      {
+        std::cout << "[BoundedRandom][Proxy] L_{z-1} merge all-zero skip RMW key=" << req.stripe_update_key()
+                  << " l1=" << req.dst_block_id() << " partials=" << ready.expected << std::endl;
+        return true;
+      }
+      proxy_proto::CordPlanApplyParityXorReq apply = req;
+      apply.set_l1_merge_partial(false);
+      apply.set_parity_slice_offset(off);
+      apply.set_parity_slice_length(static_cast<int32_t>(merged.size()));
+      std::cout << "[BoundedRandom][Proxy] L_{z-1} merge-apply once key=" << req.stripe_update_key()
+                << " l1=" << req.dst_block_id() << " off=" << off << " len=" << merged.size()
+                << " partials=" << ready.expected << std::endl;
+      return cord_apply_parity_xor_delta(proxy, apply, reinterpret_cast<const char *>(merged.data()),
+                                        merged.size());
+    }
 
     if (req.skip_parity_apply())
       return true;
 
-    return cord_apply_parity_xor_delta(proxy, req, payload, payload_len);
+    if (!cord_apply_parity_xor_delta(proxy, req, payload, payload_len))
+      return false;
+
+    // 全局：apply 完本份 ΔG 后累加；收齐本条带全部数据 slice 后自发到 L_{z-1}
+    if (!req.after_apply_accum_own_global_delta())
+      return true;
+    if (payload == nullptr || payload_len == 0)
+      return true;
+    if (req.stripe_update_key().empty() || req.expected_global_delta_count() <= 0 || req.l1_block_id() < 0)
+    {
+      std::cout << "[BoundedRandom][Proxy] own-global accum missing stripe/l1 fields gbid=" << req.dst_block_id()
+                << std::endl;
+      return false;
+    }
+
+    const std::string akey = br_own_global_accum_key(req.stripe_update_key(), req.dst_block_id());
+    BrSpanXorAccum ready;
+    bool should_send = false;
+    {
+      std::lock_guard<std::mutex> lk(g_br_own_global_accum_mu);
+      auto &acc = g_br_own_global_accum[akey];
+      if (acc.expected == 0)
+      {
+        acc.expected = req.expected_global_delta_count();
+        acc.l1_block_id = req.l1_block_id();
+        acc.l1_block_key = req.l1_block_key();
+        acc.l1_datanode_ip = req.l1_datanode_ip();
+        acc.l1_datanode_port = req.l1_datanode_port();
+        acc.l1_proxy_cluster_id = req.l1_proxy_cluster_id();
+        acc.l1_proxy_ip = req.l1_proxy_ip();
+        acc.l1_proxy_port = req.l1_proxy_port();
+        acc.expected_l1_partials =
+            req.expected_l1_partials() > 0 ? req.expected_l1_partials() : 0;
+      }
+      br_span_xor_in(acc, req.parity_slice_offset(), payload, payload_len);
+      acc.count += 1;
+      if (acc.count >= acc.expected)
+      {
+        ready = std::move(acc);
+        g_br_own_global_accum.erase(akey);
+        should_send = true;
+      }
+    }
+    if (!should_send)
+      return true;
+
+    int off = 0;
+    std::vector<uint8_t> sigma;
+    const bool has_sigma = br_span_take(ready, &off, &sigma);
+    if (!has_sigma)
+    {
+      off = 0;
+      sigma.clear();
+    }
+
+    proxy_proto::CordPlanApplyParityXorReq fwd;
+    fwd.set_plan_key(req.plan_key());
+    fwd.set_stripe_update_key(req.stripe_update_key());
+    fwd.set_dst_block_id(ready.l1_block_id);
+    fwd.set_block_key(ready.l1_block_key);
+    fwd.set_datanode_ip(ready.l1_datanode_ip);
+    fwd.set_datanode_port(ready.l1_datanode_port);
+    fwd.set_parity_slice_offset(off);
+    fwd.set_parity_slice_length(static_cast<int32_t>(sigma.size()));
+    fwd.set_l1_merge_partial(true);
+    fwd.set_expected_l1_partials(ready.expected_l1_partials);
+    if (fwd.expected_l1_partials() <= 0)
+    {
+      std::cout << "[BoundedRandom][Proxy] own-global→L1 missing expected_l1_partials gbid=" << req.dst_block_id()
+                << std::endl;
+      return false;
+    }
+    fwd.set_src_global_block_id(req.dst_block_id());
+
+    std::cout << "[BoundedRandom][Proxy] own-global→L1 send gbid=" << req.dst_block_id()
+              << " key=" << req.stripe_update_key() << " off=" << off << " len=" << sigma.size()
+              << " l1_c=" << ready.l1_proxy_cluster_id << std::endl;
+
+    if (ready.l1_proxy_cluster_id == proxy->self_cluster_id())
+    {
+      return cord_handle_parity_xor_req(proxy, fwd, reinterpret_cast<const char *>(sigma.data()), sigma.size());
+    }
+    std::string meta;
+    fwd.SerializeToString(&meta);
+    return cord_tcp_xfer_send(ready.l1_proxy_ip, ready.l1_proxy_port, CORD_XFER_TCP_PARITY_XOR, meta,
+                             sigma.empty() ? nullptr : sigma.data(), sigma.size());
   }
 
   /**
@@ -2928,6 +3058,10 @@ namespace ECProject
           const int z_enc = placement_copy->z();
           const int self_cid = m_self_cluster_id;
           const int l_last_bid = k_enc + r_enc + z_enc - 1;
+          const std::string stripe_upd_key = placement_copy->stripe_update_key();
+          const int expect_g_cnt = placement_copy->expected_global_delta_count();
+          const proxy_proto::CordParityFanoutTarget *l_last_plan =
+              placement_copy->has_l_last_parity() ? &placement_copy->l_last_parity() : nullptr;
           size_t delta_off = 0;
           const auto fanout_phase_t0 = std::chrono::steady_clock::now();
           double pure_acc_sec = 0.0;
@@ -2937,11 +3071,7 @@ namespace ECProject
             proxy_proto::CordParityFanoutTarget target;
             const uint8_t *payload = nullptr;
             size_t payload_len = 0;
-            bool accum_for_l1 = false;
-            bool skip_apply = false;
-            bool flush_sigma = false;
-            std::string direct_next_proxy_ip;
-            int direct_next_proxy_port = 0;
+            bool after_apply_own_global = false;
           };
 
           auto send_parity_job = [&](const BrFanoutJob &job, int slice_off, int slen, double *one_pure_out) -> bool {
@@ -2953,13 +3083,22 @@ namespace ECProject
             req.set_datanode_port(job.target.datanode_port());
             req.set_parity_slice_offset(slice_off);
             req.set_parity_slice_length(static_cast<int32_t>(slen));
-            req.set_accum_global_delta_for_l1(job.accum_for_l1);
-            req.set_skip_parity_apply(job.skip_apply);
-            req.set_flush_sigma_to_dst(job.flush_sigma);
-            if (!job.direct_next_proxy_ip.empty())
+            if (job.after_apply_own_global)
             {
-              req.set_next_proxy_ip(job.direct_next_proxy_ip);
-              req.set_next_proxy_port(job.direct_next_proxy_port);
+              req.set_after_apply_accum_own_global_delta(true);
+              req.set_stripe_update_key(stripe_upd_key);
+              req.set_expected_global_delta_count(expect_g_cnt);
+              req.set_expected_l1_partials(r_enc);
+              if (l_last_plan != nullptr)
+              {
+                req.set_l1_block_id(l_last_plan->parity_block_id());
+                req.set_l1_block_key(l_last_plan->block_key());
+                req.set_l1_datanode_ip(l_last_plan->datanode_ip());
+                req.set_l1_datanode_port(l_last_plan->datanode_port());
+                req.set_l1_proxy_cluster_id(l_last_plan->proxy_cluster_id());
+                req.set_l1_proxy_ip(l_last_plan->proxy_ip());
+                req.set_l1_proxy_port(l_last_plan->proxy_port());
+              }
             }
 
             const auto t_pure0 = std::chrono::steady_clock::now();
@@ -3002,67 +3141,28 @@ namespace ECProject
             }
 
             const auto &fanout = placement_copy->slice_fanouts(j);
-            const proxy_proto::CordParityFanoutTarget *l_last_target = nullptr;
-            const proxy_proto::CordParityFanoutTarget *accum_global = nullptr;
-            std::vector<const proxy_proto::CordParityFanoutTarget *> global_targets;
-            global_targets.reserve(static_cast<size_t>(r_enc));
             std::vector<BrFanoutJob> phase1_jobs;
-            phase1_jobs.reserve(static_cast<size_t>(fanout.targets_size()) + static_cast<size_t>(r_enc));
+            phase1_jobs.reserve(static_cast<size_t>(fanout.targets_size()) + 1);
 
             for (int ti = 0; ti < fanout.targets_size(); ++ti)
             {
               const auto &t = fanout.targets(ti);
               const int pbid = t.parity_block_id();
-              if (pbid >= k_enc && pbid < k_enc + r_enc)
-              {
-                if (accum_global == nullptr)
-                  accum_global = &fanout.targets(ti);
-                global_targets.push_back(&fanout.targets(ti));
-              }
-              else if (pbid == l_last_bid)
-              {
-                l_last_target = &fanout.targets(ti);
-              }
-              else if (pbid >= k_enc + r_enc)
-              {
-                BrFanoutJob job;
-                job.target = t;
-                const int row = pbid - k_enc;
-                job.payload = coded[static_cast<size_t>(row)].data();
-                job.payload_len = coded[static_cast<size_t>(row)].size();
-                phase1_jobs.push_back(std::move(job));
-              }
-            }
-
-            // 全局：各 G_i 落盘；ΣΔG 在 accum_global 所在机架累加（同机架 apply 时累加，异机架另发 accum-only）
-            for (const auto *gt : global_targets)
-            {
-              const int row = gt->parity_block_id() - k_enc;
+              const int row = pbid - k_enc;
               if (row < 0 || row >= static_cast<int>(coded.size()))
                 continue;
-              const auto &gd = coded[static_cast<size_t>(row)];
-              BrFanoutJob apply_job;
-              apply_job.target = *gt;
-              apply_job.payload = gd.data();
-              apply_job.payload_len = gd.size();
-              apply_job.accum_for_l1 =
-                  (accum_global != nullptr && gt->proxy_cluster_id() == accum_global->proxy_cluster_id());
-              phase1_jobs.push_back(apply_job);
-
-              if (accum_global != nullptr && gt->proxy_cluster_id() != accum_global->proxy_cluster_id())
-              {
-                BrFanoutJob accum_job;
-                accum_job.target = *accum_global;
-                accum_job.payload = gd.data();
-                accum_job.payload_len = gd.size();
-                accum_job.accum_for_l1 = true;
-                accum_job.skip_apply = true;
-                phase1_jobs.push_back(std::move(accum_job));
-              }
+              BrFanoutJob job;
+              job.target = t;
+              job.payload = coded[static_cast<size_t>(row)].data();
+              job.payload_len = coded[static_cast<size_t>(row)].size();
+              if (pbid >= k_enc && pbid < k_enc + r_enc)
+                job.after_apply_own_global = (r_enc > 0 && expect_g_cnt > 0 && !stripe_upd_key.empty() &&
+                                             l_last_plan != nullptr);
+              phase1_jobs.push_back(std::move(job));
             }
 
-            // 第一次：L_{z-1} 仅数据本地贡献（若有）
-            if (l_last_target != nullptr)
+            // L_{z-1} 数据本地贡献（nofold）；全局部分由各全局齐后 r 路直发
+            if (l_last_plan != nullptr)
             {
               const int l_row = l_last_bid - k_enc;
               bool has_data_local = (r_enc <= 0);
@@ -3080,7 +3180,7 @@ namespace ECProject
                 if (has_data_local)
                 {
                   BrFanoutJob job;
-                  job.target = *l_last_target;
+                  job.target = *l_last_plan;
                   job.payload = ld.data();
                   job.payload_len = ld.size();
                   phase1_jobs.push_back(std::move(job));
@@ -3109,7 +3209,7 @@ namespace ECProject
                   std::cout << "[BoundedRandom][Proxy] parity fanout failed data_blk=" << data_bid
                             << " parity_blk=" << job.target.parity_block_id()
                             << " dst_c=" << job.target.proxy_cluster_id()
-                            << " accum=" << job.accum_for_l1 << " skip=" << job.skip_apply << std::endl;
+                            << " own_g=" << job.after_apply_own_global << std::endl;
                   fanout_failed.store(true, std::memory_order_relaxed);
                 }
               });
@@ -3118,43 +3218,6 @@ namespace ECProject
               th.join();
             if (fanout_failed.load(std::memory_order_relaxed))
               return;
-
-            // 第二次：通知 accum_global 所在机架取出 ΣΔG，直接发到 L_{z-1} 所在机架（无中转）
-            if (l_last_target != nullptr && accum_global != nullptr && r_enc > 0)
-            {
-              BrFanoutJob flush_job;
-              flush_job.target = *accum_global; // 发往全局累加机架
-              flush_job.flush_sigma = true;
-              flush_job.payload = nullptr;
-              flush_job.payload_len = 0;
-              // dst_* 填 L_{z-1}，供全局机架 flush 时直写/直发
-              flush_job.target.set_parity_block_id(l_last_target->parity_block_id());
-              flush_job.target.set_block_key(l_last_target->block_key());
-              flush_job.target.set_datanode_ip(l_last_target->datanode_ip());
-              flush_job.target.set_datanode_port(l_last_target->datanode_port());
-              // proxy_* 仍指向 accum_global（消息发到哪里）
-              flush_job.target.set_proxy_cluster_id(accum_global->proxy_cluster_id());
-              flush_job.target.set_proxy_ip(accum_global->proxy_ip());
-              flush_job.target.set_proxy_port(accum_global->proxy_port());
-              if (l_last_target->proxy_cluster_id() != accum_global->proxy_cluster_id())
-              {
-                flush_job.direct_next_proxy_ip = l_last_target->proxy_ip();
-                flush_job.direct_next_proxy_port = l_last_target->proxy_port();
-              }
-              double one_pure = 0.0;
-              const bool ok = send_parity_job(flush_job, slice_off, static_cast<int>(slen), &one_pure);
-              slice_pure_max = std::max(slice_pure_max, one_pure);
-              if (!ok)
-              {
-                std::cout << "[BoundedRandom][Proxy] ΣΔG flush→L_{z-1} failed data_blk=" << data_bid
-                          << " accum_c=" << accum_global->proxy_cluster_id()
-                          << " l_c=" << l_last_target->proxy_cluster_id() << std::endl;
-                return;
-              }
-              std::cout << "[BoundedRandom][Proxy] ΣΔG flush→L_{z-1} done data_blk=" << data_bid
-                        << " accum_c=" << accum_global->proxy_cluster_id()
-                        << " l_c=" << l_last_target->proxy_cluster_id() << std::endl;
-            }
 
             pure_acc_sec += slice_pure_max;
           }
