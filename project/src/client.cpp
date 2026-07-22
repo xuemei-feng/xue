@@ -621,7 +621,16 @@ namespace ECProject
   std::vector<int> Client::get_data_block_num_per_group(int k, int r, int z, std::string code_type)
   {
     std::vector<int> data_block_num_per_group;
-    if (is_azure_like_code(code_type))
+    if (code_type == "SplitParityLRC")
+    {
+      // Uniform 分组：前 z-1 组各 (k+r)/z 个数据块，最后本地组 k-(z-1)*gs，全局仍单独一组
+      const int gs = (k + r) / z;
+      for (int i = 0; i < z - 1; i++)
+        data_block_num_per_group.push_back(gs);
+      data_block_num_per_group.push_back(k - (z - 1) * gs);
+      data_block_num_per_group.push_back(0);
+    }
+    else if (is_azure_like_code(code_type))
     {
       for (int i = 0; i < z; i++)
       {
@@ -879,7 +888,7 @@ namespace ECProject
       {
         ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
-      else if (m_sys_config->CodeType == "UniformLRC")
+      else if (m_sys_config->CodeType == "UniformLRC" || m_sys_config->CodeType == "SplitParityLRC")
       {
         ECProject::encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
@@ -1005,7 +1014,7 @@ namespace ECProject
         //ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
-      else if (m_sys_config->CodeType == "UniformLRC")
+      else if (m_sys_config->CodeType == "UniformLRC" || m_sys_config->CodeType == "SplitParityLRC")
       {
         //ECProject::encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);

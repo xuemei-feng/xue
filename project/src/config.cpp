@@ -34,7 +34,8 @@ namespace ECProject
     }
     if (CodeType == "SplitParityLRC")
     {
-      assert(DatanodeNumPerCluster > k / z + 1 && "Error: DatanodeNumPerCluster must be greater than k / z + 1");
+      assert((k + r) % z == 0 && "Error: SplitParityLRC (Uniform encode) requires (k+r) divisible by z");
+      assert(DatanodeNumPerCluster > (k + r) / z && "Error: DatanodeNumPerCluster must be greater than (k+r)/z");
       assert(ClusterNum >= 6 && "Error: SplitParityLRC requires ClusterNum >= 6");
       assert(k <= 4 * (r + 1) && "Error: SplitParityLRC requires k <= 4*(r+1)");
     }

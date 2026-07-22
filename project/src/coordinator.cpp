@@ -500,6 +500,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         if (st->link_kind() != proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_LOCAL ||
             st->delta_payload_kind() != proxy_proto::CORD_DELTA_PARITY)
           continue;
+        // ΣΔG 终态：空 merge，不按 stripe_group 过滤
+        if (st->parity_merge_data_block_ids_size() == 0)
+          continue;
         const int dst = st->dst_block_id();
         if (dst < 0 || dst >= static_cast<int>(stripe->blocks.size()))
           continue;
@@ -691,7 +694,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       plan.set_plan_key(plan_key);
       plan.set_slot_unit_bytes(block_size);
       plan.set_k_datablock(k_datablock);
-      plan.set_total_rounds(2);
+      plan.set_total_rounds(3);
       int step_idx = 0;
       for (const cord_alg2::TrainLink &L : alg2.train_route)
       {
@@ -707,8 +710,13 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         st->set_dst_block_id(L.dst_block_id);
         st->set_payload_bytes(static_cast<uint64_t>(full));
         st->set_link_kind(static_cast<proxy_proto::CordTransferLinkKind>(static_cast<int>(L.kind)));
-        const uint32_t sched_slot =
-            (L.kind == cord_alg2::TrainLinkKind::STAR_DATA_TO_CENTER) ? 0u : 1u;
+        // slot0=DATA→collector；slot1=GLOBAL/机架 LOCAL；slot2=ΣΔG→L_{z-1} 终态
+        uint32_t sched_slot = 1u;
+        if (L.kind == cord_alg2::TrainLinkKind::STAR_DATA_TO_CENTER)
+          sched_slot = 0u;
+        else if (L.kind == cord_alg2::TrainLinkKind::STAR_CENTER_TO_LOCAL &&
+                 L.parity_merge_data_block_ids.empty())
+          sched_slot = 2u;
         st->set_scheduled_slot(sched_slot);
         st->set_depends_on_step_index(-1);
         st->set_estimated_transfer_sec(L.est_transfer_sec);
@@ -1278,7 +1286,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'D';
-        blocks_info[i].map2group = int(i / (stripe->k / stripe->z));
+        // Uniform 式本地分组：按 (k+r)/z；全局校验物理独立组，编码上折入 L_{z-1}
+        const int uniform_group_size = (stripe->k + stripe->r) / stripe->z;
+        blocks_info[i].map2group = int(i / uniform_group_size);
       }
       else if (i < stripe->k + stripe->r)
       {
@@ -1960,7 +1970,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     (void)global_lo;
     (void)global_hi_excl;
     proxy_proto::CordTransferEncodeMeta *meta = plan->mutable_cord_encode_meta();
-    meta->set_encode_type(static_cast<int32_t>(m_encode_parameters.encodetype));
+    // SplitParity 放置 + Uniform 矩阵：CoRD ΔG 须与 SET 编码一致
+    if (m_sys_config->CodeType == "SplitParityLRC" || m_sys_config->CodeType == "UniformLRC")
+      meta->set_encode_type(static_cast<int32_t>(Uniform_LRC));
+    else
+      meta->set_encode_type(static_cast<int32_t>(m_encode_parameters.encodetype));
     meta->set_k(stripe->k);
     int gm = stripe->g_m;
     int lv = stripe->l;
@@ -3355,7 +3369,23 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   std::vector<int> CoordinatorImpl::get_recovery_group_ids(std::string code_type, int k, int r, int z, int failed_block_id)
   {
     std::vector<int> recovery_group_ids;
-    if (is_azure_like_code(code_type))
+    if (code_type == "SplitParityLRC")
+    {
+      if (failed_block_id >= k && failed_block_id < k + r)
+      {
+        for (int i = 1; i <= z; i++)
+          recovery_group_ids.push_back(i);
+      }
+      else if (failed_block_id >= k + r)
+      {
+        recovery_group_ids.push_back(failed_block_id - k - r);
+      }
+      else
+      {
+        recovery_group_ids.push_back(failed_block_id / ((k + r) / z));
+      }
+    }
+    else if (is_azure_like_code(code_type))
     {
       if (failed_block_id >= k && failed_block_id < k + r)
       {
@@ -3516,7 +3546,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
   std::vector<int> CoordinatorImpl::get_data_block_num_per_group(int k, int r, int z, std::string code_type)
   {
     std::vector<int> data_block_num_per_group;
-    if (is_azure_like_code(code_type))
+    if (code_type == "SplitParityLRC")
+    {
+      const int gs = (k + r) / z;
+      for (int i = 0; i < z - 1; i++)
+        data_block_num_per_group.push_back(gs);
+      data_block_num_per_group.push_back(k - (z - 1) * gs);
+      data_block_num_per_group.push_back(0);
+    }
+    else if (is_azure_like_code(code_type))
     {
       for (int i = 0; i < z; i++)
       {

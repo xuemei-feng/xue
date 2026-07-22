@@ -16,7 +16,8 @@ namespace ECProject
   enum EncodeType
   {
     Azure_LRC,
-    Optimal_Cauchy_LRC
+    Optimal_Cauchy_LRC,
+    Uniform_LRC
   };
   enum SingleStripePlacementType
   {
