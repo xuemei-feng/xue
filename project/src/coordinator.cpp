@@ -3754,10 +3754,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
     for (int i = 0; i < block_ids.size(); i++)
     {
-      stripe_block_ids.add_block_ids(block_ids[i]);
-      stripe_block_ids.add_block_keys(m_stripe_table[stripe_id].blocks[block_ids[i]]->block_key);
-      stripe_block_ids.add_datanodeips(m_node_table[m_stripe_table[stripe_id].blocks[block_ids[i]]->map2node].node_ip);
-      stripe_block_ids.add_datanodeports(m_node_table[m_stripe_table[stripe_id].blocks[block_ids[i]]->map2node].node_port);
+      Block *blk = m_stripe_table[stripe_id].blocks[block_ids[i]];
+      stripe_block_ids.add_block_ids(blk->block_id);
+      stripe_block_ids.add_block_keys(blk->block_key);
+      stripe_block_ids.add_datanodeips(m_node_table[blk->map2node].node_ip);
+      stripe_block_ids.add_datanodeports(m_node_table[blk->map2node].node_port);
     }
     grpc::Status status = m_proxy_ptrs[proxy_ip + ":" + std::to_string(proxy_port)]->getBlocks(&cont, stripe_block_ids, &stripe_reply);
     if (status.ok())
@@ -3777,53 +3778,49 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       const coordinator_proto::KeyAndClientIP *keyClient,
       coordinator_proto::ReplyProxyIPsPorts *proxyIPPort)
   {
-
-    //std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-    int stripe_id = std::stoi(keyClient->key());
+    (void)context;
+    const int stripe_id = std::stoi(keyClient->key());
+    if (m_stripe_table.find(stripe_id) == m_stripe_table.end())
+    {
+      std::cout << "[GET] stripe " << stripe_id << " not found" << std::endl;
+      return grpc::Status(grpc::StatusCode::NOT_FOUND, "stripe not found");
+    }
     Stripe &t_stripe = m_stripe_table[stripe_id];
-    int k = t_stripe.k;
-    int num_data_groups = t_stripe.num_groups;
-    std::string code_type = m_sys_config->CodeType;
-    if(code_type != "UniLRC"){
-      num_data_groups--;
-    }
-    //std::cout << "[GET] getting stripe " << stripe_id << " with " << num_data_groups << " data groups" << std::endl;
-    std::vector<int> block_num_per_group = get_data_block_num_per_group(k, m_sys_config->r, m_sys_config->z, code_type);
-    std::vector<int> get_cluster_ids;
-    for (int i = 0; i < num_data_groups; i++)
+    const int k = t_stripe.k;
+
+    // 按物理 cluster 聚合数据块（CordXue 等同逻辑组可跨机架，不能只找 group 内第一个块所在 proxy）
+    std::map<int, std::vector<int>> cluster_to_block_indices;
+    for (int bi = 0; bi < static_cast<int>(t_stripe.blocks.size()); ++bi)
     {
-      get_cluster_ids.push_back(t_stripe.blocks[t_stripe.group_to_blocks[i][0]]->map2cluster);
-      //std::cout << "group " << i << " is mapped to cluster " << get_cluster_ids[i] << std::endl;
+      Block *blk = t_stripe.blocks[bi];
+      if (blk == nullptr || blk->block_id >= k)
+        continue;
+      cluster_to_block_indices[blk->map2cluster].push_back(bi);
     }
-    for (int i = 0; i < num_data_groups; i++)
+    if (cluster_to_block_indices.empty())
     {
-      proxyIPPort->add_proxyips(m_cluster_table[get_cluster_ids[i]].proxy_ip);
-      proxyIPPort->add_proxyports(m_cluster_table[get_cluster_ids[i]].proxy_port);
-      proxyIPPort->add_cluster_slice_sizes(block_num_per_group[i]);
+      std::cout << "[GET] stripe " << stripe_id << " has no data blocks" << std::endl;
+      return grpc::Status(grpc::StatusCode::INTERNAL, "no data blocks");
     }
-    /*for(int i = 0; i < t_stripe.num_groups; i++){
-      m_proxy_ptrs[proxyIPPort->proxyips(i) + ":" + std::to_string(proxyIPPort->proxyports(i))]->getStripe(stripe_id, t_stripe.group_to_blocks[i]);
-    }*/
+
     std::vector<std::thread> threads;
-    for (int i = 0; i < num_data_groups; i++)
+    int group_ord = 0;
+    for (auto &kv : cluster_to_block_indices)
     {
-      std::vector<int> block_ids;
-      for (int j = 0; j < t_stripe.group_to_blocks[i].size(); j++)
-      {
-        if(t_stripe.blocks[t_stripe.group_to_blocks[i][j]]->block_id < k){
-          block_ids.push_back(t_stripe.group_to_blocks[i][j]);
-        }
-      }
-      threads.push_back(std::thread(&CoordinatorImpl::getStripeFromProxy, this, keyClient->clientip(), keyClient->clientport(), 
-        proxyIPPort->proxyips(i), proxyIPPort->proxyports(i), stripe_id, i, block_ids));
+      const int cluster_id = kv.first;
+      std::vector<int> &block_ids = kv.second;
+      const std::string proxy_ip = m_cluster_table[cluster_id].proxy_ip;
+      const int proxy_port = m_cluster_table[cluster_id].proxy_port;
+      proxyIPPort->add_proxyips(proxy_ip);
+      proxyIPPort->add_proxyports(proxy_port);
+      proxyIPPort->add_cluster_slice_sizes(static_cast<int>(block_ids.size()));
+      threads.emplace_back(&CoordinatorImpl::getStripeFromProxy, this,
+                           keyClient->clientip(), keyClient->clientport(),
+                           proxy_ip, proxy_port, stripe_id, group_ord, block_ids);
+      ++group_ord;
     }
     for (auto &thread : threads)
-    {
       thread.detach();
-    }
-    /*std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-    std::cout << "[GET] getting stripe " << stripe_id << " took " << duration.count() << " seconds" << std::endl;*/
 
     return grpc::Status::OK;
   }

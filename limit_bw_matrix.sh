@@ -8,13 +8,14 @@ set -euo pipefail
 # Matrix: /root/xue/project/config/BW_limitsame — TABLE II MB/s (symmetric from upper triangle + diagonal),
 #   converted to Mbit/s for tc via BW_MATRIX_MB_PER_SEC_TO_TC_MBIT (default ×8).
 # get_bw_mbps(src,dst) is a legacy name: it returns tc rate in Mbit/s (see get_bw_tc_mbit_rate in BW_limitsame).
-# Egress: HTB on iface root, match ip dst per remote cluster.
-# Ingress: ingress qdisc mirrors to IFB; HTB on IFB root, match ip src per remote cluster.
+# Egress: HTB on iface root, match ip dst per remote cluster / client.
+# Ingress: ingress qdisc mirrors to IFB; HTB on IFB root, match ip src per remote cluster / client.
 #
 # Hierarchy (cross-rack aggregate cap):
-#   root -> :1 parent (rate=ceil=max cross-peer) -> :1xx peer classes (share parent)
+#   root -> :1 parent (rate=ceil=max cross-peer) -> :1xx peer classes + :2xx client classes (share parent)
 #        -> :default high rate (intra / unmatched)
 # Multi-peer flows to the same host therefore contend for one parent pipe, not N×peer.
+# Proxy↔client: only shaped on proxy hosts (CLIENT_IPS); client hosts stay in SKIP_BW_LIMIT_IPS.
 # 输出：默认一行摘要；BW_MATRIX_VERBOSE=1 打印每条 peer；=2 再 dump tc。
 
 BW_FILE="/root/xue/project/config/BW_limitsame"
@@ -28,6 +29,16 @@ SKIP_BW_LIMIT_IPS=(
   "172.16.2.31"
   "172.16.2.32"
 )
+
+# Client IP(s) for proxy-side shaping only (do not run this script on these hosts).
+# Override: CLIENT_IPS="a.b.c.d" or space-separated list.
+CLIENT_IPS=(
+  "172.16.2.31"
+)
+if [[ -n "${CLIENT_IPS_OVERRIDE:-}" ]]; then
+  # shellcheck disable=SC2206
+  CLIENT_IPS=(${CLIENT_IPS_OVERRIDE})
+fi
 
 skip_bw_limit_this_host() {
   local ips lip s
@@ -49,6 +60,11 @@ CLUSTER_IPS=(
   "172.16.2.69"   # 4: JAK  cluster 4 proxy
   "172.16.2.78"   # 5: HK  cluster 5 proxy
 )
+
+proxy_client_tc_mbit() {
+  local mbs="${PROXY_CLIENT_BW_MB_PER_SEC:-125}"
+  awk -v x="$mbs" -v s="${BW_MATRIX_MB_PER_SEC_TO_TC_MBIT:-8}" 'BEGIN { printf "%.6f", x * s }'
+}
 
 detect_iface() {
   if [[ $# -ge 1 && -n "${1:-}" ]]; then
@@ -143,19 +159,25 @@ cross_parent_mbit() {
 }
 
 # Apply per-peer HTB on dev. direction: dst (egress) or src (ingress).
-# Peer classes nest under :1 so multi-peer traffic shares one parent ceil.
+# Peer + client classes nest under :1 so multi-peer traffic shares one parent ceil.
 apply_peer_htb() {
   local dev=$1 handle=$2 default_minor=$3 src_cluster=$4 direction=$5 v=$6
   local rules=0 idx peer_ip bw_mbit class_minor classid match_kw
   local parent_mbit child_rate_mbit child_ceil_mbit peer_count=0
+  local client_ip client_mbit cidx
 
   match_kw="$direction"
   parent_mbit="$(cross_parent_mbit "$src_cluster")"
+  client_mbit="$(proxy_client_tc_mbit)"
 
   for idx in "${!CLUSTER_IPS[@]}"; do
     [[ "$idx" == "$src_cluster" ]] && continue
     bw_mbit="$(get_bw_mbps "$src_cluster" "$idx" || true)"
     [[ -z "$bw_mbit" || "$bw_mbit" == "0" ]] && continue
+    ((peer_count++)) || true
+  done
+  for client_ip in "${CLIENT_IPS[@]}"; do
+    [[ -n "$client_ip" ]] || continue
     ((peer_count++)) || true
   done
   if ((peer_count < 1)); then
@@ -200,6 +222,27 @@ apply_peer_htb() {
       fi
     fi
   done
+
+  # Proxy↔client: shape only on this proxy host (egress to client / ingress from client).
+  cidx=0
+  for client_ip in "${CLIENT_IPS[@]}"; do
+    [[ -n "$client_ip" ]] || continue
+    child_ceil_mbit="$(awk -v a="$client_mbit" -v p="$parent_mbit" 'BEGIN { printf "%.6f", (a+0 < p+0) ? a+0 : p+0 }')"
+    class_minor=$((200 + cidx))
+    classid="${handle}:${class_minor}"
+    tc class add dev "$dev" parent "${handle}:1" classid "$classid" \
+      htb rate "${child_rate_mbit}mbit" ceil "${child_ceil_mbit}mbit" burst "$HTB_BURST" cburst "$HTB_BURST"
+    tc filter add dev "$dev" protocol ip parent "${handle}:0" prio 1 u32 match ip "$match_kw" "${client_ip}/32" flowid "$classid"
+    ((rules++)) || true
+    if ((v >= 1)); then
+      if [[ "$direction" == "dst" ]]; then
+        echo "Egress limit dst=${client_ip} (client) rate=${child_rate_mbit}mbit ceil=${child_ceil_mbit}mbit (${PROXY_CLIENT_BW_MB_PER_SEC:-125}MB/s) under parent=${parent_mbit}mbit" >&2
+      else
+        echo "Ingress limit src=${client_ip} (client) rate=${child_rate_mbit}mbit ceil=${child_ceil_mbit}mbit (${PROXY_CLIENT_BW_MB_PER_SEC:-125}MB/s) under parent=${parent_mbit}mbit" >&2
+      fi
+    fi
+    ((cidx++)) || true
+  done
   echo "$rules"
 }
 
@@ -237,9 +280,14 @@ main() {
   tc filter add dev "$iface" parent ffff: protocol ip u32 match u32 0 0 action mirred egress redirect dev "$IFB_DEV"
   ingress_rules="$(apply_peer_htb "$IFB_DEV" 2 998 "$src_cluster" src "$v")"
 
-  local parent_mbit
+  local parent_mbit client_mbit
   parent_mbit="$(cross_parent_mbit "$src_cluster")"
-  echo "OK bw-matrix dev=${iface} ifb=${IFB_DEV} host=${CLUSTER_IPS[$src_cluster]} cluster_id=${src_cluster} parent=${parent_mbit}mbit egress_rules=${egress_rules} ingress_rules=${ingress_rules}"
+  client_mbit="$(proxy_client_tc_mbit)"
+  local client_list="none"
+  if ((${#CLIENT_IPS[@]} > 0)); then
+    client_list="${CLIENT_IPS[*]}"
+  fi
+  echo "OK bw-matrix dev=${iface} ifb=${IFB_DEV} host=${CLUSTER_IPS[$src_cluster]} cluster_id=${src_cluster} parent=${parent_mbit}mbit client=${client_list}@${PROXY_CLIENT_BW_MB_PER_SEC:-125}MB/s(${client_mbit}mbit) egress_rules=${egress_rules} ingress_rules=${ingress_rules}"
 
   if ((v >= 2)); then
     echo "--- tc qdisc show dev $iface ---"

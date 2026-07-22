@@ -175,6 +175,7 @@ def patch_bash_ip_array(path, var_name, ip_lines):
 
 def patch_limit_scripts(client_ip, coordinator_ip, clusters):
     skip_lines = ['  "%s"' % client_ip, '  "%s"' % coordinator_ip]
+    client_lines = ['  "%s"' % client_ip]
     cluster_lines = []
     for c in clusters:
         label = CLUSTER_LABELS[c["id"]] if c["id"] < len(CLUSTER_LABELS) else "c%d" % c["id"]
@@ -185,6 +186,8 @@ def patch_limit_scripts(client_ip, coordinator_ip, clusters):
     for path in (PATHS["limit_bw"], PATHS["unlimit_bw"]):
         patch_bash_ip_array(path, "SKIP_BW_LIMIT_IPS", skip_lines)
         patch_bash_ip_array(path, "CLUSTER_IPS", cluster_lines)
+    # CLIENT_IPS only exists in limit_bw_matrix.sh (proxy-side client shaping).
+    patch_bash_ip_array(PATHS["limit_bw"], "CLIENT_IPS", client_lines)
 
 
 def patch_generator_py(path, coordinator_ip, clusters):
