@@ -166,8 +166,6 @@ namespace ECProject
     ECProject::ToolBox *m_toolbox;
     char *m_pre_allocated_buffer = nullptr;
     char **m_cached_buffer = nullptr;
-    /** 预计算校验块缓存：测试数据恒定（0xaa），校验块只需编码一次，后续直接复用。 */
-    bool m_parity_precomputed = false;
     /** 串行化发往各 proxy 数据口的 TCP，避免与 coordinator 并行 notify 导致的 accept/期望长度错配。 */
     std::mutex m_proxy_tcp_mu;
   };
