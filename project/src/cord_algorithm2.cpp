@@ -233,6 +233,7 @@ namespace ECProject
         out.train_route.push_back(std::move(L));
       }
 
+      bool has_global_fanout = false;
       for (int gpar = k; gpar < k + r; ++gpar)
       {
         if (gpar == collector_blk)
@@ -252,7 +253,11 @@ namespace ECProject
         std::cout << "[CoRD-Alg2]   CTR_TO_GLOBAL: collector_blk" << collector_blk << "(c" << collector_cc
                   << ") --ΔP " << block_b << "B --> global_blk" << gpar << "(c" << gc << ")\n";
         out.train_route.push_back(std::move(L));
+        has_global_fanout = true;
       }
+      // collector 自身是全局块时虽无扇出边，仍会产生 ΔG，需终态 ΣΔG→全部本地
+      if (!has_global_fanout && collector_is_global && r > 0)
+        has_global_fanout = true;
 
       std::map<std::pair<int, int>, std::vector<int>> rack_local_groups;
       for (int d : D)
@@ -287,6 +292,34 @@ namespace ECProject
                   << "B --> local_blk" << Lb << "(c" << lc << ") group=" << gnum
                   << " merge_src=" << blocks.size() << " blocks\n";
         out.train_route.push_back(std::move(L));
+      }
+
+      // Optimal 折入：全局扇出结束后，collector 发同一份 ΣΔG=⊕ΔG 到全部 z 个本地校验（跨 Proxy）
+      if (has_global_fanout)
+      {
+        for (int gnum = 0; gnum < stripe.z; ++gnum)
+        {
+          const int Lb = local_parity_block_for_group(stripe, gnum);
+          if (Lb < 0)
+            continue;
+          const int lc = block_cluster(stripe, Lb);
+          TrainLink L;
+          L.src_block_id = collector_blk;
+          L.dst_block_id = Lb;
+          L.src_cluster = collector_cc;
+          L.dst_cluster = lc;
+          L.payload_bytes = block_b;
+          L.est_transfer_sec = transfer_sec(collector_cc, lc, block_b, tp);
+          L.group_index = gi;
+          L.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
+          L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
+          // 空 merge：标记为 ΣΔG 终态（非机架数据 XOR）
+          L.parity_merge_data_block_ids.clear();
+          std::cout << "[CoRD-Alg2]   CTR_TO_LOCAL(ΣΔG): collector_blk" << collector_blk << "(c"
+                    << collector_cc << ") --ΣΔG " << block_b << "B --> local_blk" << Lb << "(c" << lc
+                    << ") group=" << gnum << "\n";
+          out.train_route.push_back(std::move(L));
+        }
       }
 
       std::cout << "[CoRD-Alg2] train_route links=" << out.train_route.size()

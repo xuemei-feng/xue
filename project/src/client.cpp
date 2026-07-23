@@ -52,7 +52,18 @@ namespace ECProject
 
     bool is_azure_like_code(const std::string &code_type)
     {
-      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC";
+      // SplitParityLRC 放置仍按 Azure 均分组，但编解码改为 Optimal
+      return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "CordXueLRC";
+    }
+
+    bool is_optimal_encode_code(const std::string &code_type)
+    {
+      return code_type == "OptimalLRC" || code_type == "SplitParityLRC";
+    }
+
+    bool is_azure_or_split_parity_group_code(const std::string &code_type)
+    {
+      return is_azure_like_code(code_type) || code_type == "SplitParityLRC";
     }
 
     using CordClock = std::chrono::steady_clock;
@@ -621,7 +632,7 @@ namespace ECProject
   std::vector<int> Client::get_data_block_num_per_group(int k, int r, int z, std::string code_type)
   {
     std::vector<int> data_block_num_per_group;
-    if (is_azure_like_code(code_type))
+    if (is_azure_or_split_parity_group_code(code_type))
     {
       for (int i = 0; i < z; i++)
       {
@@ -698,7 +709,7 @@ namespace ECProject
   std::vector<int> Client::get_global_parity_block_num_per_group(int k, int r, int z, std::string code_type)
   {
     std::vector<int> global_pairty_block_num_per_group;
-    if (is_azure_like_code(code_type))
+    if (is_azure_or_split_parity_group_code(code_type))
     {
       for (int i = 0; i < z; i++)
       {
@@ -756,7 +767,7 @@ namespace ECProject
   std::vector<int> Client::get_local_parity_block_num_per_group(int k, int r, int z, std::string code_type)
   {
     std::vector<int> local_parity_block_num_per_group;
-    if (is_azure_like_code(code_type))
+    if (is_azure_or_split_parity_group_code(code_type))
     {
       for (int i = 0; i < z; i++)
       {
@@ -874,10 +885,10 @@ namespace ECProject
         data_ptr_array[static_cast<size_t>(i)] = m_pre_allocated_buffer + static_cast<size_t>(i) * bs;
       for (int i = 0; i < n - k; ++i)
         parity_ptr_array[static_cast<size_t>(i)] = m_pre_allocated_buffer + static_cast<size_t>(k + i) * bs;
-      ECProject::encode_azure_lrc(k, m_sys_config->r, m_sys_config->z,
-                                  reinterpret_cast<unsigned char **>(data_ptr_array.data()),
-                                  reinterpret_cast<unsigned char **>(parity_ptr_array.data()),
-                                  m_sys_config->BlockSize);
+      ECProject::encode_optimal_lrc(k, m_sys_config->r, m_sys_config->z,
+                                    reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                    reinterpret_cast<unsigned char **>(parity_ptr_array.data()),
+                                    m_sys_config->BlockSize);
 
       std::vector<std::vector<char>> rack_payloads(static_cast<size_t>(slice_count));
       int id_cursor = 0;
@@ -950,7 +961,7 @@ namespace ECProject
       {
         ECProject::encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
-      else if (m_sys_config->CodeType == "OptimalLRC")
+      else if (is_optimal_encode_code(m_sys_config->CodeType))
       {
         ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
@@ -1065,19 +1076,16 @@ namespace ECProject
         //ECProject::encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
-      else if (m_sys_config->CodeType == "OptimalLRC")
+      else if (is_optimal_encode_code(m_sys_config->CodeType))
       {
-        //ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
       else if (m_sys_config->CodeType == "UniformLRC")
       {
-        //ECProject::encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
       else if (is_azure_like_code(m_sys_config->CodeType))
       {
-        //ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
       // 使用 Asio 多路复用实现真正的异步并发发送（单线程事件循环）
@@ -1978,7 +1986,7 @@ namespace ECProject
     {
       parameters.push_back(0);
     }
-    else if(m_sys_config->CodeType == "OptimalLRC")
+    else if(is_optimal_encode_code(m_sys_config->CodeType))
     {
       parameters.push_back(1);
     }

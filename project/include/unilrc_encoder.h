@@ -60,6 +60,9 @@ namespace ECProject
 
     void partial_encode_optimal_lrc(int k, int r, int z, int data_block_num, unsigned char **data_ptrs, unsigned char **parity_ptrs, int block_size);
 
+    /** Optimal 更新用：全局行完整；本地行去掉对全部全局行的折叠（仅本组数据贡献；ΣΔG 由传输终态补） */
+    void partial_encode_optimal_lrc_local_contrib(int k, int r, int z, int data_block_num, unsigned char **data_ptrs, unsigned char **parity_ptrs, int block_size);
+
     void partial_encode_uniform_lrc(int k, int r, int z, int data_block_num, unsigned char **data_ptrs, unsigned char **parity_ptrs, int block_size);
 
     /* Matrix generation helpers: generate full (m+z) x k encode matrix for each scheme

@@ -73,7 +73,8 @@ namespace ECProject
      * - 所有更新块 STAR_DATA_TO_CENTER 发往 collector（同块跳过网络）
      * - collector 聚合后 STAR_CENTER_TO_GLOBAL 扇出至其余 global parity
      * - 各 cluster 内同 local group 更新块合并，STAR_CENTER_TO_LOCAL 发往 local parity（须等 collector 收齐全部 ΔD）
-     * 传输计划分两阶段串行：slot0=DATA→collector，slot1=校验扇出（含本地校验）；proxy 逐步顺序执行。
+     * - 若有全局扇出：额外 z 条空 merge 的 STAR_CENTER_TO_LOCAL，同一份 payload=ΣΔG，扇出到全部本地校验
+     * 传输计划分三阶段串行：slot0=DATA→collector，slot1=GLOBAL/机架 LOCAL，slot2=ΣΔG→全部本地。
      */
     Algorithm2Result build_algorithm2(
         const Stripe &stripe,
