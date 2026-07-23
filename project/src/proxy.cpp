@@ -17,6 +17,7 @@
 #include <atomic>
 #include <unordered_map>
 #include <unordered_set>
+#include <numeric>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -153,6 +154,23 @@ namespace ECProject
   {
     std::lock_guard<std::mutex> lk(g_cord_cluster_map_mu);
     auto &p = g_cord_cluster_mu[cluster_id];
+    if (!p)
+      p = std::make_shared<std::mutex>();
+    return p;
+  }
+
+  /**
+   * 同一 plan 上对同一校验块的读-改-写互斥（IN_RACK LP apply 与 CTR_TO_LOCAL 收端 XOR）。
+   * 避免并行 RMW 丢更新。
+   */
+  static std::mutex g_cord_parity_rmw_map_mu;
+  static std::map<std::string, std::shared_ptr<std::mutex>> g_cord_parity_rmw_mu;
+
+  static std::shared_ptr<std::mutex> cord_parity_rmw_mu_for(const std::string &plan_key, int block_id)
+  {
+    const std::string key = plan_key + ":blk" + std::to_string(block_id);
+    std::lock_guard<std::mutex> lk(g_cord_parity_rmw_map_mu);
+    auto &p = g_cord_parity_rmw_mu[key];
     if (!p)
       p = std::make_shared<std::mutex>();
     return p;
@@ -333,10 +351,30 @@ namespace ECProject
   }
 
   static std::string cord_collector_parity_cache_key(const std::string &plan_key, int group_index,
-                                                     int collector_block_id, int parity_ingest_stripe_group)
+                                                     int collector_block_id, int parity_ingest_stripe_group,
+                                                     const std::string &merge_tag = "all")
   {
     return plan_key + ":" + std::to_string(group_index) + ":" + std::to_string(collector_block_id) + ":pig:" +
-           std::to_string(parity_ingest_stripe_group);
+           std::to_string(parity_ingest_stripe_group) + ":merge:" + merge_tag;
+  }
+
+  static std::string cord_parity_merge_tag(const proxy_proto::CordTransferStep &st)
+  {
+    if (st.parity_merge_data_block_ids_size() <= 0)
+      return "all";
+    std::vector<int> ids;
+    ids.reserve(static_cast<size_t>(st.parity_merge_data_block_ids_size()));
+    for (int i = 0; i < st.parity_merge_data_block_ids_size(); ++i)
+      ids.push_back(st.parity_merge_data_block_ids(i));
+    std::sort(ids.begin(), ids.end());
+    std::ostringstream os;
+    for (size_t i = 0; i < ids.size(); ++i)
+    {
+      if (i)
+        os << '_';
+      os << ids[i];
+    }
+    return os.str();
   }
 
   static int cord_plan_data_block_stripe_group(const proxy_proto::CordTransferPlan &plan, int data_block_id)
@@ -632,6 +670,8 @@ namespace ECProject
       return "STAR_CENTER_TO_LOCAL";
     case proxy_proto::CORD_TRANSFER_MST_FORWARD:
       return "MST_FORWARD";
+    case proxy_proto::CORD_TRANSFER_IN_RACK_LOCAL_PARITY_APPLY:
+      return "IN_RACK_LOCAL_PARITY_APPLY";
     default:
       return "UNKNOWN";
     }
@@ -881,11 +921,23 @@ namespace ECProject
     }
   }
 
-  static bool cord_ensure_collector_parity_coded(const proxy_proto::CordTransferPlan &plan, int group,
-                                               int collector_block_id, int parity_ingest_stripe_group)
+  static bool cord_ensure_collector_parity_coded(const proxy_proto::CordTransferPlan &plan,
+                                                 const proxy_proto::CordTransferStep &st)
   {
-    const std::string ck =
-        cord_collector_parity_cache_key(plan.plan_key(), group, collector_block_id, parity_ingest_stripe_group);
+    const int group = st.group_index();
+    const int collector_block_id = st.src_block_id();
+    const int parity_ingest_stripe_group =
+        st.has_parity_ingest_stripe_group() ? st.parity_ingest_stripe_group() : -1;
+    const std::string merge_tag = cord_parity_merge_tag(st);
+    std::unordered_set<int> merge_allow;
+    const bool use_merge_subset = st.parity_merge_data_block_ids_size() > 0;
+    if (use_merge_subset)
+    {
+      for (int i = 0; i < st.parity_merge_data_block_ids_size(); ++i)
+        merge_allow.insert(st.parity_merge_data_block_ids(i));
+    }
+    const std::string ck = cord_collector_parity_cache_key(plan.plan_key(), group, collector_block_id,
+                                                           parity_ingest_stripe_group, merge_tag);
     {
       std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
       if (g_cord_collector_parity_coded.count(ck))
@@ -901,8 +953,8 @@ namespace ECProject
     const int ps = meta.parity_slice_size();
     const int po = meta.parity_slice_offset();
     std::cout << "[CoRD-PLAN][COLLECTOR_ENCODE_BEGIN] plan=" << plan.plan_key() << " grp=" << group
-              << " col_blk=" << collector_block_id << " pig=" << parity_ingest_stripe_group << " k=" << k
-              << " ps=" << ps << " po=" << po << std::endl;
+              << " col_blk=" << collector_block_id << " pig=" << parity_ingest_stripe_group
+              << " merge=" << merge_tag << " k=" << k << " ps=" << ps << " po=" << po << std::endl;
     std::vector<std::vector<char>> strips;
     try
     {
@@ -920,7 +972,9 @@ namespace ECProject
       const int bid = desc.block_id();
       if (bid < 0 || bid >= k)
         continue;
-      if (parity_ingest_stripe_group >= 0 &&
+      if (use_merge_subset && !merge_allow.count(bid))
+        continue;
+      if (!use_merge_subset && parity_ingest_stripe_group >= 0 &&
           cord_plan_data_block_stripe_group(plan, bid) != parity_ingest_stripe_group)
         continue;
       const std::string bk = cord_collector_block_buf_key(plan.plan_key(), group, collector_block_id, bid);
@@ -1075,6 +1129,8 @@ namespace ECProject
     const int psz = request.parity_slice_length();
     if (psz <= 0 || static_cast<size_t>(psz) != payload_len)
       return false;
+    const auto rmw_mu = cord_parity_rmw_mu_for(request.plan_key(), request.dst_block_id());
+    std::lock_guard<std::mutex> rmw_lk(*rmw_mu);
     std::vector<char> cur(static_cast<size_t>(psz));
     if (!proxy->CordRangeReadFromDatanode(request.block_key(), request.dst_block_id(), request.parity_slice_offset(),
                                           cur.data(), static_cast<size_t>(psz), request.datanode_ip().c_str(),
@@ -1093,6 +1149,79 @@ namespace ECProject
       return false;
     }
     cord_pure_xfer_parity_dn_done_verified(request.plan_key());
+    return true;
+  }
+
+  /**
+   * SplitParity 同机架 LP：用已读入的 ΔD chunk 做矩阵编码，再对本架 LP 做串行读-改-写。
+   * 不写入 MST relay 缓冲，避免与 |N|=1 MST 路径互相干扰。
+   */
+  static bool cord_apply_in_rack_lp_from_delta(ProxyImpl *proxy, const proxy_proto::CordTransferPlan &plan,
+                                               int src_data_block_id, int dst_lp_block_id,
+                                               uint64_t chunk_byte_offset, const char *delta_chunk,
+                                               size_t chunk_len, const std::string &lp_key,
+                                               const std::string &lp_ip, int lp_port)
+  {
+    if (delta_chunk == nullptr || chunk_len == 0 || !cord_uses_matrix_encode(plan))
+      return false;
+    const auto &meta = plan.cord_encode_meta();
+    const int kblk = meta.k();
+    const int ps = meta.parity_slice_size();
+    const int po = meta.parity_slice_offset();
+    if (src_data_block_id < 0 || src_data_block_id >= kblk || ps <= 0)
+      return false;
+    const proxy_proto::CordDataStripDesc *sdesc = nullptr;
+    for (int di = 0; di < plan.cord_data_strip_descs_size(); ++di)
+    {
+      if (plan.cord_data_strip_descs(di).block_id() == src_data_block_id)
+      {
+        sdesc = &plan.cord_data_strip_descs(di);
+        break;
+      }
+    }
+    if (sdesc == nullptr)
+      return false;
+    const int so = sdesc->slice_offset();
+    std::vector<std::vector<char>> strips(static_cast<size_t>(kblk),
+                                          std::vector<char>(static_cast<size_t>(ps), 0));
+    for (size_t i = 0; i < chunk_len; ++i)
+    {
+      const int x = so + static_cast<int>(chunk_byte_offset) + static_cast<int>(i);
+      if (x >= po && x < po + ps)
+        strips[static_cast<size_t>(src_data_block_id)][static_cast<size_t>(x - po)] = delta_chunk[i];
+    }
+    std::vector<std::vector<uint8_t>> coded;
+    const ECProject::EncodeType et = static_cast<ECProject::EncodeType>(meta.encode_type());
+    if (!cord_matrix_encode_strips(kblk, meta.g_m(), meta.l(), et, ps, strips, &coded))
+      return false;
+    const int row = dst_lp_block_id - kblk;
+    if (row < 0 || row >= static_cast<int>(coded.size()))
+      return false;
+    const auto &pdelta = coded[static_cast<size_t>(row)];
+    const auto nz =
+        cord_parity_delta_nonzero_span(reinterpret_cast<const char *>(pdelta.data()), pdelta.size());
+    if (nz.second == 0)
+      return true;
+    const int poff = static_cast<int>(nz.first);
+    const int plen = static_cast<int>(nz.second);
+    const auto rmw_mu = cord_parity_rmw_mu_for(plan.plan_key(), dst_lp_block_id);
+    std::lock_guard<std::mutex> rmw_lk(*rmw_mu);
+    std::vector<char> cur(static_cast<size_t>(plen));
+    if (!proxy->CordRangeReadFromDatanode(lp_key, dst_lp_block_id, po + poff, cur.data(),
+                                          static_cast<size_t>(plen), lp_ip.c_str(), lp_port))
+      return false;
+    for (int u = 0; u < plen; ++u)
+      cur[static_cast<size_t>(u)] = static_cast<char>(
+          static_cast<unsigned char>(cur[static_cast<size_t>(u)]) ^
+          static_cast<unsigned char>(pdelta[static_cast<size_t>(poff + u)]));
+    cord_pure_xfer_parity_dn_begin(plan.plan_key());
+    if (!proxy->CordRangeWriteToDatanode(lp_key, dst_lp_block_id, po + poff, cur.data(),
+                                         static_cast<size_t>(plen), lp_ip.c_str(), lp_port))
+    {
+      cord_pure_xfer_parity_dn_abort(plan.plan_key());
+      return false;
+    }
+    cord_pure_xfer_parity_dn_done_verified(plan.plan_key());
     return true;
   }
 
@@ -1121,6 +1250,8 @@ namespace ECProject
     if (request.dst_proxy_cluster_id() == proxy->self_cluster_id() &&
         request.dst_block_id() >= request.k_datablock())
     {
+      const auto rmw_mu = cord_parity_rmw_mu_for(pk, request.dst_block_id());
+      std::lock_guard<std::mutex> rmw_lk(*rmw_mu);
       bool applied_matrix = false;
       auto pl = cord_lookup_registered_plan(pk);
       if (pl && cord_uses_matrix_encode(*pl) && request.src_data_block_id() >= 0)
@@ -1487,7 +1618,7 @@ namespace ECProject
               st.has_parity_ingest_stripe_group() ? st.parity_ingest_stripe_group() : -1;
           if (cord_uses_matrix_encode(plan))
           {
-            if (!cord_ensure_collector_parity_coded(plan, st.group_index(), st.src_block_id(), parity_ingest))
+            if (!cord_ensure_collector_parity_coded(plan, st))
             {
               plan_log_both_sync("FAIL PARITY_FANOUT cord_ensure_collector_parity_coded_failed step=" +
                            std::to_string(st.step_index()) + " collector_blk=" + std::to_string(st.src_block_id()));
@@ -1501,8 +1632,8 @@ namespace ECProject
                            " row=" + std::to_string(row) + " step=" + std::to_string(st.step_index()));
               stats.failed = 1;
           return stats;            }
-            const std::string pck =
-                cord_collector_parity_cache_key(plan.plan_key(), st.group_index(), st.src_block_id(), parity_ingest);
+            const std::string pck = cord_collector_parity_cache_key(
+                plan.plan_key(), st.group_index(), st.src_block_id(), parity_ingest, cord_parity_merge_tag(st));
             std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
             auto pit = g_cord_collector_parity_coded.find(pck);
             if (pit == g_cord_collector_parity_coded.end() ||
@@ -1792,14 +1923,68 @@ namespace ECProject
           merge_step_stats(r);
       };
 
+      struct InRackReadResult
+      {
+        int step_index = -1;
+        std::vector<char> buf;
+        bool ok = false;
+        std::string err;
+        double read_ms = 0.0;
+      };
+
+      auto read_in_rack_delta = [&](int si, InRackReadResult *out) {
+        out->step_index = si;
+        out->ok = false;
+        const auto &st = plan.steps(si);
+        const size_t chunk_len = static_cast<size_t>(st.chunk_byte_length());
+        if (chunk_len == 0u)
+        {
+          out->ok = true;
+          return;
+        }
+        std::string blob_key, dn_ip;
+        int dn_port = 0;
+        if (!cord_lookup_delta_blob(plan, self_cluster_id, &blob_key, &dn_ip, &dn_port))
+        {
+          out->err = "no_delta_blob";
+          return;
+        }
+        uint64_t base_off = 0, blk_tot = 0;
+        if (!cord_lookup_cluster_delta_layout(plan, self_cluster_id, st.src_block_id(), &base_off, &blk_tot))
+        {
+          out->err = "no_cluster_delta_layout";
+          return;
+        }
+        const uint64_t abs_off = base_off + st.chunk_byte_offset();
+        const std::string buf_ctx = "step=" + std::to_string(st.step_index()) +
+                                   " IN_RACK_LP_READ chunk_len=" + std::to_string(chunk_len);
+        if (!cord_xfer_safe_resize(out->buf, chunk_len, "in_rack_lp_read_buf", buf_ctx))
+        {
+          out->err = "buf_alloc";
+          return;
+        }
+        const auto t0 = std::chrono::steady_clock::now();
+        if (!proxy->CordRangeReadFromDatanode(blob_key, 0, static_cast<int>(abs_off), out->buf.data(), chunk_len,
+                                              dn_ip.c_str(), dn_port))
+        {
+          out->err = "datanode_read_failed abs_off=" + std::to_string(abs_off);
+          return;
+        }
+        out->read_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+        out->ok = true;
+      };
+
       for (uint32_t sl : slot_order)
       {
         std::vector<int> parallel_steps;
+        std::vector<int> in_rack_steps;
         std::vector<int> serial_steps;
         for (int si : steps_by_slot[sl])
         {
           const auto &st = plan.steps(si);
-          if (st.link_kind() == proxy_proto::CORD_TRANSFER_MST_FORWARD && st.src_block_id() >= k)
+          if (st.link_kind() == proxy_proto::CORD_TRANSFER_IN_RACK_LOCAL_PARITY_APPLY)
+            in_rack_steps.push_back(si);
+          else if (st.link_kind() == proxy_proto::CORD_TRANSFER_MST_FORWARD && st.src_block_id() >= k)
             serial_steps.push_back(si);
           else
             parallel_steps.push_back(si);
@@ -1807,10 +1992,109 @@ namespace ECProject
         {
           std::ostringstream os;
           os << "SLOT slot=" << sl << " parallel_steps=" << parallel_steps.size()
+             << " in_rack_steps=" << in_rack_steps.size()
              << " serial_steps=" << serial_steps.size();
           plan_log_sync(os.str());
         }
-        run_step_batch(parallel_steps, true);
+
+        // Phase 1: 并行执行其它链路，并并行读各 IN_RACK 的 ΔD（可与全局 ΔD 发送并行）
+        std::vector<InRackReadResult> in_rack_reads(in_rack_steps.size());
+        {
+          std::vector<std::thread> workers;
+          std::vector<CordStepRunStats> par_results(parallel_steps.size());
+          workers.reserve(parallel_steps.size() + in_rack_steps.size());
+          for (size_t wi = 0; wi < parallel_steps.size(); ++wi)
+          {
+            const int si = parallel_steps[wi];
+            workers.emplace_back([&, wi, si]() { par_results[wi] = cord_run_one_local_step(si); });
+          }
+          for (size_t wi = 0; wi < in_rack_steps.size(); ++wi)
+          {
+            const int si = in_rack_steps[wi];
+            workers.emplace_back([&, wi, si]() { read_in_rack_delta(si, &in_rack_reads[wi]); });
+          }
+          for (auto &th : workers)
+            th.join();
+          for (const auto &r : par_results)
+            merge_step_stats(r);
+        }
+
+        // Phase 2: 按 LP 目标串行读-改-写（先并行读完 ΔD，再串行写 LP，避免交错丢更新）
+        std::vector<size_t> in_rack_order(in_rack_steps.size());
+        std::iota(in_rack_order.begin(), in_rack_order.end(), 0);
+        std::sort(in_rack_order.begin(), in_rack_order.end(), [&](size_t a, size_t b) {
+          const auto &sa = plan.steps(in_rack_steps[a]);
+          const auto &sb = plan.steps(in_rack_steps[b]);
+          if (sa.dst_block_id() != sb.dst_block_id())
+            return sa.dst_block_id() < sb.dst_block_id();
+          if (sa.src_block_id() != sb.src_block_id())
+            return sa.src_block_id() < sb.src_block_id();
+          return sa.step_index() < sb.step_index();
+        });
+        for (size_t oi : in_rack_order)
+        {
+          const int si = in_rack_steps[oi];
+          const auto &st = plan.steps(si);
+          const auto t_step0 = std::chrono::steady_clock::now();
+          CordStepRunStats stats{};
+          const auto &rd = in_rack_reads[oi];
+          if (!rd.ok)
+          {
+            plan_log_both_sync("FAIL IN_RACK_LP " + rd.err + " step=" + std::to_string(st.step_index()) +
+                               " data_blk=" + std::to_string(st.src_block_id()));
+            stats.failed = 1;
+            merge_step_stats(stats);
+            continue;
+          }
+          if (rd.buf.empty())
+          {
+            stats.skipped = 1;
+            merge_step_stats(stats);
+            continue;
+          }
+          std::string pbk, pip;
+          int pp = 0;
+          if (!cord_lookup_block_placement(plan, st.dst_block_id(), &pbk, &pip, &pp))
+          {
+            plan_log_both_sync("FAIL IN_RACK_LP block_placement_missing dst_blk=" +
+                               std::to_string(st.dst_block_id()) + " step=" + std::to_string(st.step_index()));
+            stats.failed = 1;
+            merge_step_stats(stats);
+            continue;
+          }
+          const int src_bid =
+              st.has_mst_origin_data_block_id() ? st.mst_origin_data_block_id() : st.src_block_id();
+          const auto t_apply0 = std::chrono::steady_clock::now();
+          const bool ok = cord_apply_in_rack_lp_from_delta(
+              proxy, plan, src_bid, st.dst_block_id(), st.chunk_byte_offset(), rd.buf.data(), rd.buf.size(), pbk,
+              pip, pp);
+          const auto t_apply1 = std::chrono::steady_clock::now();
+          const double apply_ms = std::chrono::duration<double, std::milli>(t_apply1 - t_apply0).count();
+          const double step_ms = std::chrono::duration<double, std::milli>(t_apply1 - t_step0).count();
+          {
+            std::ostringstream ob;
+            ob << (ok ? "OK" : "FAIL")
+               << " IN_RACK_LP step=" << st.step_index()
+               << " slot=" << st.scheduled_slot()
+               << " ΔD blk" << st.src_block_id() << "(c" << st.src_proxy_cluster_id()
+               << ") → local_blk" << st.dst_block_id() << "(c" << st.dst_proxy_cluster_id() << ")"
+               << " chunk=[" << st.chunk_byte_offset() << "+" << rd.buf.size() << "B]"
+               << " dn_read=" << rd.read_ms << "ms"
+               << " local_apply=" << apply_ms << "ms"
+               << " step_total=" << step_ms << "ms"
+               << " (phase=parallel_read+serial_rmw, no tcp/collector)";
+            if (ok)
+              plan_log_sync(ob.str());
+            else
+              plan_log_both_sync(ob.str());
+          }
+          if (!ok)
+            stats.failed = 1;
+          else
+            stats.executed = 1;
+          merge_step_stats(stats);
+        }
+
         run_step_batch(serial_steps, false);
       }
 

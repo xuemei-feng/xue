@@ -24,6 +24,11 @@ namespace ECProject
       double inv_bw_sec_per_byte = 1.0 / (100.0 * 1024.0 * 1024.0); // ~100 MiB/s
       /** 是否在 Dinic 调度中强制「每 cluster 每步最多 1 发 + 1 收」（默认 true，保持原有约束） */
       bool enforce_one_send_one_recv_per_cluster = true;
+      /**
+       * SplitParityLRC：数据块与其本地校验同机架时，LP 由本机架直接更新（不经 collector 扇出）；
+       * ΔD 仍发往全局校验收集器。其它码制保持 false。
+       */
+      bool split_parity_in_rack_lp = false;
     };
 
     enum class TrainLinkKind
@@ -31,7 +36,9 @@ namespace ECProject
       STAR_DATA_TO_CENTER,
       STAR_CENTER_TO_GLOBAL,
       STAR_CENTER_TO_LOCAL,
-      MST_FORWARD
+      MST_FORWARD,
+      /** 同机架：本架 proxy 读本地 ΔD，直接更新本架 LP（不经 TCP/collector） */
+      IN_RACK_LOCAL_PARITY_APPLY
     };
 
     /** 线上载荷语义：数据增量 ΔD（按字节传输） vs 已由收集器聚合得到的校验增量（再 XOR 落盘） */

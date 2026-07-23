@@ -2271,7 +2271,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     cord_alg2::Algorithm2Result alg2_result;
     {
       cord_alg2::TransferParams tp;
-      tp.enforce_one_send_one_recv_per_cluster = false; 
+      tp.enforce_one_send_one_recv_per_cluster = false;
+      tp.split_parity_in_rack_lp = (m_sys_config->CodeType == "SplitParityLRC");
       alg2_result =
           cord_alg2::build_algorithm2(*stripe, block_intervals, groups, m_sys_config->ClusterNum, tp);
       std::cout << "[CoRD] Algorithm 2 train_route (|U|=" << groups.size() << ", links=" << alg2_result.train_route.size()
