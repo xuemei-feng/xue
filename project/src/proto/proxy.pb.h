@@ -244,12 +244,13 @@ enum CordTransferLinkKind : int {
   CORD_TRANSFER_STAR_CENTER_TO_GLOBAL = 1,
   CORD_TRANSFER_STAR_CENTER_TO_LOCAL = 2,
   CORD_TRANSFER_MST_FORWARD = 3,
+  CORD_TRANSFER_IN_RACK_LOCAL_PARITY_APPLY = 4,
   CordTransferLinkKind_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   CordTransferLinkKind_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool CordTransferLinkKind_IsValid(int value);
 constexpr CordTransferLinkKind CordTransferLinkKind_MIN = CORD_TRANSFER_STAR_DATA_TO_CENTER;
-constexpr CordTransferLinkKind CordTransferLinkKind_MAX = CORD_TRANSFER_MST_FORWARD;
+constexpr CordTransferLinkKind CordTransferLinkKind_MAX = CORD_TRANSFER_IN_RACK_LOCAL_PARITY_APPLY;
 constexpr int CordTransferLinkKind_ARRAYSIZE = CordTransferLinkKind_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* CordTransferLinkKind_descriptor();
