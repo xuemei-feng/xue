@@ -2019,80 +2019,126 @@ namespace ECProject
             merge_step_stats(r);
         }
 
-        // Phase 2: 按 LP 目标串行读-改-写（先并行读完 ΔD，再串行写 LP，避免交错丢更新）
-        std::vector<size_t> in_rack_order(in_rack_steps.size());
-        std::iota(in_rack_order.begin(), in_rack_order.end(), 0);
-        std::sort(in_rack_order.begin(), in_rack_order.end(), [&](size_t a, size_t b) {
-          const auto &sa = plan.steps(in_rack_steps[a]);
-          const auto &sb = plan.steps(in_rack_steps[b]);
-          if (sa.dst_block_id() != sb.dst_block_id())
-            return sa.dst_block_id() < sb.dst_block_id();
-          if (sa.src_block_id() != sb.src_block_id())
-            return sa.src_block_id() < sb.src_block_id();
-          return sa.step_index() < sb.step_index();
-        });
-        for (size_t oi : in_rack_order)
+        // Phase 2: ΔD 已并行读完；不同 LP 并行写，同一 LP 内仍串行 RMW（与 CTR_TO_LOCAL 共用 rmw 锁）
         {
-          const int si = in_rack_steps[oi];
-          const auto &st = plan.steps(si);
-          const auto t_step0 = std::chrono::steady_clock::now();
-          CordStepRunStats stats{};
-          const auto &rd = in_rack_reads[oi];
-          if (!rd.ok)
+          std::map<int, std::vector<size_t>> by_lp;
+          for (size_t wi = 0; wi < in_rack_steps.size(); ++wi)
           {
-            plan_log_both_sync("FAIL IN_RACK_LP " + rd.err + " step=" + std::to_string(st.step_index()) +
-                               " data_blk=" + std::to_string(st.src_block_id()));
-            stats.failed = 1;
-            merge_step_stats(stats);
-            continue;
+            const int lp = plan.steps(in_rack_steps[wi]).dst_block_id();
+            by_lp[lp].push_back(wi);
           }
-          if (rd.buf.empty())
+          for (auto &kv : by_lp)
           {
-            stats.skipped = 1;
-            merge_step_stats(stats);
-            continue;
+            auto &idxs = kv.second;
+            std::sort(idxs.begin(), idxs.end(), [&](size_t a, size_t b) {
+              const auto &sa = plan.steps(in_rack_steps[a]);
+              const auto &sb = plan.steps(in_rack_steps[b]);
+              if (sa.src_block_id() != sb.src_block_id())
+                return sa.src_block_id() < sb.src_block_id();
+              return sa.step_index() < sb.step_index();
+            });
           }
-          std::string pbk, pip;
-          int pp = 0;
-          if (!cord_lookup_block_placement(plan, st.dst_block_id(), &pbk, &pip, &pp))
-          {
-            plan_log_both_sync("FAIL IN_RACK_LP block_placement_missing dst_blk=" +
-                               std::to_string(st.dst_block_id()) + " step=" + std::to_string(st.step_index()));
-            stats.failed = 1;
-            merge_step_stats(stats);
-            continue;
-          }
-          const int src_bid =
-              st.has_mst_origin_data_block_id() ? st.mst_origin_data_block_id() : st.src_block_id();
-          const auto t_apply0 = std::chrono::steady_clock::now();
-          const bool ok = cord_apply_in_rack_lp_from_delta(
-              proxy, plan, src_bid, st.dst_block_id(), st.chunk_byte_offset(), rd.buf.data(), rd.buf.size(), pbk,
-              pip, pp);
-          const auto t_apply1 = std::chrono::steady_clock::now();
-          const double apply_ms = std::chrono::duration<double, std::milli>(t_apply1 - t_apply0).count();
-          const double step_ms = std::chrono::duration<double, std::milli>(t_apply1 - t_step0).count();
-          {
-            std::ostringstream ob;
-            ob << (ok ? "OK" : "FAIL")
-               << " IN_RACK_LP step=" << st.step_index()
-               << " slot=" << st.scheduled_slot()
-               << " ΔD blk" << st.src_block_id() << "(c" << st.src_proxy_cluster_id()
-               << ") → local_blk" << st.dst_block_id() << "(c" << st.dst_proxy_cluster_id() << ")"
-               << " chunk=[" << st.chunk_byte_offset() << "+" << rd.buf.size() << "B]"
-               << " dn_read=" << rd.read_ms << "ms"
-               << " local_apply=" << apply_ms << "ms"
-               << " step_total=" << step_ms << "ms"
-               << " (phase=parallel_read+serial_rmw, no tcp/collector)";
-            if (ok)
-              plan_log_sync(ob.str());
+
+          auto apply_one_in_rack = [&](size_t oi) -> CordStepRunStats {
+            CordStepRunStats stats{};
+            const int si = in_rack_steps[oi];
+            const auto &st = plan.steps(si);
+            const auto t_step0 = std::chrono::steady_clock::now();
+            const auto &rd = in_rack_reads[oi];
+            if (!rd.ok)
+            {
+              plan_log_both_sync("FAIL IN_RACK_LP " + rd.err + " step=" + std::to_string(st.step_index()) +
+                                 " data_blk=" + std::to_string(st.src_block_id()));
+              stats.failed = 1;
+              return stats;
+            }
+            if (rd.buf.empty())
+            {
+              stats.skipped = 1;
+              return stats;
+            }
+            std::string pbk, pip;
+            int pp = 0;
+            if (!cord_lookup_block_placement(plan, st.dst_block_id(), &pbk, &pip, &pp))
+            {
+              plan_log_both_sync("FAIL IN_RACK_LP block_placement_missing dst_blk=" +
+                                 std::to_string(st.dst_block_id()) +
+                                 " step=" + std::to_string(st.step_index()));
+              stats.failed = 1;
+              return stats;
+            }
+            const int src_bid =
+                st.has_mst_origin_data_block_id() ? st.mst_origin_data_block_id() : st.src_block_id();
+            const auto t_apply0 = std::chrono::steady_clock::now();
+            const bool ok = cord_apply_in_rack_lp_from_delta(
+                proxy, plan, src_bid, st.dst_block_id(), st.chunk_byte_offset(), rd.buf.data(), rd.buf.size(),
+                pbk, pip, pp);
+            const auto t_apply1 = std::chrono::steady_clock::now();
+            const double apply_ms = std::chrono::duration<double, std::milli>(t_apply1 - t_apply0).count();
+            const double step_ms = std::chrono::duration<double, std::milli>(t_apply1 - t_step0).count();
+            {
+              std::ostringstream ob;
+              ob << (ok ? "OK" : "FAIL")
+                 << " IN_RACK_LP step=" << st.step_index()
+                 << " slot=" << st.scheduled_slot()
+                 << " ΔD blk" << st.src_block_id() << "(c" << st.src_proxy_cluster_id()
+                 << ") → local_blk" << st.dst_block_id() << "(c" << st.dst_proxy_cluster_id() << ")"
+                 << " chunk=[" << st.chunk_byte_offset() << "+" << rd.buf.size() << "B]"
+                 << " dn_read=" << rd.read_ms << "ms"
+                 << " local_apply=" << apply_ms << "ms"
+                 << " step_total=" << step_ms << "ms"
+                 << " (phase=parallel_read+per_lp_parallel_rmw, no tcp/collector)";
+              if (ok)
+                plan_log_sync(ob.str());
+              else
+                plan_log_both_sync(ob.str());
+            }
+            if (!ok)
+              stats.failed = 1;
             else
-              plan_log_both_sync(ob.str());
+              stats.executed = 1;
+            return stats;
+          };
+
+          if (by_lp.size() <= 1u)
+          {
+            for (const auto &kv : by_lp)
+              for (size_t oi : kv.second)
+                merge_step_stats(apply_one_in_rack(oi));
           }
-          if (!ok)
-            stats.failed = 1;
           else
-            stats.executed = 1;
-          merge_step_stats(stats);
+          {
+            std::vector<std::thread> lp_workers;
+            std::vector<CordStepRunStats> lp_results(by_lp.size());
+            lp_workers.reserve(by_lp.size());
+            size_t gi = 0;
+            for (const auto &kv : by_lp)
+            {
+              const std::vector<size_t> idxs = kv.second;
+              lp_workers.emplace_back([&, gi, idxs]() {
+                CordStepRunStats acc{};
+                for (size_t oi : idxs)
+                {
+                  const CordStepRunStats s = apply_one_in_rack(oi);
+                  acc.executed += s.executed;
+                  acc.skipped += s.skipped;
+                  acc.failed += s.failed;
+                }
+                lp_results[gi] = acc;
+              });
+              ++gi;
+            }
+            for (auto &th : lp_workers)
+              th.join();
+            for (const auto &r : lp_results)
+              merge_step_stats(r);
+            {
+              std::ostringstream os;
+              os << "SLOT slot=" << sl << " in_rack_lp_groups=" << by_lp.size()
+                 << " (different LP parallel, same LP serial)";
+              plan_log_sync(os.str());
+            }
+          }
         }
 
         run_step_batch(serial_steps, false);
