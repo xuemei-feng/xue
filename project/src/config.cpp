@@ -34,9 +34,9 @@ namespace ECProject
     }
     if (CodeType == "SplitParityLRC")
     {
+      assert(k % z == 0 && "Error: SplitParityLRC requires k divisible by z");
       assert(DatanodeNumPerCluster > k / z + 1 && "Error: DatanodeNumPerCluster must be greater than k / z + 1");
-      assert(ClusterNum >= 6 && "Error: SplitParityLRC requires ClusterNum >= 6");
-      assert(k <= 4 * (r + 1) && "Error: SplitParityLRC requires k <= 4*(r+1)");
+      assert(ClusterNum > z + 1 && "Error: SplitParityLRC requires ClusterNum > z + 1");
     }
     if (CodeType == "CordXueLRC")
     {

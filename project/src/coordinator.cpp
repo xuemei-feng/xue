@@ -1214,33 +1214,40 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
   void CoordinatorImpl::initialize_split_parity_lrc_stripe_placement(Stripe *stripe)
   {
-    // 6-cluster 轮询放置（stripe_id % 6）：
-    //   slot0 -> 全部全局校验块；slot1 -> 全部本地校验块；slot2..5 -> 仅数据块（随机，且每 cluster 数据块数 <= r+1）
+    // Azure-style placement (cluster = rack), stripe_id 轮询：
+    // 1) 全部全局校验块 -> global_cluster
+    // 2) 每个本地组：r 个数据块 + 其本地校验块 -> 专用机架（轮询，跳过 global）
+    // 3) 每个本地组再选 1 个数据块 -> global_cluster（不足则跳过）
+    // 4) 各组剩余数据块：
+    //    - 每组剩 1 个：所有组剩余共同放入一个机架
+    //    - 每组剩 >1 个：该本地组全部剩余 -> 单独一个机架
     Block *blocks_info = new Block[stripe->n];
     assert(stripe->object_keys.size() == 1);
 
     const int cluster_num = m_sys_config->ClusterNum;
-    if (cluster_num < 6)
+    if (cluster_num < 3)
     {
-      throw std::runtime_error("ClusterNum must be >= 6 for SplitParityLRC placement");
+      throw std::runtime_error("ClusterNum must be >= 3 for SplitParityLRC placement");
     }
-    if (stripe->k > 4 * (stripe->r + 1))
+    if (stripe->k % stripe->z != 0)
     {
-      throw std::runtime_error("SplitParityLRC requires k <= 4*(r+1) (four data clusters, each holds at most r+1 data blocks)");
+      throw std::runtime_error("SplitParityLRC requires k divisible by z");
     }
 
-    const int base = stripe->stripe_id % 6;
-    auto slot_cluster = [&](int slot_offset) -> int {
-      return (base + slot_offset) % cluster_num;
+    const int h = stripe->k / stripe->z;
+    const int global_cluster = stripe->stripe_id % cluster_num;
+    int cluster_cursor = global_cluster + 1;
+
+    auto next_non_global_cluster = [&]() -> int {
+      int cid = cluster_cursor % cluster_num;
+      cluster_cursor++;
+      while (cid == global_cluster)
+      {
+        cid = cluster_cursor % cluster_num;
+        cluster_cursor++;
+      }
+      return cid;
     };
-    const int global_cluster = slot_cluster(0);
-    const int local_cluster = slot_cluster(1);
-    std::vector<int> data_clusters;
-    data_clusters.reserve(4);
-    for (int slot = 2; slot <= 5; ++slot)
-    {
-      data_clusters.push_back(slot_cluster(slot));
-    }
 
     std::mt19937 gen;
     const std::uint64_t placement_seed = m_sys_config->PlacementRandomSeed;
@@ -1268,7 +1275,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'D';
-        blocks_info[i].map2group = int(i / (stripe->k / stripe->z));
+        blocks_info[i].map2group = int(i / h);
       }
       else if (i < stripe->k + stripe->r)
       {
@@ -1293,54 +1300,99 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
 
     std::vector<int> assigned_cluster(stripe->n, -1);
+
+    // Step 1: global parity blocks
     for (int i = stripe->k; i < stripe->k + stripe->r; ++i)
     {
       assigned_cluster[i] = global_cluster;
     }
-    for (int i = stripe->k + stripe->r; i < stripe->n; ++i)
+
+    const int n_primary_data = std::min(stripe->r, h);
+    std::vector<std::vector<int>> group_remainders(stripe->z);
+
+    for (int g = 0; g < stripe->z; ++g)
     {
-      assigned_cluster[i] = local_cluster;
+      const int base = g * h;
+      const int local_parity_id = stripe->k + stripe->r + g;
+
+      // Step 2: r (or h if smaller) data blocks + local parity
+      const int primary_cluster = next_non_global_cluster();
+      for (int j = 0; j < n_primary_data; ++j)
+      {
+        assigned_cluster[base + j] = primary_cluster;
+      }
+      assigned_cluster[local_parity_id] = primary_cluster;
+
+      int next_idx = base + n_primary_data;
+
+      // Step 3: one data block to global cluster (skip if none left)
+      if (next_idx < base + h)
+      {
+        assigned_cluster[next_idx] = global_cluster;
+        next_idx++;
+      }
+
+      // Collect remainders for step 4
+      while (next_idx < base + h)
+      {
+        group_remainders[g].push_back(next_idx);
+        next_idx++;
+      }
     }
 
-    std::vector<int> data_order(stripe->k);
-    std::iota(data_order.begin(), data_order.end(), 0);
-    const int max_attempts = 256;
-    bool placed = false;
-    for (int attempt = 0; attempt < max_attempts && !placed; ++attempt)
+    // Step 4: place remainders
+    // All groups have the same remainder count when k % z == 0.
+    int rem_count = 0;
+    for (int g = 0; g < stripe->z; ++g)
     {
-      std::shuffle(data_order.begin(), data_order.end(), gen);
-      std::map<int, int> data_cluster_count;
-      for (int cid : data_clusters)
+      if (!group_remainders[g].empty())
       {
-        data_cluster_count[cid] = 0;
+        rem_count = static_cast<int>(group_remainders[g].size());
+        break;
       }
-      bool ok = true;
-      for (int block_idx : data_order)
-      {
-        std::vector<int> candidates = data_clusters;
-        std::shuffle(candidates.begin(), candidates.end(), gen);
-        bool assigned = false;
-        for (int cid : candidates)
-        {
-          if (data_cluster_count[cid] + 1 <= stripe->r + 1)
-          {
-            assigned_cluster[block_idx] = cid;
-            data_cluster_count[cid]++;
-            assigned = true;
-            break;
-          }
-        }
-        if (!assigned)
-        {
-          ok = false;
-          break;
-        }
-      }
-      placed = ok;
     }
-    if (!placed)
+
+    if (rem_count == 1)
     {
-      throw std::runtime_error("SplitParityLRC placement failed to satisfy per-cluster data block count <= r+1");
+      // All groups' single leftover share one rack
+      std::vector<int> shared_remainders;
+      for (int g = 0; g < stripe->z; ++g)
+      {
+        shared_remainders.insert(shared_remainders.end(),
+                                 group_remainders[g].begin(), group_remainders[g].end());
+      }
+      if (!shared_remainders.empty())
+      {
+        const int remainder_cluster = next_non_global_cluster();
+        for (int block_idx : shared_remainders)
+        {
+          assigned_cluster[block_idx] = remainder_cluster;
+        }
+      }
+    }
+    else if (rem_count > 1)
+    {
+      // Each local group's remaining blocks -> dedicated rack
+      for (int g = 0; g < stripe->z; ++g)
+      {
+        if (group_remainders[g].empty())
+        {
+          continue;
+        }
+        const int remainder_cluster = next_non_global_cluster();
+        for (int block_idx : group_remainders[g])
+        {
+          assigned_cluster[block_idx] = remainder_cluster;
+        }
+      }
+    }
+
+    for (int i = 0; i < stripe->n; ++i)
+    {
+      if (assigned_cluster[i] < 0)
+      {
+        throw std::runtime_error("SplitParityLRC placement failed: unassigned block");
+      }
     }
 
     for (int i = 0; i < stripe->n; i++)
