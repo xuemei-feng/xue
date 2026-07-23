@@ -387,6 +387,36 @@ void ECProject::gen_optimal_lrc_matrix(unsigned char *encode_matrix, int k, int 
     delete[] local_vector;
 }
 
+void ECProject::gen_optimal_lrc_matrix_nofold(unsigned char *encode_matrix, int k, int r, int z)
+{
+    int m = k + r;
+    memset(encode_matrix, 0, (m + z) * k);
+    gf_gen_cauchy_matrix1(encode_matrix, m, k);
+    unsigned char *local_vector = new unsigned char[k];
+    gf_gen_local_vector(local_vector, k, r);
+    for(int i = 0; i < k; i++){
+        int row = i / (k / z);
+        encode_matrix[(m + row) * k + i] = local_vector[i];
+    }
+    delete[] local_vector;
+}
+
+void ECProject::encode_optimal_lrc_nofold(int k, int r, int z, unsigned char **data_ptrs, unsigned char **parity_ptrs, int block_size)
+{
+    for(int i = 0; i < r + z; i++){
+        memset(parity_ptrs[i], 0, block_size);
+    }
+    int m = k + r;
+    unsigned char *encode_matrix = new unsigned char[(m + z) * k];
+    gen_optimal_lrc_matrix_nofold(encode_matrix, k, r, z);
+
+    unsigned char *g_tbls = new unsigned char[k * (r + z)* 32];
+    ec_init_tables(k, r + z, &encode_matrix[k * k], g_tbls);
+    ec_encode_data_avx2(block_size, k, r + z, g_tbls, data_ptrs, parity_ptrs);
+    delete[] encode_matrix;
+    delete[] g_tbls;
+}
+
 void ECProject::gen_uniform_lrc_matrix(unsigned char *encode_matrix, int k, int r, int z)
 {
     int m = k + r;
@@ -759,11 +789,11 @@ ECProject::get_multi_decode_plan(int k, int r, int z, std::string code_type, con
     if(code_type == "UniLRC"){
         gen_unilrc_matrix(gen_matrix, k, r, z);
     }
-    else if(code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "BoundedRandomLRC" ||
+    else if(code_type == "AzureLRC" || code_type == "RandomLRC" ||
             code_type == "SplitParityLRC" || code_type == "CordXueLRC"){
         gen_azure_lrc_matrix(gen_matrix, k, r, z);
     }
-    else if(code_type == "OptimalLRC"){
+    else if(code_type == "OptimalLRC" || code_type == "BoundedRandomLRC"){
         gen_optimal_lrc_matrix(gen_matrix, k, r, z);
     }
     else if(code_type == "UniformLRC"){

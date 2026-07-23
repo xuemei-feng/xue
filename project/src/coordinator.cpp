@@ -1,4 +1,5 @@
 #include "coordinator.h"
+#include <atomic>
 #include <cstdint>
 #include "cord_algorithm2.h"
 #include "tinyxml2.h"
@@ -2418,6 +2419,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         uint64_t cluster_payload = 0;
         bool ok = false;
       };
+      int total_slices = 0;
+      for (const auto &plan_entry : sorted_clusters)
+        total_slices += static_cast<int>(plan_entry.second.size());
+      static std::atomic<uint64_t> br_stripe_upd_seq{1};
+      const std::string stripe_update_key =
+          std::to_string(stripe_id) + "_brupd_" +
+          std::to_string(br_stripe_upd_seq.fetch_add(1, std::memory_order_relaxed));
+
       std::vector<CordDeltaNotifyJob> notify_jobs;
       notify_jobs.reserve(sorted_clusters.size());
       for (const auto &plan_entry : sorted_clusters)
@@ -2439,6 +2448,24 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         plan.set_k(stripe->k);
         plan.set_r(stripe->r);
         plan.set_z(stripe->z);
+        plan.set_stripe_update_key(stripe_update_key);
+        plan.set_expected_global_delta_count(total_slices);
+        // Optimal：全部 z 个本地校验；各 G 齐后向每一个 L 发送 ΣΔG
+        for (int li = 0; li < stripe->z; ++li)
+        {
+          const int lbid = stripe->k + stripe->r + li;
+          Block *lb = stripe->blocks[static_cast<size_t>(lbid)];
+          const Node &ln = m_node_table[lb->map2node];
+          const Cluster &lc = m_cluster_table[lb->map2cluster];
+          auto *lt = plan.add_local_parities();
+          lt->set_parity_block_id(lbid);
+          lt->set_block_key(lb->block_key);
+          lt->set_datanode_ip(ln.node_ip);
+          lt->set_datanode_port(ln.node_port);
+          lt->set_proxy_cluster_id(lb->map2cluster);
+          lt->set_proxy_ip(lc.proxy_ip);
+          lt->set_proxy_port(lc.proxy_port);
+        }
         for (const auto &s : slices)
           job.cluster_payload += static_cast<uint64_t>(s.len);
         plan.set_update_payload_size(job.cluster_payload);
@@ -2454,7 +2481,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           plan.add_sizes(static_cast<uint64_t>(s.len));
 
           auto *fanout = plan.add_slice_fanouts();
-          // Azure-LRC：全部 r 个全局校验 + 所属本地组 1 个本地校验
+          // Optimal nofold：全部 r 个全局 + 所属本地组本地校验（全局对 L 的贡献由各 G 齐后直发）
           for (int gi = 0; gi < stripe->r; ++gi)
             fill_parity_fanout_target(stripe->k + gi, fanout);
           fill_parity_fanout_target(stripe->k + stripe->r + b->map2group, fanout);

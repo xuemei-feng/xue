@@ -419,6 +419,16 @@ message CordPlanCollectorIngestReq {
   int32 src_data_block_id = 7;
 }
 
+message CordParityFanoutTarget {
+  int32 parity_block_id = 1;
+  string block_key = 2;
+  string datanode_ip = 3;
+  int32 datanode_port = 4;
+  int32 proxy_cluster_id = 5;
+  string proxy_ip = 6;
+  int32 proxy_port = 7; // cluster 表中的 gRPC 基端口（与 CoRD topology 一致）
+}
+
 message CordPlanApplyParityXorReq {
   string plan_key = 1;
   int32 dst_block_id = 2;
@@ -428,6 +438,14 @@ message CordPlanApplyParityXorReq {
   int32 parity_slice_offset = 6;
   int32 parity_slice_length = 7;
   bytes parity_delta_payload = 8;
+  // BoundedRandom Optimal：每全局累加 ΔG，齐后直发全部本地校验；L 侧合并 r 份后一次 RMW
+  string stripe_update_key = 15;
+  int32 expected_global_delta_count = 16; // 本条带本次 update 的数据 slice 总数
+  bool after_apply_accum_own_global_delta = 17;
+  bool l1_merge_partial = 25;     // 发往某本地校验的单份全局 ΔP，先合并再落盘
+  int32 expected_l1_partials = 26; // 一般为 r
+  int32 src_global_block_id = 27;
+  repeated CordParityFanoutTarget local_parity_targets = 28; // G 齐后要发送的全部本地校验
 }
 
 message CordPlanMstDataDeltaReq {
@@ -442,16 +460,6 @@ message CordPlanMstDataDeltaReq {
   string parity_datanode_ip = 9;
   int32 parity_datanode_port = 10;
   int32 src_data_block_id = 11;
-}
-
-message CordParityFanoutTarget {
-  int32 parity_block_id = 1;
-  string block_key = 2;
-  string datanode_ip = 3;
-  int32 datanode_port = 4;
-  int32 proxy_cluster_id = 5;
-  string proxy_ip = 6;
-  int32 proxy_port = 7; // cluster 表中的 gRPC 基端口（与 CoRD topology 一致）
 }
 
 message CordDataSliceFanout {
@@ -478,6 +486,10 @@ message CordDataUpdatePlacement {
   int32 r = 16;
   int32 z = 17;
   repeated CordDataSliceFanout slice_fanouts = 18; // 与 blockids 一一对应
+  // 条带级：各数据 cluster 共享；每全局按 expected_global_delta_count 累加后自发送到全部 local_parities
+  string stripe_update_key = 19;
+  int32 expected_global_delta_count = 20;
+  repeated CordParityFanoutTarget local_parities = 22; // 全部 z 个本地校验
 }
 
 message CordLpDeltaFetch {

@@ -880,10 +880,11 @@ namespace ECProject
         data_ptr_array[static_cast<size_t>(i)] = m_pre_allocated_buffer + static_cast<size_t>(i) * bs;
       for (int i = 0; i < n - k; ++i)
         parity_ptr_array[static_cast<size_t>(i)] = m_pre_allocated_buffer + static_cast<size_t>(k + i) * bs;
-      ECProject::encode_azure_lrc(k, m_sys_config->r, m_sys_config->z,
-                                  reinterpret_cast<unsigned char **>(data_ptr_array.data()),
-                                  reinterpret_cast<unsigned char **>(parity_ptr_array.data()),
-                                  m_sys_config->BlockSize);
+      // Optimal 风格：全部数据→r 个 G；分组本地行再 fold 全部 G→z 个 L
+      ECProject::encode_optimal_lrc(k, m_sys_config->r, m_sys_config->z,
+                                    reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                    reinterpret_cast<unsigned char **>(parity_ptr_array.data()),
+                                    m_sys_config->BlockSize);
 
       std::vector<std::vector<char>> rack_payloads(static_cast<size_t>(slice_count));
       int id_cursor = 0;
