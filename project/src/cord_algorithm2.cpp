@@ -788,6 +788,18 @@ namespace ECProject
       };
       auto link_eligible_for_step = [&](size_t i) -> bool {
         const TrainLink &L = out.train_route[i];
+        if (L.group_index == kCordGlobalXorFinalGroupIndex)
+        {
+          // 终态 ΣΔG→Local：等全部非终态链路完成；多条终态链路之间可并行
+          for (size_t j = 0; j < out.train_route.size(); ++j)
+          {
+            if (j == i)
+              continue;
+            if (remaining[j] > 0 && out.train_route[j].group_index != kCordGlobalXorFinalGroupIndex)
+              return false;
+          }
+          return true;
+        }
         if (L.kind == TrainLinkKind::STAR_CENTER_TO_GLOBAL || L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL)
         {
           if (!collector_star_data_ingress_done(L.group_index, L.src_block_id))
@@ -933,6 +945,18 @@ namespace ECProject
 
       auto link_eligible_for_step = [&](size_t i) -> bool {
         const TrainLink &L = out->train_route[i];
+        if (L.group_index == kCordGlobalXorFinalGroupIndex)
+        {
+          // 终态 ΣΔG→Local：等全部非终态链路完成；多条终态链路之间可并行
+          for (size_t j = 0; j < out->train_route.size(); ++j)
+          {
+            if (j == i)
+              continue;
+            if (remaining[j] > 0 && out->train_route[j].group_index != kCordGlobalXorFinalGroupIndex)
+              return false;
+          }
+          return true;
+        }
         if (L.kind == TrainLinkKind::STAR_CENTER_TO_GLOBAL || L.kind == TrainLinkKind::STAR_CENTER_TO_LOCAL)
         {
           if (!collector_star_data_ingress_done(L.group_index, L.src_block_id))
@@ -995,6 +1019,43 @@ namespace ECProject
           if (id >= 0 && id < static_cast<int>(remaining.size()) && remaining[id] > 0)
             remaining[id]--;
         }
+        out->timeslot_schedule.push_back(std::move(te));
+      }
+    }
+
+    void ensure_global_xor_final_timeslot_last(Algorithm2Result *out)
+    {
+      if (out == nullptr || out->timeslot_schedule.empty())
+        return;
+      std::vector<int> final_lis;
+      for (size_t i = 0; i < out->train_route.size(); ++i)
+      {
+        if (out->train_route[i].group_index == kCordGlobalXorFinalGroupIndex)
+          final_lis.push_back(static_cast<int>(i));
+      }
+      if (final_lis.empty())
+        return;
+      for (auto &te : out->timeslot_schedule)
+      {
+        auto &idx = te.link_indices;
+        idx.erase(std::remove_if(idx.begin(), idx.end(),
+                                 [&](int li) {
+                                   return std::find(final_lis.begin(), final_lis.end(), li) != final_lis.end();
+                                 }),
+                  idx.end());
+      }
+      out->timeslot_schedule.erase(
+          std::remove_if(out->timeslot_schedule.begin(), out->timeslot_schedule.end(),
+                         [](const TimeslotEntry &te) { return te.link_indices.empty(); }),
+          out->timeslot_schedule.end());
+      for (size_t i = 0; i < out->timeslot_schedule.size(); ++i)
+        out->timeslot_schedule[i].timeslot = static_cast<int>(i);
+      // 同 collector 出发受一发一收约束：每条终态链路独占一个末尾 timeslot
+      for (int final_li : final_lis)
+      {
+        TimeslotEntry te;
+        te.timeslot = out->timeslot_schedule.empty() ? 0 : out->timeslot_schedule.back().timeslot + 1;
+        te.link_indices.push_back(final_li);
         out->timeslot_schedule.push_back(std::move(te));
       }
     }

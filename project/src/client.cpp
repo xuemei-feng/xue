@@ -32,7 +32,13 @@ namespace ECProject
 
     bool is_azure_like_code(const std::string &code_type)
     {
+      // 放置/分组仍把 CordXueLRC 视作 Azure 布局；编码矩阵见下方 is_cord_xue / Optimal 分支
       return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC";
+    }
+
+    bool is_cord_xue_code(const std::string &code_type)
+    {
+      return code_type == "CordXueLRC";
     }
 
     using CordClock = std::chrono::steady_clock;
@@ -857,10 +863,11 @@ namespace ECProject
         data_ptr_array[static_cast<size_t>(i)] = m_pre_allocated_buffer + static_cast<size_t>(i) * bs;
       for (int i = 0; i < n - k; ++i)
         parity_ptr_array[static_cast<size_t>(i)] = m_pre_allocated_buffer + static_cast<size_t>(k + i) * bs;
-      ECProject::encode_azure_lrc(k, m_sys_config->r, m_sys_config->z,
-                                  reinterpret_cast<unsigned char **>(data_ptr_array.data()),
-                                  reinterpret_cast<unsigned char **>(parity_ptr_array.data()),
-                                  m_sys_config->BlockSize);
+      // CordXueLRC：Optimal 编码矩阵（全数据→r 全局；分组本地；全部 G 参与全部 L）
+      ECProject::encode_optimal_lrc(k, m_sys_config->r, m_sys_config->z,
+                                    reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                    reinterpret_cast<unsigned char **>(parity_ptr_array.data()),
+                                    m_sys_config->BlockSize);
 
       std::vector<std::vector<char>> rack_payloads(static_cast<size_t>(slice_count));
       int id_cursor = 0;
@@ -1044,7 +1051,7 @@ namespace ECProject
         //ECProject::encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_unilrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
-      else if (m_sys_config->CodeType == "OptimalLRC")
+      else if (m_sys_config->CodeType == "OptimalLRC" || is_cord_xue_code(m_sys_config->CodeType))
       {
         //ECProject::encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_optimal_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
@@ -1054,7 +1061,7 @@ namespace ECProject
         //ECProject::encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_uniform_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
-      else if (is_azure_like_code(m_sys_config->CodeType))
+      else if (is_azure_like_code(m_sys_config->CodeType) && !is_cord_xue_code(m_sys_config->CodeType))
       {
         //ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(global_parity_ptr_array.data()), reinterpret_cast<unsigned char **>(local_parity_ptr_array.data()), m_sys_config->BlockSize);
         ECProject::partial_encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, block_num, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
@@ -1966,12 +1973,13 @@ namespace ECProject
     parameters.push_back(m_sys_config->r);
     parameters.push_back(m_sys_config->z);
     parameters.push_back(m_sys_config->BlockSize);
-    if(is_azure_like_code(m_sys_config->CodeType))
+    if(is_azure_like_code(m_sys_config->CodeType) && !is_cord_xue_code(m_sys_config->CodeType))
     {
       parameters.push_back(0);
     }
-    else if(m_sys_config->CodeType == "OptimalLRC")
+    else if(m_sys_config->CodeType == "OptimalLRC" || is_cord_xue_code(m_sys_config->CodeType))
     {
+      // CordXueLRC 更新路径使用 Optimal_Cauchy_LRC encode_type；本地折叠由终态 ΣΔG 补
       parameters.push_back(1);
     }
     else if(m_sys_config->CodeType == "UniformLRC")

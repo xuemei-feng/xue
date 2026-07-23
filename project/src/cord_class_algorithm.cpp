@@ -371,7 +371,36 @@ namespace ECProject
         }
       }
 
+      // Optimal 风格 CordXueLRC：全部全局校验更新完成后，将同一份 ΣΔG 扇出到全部 z 个本地校验
+      // （区别于 Uniform 只更新 L_{z-1}）
+      {
+        std::vector<int> updated_data;
+        for (const auto &kv : block_intervals)
+        {
+          const int bid = kv.first;
+          if (bid >= 0 && bid < k && delta_bytes_for_block(block_intervals, bid) > 0)
+            updated_data.push_back(bid);
+        }
+        const int64_t pl = cord_alg2::merged_delta_hull_span_bytes(block_intervals, updated_data);
+        if (pl > 0)
+        {
+          for (int g = 0; g < stripe.z; ++g)
+          {
+            const int Lb = local_parity_block_for_group(stripe, g);
+            if (Lb < 0)
+              continue;
+            const int lc = block_cluster(stripe, Lb);
+            auto L = make_link(collector, Lb, gc, lc, pl, cord_alg2::TrainLinkKind::STAR_CENTER_TO_LOCAL,
+                               cord_alg2::CordDeltaPayloadKind::PARITY_DELTA,
+                               cord_alg2::kCordGlobalXorFinalGroupIndex, cluster_num, tp);
+            L.parity_merge_data_block_ids.clear();
+            out.train_route.push_back(std::move(L));
+          }
+        }
+      }
+
       cord_alg2::schedule_train_route_timeslots(&out, cluster_num, tp);
+      cord_alg2::ensure_global_xor_final_timeslot_last(&out);
 
       if (cord_verbose_enabled())
         std::cout << "[CoRD-Class] train_route links=" << out.train_route.size()

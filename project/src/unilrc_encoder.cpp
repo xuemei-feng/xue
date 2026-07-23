@@ -288,6 +288,42 @@ void ECProject::partial_encode_optimal_lrc(int k, int r, int z, int data_block_n
     delete[] g_tbls;
 }
 
+void ECProject::partial_encode_optimal_lrc_local_contrib(int k, int r, int z, int data_block_num, unsigned char **data_ptrs, unsigned char **parity_ptrs, int block_size)
+{
+    for (int i = 0; i < r + z; i++)
+    {
+        memset(parity_ptrs[i], 0, block_size);
+    }
+    int m = k + r;
+    unsigned char *encode_matrix = new unsigned char[(m + z) * k];
+    gen_optimal_lrc_matrix(encode_matrix, k, r, z);
+    // 去掉 SET 矩阵里「本地行 ^= 全部全局行」的折叠，更新时本地只保留本组数据贡献
+    for (int i = 0; i < z; i++)
+    {
+        for (int j = 0; j < k; j++)
+        {
+            for (int l = 0; l < r; l++)
+            {
+                encode_matrix[(m + i) * k + j] ^= encode_matrix[(k + l) * k + j];
+            }
+        }
+    }
+
+    unsigned char *sub_matrix = new unsigned char[(r + z) * data_block_num];
+    for (int i = 0; i < r + z; i++)
+    {
+        memcpy(sub_matrix + i * data_block_num, encode_matrix + (k + i) * k, data_block_num);
+    }
+
+    unsigned char *g_tbls = new unsigned char[data_block_num * (r + z) * 32];
+    ec_init_tables(data_block_num, r + z, sub_matrix, g_tbls);
+    ec_encode_data_avx2(block_size, data_block_num, r + z, g_tbls, data_ptrs, parity_ptrs);
+
+    delete[] encode_matrix;
+    delete[] sub_matrix;
+    delete[] g_tbls;
+}
+
 void ECProject::encode_uniform_lrc(int k, int r, int z, unsigned char **data_ptrs, unsigned char **parity_ptrs, int block_size)
 {
     for(int i = 0; i < r + z; i++){
@@ -759,10 +795,10 @@ ECProject::get_multi_decode_plan(int k, int r, int z, std::string code_type, con
     if(code_type == "UniLRC"){
         gen_unilrc_matrix(gen_matrix, k, r, z);
     }
-    else if(code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC"){
+    else if(code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC"){
         gen_azure_lrc_matrix(gen_matrix, k, r, z);
     }
-    else if(code_type == "OptimalLRC"){
+    else if(code_type == "OptimalLRC" || code_type == "CordXueLRC"){
         gen_optimal_lrc_matrix(gen_matrix, k, r, z);
     }
     else if(code_type == "UniformLRC"){

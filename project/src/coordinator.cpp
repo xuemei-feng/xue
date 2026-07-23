@@ -477,6 +477,9 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       {
         proxy_proto::CordTransferStep *st = plan->mutable_steps(i);
         st->clear_parity_ingest_stripe_group();
+        // 终态 ΣΔG→全部本地：载荷来自 g_cord_global_delta_xor_for_l1，不要打 parity_ingest
+        if (st->group_index() == cord_alg2::kCordGlobalXorFinalGroupIndex)
+          continue;
         if ((st->link_kind() != proxy_proto::CORD_TRANSFER_STAR_CENTER_TO_LOCAL &&
              st->link_kind() != proxy_proto::CORD_TRANSFER_STAR_DATA_TO_LOCAL) ||
             st->delta_payload_kind() != proxy_proto::CORD_DELTA_PARITY)
