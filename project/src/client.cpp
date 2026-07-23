@@ -857,6 +857,83 @@ namespace ECProject
       std::cout << "[SET402] upload data failed!" << std::endl;
       return false;
     }
+
+    const int slice_count = reply.append_keys_size();
+    std::unique_ptr<bool[]> if_commit_arr(new bool[slice_count]);
+    std::fill_n(if_commit_arr.get(), slice_count, false);
+
+    // BoundedRandomLRC：逻辑块序编码后，按物理机架重打包，并发发到各接收机架 proxy
+    if (m_sys_config->CodeType == "BoundedRandomLRC")
+    {
+      if (reply.slice_block_counts_size() != slice_count)
+      {
+        std::cout << "[SET] BoundedRandomLRC: slice_block_counts size mismatch" << std::endl;
+        return false;
+      }
+      const int k = m_sys_config->k;
+      const int n = m_sys_config->n;
+      const size_t bs = static_cast<size_t>(m_sys_config->BlockSize);
+      fill_random_bytes(m_pre_allocated_buffer, static_cast<size_t>(k) * bs);
+      std::vector<char *> data_ptr_array(static_cast<size_t>(k));
+      std::vector<char *> parity_ptr_array(static_cast<size_t>(n - k));
+      for (int i = 0; i < k; ++i)
+        data_ptr_array[static_cast<size_t>(i)] = m_pre_allocated_buffer + static_cast<size_t>(i) * bs;
+      for (int i = 0; i < n - k; ++i)
+        parity_ptr_array[static_cast<size_t>(i)] = m_pre_allocated_buffer + static_cast<size_t>(k + i) * bs;
+      ECProject::encode_azure_lrc(k, m_sys_config->r, m_sys_config->z,
+                                  reinterpret_cast<unsigned char **>(data_ptr_array.data()),
+                                  reinterpret_cast<unsigned char **>(parity_ptr_array.data()),
+                                  m_sys_config->BlockSize);
+
+      std::vector<std::vector<char>> rack_payloads(static_cast<size_t>(slice_count));
+      int id_cursor = 0;
+      for (int i = 0; i < slice_count; ++i)
+      {
+        const int blk_cnt = reply.slice_block_counts(i);
+        const size_t expect = static_cast<size_t>(reply.cluster_slice_sizes(i));
+        if (expect != static_cast<size_t>(blk_cnt) * bs)
+        {
+          std::cout << "[SET] BoundedRandomLRC: slice " << i << " size mismatch expect=" << expect
+                    << " blocks=" << blk_cnt << std::endl;
+          return false;
+        }
+        if (id_cursor + blk_cnt > reply.slice_block_ids_size())
+        {
+          std::cout << "[SET] BoundedRandomLRC: slice_block_ids underflow" << std::endl;
+          return false;
+        }
+        auto &payload = rack_payloads[static_cast<size_t>(i)];
+        payload.resize(expect);
+        size_t off = 0;
+        for (int j = 0; j < blk_cnt; ++j)
+        {
+          const int bid = reply.slice_block_ids(id_cursor++);
+          if (bid < 0 || bid >= n)
+          {
+            std::cout << "[SET] BoundedRandomLRC: invalid block_id=" << bid << std::endl;
+            return false;
+          }
+          std::memcpy(payload.data() + off, m_pre_allocated_buffer + static_cast<size_t>(bid) * bs, bs);
+          off += bs;
+        }
+      }
+
+      asio::io_context io_context;
+      auto pending = std::make_shared<std::atomic<int>>(slice_count);
+      for (int i = 0; i < slice_count; ++i)
+      {
+        async_append_to_proxies_async(io_context,
+                                      rack_payloads[static_cast<size_t>(i)].data(),
+                                      reply.append_keys(i),
+                                      static_cast<int>(reply.cluster_slice_sizes(i)),
+                                      reply.proxyips(i),
+                                      reply.proxyports(i),
+                                      i,
+                                      if_commit_arr.get(),
+                                      pending);
+      }
+      io_context.run();
+    }
     else
     {
       // 每条 stripe 使用独立随机数据；校验块必须随数据重新编码
@@ -865,8 +942,6 @@ namespace ECProject
       fill_random_bytes(m_pre_allocated_buffer, buf_bytes);
 
       std::vector<char *> cluster_slice_data = m_toolbox->splitCharPointer(m_pre_allocated_buffer, &reply);
-      std::unique_ptr<bool[]> if_commit_arr(new bool[reply.append_keys_size()]);
-      std::fill_n(if_commit_arr.get(), reply.append_keys_size(), false);
 
       assert(m_sys_config->CodeType == "UniLRC" || m_sys_config->CodeType == "OptimalLRC" || m_sys_config->CodeType == "UniformLRC" || is_azure_like_code(m_sys_config->CodeType));
       std::vector<int> data_block_num_per_group = get_data_block_num_per_group(m_sys_config->k, m_sys_config->r, m_sys_config->z, m_sys_config->CodeType);
@@ -895,12 +970,10 @@ namespace ECProject
         ECProject::encode_azure_lrc(m_sys_config->k, m_sys_config->r, m_sys_config->z, reinterpret_cast<unsigned char **>(data_ptr_array.data()), reinterpret_cast<unsigned char **>(parity_ptr_array.data()), m_sys_config->BlockSize);
       }
       (void)m_parity_precomputed;
-      // 回退到 client 直接并发发送给所有 proxy（旧逻辑），先跑通带宽测试
-      // 使用 Asio 多路复用实现真正的异步并发发送（单线程事件循环）
       asio::io_context io_context;
-      auto pending = std::make_shared<std::atomic<int>>(reply.append_keys_size());
+      auto pending = std::make_shared<std::atomic<int>>(slice_count);
 
-      for (int i = 0; i < reply.append_keys_size(); i++)
+      for (int i = 0; i < slice_count; i++)
       {
         async_append_to_proxies_async(io_context,
                                       cluster_slice_data[i],
@@ -913,51 +986,44 @@ namespace ECProject
                                       pending);
       }
 
-      io_context.run();  // 等待所有异步 TCP 发送完成
-
-      // 并行 gRPC 检查（每个 slice 独立 checkCommitAbort，减少尾延迟）
-      const int slice_count = reply.append_keys_size();
-      std::vector<std::thread> check_threads;
-      check_threads.reserve(static_cast<size_t>(slice_count));
-      for (int i = 0; i < slice_count; i++)
-      {
-        check_threads.emplace_back([this, i, &reply, if_commit_arr = if_commit_arr.get()]() {
-          grpc::ClientContext check_commit;
-          coordinator_proto::AskIfSuccess request;
-          request.set_key(reply.append_keys(i));
-          OpperateType opp = APPEND;
-          request.set_opp(opp);
-          coordinator_proto::RepIfSuccess reply_chk;
-          grpc::Status st = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply_chk);
-          if (st.ok() && reply_chk.ifcommit())
-          {
-            if_commit_arr[i] = true;
-          }
-          else if (!st.ok())
-          {
-            std::cout << "[SET-ASYNC] checkCommitAbort failed for key=" << reply.append_keys(i) << std::endl;
-          }
-        });
-      }
-      for (auto &t : check_threads)
-        t.join();
-
-      // check if all appends are successful
-      bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + slice_count, [](bool val)
-                                  { return val == true; });
-
-      if (all_true)
-      {
-        std::cout << "[SET437] Client " << m_clientID << " set successfully!" << std::endl;
-        return true;
-      }
-      else
-      {
-        std::cout << "[SET441] Client " << m_clientID << " set failed!" << std::endl;
-        return false;
-      }
+      io_context.run();
     }
 
+    // 并行 gRPC 检查（每个 slice 独立 checkCommitAbort，减少尾延迟）
+    std::vector<std::thread> check_threads;
+    check_threads.reserve(static_cast<size_t>(slice_count));
+    for (int i = 0; i < slice_count; i++)
+    {
+      check_threads.emplace_back([this, i, &reply, if_commit_arr = if_commit_arr.get()]() {
+        grpc::ClientContext check_commit;
+        coordinator_proto::AskIfSuccess request;
+        request.set_key(reply.append_keys(i));
+        OpperateType opp = APPEND;
+        request.set_opp(opp);
+        coordinator_proto::RepIfSuccess reply_chk;
+        grpc::Status st = m_coordinator_ptr->checkCommitAbort(&check_commit, request, &reply_chk);
+        if (st.ok() && reply_chk.ifcommit())
+        {
+          if_commit_arr[i] = true;
+        }
+        else if (!st.ok())
+        {
+          std::cout << "[SET-ASYNC] checkCommitAbort failed for key=" << reply.append_keys(i) << std::endl;
+        }
+      });
+    }
+    for (auto &t : check_threads)
+      t.join();
+
+    bool all_true = std::all_of(if_commit_arr.get(), if_commit_arr.get() + slice_count, [](bool val)
+                                { return val == true; });
+
+    if (all_true)
+    {
+      std::cout << "[SET437] Client " << m_clientID << " set successfully!" << std::endl;
+      return true;
+    }
+    std::cout << "[SET441] Client " << m_clientID << " set failed!" << std::endl;
     return false;
   }
 
