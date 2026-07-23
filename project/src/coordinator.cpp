@@ -1917,6 +1917,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       if (kit == m_cord_append_key_to_plan_key.end())
         return;
       plan_key = kit->second;
+      m_cord_append_key_to_plan_key.erase(kit);
       auto sit = m_cord_auto_begin_sessions.find(plan_key);
       if (sit == m_cord_auto_begin_sessions.end())
         return;
@@ -2548,13 +2549,22 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         m_cord_pending_plans[cord_xfer_plan_key] = cord_xfer_plan;
         m_cord_pending_plan_clusters[cord_xfer_plan_key].assign(plan_clusters.begin(), plan_clusters.end());
       }
+      // 登记 auto-begin：各 cluster delta upload commit 齐后立即启动跨 cluster xfer，
+      // 不必等到 client 的 cord_update_wait_xfer / cordPlanWaitTransferComplete。
+      cord_register_auto_begin_session(cord_xfer_plan_key, cord_delta_append_keys);
+      if (cord_delta_append_keys.empty())
+      {
+        // 无 delta key 可等待时直接开传（极端情况；正常路径由 commit 回调触发）。
+        (void)cord_start_pending_transfer_plan(cord_xfer_plan_key);
+      }
       proxyIPPort->set_cord_transfer_plan_key(cord_xfer_plan_key);
       if (cord_trace)
       {
         std::cout << "[CoRD] CordTransferPlan registered: key=" << cord_xfer_plan_key
                   << " steps=" << cord_xfer_plan.steps_size()
                   << " rounds=" << cord_xfer_plan.total_rounds()
-                  << " plan_clusters=" << plan_clusters.size() << "\n";
+                  << " plan_clusters=" << plan_clusters.size()
+                  << " auto_begin_delta_keys=" << cord_delta_append_keys.size() << "\n";
       }
     }
     else
