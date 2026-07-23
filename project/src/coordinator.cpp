@@ -1610,6 +1610,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
             theta = 1;
           }
         }
+        // (10,2,2): keep each group's m=2 remainder on its own rack (D3D4->c3, D8D9->c4)
+        // instead of packing theta=2 groups onto the same cluster.
+        if (stripe->k == 10 && stripe->r == 2 && stripe->z == 2)
+        {
+          theta = 1;
+        }
 
         for (int g = 0; g < stripe->z; g += theta)
         {
