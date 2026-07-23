@@ -123,6 +123,9 @@ message ReplyProxyIPsPorts {
   repeated uint64 cluster_slice_sizes = 5;
   repeated int32 group_ids = 6;
   string cord_transfer_plan_key = 7;
+  // SplitParityLRC SET：按物理机架切片时，告知 client 每个 slice 内的 block_id（升序）及个数
+  repeated int32 slice_block_ids = 8;
+  repeated int32 slice_block_counts = 9;
 }
 
 message CordPlanKeyOnly {

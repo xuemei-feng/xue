@@ -182,6 +182,8 @@ namespace ECProject
     void initialize_xue_tripe_placement(Stripe *stripe);
     void add_to_map(std::map<int, std::vector<int>> &map, int key, int value);
     std::vector<proxy_proto::AppendStripeDataPlacement> generate_add_plans(Stripe *stripe);
+    /** SplitParityLRC SET：按物理机架(cluster)聚合 block，块序按 block_id 升序；key=stripe_id_cluster_id */
+    std::vector<proxy_proto::AppendStripeDataPlacement> generate_add_plans_by_cluster(Stripe *stripe);
     std::vector<proxy_proto::AppendStripeDataPlacement> generate_sub_add_plans(Stripe *stripe, size_t subset_size);
     std::vector<proxy_proto::AppendStripeDataPlacement> generateAppendPlan(Stripe *stripe, int curr_logical_offset, int append_size);
     /** 与 generateAppendPlan 相同：由条带逻辑偏移区间得到各块 (size, 块内offset) 及校验条带尺寸 */
