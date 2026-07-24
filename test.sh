@@ -68,9 +68,9 @@ if [ ! -f "${CORD_TRACE_FILE}" ]; then
   exit 1
 fi
 
-# 并行 batch：CORD_BATCH_THREADS（默认 1）；CORD_PIPELINE_XFER=1（默认）upload 后不阻塞 wait，与下一条 stripe 重叠
+# 并行 batch：CORD_BATCH_THREADS（默认 1）；CORD_PIPELINE_XFER=0（默认）每条 stripe 等 xfer 完成后再跑下一条
 export CORD_BATCH_THREADS="${CORD_BATCH_THREADS:-1}"
-export CORD_PIPELINE_XFER="${CORD_PIPELINE_XFER:-1}"
+export CORD_PIPELINE_XFER="${CORD_PIPELINE_XFER:-0}"
 export CORD_UPDATE_SLICE_PARALLEL="${CORD_UPDATE_SLICE_PARALLEL:-1}"
 echo "CoRD batch trace: ${CORD_TRACE_FILE}"
 echo "ClientStripeNum=${CLIENT_STRIPE_NUM} (from ${CONFIG_XML})"
