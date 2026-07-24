@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ssh -oConnectTimeout=10 -oStrictHostKeyChecking=no 172.16.2.33 \"ss -tlnp 2>/dev/null | grep 6297\")",
+      "Bash(ssh -oConnectTimeout=10 -oStrictHostKeyChecking=no 172.16.2.51 \"ss -tlnp 2>/dev/null | grep 6381\")",
+      "Bash(ssh -oConnectTimeout=10 -oStrictHostKeyChecking=no 172.16.2.33 \"timeout 3 bash -c 'echo >/dev/tcp/172.16.2.51/50507' 2>&1 && echo 'TCP to .51:50507 OK' || echo 'TCP to .51:50507 FAILED'\")",
+      "Bash(ssh -oConnectTimeout=10 -oStrictHostKeyChecking=no 172.16.2.33 \"timeout 3 bash -c 'echo >/dev/tcp/172.16.2.42/50506' 2>&1 && echo 'TCP to .42:50506 OK' || echo 'TCP to .42:50506 FAILED'\")",
+      "Bash(ssh *)",
+      "Read(//proc/sys/net/ipv4/**)",
+      "Read(//proc/sys/net/core/**)"
+    ]
+  }
+}
