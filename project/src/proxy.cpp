@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <condition_variable>
 #include <cstring>
 #include <cstdlib>
 #include <ctime>
@@ -137,10 +138,18 @@ namespace ECProject
   }
 
   static std::mutex g_cord_xfer_mu;
+  static std::condition_variable g_cord_xfer_cv;
   static std::map<std::string, std::vector<uint8_t>> g_cord_collector_xor_acc;
   static std::map<std::string, std::vector<uint8_t>> g_cord_mst_stream;
   static std::map<std::string, std::vector<uint8_t>> g_cord_collector_block_delta;
   static std::map<std::string, std::vector<std::vector<uint8_t>>> g_cord_collector_parity_coded;
+
+  /** 生产路径默认关闭重日志；设 CORD_VERBOSE_LOG=1 打开 plan/xfer 详细输出与 /tmp 日志。 */
+  static bool cord_verbose_log_enabled()
+  {
+    const char *env = std::getenv("CORD_VERBOSE_LOG");
+    return env != nullptr && env[0] == '1' && env[1] == '\0';
+  }
   static std::mutex g_cord_plan_reg_mu;
   static std::map<std::string, std::shared_ptr<const proxy_proto::CordTransferPlan>> g_cord_plans_by_key;
   static std::mutex g_cord_plan_exec_mu;
@@ -189,6 +198,7 @@ namespace ECProject
   /** 单 plan_key：纯传输窗口（peer stub 预热后步骤循环起点 → 本 proxy 发送步骤结束且入站 parity 写盘+校验读完成）。 */
   struct CordPureXferTracker {
     std::mutex mu;
+    std::condition_variable cv;
     bool pure_xfer_loop_started = false;
     std::chrono::steady_clock::time_point pure_xfer_t0{};
     bool have_xfer_wall_t0 = false;
@@ -256,9 +266,12 @@ namespace ECProject
   static void cord_pure_xfer_parity_dn_abort(const std::string &pk)
   {
     auto tr = cord_pure_xfer_tracker_ptr(pk);
-    std::lock_guard<std::mutex> lk(tr->mu);
-    if (tr->parity_dn_write_inflight > 0)
-      --tr->parity_dn_write_inflight;
+    {
+      std::lock_guard<std::mutex> lk(tr->mu);
+      if (tr->parity_dn_write_inflight > 0)
+        --tr->parity_dn_write_inflight;
+    }
+    tr->cv.notify_all();
   }
 
   static void cord_pure_xfer_parity_dn_done_verified(const std::string &pk)
@@ -266,13 +279,16 @@ namespace ECProject
     auto tr = cord_pure_xfer_tracker_ptr(pk);
     const auto now = std::chrono::steady_clock::now();
     const auto wall_now = std::chrono::system_clock::now();
-    std::lock_guard<std::mutex> lk(tr->mu);
-    tr->last_parity_dn_verified = now;
-    tr->have_last_parity_dn_verified = true;
-    tr->last_parity_wall_verified = wall_now;
-    tr->have_last_parity_wall_verified = true;
-    if (tr->parity_dn_write_inflight > 0)
-      --tr->parity_dn_write_inflight;
+    {
+      std::lock_guard<std::mutex> lk(tr->mu);
+      tr->last_parity_dn_verified = now;
+      tr->have_last_parity_dn_verified = true;
+      tr->last_parity_wall_verified = wall_now;
+      tr->have_last_parity_wall_verified = true;
+      if (tr->parity_dn_write_inflight > 0)
+        --tr->parity_dn_write_inflight;
+    }
+    tr->cv.notify_all();
   }
 
   /** 步骤循环结束后调用：等待本机入站 parity 写盘收尾，再打 pure_xfer 日志，并发布 join 回报样本。 */
@@ -282,16 +298,9 @@ namespace ECProject
   {
     auto tr = cord_pure_xfer_tracker_ptr(pk);
     const auto deadline = std::chrono::steady_clock::now() + std::chrono::minutes(30);
-    for (;;)
     {
-      int inflight = 0;
-      {
-        std::lock_guard<std::mutex> lk(tr->mu);
-        inflight = tr->parity_dn_write_inflight;
-      }
-      if (inflight <= 0 || std::chrono::steady_clock::now() >= deadline)
-        break;
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      std::unique_lock<std::mutex> lk(tr->mu);
+      tr->cv.wait_until(lk, deadline, [&tr] { return tr->parity_dn_write_inflight <= 0; });
     }
     int inflight_left = 0;
     bool loop_started = false;
@@ -869,25 +878,20 @@ namespace ECProject
   }
 
   /** 等待收集器上 plan 期望的数据增量（可按 parity_ingest_stripe_group 过滤）到齐。 */
-  static bool cord_spin_until_collector_ingress_ready(const proxy_proto::CordTransferPlan &plan, int group,
+  static bool cord_wait_until_collector_ingress_ready(const proxy_proto::CordTransferPlan &plan, int group,
                                                       int collector_block_id, int parity_ingest_stripe_group)
   {
-    int spins = 0;
-    while (true)
+    std::unique_lock<std::mutex> lk(g_cord_xfer_mu);
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(120);
+    if (!g_cord_xfer_cv.wait_until(lk, deadline, [&] {
+          return cord_collector_ingress_ready_locked(plan, group, collector_block_id, parity_ingest_stripe_group);
+        }))
     {
-      {
-        std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
-        if (cord_collector_ingress_ready_locked(plan, group, collector_block_id, parity_ingest_stripe_group))
-          return true;
-      }
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      if (++spins > 120000)
-      {
-        std::cout << "[CoRD-PLAN] collector ingress timeout group=" << group << " col=" << collector_block_id
-                  << std::endl;
-        return false;
-      }
+      std::cerr << "[CoRD-PLAN] collector ingress timeout group=" << group << " col=" << collector_block_id
+                << std::endl;
+      return false;
     }
+    return true;
   }
 
 
@@ -901,24 +905,19 @@ namespace ECProject
   }
 
   /** 等待 MST 中继 hop：前继 cluster 经 cordPlanMstDataDeltaChunk 写入 g_cord_mst_stream 后再读。 */
-  static bool cord_spin_until_mst_relay_ready(const std::string &plan_key, uint64_t chunk_off, size_t chunk_len)
+  static bool cord_wait_until_mst_relay_ready(const std::string &plan_key, uint64_t chunk_off, size_t chunk_len)
   {
-    int spins = 0;
-    while (true)
+    std::unique_lock<std::mutex> lk(g_cord_xfer_mu);
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(120);
+    if (!g_cord_xfer_cv.wait_until(lk, deadline, [&] {
+          return cord_mst_relay_buffer_ready_locked(plan_key, chunk_off, chunk_len);
+        }))
     {
-      {
-        std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
-        if (cord_mst_relay_buffer_ready_locked(plan_key, chunk_off, chunk_len))
-          return true;
-      }
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      if (++spins > 120000)
-      {
-        std::cout << "[CoRD-PLAN] mst relay buffer timeout plan_key=" << plan_key << " off=" << chunk_off
-                  << " len=" << chunk_len << std::endl;
-        return false;
-      }
+      std::cerr << "[CoRD-PLAN] mst relay buffer timeout plan_key=" << plan_key << " off=" << chunk_off
+                << " len=" << chunk_len << std::endl;
+      return false;
     }
+    return true;
   }
 
   static bool cord_ensure_collector_parity_coded(const proxy_proto::CordTransferPlan &plan,
@@ -943,7 +942,7 @@ namespace ECProject
       if (g_cord_collector_parity_coded.count(ck))
         return true;
     }
-    if (!cord_spin_until_collector_ingress_ready(plan, group, collector_block_id, parity_ingest_stripe_group))
+    if (!cord_wait_until_collector_ingress_ready(plan, group, collector_block_id, parity_ingest_stripe_group))
       return false;
     std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
     if (g_cord_collector_parity_coded.count(ck))
@@ -1119,6 +1118,7 @@ namespace ECProject
         acc[static_cast<size_t>(off) + i] ^=
             static_cast<uint8_t>(payload[i]);
     }
+    g_cord_xfer_cv.notify_all();
     (void)proxy;
     return true;
   }
@@ -1246,6 +1246,7 @@ namespace ECProject
       for (size_t i = 0; i < chunk_size; ++i)
         stream[static_cast<size_t>(off) + i] = static_cast<uint8_t>(chunk_data[i]);
     }
+    g_cord_xfer_cv.notify_all();
 
     if (request.dst_proxy_cluster_id() == proxy->self_cluster_id() &&
         request.dst_block_id() >= request.k_datablock())
@@ -1389,14 +1390,17 @@ namespace ECProject
    * 收集器扇出须晚于同组 STAR 数据到达由算法二时隙依赖保证。
    * N>1：STAR 数据增量 -> TCP CRDX collector ingest；收集器再发 TCP parity xor。
    * N=1 MST：全程数据增量 TCP CRDX mst chunk（校验侧矩阵编码或 XOR）。
-   * MST 中继读 relay_buffer 前 spin-wait 前继 hop 写入（与 STAR collector ingress 同理）。
+   * MST 中继读 relay_buffer 前 wait（cv）前继 hop 写入（与 STAR collector ingress 同理）。
    */
   static void cord_transfer_plan_execute_async(const proxy_proto::CordTransferPlan &plan, int self_cluster_id,
                                                ProxyImpl *proxy, const std::string &proxy_tag)
   {
-      // 打开日志文件: /tmp/cord_transfer_<plan_key>.log
+      const bool verbose_log = cord_verbose_log_enabled();
+      // 仅 verbose 时写 /tmp；生产路径默认关闭重日志。
       const std::string log_path = "/tmp/cord_transfer_" + plan.plan_key() + ".log";
-      std::ofstream log_ofs(log_path, std::ios::out | std::ios::app);
+      std::ofstream log_ofs;
+      if (verbose_log)
+        log_ofs.open(log_path, std::ios::out | std::ios::app);
       const auto wall_now_ns = []() -> int64_t {
         return std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
@@ -1406,14 +1410,23 @@ namespace ECProject
       };
 
       const auto plan_log = [&](const std::string &msg) {
+        if (!verbose_log || !log_ofs.is_open())
+          return;
         log_ofs << "[" << wall_ts_ms_str() << "][" << proxy_tag << "] " << msg << std::endl;
       };
 
-      // 也输出到 stdout 方便实时观察
+      // verbose：file + stdout；生产：仅 FAIL/WARN 打 stderr
       const auto plan_log_both = [&](const std::string &msg) {
         const std::string line = "[" + wall_ts_ms_str() + "][" + proxy_tag + "] " + msg;
-        log_ofs << line << std::endl;
-        std::cout << "[CoRD-XFER] " << line << std::endl;
+        if (verbose_log)
+        {
+          if (log_ofs.is_open())
+            log_ofs << line << std::endl;
+          std::cout << "[CoRD-XFER] " << line << std::endl;
+          return;
+        }
+        if (msg.find("FAIL") != std::string::npos || msg.find("WARN") != std::string::npos)
+          std::cerr << "[CoRD-XFER] " << line << std::endl;
       };
 
       plan_log_both("══════ CordTransferPlan EXECUTION START ══════");
@@ -1422,15 +1435,17 @@ namespace ECProject
                     " total_rounds=" + std::to_string(plan.total_rounds()) +
                     " steps=" + std::to_string(plan.steps_size()) +
                     " self_cluster=c" + std::to_string(self_cluster_id) +
-                    " log_file=" + log_path);
+                    " log_file=" + (verbose_log ? log_path : std::string("(disabled)")));
       if (plan.steps_size() <= 0)
       {
         plan_log_both("plan has 0 steps, nothing to do");
-        log_ofs.close();
+        if (log_ofs.is_open())
+          log_ofs.close();
         return;
       }
 
-      // 打印完整 plan 概览
+      // 打印完整 plan 概览（仅 verbose）
+      if (verbose_log)
       {
         std::ostringstream os;
         os << "Plan overview: rounds=" << plan.total_rounds()
@@ -1655,7 +1670,7 @@ namespace ECProject
             {
               if (!cord_uses_matrix_encode(plan))
               {
-                if (!cord_spin_until_collector_ingress_ready(plan, st.group_index(), st.src_block_id(),
+                if (!cord_wait_until_collector_ingress_ready(plan, st.group_index(), st.src_block_id(),
                                                              st.parity_ingest_stripe_group()))
                 {
                   plan_log_both_sync("FAIL PARITY_FANOUT filtered_xor ingress_timeout collector_blk=" +
@@ -1671,7 +1686,7 @@ namespace ECProject
             }
             else
             {
-              if (!cord_spin_until_collector_ingress_ready(plan, st.group_index(), st.src_block_id(), -1))
+              if (!cord_wait_until_collector_ingress_ready(plan, st.group_index(), st.src_block_id(), -1))
               {
                 plan_log_both_sync("FAIL PARITY_FANOUT collector_xor_acc ingress_timeout collector_blk=" +
                              std::to_string(st.src_block_id()) + " step=" + std::to_string(st.step_index()));
@@ -1809,7 +1824,7 @@ namespace ECProject
           else
           {
             const uint64_t relay_off = st.chunk_byte_offset();
-            if (!cord_spin_until_mst_relay_ready(plan.plan_key(), relay_off, chunk_len))
+            if (!cord_wait_until_mst_relay_ready(plan.plan_key(), relay_off, chunk_len))
             {
               plan_log_both_sync("FAIL MST_FORWARD relay_buffer_timeout step=" + std::to_string(st.step_index()) +
                            " off=" + std::to_string(relay_off) + " len=" + std::to_string(chunk_len));

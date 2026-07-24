@@ -8,6 +8,30 @@
 #include <queue>
 #include <set>
 
+
+#include <cstdlib>
+#include <ostream>
+#include <streambuf>
+
+namespace {
+  bool cord_verbose_log_enabled()
+  {
+    const char *env = std::getenv("CORD_VERBOSE_LOG");
+    return env != nullptr && env[0] == '1' && env[1] == '\0';
+  }
+
+  struct CordNullBuf : std::streambuf {
+    int overflow(int c) override { return c; }
+  };
+
+  std::ostream &cord_alg2_log()
+  {
+    static CordNullBuf null_buf;
+    static std::ostream null_out(&null_buf);
+    return cord_verbose_log_enabled() ? std::cout : null_out;
+  }
+}
+
 namespace ECProject
 {
   namespace cord_alg2
@@ -282,7 +306,7 @@ namespace ECProject
         return out;
 
       int gi = 0;
-      std::cout << "[CoRD-Alg2] ===== build_algorithm2 start: |U|=" << U.size() << " r=" << r
+      cord_alg2_log() << "[CoRD-Alg2] ===== build_algorithm2 start: |U|=" << U.size() << " r=" << r
                 << " k=" << k << " cluster_num=" << cluster_num << " =====\n";
       for (const std::vector<int> &N : U)
       {
@@ -298,19 +322,19 @@ namespace ECProject
         }
 
         // 打印组内各 block 所属 cluster
-        std::cout << "[CoRD-Alg2] --- group gi=" << gi << " |N|=" << N.size() << " blocks=[";
+        cord_alg2_log() << "[CoRD-Alg2] --- group gi=" << gi << " |N|=" << N.size() << " blocks=[";
         for (size_t ni = 0; ni < N.size(); ++ni) {
-          if (ni > 0) std::cout << " ";
-          std::cout << N[ni] << "(c" << block_cluster(stripe, N[ni]) << ")";
+          if (ni > 0) cord_alg2_log() << " ";
+          cord_alg2_log() << N[ni] << "(c" << block_cluster(stripe, N[ni]) << ")";
         }
-        std::cout << "] ---\n";
+        cord_alg2_log() << "] ---\n";
 
         if (static_cast<int>(N.size()) > 1)
         {
           const int64_t parity_global_b = merged_delta_hull_span_bytes(block_intervals, N);
           if (parity_global_b <= 0)
           {
-            std::cout << "[CoRD-Alg2]   skip: parity_global_b=0\n";
+            cord_alg2_log() << "[CoRD-Alg2]   skip: parity_global_b=0\n";
             ++gi;
             continue;
           }
@@ -323,16 +347,16 @@ namespace ECProject
               groups_touched.push_back(gnum);
           }
 
-          std::cout << "[CoRD-Alg2]   parity_global_hull=" << parity_global_b
+          cord_alg2_log() << "[CoRD-Alg2]   parity_global_hull=" << parity_global_b
                     << " bytes, local_groups_touched=[";
           for (size_t ti = 0; ti < groups_touched.size(); ++ti) {
-            if (ti > 0) std::cout << " ";
-            std::cout << groups_touched[ti];
+            if (ti > 0) cord_alg2_log() << " ";
+            cord_alg2_log() << groups_touched[ti];
           }
-          std::cout << "]\n";
+          cord_alg2_log() << "]\n";
 
           auto emit_star_from_center = [&](int best_c, int cc_center) {
-            std::cout << "[CoRD-Alg2]   >>> STAR center=global_blk" << best_c << " cluster=c" << cc_center << "\n";
+            cord_alg2_log() << "[CoRD-Alg2]   >>> STAR center=global_blk" << best_c << " cluster=c" << cc_center << "\n";
             for (int d : N)
             {
               int64_t b = delta_bytes_for_block(block_intervals, d);
@@ -349,7 +373,7 @@ namespace ECProject
               L.group_index = gi;
               L.kind = TrainLinkKind::STAR_DATA_TO_CENTER;
               L.delta_kind = CordDeltaPayloadKind::DATA_DELTA;
-              std::cout << "[CoRD-Alg2]     DATA_TO_CENTER: blk" << d << "(c" << dc << ") --ΔD "
+              cord_alg2_log() << "[CoRD-Alg2]     DATA_TO_CENTER: blk" << d << "(c" << dc << ") --ΔD "
                         << b << "B --> global_blk" << best_c << "(c" << cc_center
                         << ") est=" << L.est_transfer_sec << "s\n";
               out.train_route.push_back(std::move(L));
@@ -370,7 +394,7 @@ namespace ECProject
               L.kind = TrainLinkKind::STAR_CENTER_TO_GLOBAL;
               L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
               L.parity_merge_data_block_ids.assign(N.begin(), N.end());
-              std::cout << "[CoRD-Alg2]     CTR_TO_GLOBAL:  global_blk" << best_c << "(c" << cc_center
+              cord_alg2_log() << "[CoRD-Alg2]     CTR_TO_GLOBAL:  global_blk" << best_c << "(c" << cc_center
                         << ") --ΔP " << parity_global_b << "B --> global_blk" << g << "(c" << gc
                         << ") est=" << L.est_transfer_sec << "s merge_src=" << N.size() << " blocks\n";
               out.train_route.push_back(std::move(L));
@@ -417,7 +441,7 @@ namespace ECProject
                 L.kind = TrainLinkKind::IN_RACK_LOCAL_PARITY_APPLY;
                 L.delta_kind = CordDeltaPayloadKind::DATA_DELTA;
                 L.mst_origin_data_block = d;
-                std::cout << "[CoRD-Alg2]     IN_RACK_LP:     blk" << d << "(c" << dc
+                cord_alg2_log() << "[CoRD-Alg2]     IN_RACK_LP:     blk" << d << "(c" << dc
                           << ") --ΔD " << b << "B --> local_blk" << Lb << "(c" << lc
                           << ") group=" << gnum << " (no collector hop)\n";
                 out.train_route.push_back(std::move(L));
@@ -437,7 +461,7 @@ namespace ECProject
               L.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
               L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
               L.parity_merge_data_block_ids = cross_rack_blocks;
-              std::cout << "[CoRD-Alg2]     CTR_TO_LOCAL:   global_blk" << best_c << "(c" << cc_center
+              cord_alg2_log() << "[CoRD-Alg2]     CTR_TO_LOCAL:   global_blk" << best_c << "(c" << cc_center
                         << ") --ΔP " << parity_local_b << "B --> local_blk" << Lb << "(c" << lc
                         << ") group=" << gnum << " est=" << L.est_transfer_sec
                         << "s merge_src=" << cross_rack_blocks.size() << " blocks\n";
@@ -448,7 +472,7 @@ namespace ECProject
           bool fused_alg3 = false;
           if (static_cast<int>(N.size()) >= 3)
           {
-            std::cout << "[CoRD-Alg2]   |N|=" << N.size() << " >= 3, attempting Algorithm3 PDP+DCP fusion...\n";
+            cord_alg2_log() << "[CoRD-Alg2]   |N|=" << N.size() << " >= 3, attempting Algorithm3 PDP+DCP fusion...\n";
             cord_alg3::Algorithm3Result alg3 =
                 cord_alg3::build_algorithm3(stripe, block_intervals, N, cluster_num, tp);
             if (alg3.applied && alg3.G.size() == alg3.dcp.group_to_collector.size() && !alg3.G.empty())
@@ -468,23 +492,23 @@ namespace ECProject
               if (assign_ok && !used_collectors.empty())
               {
                 fused_alg3 = true;
-                std::cout << "[CoRD] Algorithm 2+3 fused |N|=" << N.size() << " P=" << alg3.G.size()
+                cord_alg2_log() << "[CoRD] Algorithm 2+3 fused |N|=" << N.size() << " P=" << alg3.G.size()
                           << " g_col=" << alg3.g << " collectors:";
                 for (int col : used_collectors)
-                  std::cout << " " << col;
-                std::cout << "\n";
+                  cord_alg2_log() << " " << col;
+                cord_alg2_log() << "\n";
                 // 打印 PDP 分组与 DCP 映射
                 for (size_t j = 0; j < alg3.G.size(); ++j) {
                   const auto &grp = alg3.G[j];
                   int cidx = alg3.dcp.group_to_collector[j];
-                  std::cout << "[CoRD-Alg2]   PDP group[" << j << "] → collector=global_blk" << (k + cidx)
+                  cord_alg2_log() << "[CoRD-Alg2]   PDP group[" << j << "] → collector=global_blk" << (k + cidx)
                             << " span=" << grp.span_bytes << " sumΔ=" << grp.sum_delta_bytes
                             << " blocks=[";
                   for (size_t bi = 0; bi < grp.block_ids.size(); ++bi) {
-                    if (bi > 0) std::cout << " ";
-                    std::cout << grp.block_ids[bi];
+                    if (bi > 0) cord_alg2_log() << " ";
+                    cord_alg2_log() << grp.block_ids[bi];
                   }
-                  std::cout << "]\n";
+                  cord_alg2_log() << "]\n";
                 }
 
                 for (size_t j = 0; j < alg3.G.size(); ++j)
@@ -495,7 +519,7 @@ namespace ECProject
                   int cidx = alg3.dcp.group_to_collector[j];
                   int col = k + cidx;
                   int cc = block_cluster(stripe, col);
-                  std::cout << "[CoRD-Alg2]   >>> PDP group[" << j << "] → collector=global_blk" << col << " (c" << cc << ")\n";
+                  cord_alg2_log() << "[CoRD-Alg2]   >>> PDP group[" << j << "] → collector=global_blk" << col << " (c" << cc << ")\n";
                   for (int d : grp.block_ids)
                   {
                     int64_t b = delta_bytes_for_block(block_intervals, d);
@@ -512,7 +536,7 @@ namespace ECProject
                     L.group_index = gi;
                     L.kind = TrainLinkKind::STAR_DATA_TO_CENTER;
                     L.delta_kind = CordDeltaPayloadKind::DATA_DELTA;
-                    std::cout << "[CoRD-Alg2]     DATA_TO_CENTER: blk" << d << "(c" << dc << ") --ΔD "
+                    cord_alg2_log() << "[CoRD-Alg2]     DATA_TO_CENTER: blk" << d << "(c" << dc << ") --ΔD "
                               << b << "B --> global_blk" << col << "(c" << cc
                               << ") est=" << L.est_transfer_sec << "s\n";
                     out.train_route.push_back(std::move(L));
@@ -534,7 +558,7 @@ namespace ECProject
                       merged_delta_hull_span_bytes(block_intervals, blocks_to_col);
                   if (parity_at_col <= 0)
                     continue;
-                  std::cout << "[CoRD-Alg2]   >>> collector=global_blk" << col << " (c" << cc
+                  cord_alg2_log() << "[CoRD-Alg2]   >>> collector=global_blk" << col << " (c" << cc
                             << ") fan-out ΔP=" << parity_at_col << "B to other global + local parity blocks\n";
                   for (int gpar = k; gpar < k + r; ++gpar)
                   {
@@ -552,7 +576,7 @@ namespace ECProject
                     L.kind = TrainLinkKind::STAR_CENTER_TO_GLOBAL;
                     L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
                     L.parity_merge_data_block_ids = blocks_to_col;
-                    std::cout << "[CoRD-Alg2]     CTR_TO_GLOBAL:  global_blk" << col << "(c" << cc
+                    cord_alg2_log() << "[CoRD-Alg2]     CTR_TO_GLOBAL:  global_blk" << col << "(c" << cc
                               << ") --ΔP " << parity_at_col << "B --> global_blk" << gpar << "(c" << gc
                               << ") est=" << L.est_transfer_sec << "s\n";
                     out.train_route.push_back(std::move(L));
@@ -604,7 +628,7 @@ namespace ECProject
                       L.kind = TrainLinkKind::IN_RACK_LOCAL_PARITY_APPLY;
                       L.delta_kind = CordDeltaPayloadKind::DATA_DELTA;
                       L.mst_origin_data_block = d;
-                      std::cout << "[CoRD-Alg2]     IN_RACK_LP:     blk" << d << "(c" << dc
+                      cord_alg2_log() << "[CoRD-Alg2]     IN_RACK_LP:     blk" << d << "(c" << dc
                                 << ") --ΔD " << b << "B --> local_blk" << Lb << "(c" << lc
                                 << ") group=" << gnum << " (no collector hop)\n";
                       out.train_route.push_back(std::move(L));
@@ -624,7 +648,7 @@ namespace ECProject
                     L.kind = TrainLinkKind::STAR_CENTER_TO_LOCAL;
                     L.delta_kind = CordDeltaPayloadKind::PARITY_DELTA;
                     L.parity_merge_data_block_ids = cross_rack_blocks;
-                    std::cout << "[CoRD-Alg2]     CTR_TO_LOCAL:   global_blk" << col << "(c" << cc
+                    cord_alg2_log() << "[CoRD-Alg2]     CTR_TO_LOCAL:   global_blk" << col << "(c" << cc
                               << ") --ΔP " << parity_local_col << "B --> local_blk" << Lb << "(c" << lc
                               << ") group=" << gnum << " est=" << L.est_transfer_sec
                               << "s merge_src=" << cross_rack_blocks.size() << "\n";
@@ -639,9 +663,9 @@ namespace ECProject
           if (!fused_alg3)
           {
             if (static_cast<int>(N.size()) >= 3)
-              std::cout << "[CoRD-Alg2]   Algorithm3 not applied, fallback to single-center STAR\n";
+              cord_alg2_log() << "[CoRD-Alg2]   Algorithm3 not applied, fallback to single-center STAR\n";
             else
-              std::cout << "[CoRD-Alg2]   |N|=2, using single-center STAR\n";
+              cord_alg2_log() << "[CoRD-Alg2]   |N|=2, using single-center STAR\n";
             int best_c = k;
             double best_cost = std::numeric_limits<double>::infinity();
             // 打印各候选中心的累计传输代价
@@ -661,7 +685,7 @@ namespace ECProject
                   continue;
                 sum += transfer_sec(dc, cc, b, tp);
               }
-              std::cout << "[CoRD-Alg2]   candidate center=global_blk" << cand << "(c" << cc
+              cord_alg2_log() << "[CoRD-Alg2]   candidate center=global_blk" << cand << "(c" << cc
                         << ") sum_cost=" << sum << "s\n";
               if (sum < best_cost)
               {
@@ -671,7 +695,7 @@ namespace ECProject
             }
             out.center_global_block_id = best_c;
             int best_cc = block_cluster(stripe, best_c);
-            std::cout << "[CoRD-Alg2]   chosen center=global_blk" << best_c << " c" << best_cc
+            cord_alg2_log() << "[CoRD-Alg2]   chosen center=global_blk" << best_c << " c" << best_cc
                       << " cost=" << best_cost << "s\n";
             emit_star_from_center(best_c, best_cc);
           }
@@ -683,7 +707,7 @@ namespace ECProject
           int64_t bd = delta_bytes_for_block(block_intervals, d);
           if (bd <= 0)
           {
-            std::cout << "[CoRD-Alg2]   skip MST: ΔD=0 for blk" << d << "\n";
+            cord_alg2_log() << "[CoRD-Alg2]   skip MST: ΔD=0 for blk" << d << "\n";
             ++gi;
             continue;
           }
@@ -701,13 +725,13 @@ namespace ECProject
           if (Lb >= 0 && !in_rack_lp)
             vid[static_cast<size_t>(1 + r)] = Lb;
 
-          std::cout << "[CoRD-Alg2]   MST |N|=1 data_blk" << d << "(c" << dc_src
+          cord_alg2_log() << "[CoRD-Alg2]   MST |N|=1 data_blk" << d << "(c" << dc_src
                     << ") ΔD=" << bd << "B  V={blk" << d;
           for (int j = 0; j < r; ++j)
-            std::cout << ",G" << (k + j) << "(c" << block_cluster(stripe, k + j) << ")";
+            cord_alg2_log() << ",G" << (k + j) << "(c" << block_cluster(stripe, k + j) << ")";
           if (Lb >= 0 && !in_rack_lp)
-            std::cout << ",L" << Lb << "(c" << lc << ")";
-          std::cout << "} |V|=" << numV
+            cord_alg2_log() << ",L" << Lb << "(c" << lc << ")";
+          cord_alg2_log() << "} |V|=" << numV
                     << (in_rack_lp ? " in_rack_lp=1" : "") << "\n";
 
           if (in_rack_lp)
@@ -723,7 +747,7 @@ namespace ECProject
             L.kind = TrainLinkKind::IN_RACK_LOCAL_PARITY_APPLY;
             L.delta_kind = CordDeltaPayloadKind::DATA_DELTA;
             L.mst_origin_data_block = d;
-            std::cout << "[CoRD-Alg2]     IN_RACK_LP:     blk" << d << "(c" << dc_src
+            cord_alg2_log() << "[CoRD-Alg2]     IN_RACK_LP:     blk" << d << "(c" << dc_src
                       << ") --ΔD " << bd << "B --> local_blk" << Lb << "(c" << lc
                       << ") (no collector/MST hop)\n";
             out.train_route.push_back(std::move(L));
@@ -755,18 +779,18 @@ namespace ECProject
           std::sort(edges.begin(), edges.end());
           DSU dsu(numV);
           std::vector<std::pair<int, int>> mst;
-          std::cout << "[CoRD-Alg2]   MST Kruskal edges selected:\n";
+          cord_alg2_log() << "[CoRD-Alg2]   MST Kruskal edges selected:\n";
           for (const auto &e : edges)
           {
             if (dsu.unite(e.u, e.v)) {
               mst.push_back({e.u, e.v});
-              std::cout << "[CoRD-Alg2]     " << vid[e.u] << " -- " << vid[e.v]
+              cord_alg2_log() << "[CoRD-Alg2]     " << vid[e.u] << " -- " << vid[e.v]
                         << " (idx " << e.u << "-" << e.v << ") w=" << e.w << "s\n";
             }
           }
           std::vector<std::pair<int, int>> directed;
           orient_mst_from_root(mst, 0, numV, &directed);
-          std::cout << "[CoRD-Alg2]   MST directed (root=blk" << d << "):\n";
+          cord_alg2_log() << "[CoRD-Alg2]   MST directed (root=blk" << d << "):\n";
           for (auto pr : directed)
           {
             int sb = vid[pr.first];
@@ -785,7 +809,7 @@ namespace ECProject
             // |N|=1：最小生成树上每跳均传输同一数据块的数据增量 ΔD（非校验增量）
             L.delta_kind = CordDeltaPayloadKind::DATA_DELTA;
             L.mst_origin_data_block = d;
-            std::cout << "[CoRD-Alg2]     MST_FORWARD: blk" << sb << "(c" << sc << ") --ΔD "
+            cord_alg2_log() << "[CoRD-Alg2]     MST_FORWARD: blk" << sb << "(c" << sc << ") --ΔD "
                       << bd << "B --> blk" << db << "(c" << dc
                       << ") est=" << L.est_transfer_sec << "s\n";
             out.train_route.push_back(std::move(L));
@@ -802,18 +826,18 @@ namespace ECProject
 
       std::vector<int> remaining;
       remaining.reserve(out.train_route.size());
-      std::cout << "[CoRD-Alg2] ===== Transfer scheduling: " << out.train_route.size()
+      cord_alg2_log() << "[CoRD-Alg2] ===== Transfer scheduling: " << out.train_route.size()
                 << " links (full payload per link) =====\n";
       for (size_t li = 0; li < out.train_route.size(); ++li) {
         const auto &L = out.train_route[li];
         remaining.push_back(L.payload_bytes > 0 ? 1 : 0);
-        std::cout << "[CoRD-Alg2]   link[" << li << "] " << train_link_kind_name(L.kind)
+        cord_alg2_log() << "[CoRD-Alg2]   link[" << li << "] " << train_link_kind_name(L.kind)
                   << " blk" << L.src_block_id << "(c" << L.src_cluster << ")->blk" << L.dst_block_id
                   << "(c" << L.dst_cluster << ") payload=" << L.payload_bytes
                   << "B grp=" << L.group_index;
         if (L.delta_kind == CordDeltaPayloadKind::PARITY_DELTA)
-          std::cout << " [depends on DATA_TO_CENTER ingressing to blk" << L.src_block_id << "]";
-        std::cout << "\n";
+          cord_alg2_log() << " [depends on DATA_TO_CENTER ingressing to blk" << L.src_block_id << "]";
+        cord_alg2_log() << "\n";
       }
 
       int ts = 0;
@@ -883,14 +907,14 @@ namespace ECProject
           din.add_edge(1 + C + c, T, tp.enforce_one_send_one_recv_per_cluster ? 1 : C, -1);
 
         // 打印本时间步候选链路
-        std::cout << "[CoRD-Alg2] --- step " << ts << " candidates (pending & eligible):\n";
+        cord_alg2_log() << "[CoRD-Alg2] --- step " << ts << " candidates (pending & eligible):\n";
         for (size_t i = 0; i < out.train_route.size(); ++i)
         {
           if (remaining[i] <= 0)
             continue;
           bool eligible = link_eligible_for_step(i);
           const TrainLink &L = out.train_route[i];
-          std::cout << "[CoRD-Alg2]   link[" << i << "] blk" << L.src_block_id << "->blk" << L.dst_block_id
+          cord_alg2_log() << "[CoRD-Alg2]   link[" << i << "] blk" << L.src_block_id << "->blk" << L.dst_block_id
                     << " c" << L.src_cluster << "->c" << L.dst_cluster
                     << " pending=" << remaining[i] << " eligible=" << (eligible ? "Y" : "N") << "\n";
           if (!eligible)
@@ -913,21 +937,21 @@ namespace ECProject
           {
             if (remaining[i] > 0 && link_eligible_for_step(i))
             {
-              std::cout << "[CoRD-Alg2]   [deadlock-prevention] forcing link[" << i << "]\n";
+              cord_alg2_log() << "[CoRD-Alg2]   [deadlock-prevention] forcing link[" << i << "]\n";
               used.push_back(static_cast<int>(i));
               break;
             }
           }
         }
-        std::cout << "[CoRD-Alg2]   step " << ts << " selected " << used.size() << " link(s): [";
+        cord_alg2_log() << "[CoRD-Alg2]   step " << ts << " selected " << used.size() << " link(s): [";
         for (size_t ui = 0; ui < used.size(); ++ui) {
-          if (ui > 0) std::cout << ", ";
+          if (ui > 0) cord_alg2_log() << ", ";
           int li = used[ui];
           const auto &L = out.train_route[static_cast<size_t>(li)];
-          std::cout << li << "(" << train_link_kind_name(L.kind)
+          cord_alg2_log() << li << "(" << train_link_kind_name(L.kind)
                     << " c" << L.src_cluster << "→c" << L.dst_cluster << ")";
         }
-        std::cout << "] — these links may run concurrently in this step\n";
+        cord_alg2_log() << "] — these links may run concurrently in this step\n";
 
         TimeslotEntry te;
         te.timeslot = ts++;
@@ -940,7 +964,7 @@ namespace ECProject
         out.timeslot_schedule.push_back(std::move(te));
       }
 
-      std::cout << "[CoRD-Alg2] ===== Transfer scheduling done: total_steps=" << ts << " =====\n";
+      cord_alg2_log() << "[CoRD-Alg2] ===== Transfer scheduling done: total_steps=" << ts << " =====\n";
       return out;
     }
   } // namespace cord_alg2
