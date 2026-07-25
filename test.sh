@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CoRD 批量更新 trace：改下面路径即可，每行格式见 main_client.cpp 用法说明
-CORD_TRACE_FILE="/root/xue/log/log/T00-1MB-100-10-20000log"
+CORD_TRACE_FILE="/root/xue/log/log/A00-64KB-100-10-5000log"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONFIG_XML="${SCRIPT_DIR}/project/config/parameterConfiguration.xml"

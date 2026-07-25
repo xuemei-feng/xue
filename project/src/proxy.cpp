@@ -2829,7 +2829,60 @@ namespace ECProject
           const int self_cid = m_self_cluster_id;
           size_t delta_off = 0;
           const auto fanout_phase_t0 = std::chrono::steady_clock::now();
-          double pure_acc_sec = 0.0;
+
+          struct BrFanoutJob
+          {
+            proxy_proto::CordParityFanoutTarget target;
+            const uint8_t *payload = nullptr;
+            size_t payload_len = 0;
+            int slice_off = 0;
+            int slen = 0;
+            int data_bid = -1;
+          };
+
+          auto send_parity_job = [&](const BrFanoutJob &job, double *out_pure_sec) -> bool {
+            proxy_proto::CordPlanApplyParityXorReq req;
+            req.set_plan_key(placement_copy->key());
+            req.set_dst_block_id(job.target.parity_block_id());
+            req.set_block_key(job.target.block_key());
+            req.set_datanode_ip(job.target.datanode_ip());
+            req.set_datanode_port(job.target.datanode_port());
+            req.set_parity_slice_offset(job.slice_off);
+            req.set_parity_slice_length(static_cast<int32_t>(job.slen));
+            const auto t_pure0 = std::chrono::steady_clock::now();
+            bool ok = false;
+            if (job.target.proxy_cluster_id() == self_cid)
+            {
+              ok = cord_apply_parity_xor_delta(this, req, reinterpret_cast<const char *>(job.payload),
+                                               job.payload_len);
+            }
+            else
+            {
+              std::string meta;
+              req.SerializeToString(&meta);
+              ok = cord_tcp_xfer_send(job.target.proxy_ip(), job.target.proxy_port(), CORD_XFER_TCP_PARITY_XOR, meta,
+                                     job.payload, job.payload_len);
+            }
+            if (out_pure_sec != nullptr)
+              *out_pure_sec =
+                  std::chrono::duration<double>(std::chrono::steady_clock::now() - t_pure0).count();
+            if (!ok)
+            {
+              std::cout << "[BoundedRandom][Proxy] parity fanout failed data_blk=" << job.data_bid
+                        << " parity_blk=" << job.target.parity_block_id()
+                        << " dst_c=" << job.target.proxy_cluster_id() << std::endl;
+            }
+            return ok;
+          };
+
+          // 先编码全部 slice；跨 slice 全局 fanout 并行，全部全局完成后再发本地
+          std::vector<std::vector<std::vector<uint8_t>>> all_coded;
+          all_coded.reserve(static_cast<size_t>(slice_num));
+          std::vector<BrFanoutJob> global_jobs;
+          std::vector<BrFanoutJob> local_jobs;
+          global_jobs.reserve(static_cast<size_t>(slice_num) * static_cast<size_t>(std::max(r_enc, 0)));
+          local_jobs.reserve(static_cast<size_t>(slice_num));
+
           for (int j = 0; j < slice_num; ++j)
           {
             const size_t slen = sizes[static_cast<size_t>(j)];
@@ -2848,20 +2901,33 @@ namespace ECProject
               std::cout << "[BoundedRandom][Proxy] encode parity deltas failed data_blk=" << data_bid << std::endl;
               return;
             }
+            all_coded.push_back(std::move(coded));
+            const auto &coded_ref = all_coded.back();
             const auto &fanout = placement_copy->slice_fanouts(j);
-            // 全局校验 [k, k+r) 并行扇出；本地校验 [k+r, k+r+z) 待全局完成后再串行发送
-            std::vector<proxy_proto::CordParityFanoutTarget> global_targets;
-            std::vector<proxy_proto::CordParityFanoutTarget> local_targets;
-            global_targets.reserve(static_cast<size_t>(r_enc));
-            local_targets.reserve(1);
+
             for (int ti = 0; ti < fanout.targets_size(); ++ti)
             {
               const auto &target = fanout.targets(ti);
               const int pbid = target.parity_block_id();
+              const int row = pbid - k_enc;
+              if (row < 0 || row >= static_cast<int>(coded_ref.size()))
+              {
+                std::cout << "[BoundedRandom][Proxy] unexpected parity fanout target data_blk=" << data_bid
+                          << " parity_blk=" << pbid << " k=" << k_enc << " r=" << r_enc << " z=" << z_enc
+                          << std::endl;
+                return;
+              }
+              BrFanoutJob job;
+              job.target = target;
+              job.payload = coded_ref[static_cast<size_t>(row)].data();
+              job.payload_len = coded_ref[static_cast<size_t>(row)].size();
+              job.slice_off = slice_off;
+              job.slen = static_cast<int>(slen);
+              job.data_bid = data_bid;
               if (pbid >= k_enc && pbid < k_enc + r_enc)
-                global_targets.push_back(target);
+                global_jobs.push_back(std::move(job));
               else if (pbid >= k_enc + r_enc && pbid < k_enc + r_enc + z_enc)
-                local_targets.push_back(target);
+                local_jobs.push_back(std::move(job));
               else
               {
                 std::cout << "[BoundedRandom][Proxy] unexpected parity fanout target data_blk=" << data_bid
@@ -2870,90 +2936,56 @@ namespace ECProject
                 return;
               }
             }
-
-            auto send_one_target = [&](const proxy_proto::CordParityFanoutTarget &target, double *out_pure_sec) -> bool {
-              const int pbid = target.parity_block_id();
-              const int row = pbid - k_enc;
-              if (row < 0 || row >= static_cast<int>(coded.size()))
-                return false;
-              const auto &pdelta = coded[static_cast<size_t>(row)];
-              proxy_proto::CordPlanApplyParityXorReq req;
-              req.set_plan_key(placement_copy->key());
-              req.set_dst_block_id(pbid);
-              req.set_block_key(target.block_key());
-              req.set_datanode_ip(target.datanode_ip());
-              req.set_datanode_port(target.datanode_port());
-              req.set_parity_slice_offset(slice_off);
-              req.set_parity_slice_length(static_cast<int32_t>(slen));
-              const auto t_pure0 = std::chrono::steady_clock::now();
-              bool ok = false;
-              if (target.proxy_cluster_id() == self_cid)
-              {
-                ok = cord_apply_parity_xor_delta(this, req, reinterpret_cast<const char *>(pdelta.data()),
-                                                 pdelta.size());
-              }
-              else
-              {
-                std::string meta;
-                req.SerializeToString(&meta);
-                ok = cord_tcp_xfer_send(target.proxy_ip(), target.proxy_port(), CORD_XFER_TCP_PARITY_XOR, meta,
-                                       pdelta.data(), pdelta.size());
-              }
-              if (out_pure_sec != nullptr)
-                *out_pure_sec =
-                    std::chrono::duration<double>(std::chrono::steady_clock::now() - t_pure0).count();
-              if (!ok)
-              {
-                std::cout << "[BoundedRandom][Proxy] parity fanout failed data_blk=" << data_bid
-                          << " parity_blk=" << pbid << " dst_c=" << target.proxy_cluster_id() << std::endl;
-              }
-              return ok;
-            };
-
-            double slice_pure_sec = 0.0;
-            // Phase 1: 各全局校验并行
-            {
-              std::atomic<bool> fanout_failed{false};
-              std::mutex pure_mu;
-              double global_pure_max = 0.0;
-              std::vector<std::thread> fanout_workers;
-              fanout_workers.reserve(global_targets.size());
-              for (const auto &target : global_targets)
-              {
-                fanout_workers.emplace_back([&, target]() {
-                  if (fanout_failed.load(std::memory_order_relaxed))
-                    return;
-                  double one_pure = 0.0;
-                  if (!send_one_target(target, &one_pure))
-                  {
-                    fanout_failed.store(true, std::memory_order_relaxed);
-                    return;
-                  }
-                  std::lock_guard<std::mutex> lk(pure_mu);
-                  global_pure_max = std::max(global_pure_max, one_pure);
-                });
-              }
-              for (auto &th : fanout_workers)
-                th.join();
-              if (fanout_failed.load(std::memory_order_relaxed))
-                return;
-              slice_pure_sec += global_pure_max;
-            }
-            // Phase 2: 本地校验串行（在全局完成之后）
-            for (const auto &target : local_targets)
-            {
-              double one_pure = 0.0;
-              if (!send_one_target(target, &one_pure))
-                return;
-              slice_pure_sec += one_pure;
-            }
-            pure_acc_sec += slice_pure_sec;
           }
+
+          auto run_fanout_batch = [&](const std::vector<BrFanoutJob> &jobs, double *phase_pure_max) -> bool {
+            if (jobs.empty())
+            {
+              if (phase_pure_max != nullptr)
+                *phase_pure_max = 0.0;
+              return true;
+            }
+            std::atomic<bool> fanout_failed{false};
+            std::mutex pure_mu;
+            double batch_pure_max = 0.0;
+            std::vector<std::thread> fanout_workers;
+            fanout_workers.reserve(jobs.size());
+            for (const auto &job : jobs)
+            {
+              fanout_workers.emplace_back([&, job]() {
+                if (fanout_failed.load(std::memory_order_relaxed))
+                  return;
+                double one_pure = 0.0;
+                if (!send_parity_job(job, &one_pure))
+                {
+                  fanout_failed.store(true, std::memory_order_relaxed);
+                  return;
+                }
+                std::lock_guard<std::mutex> lk(pure_mu);
+                batch_pure_max = std::max(batch_pure_max, one_pure);
+              });
+            }
+            for (auto &th : fanout_workers)
+              th.join();
+            if (phase_pure_max != nullptr)
+              *phase_pure_max = batch_pure_max;
+            return !fanout_failed.load(std::memory_order_relaxed);
+          };
+
+          double global_pure_max = 0.0;
+          if (!run_fanout_batch(global_jobs, &global_pure_max))
+            return;
+          // 本地在全部全局完成后发送；多个本地目标可并行
+          double local_pure_max = 0.0;
+          if (!run_fanout_batch(local_jobs, &local_pure_max))
+            return;
+
           fanout_wait_sec =
               std::chrono::duration<double>(std::chrono::steady_clock::now() - fanout_phase_t0).count();
-          fanout_pure_sec = pure_acc_sec;
+          fanout_pure_sec = global_pure_max + local_pure_max;
           std::cout << "[BoundedRandom][Proxy] direct fanout done key=" << placement_copy->key()
                     << " slices=" << slice_num << " stripe_id=" << stripe_id
+                    << " global_jobs=" << global_jobs.size() << " local_jobs=" << local_jobs.size()
                     << " fanout_wait_sec=" << fanout_wait_sec << " fanout_pure_sec=" << fanout_pure_sec
                     << std::endl;
         }
