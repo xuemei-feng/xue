@@ -1190,7 +1190,10 @@ namespace ECProject
     void cord_fill_timing(CordUpdateTiming *out, const std::chrono::steady_clock::time_point &wall_t0,
                           double plan_sec, double payload_prep_sec, double upload_sec,
                           double xfer_begin_sec, double xfer_wait_sec,
-                          double xfer_pure_sec = 0.0, double xfer_grpc_sec = 0.0)
+                          double xfer_pure_sec = 0.0, double xfer_grpc_sec = 0.0,
+                          bool g1_timing_present = false, double g1_transfer_sec = 0.0,
+                          double g1_parity_read_sec = 0.0, double g1_compute_sec = 0.0,
+                          double g1_parity_write_sec = 0.0)
     {
       if (out == nullptr)
         return;
@@ -1201,6 +1204,11 @@ namespace ECProject
       out->xfer_wait_sec = xfer_wait_sec;
       out->xfer_pure_sec = xfer_pure_sec;
       out->xfer_grpc_sec = xfer_grpc_sec;
+      out->g1_timing_present = g1_timing_present;
+      out->g1_transfer_sec = g1_transfer_sec;
+      out->g1_parity_read_sec = g1_parity_read_sec;
+      out->g1_compute_sec = g1_compute_sec;
+      out->g1_parity_write_sec = g1_parity_write_sec;
       out->wall_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - wall_t0).count();
     }
   }
@@ -1392,6 +1400,11 @@ namespace ECProject
     double xfer_wait_sec = 0.0;
     double xfer_pure_sec = 0.0;
     double xfer_grpc_sec = 0.0;
+    bool g1_timing_present = false;
+    double g1_transfer_sec = 0.0;
+    double g1_parity_read_sec = 0.0;
+    double g1_compute_sec = 0.0;
+    double g1_parity_write_sec = 0.0;
     if (pending->transfer_plan_key.empty())
     {
       cord_fill_timing(out_timing, pending->wall_t0, pending->plan_sec, pending->payload_prep_sec,
@@ -1433,26 +1446,48 @@ namespace ECProject
     {
       xfer_grpc_sec = xfer_wait_sec;
     }
+    if (wait_rep.cord_g1_timing_present())
+    {
+      g1_timing_present = true;
+      g1_transfer_sec = wait_rep.cord_g1_transfer_sec();
+      g1_parity_read_sec = wait_rep.cord_g1_parity_read_sec();
+      g1_compute_sec = wait_rep.cord_g1_compute_sec();
+      g1_parity_write_sec = wait_rep.cord_g1_parity_write_sec();
+    }
     if (cord_abort_if_timed_out())
     {
       cord_fill_timing(out_timing, pending->wall_t0, pending->plan_sec, pending->payload_prep_sec,
-                       pending->upload_sec, 0.0, xfer_wait_sec, xfer_pure_sec, xfer_grpc_sec);
+                       pending->upload_sec, 0.0, xfer_wait_sec, xfer_pure_sec, xfer_grpc_sec,
+                       g1_timing_present, g1_transfer_sec, g1_parity_read_sec, g1_compute_sec,
+                       g1_parity_write_sec);
       return false;
     }
     if (!st_wait.ok() || !wait_rep.ifcommit())
     {
       std::cout << "[CoRD] cordPlanWaitTransferComplete failed: " << st_wait.error_message() << std::endl;
       cord_fill_timing(out_timing, pending->wall_t0, pending->plan_sec, pending->payload_prep_sec,
-                       pending->upload_sec, 0.0, xfer_wait_sec, xfer_pure_sec, xfer_grpc_sec);
+                       pending->upload_sec, 0.0, xfer_wait_sec, xfer_pure_sec, xfer_grpc_sec,
+                       g1_timing_present, g1_transfer_sec, g1_parity_read_sec, g1_compute_sec,
+                       g1_parity_write_sec);
       return false;
     }
     std::cout << "[CoRD][Client " << m_clientID << "] cross-cluster transfer complete stripe_id=" << pending->stripe_id
               << " xfer_wait_sec=" << xfer_wait_sec << " xfer_pure_sec=" << xfer_pure_sec
-              << " xfer_grpc_sec=" << xfer_grpc_sec << "\n";
+              << " xfer_grpc_sec=" << xfer_grpc_sec;
+    if (g1_timing_present)
+    {
+      std::cout << " g1_transfer_sec=" << g1_transfer_sec
+                << " g1_parity_read_sec=" << g1_parity_read_sec
+                << " g1_compute_sec=" << g1_compute_sec
+                << " g1_parity_write_sec=" << g1_parity_write_sec;
+    }
+    std::cout << "\n";
 
     pending->transfer_plan_key.clear();
     cord_fill_timing(out_timing, pending->wall_t0, pending->plan_sec, pending->payload_prep_sec,
-                     pending->upload_sec, 0.0, xfer_wait_sec, xfer_pure_sec, xfer_grpc_sec);
+                     pending->upload_sec, 0.0, xfer_wait_sec, xfer_pure_sec, xfer_grpc_sec,
+                     g1_timing_present, g1_transfer_sec, g1_parity_read_sec, g1_compute_sec,
+                     g1_parity_write_sec);
     return true;
   }
 

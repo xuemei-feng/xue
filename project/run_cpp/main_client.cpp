@@ -199,6 +199,13 @@ namespace
        << " xfer_wait_sec=" << t.xfer_wait_sec
        << " xfer_pure_sec=" << t.xfer_pure_sec
        << " xfer_grpc_sec=" << t.xfer_grpc_sec;
+    if (t.g1_timing_present)
+    {
+      os << " g1_transfer_sec=" << t.g1_transfer_sec
+         << " g1_parity_read_sec=" << t.g1_parity_read_sec
+         << " g1_compute_sec=" << t.g1_compute_sec
+         << " g1_parity_write_sec=" << t.g1_parity_write_sec;
+    }
     return os;
   }
 

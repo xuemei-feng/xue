@@ -534,6 +534,12 @@ message SetReply {
   double cord_join_pure_xfer_sec = 3;
   int64 cord_join_pure_xfer_start_unix_ms = 4;
   int64 cord_join_pure_xfer_end_unix_ms = 5;
+  // g1 简化更新路径：本 proxy 累计的 transfer / 校验侧 read·compute·write（秒）
+  bool cord_join_g1_timing_present = 6;
+  double cord_join_g1_transfer_sec = 7;
+  double cord_join_g1_parity_read_sec = 8;
+  double cord_join_g1_compute_sec = 9;
+  double cord_join_g1_parity_write_sec = 10;
 }
 message GetReply {
   bool getsuccess = 1;

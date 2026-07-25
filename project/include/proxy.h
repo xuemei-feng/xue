@@ -184,8 +184,11 @@ namespace ECProject
     bool GetFromDatanode(const std::string &key, char *value, const size_t value_length, const char *ip, const int port);
     bool GetFromDatanode(const std::string &key, char *value, const size_t value_length, const char *ip, const int port, 
       double *disk_io_start_time, double *disk_io_end_time, double *network_start_time, double *network_end_time, double *grpc_notify_time, double *grpc_start_time);
-    bool CordRangeReadFromDatanode(const std::string &block_key, int block_id, int range_offset, char *out, size_t length, const char *ip, int port);
-    bool CordRangeWriteToDatanode(const std::string &block_key, int block_id, int range_offset, const char *data, size_t length, const char *ip, int port);
+    /** out_disk_io_sec：仅 datanode 磁盘读写耗时（秒）；读为 ifstream，写为 pwrite+fsync。 */
+    bool CordRangeReadFromDatanode(const std::string &block_key, int block_id, int range_offset, char *out, size_t length,
+                                   const char *ip, int port, double *out_disk_io_sec = nullptr);
+    bool CordRangeWriteToDatanode(const std::string &block_key, int block_id, int range_offset, const char *data,
+                                  size_t length, const char *ip, int port, double *out_disk_io_sec = nullptr);
     bool CordDeltaBlobToDatanode(const std::string &blob_key, const char *data, size_t length, const char *ip, int port);
     /** CoRD：与其它 proxy（ip:port）之间的长连接池，跨 RPC 调用复用 HTTP/2 channel。 */
     proxy_proto::proxyService::Stub *stub_for_peer_proxy(const std::string &endpoint);

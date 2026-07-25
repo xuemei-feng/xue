@@ -31,6 +31,12 @@ namespace ECProject
     double xfer_wait_sec = 0.0;      // cordPlanWaitTransferComplete 总 wall time
     double xfer_pure_sec = 0.0;      // 跨 cluster 真实传输（proxy 上报 wall span）
     double xfer_grpc_sec = 0.0;      // xfer_wait 中非 pure 部分（gRPC + 编排 + Client↔Coordinator RTT）
+    // g1 简化路径 step 明细（秒）：proxy↔proxy 传块 / 校验侧读 / matrix+XOR / 校验侧写
+    bool g1_timing_present = false;
+    double g1_transfer_sec = 0.0;
+    double g1_parity_read_sec = 0.0;
+    double g1_compute_sec = 0.0;
+    double g1_parity_write_sec = 0.0;
   };
 
   /** upload 完成后、xfer wait 之前的状态；用于流水线 batch（defer xfer wait）。 */

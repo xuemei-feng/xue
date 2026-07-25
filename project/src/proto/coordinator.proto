@@ -153,6 +153,12 @@ message RepIfSuccess {
   bool cord_xfer_timing_present = 2;
   double cord_xfer_pure_sec = 3;  // 跨 cluster 真实传输（proxy wall span 或 max pure_xfer）
   double cord_xfer_grpc_sec = 4;  // coordinator handler 中非 pure 部分（串行 join gRPC/编排）
+  // g1 简化更新：各 proxy 累计后的 step 明细（秒）
+  bool cord_g1_timing_present = 5;
+  double cord_g1_transfer_sec = 6;
+  double cord_g1_parity_read_sec = 7;
+  double cord_g1_compute_sec = 8;
+  double cord_g1_parity_write_sec = 9;
 }
 
 // get

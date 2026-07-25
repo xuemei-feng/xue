@@ -719,6 +719,64 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return plan;
     }
 
+    /**
+     * 简化更新：每个被更新数据块只传 ΔD 到 g1（第一个全局校验，block_id=k）所在 proxy，
+     * 由该 proxy 做 matrix encode + XOR + 读/写 g1。不走 Alg1/Alg2/STAR。
+     */
+    proxy_proto::CordTransferPlan cord_transfer_plan_to_g1_only(
+        int stripe_id, const std::string &plan_key, Stripe *stripe,
+        const std::map<int, std::vector<std::pair<int, int>>> &block_intervals)
+    {
+      proxy_proto::CordTransferPlan plan;
+      plan.set_stripe_id(stripe_id);
+      plan.set_plan_key(plan_key);
+      plan.set_slot_unit_bytes(0);
+      if (stripe == nullptr)
+        return plan;
+      const int k = stripe->k;
+      plan.set_k_datablock(k);
+      if (k < 0 || k >= static_cast<int>(stripe->blocks.size()) || stripe->blocks[k] == nullptr)
+        return plan;
+      const int g1_bid = k;
+      const int g1_cluster = stripe->blocks[g1_bid]->map2cluster;
+      int step_idx = 0;
+      for (const auto &kv : block_intervals)
+      {
+        const int bid = kv.first;
+        if (bid < 0 || bid >= k || stripe->blocks[bid] == nullptr)
+          continue;
+        int64_t payload = 0;
+        for (const auto &seg : kv.second)
+          payload += static_cast<int64_t>(seg.second - seg.first);
+        if (payload <= 0)
+          continue;
+        // 与原 MST 数据源一致：blob 内从该块 packed 起点读；strip 放置靠 encode meta 的 slice_offset。
+        const uint64_t chunk_off = 0;
+        proxy_proto::CordTransferStep *st = plan.add_steps();
+        st->set_step_index(step_idx);
+        st->set_src_proxy_cluster_id(stripe->blocks[bid]->map2cluster);
+        st->set_dst_proxy_cluster_id(g1_cluster);
+        st->set_src_block_id(bid);
+        st->set_dst_block_id(g1_bid);
+        st->set_payload_bytes(static_cast<uint64_t>(payload));
+        st->set_link_kind(proxy_proto::CORD_TRANSFER_MST_FORWARD);
+        st->set_scheduled_slot(static_cast<uint32_t>(step_idx));
+        st->set_depends_on_step_index(-1);
+        st->set_estimated_transfer_sec(0.);
+        st->set_group_index(0);
+        st->set_delta_payload_kind(proxy_proto::CORD_DELTA_DATA);
+        st->set_chunk_byte_offset(chunk_off);
+        st->set_chunk_byte_length(static_cast<uint64_t>(payload));
+        st->set_mst_origin_data_block_id(bid);
+        st->clear_parity_merge_data_block_ids();
+        ++step_idx;
+      }
+      plan.set_total_rounds(static_cast<uint32_t>(std::max(step_idx, 0)));
+      std::cout << "[CoRD] simple g1 plan: g1_blk=" << g1_bid << " g1_cluster=c" << g1_cluster
+                << " steps=" << plan.steps_size() << "\n";
+      return plan;
+    }
+
   } // namespace
 
   grpc::Status CoordinatorImpl::setParameter(
@@ -1915,7 +1973,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       return;
     }
     proxy_proto::CordTransferEncodeMeta *meta = plan->mutable_cord_encode_meta();
-    meta->set_encode_type(static_cast<int32_t>(m_encode_parameters.encodetype));
+    // SplitParityLRC 等 azure-like 码在 SET 侧走 Azure 矩阵；g1 更新需启用 matrix encode
+    if (is_azure_like_code(m_sys_config->CodeType))
+      meta->set_encode_type(static_cast<int32_t>(Azure_LRC));
+    else
+      meta->set_encode_type(static_cast<int32_t>(m_encode_parameters.encodetype));
     meta->set_k(stripe->k);
     // CoRD SET 路径只初始化 stripe->r/z，g_m/l 可能未赋值；与 proxy ingress 矩阵编码一致用 r/z
     meta->set_g_m(m_sys_config->r);
@@ -2200,57 +2262,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       std::cout << "\n";
     }
 
-    const auto groups = cord_partition_groups_algorithm1(block_intervals);
-
-    std::cout << "[CoRD] Algorithm 1 partition (intersection closure; singletons = pairwise disjoint from all other "
-                 "updated blocks): |U|=" << groups.size() << "\n";
-    for (size_t gi = 0; gi < groups.size(); ++gi)
-    {
-      const auto &g = groups[gi];
-      const char *tag = (g.size() >= 2) ? "intersecting_group" : "disjoint_singleton";
-      std::cout << "  group[" << gi << "] " << tag << " |N|=" << g.size() << " blocks=[";
-      for (size_t bi = 0; bi < g.size(); ++bi) {
-        if (bi > 0) std::cout << " ";
-        std::cout << g[bi];
-      }
-      std::cout << "]\n";
-    }
-
-    cord_alg2::Algorithm2Result alg2_result;
-    {
-      cord_alg2::TransferParams tp;
-      tp.enforce_one_send_one_recv_per_cluster = false; 
-      alg2_result =
-          cord_alg2::build_algorithm2(*stripe, block_intervals, groups, m_sys_config->ClusterNum, tp);
-      std::cout << "[CoRD] Algorithm 2 train_route (|U|=" << groups.size() << ", links=" << alg2_result.train_route.size()
-                << "):\n";
-      for (size_t i = 0; i < alg2_result.train_route.size(); ++i)
-      {
-        const auto &L = alg2_result.train_route[i];
-        std::cout << "  [" << i << "] " << cord_alg2::train_link_kind_name(L.kind)
-                  << " blk" << L.src_block_id << "->blk" << L.dst_block_id
-                  << " c" << L.src_cluster << "->c" << L.dst_cluster
-                  << " bytes=" << L.payload_bytes << " est_s=" << L.est_transfer_sec << " grp=" << L.group_index
-                  << " delta=" << (L.delta_kind == cord_alg2::CordDeltaPayloadKind::DATA_DELTA ? "ΔD" : "ΔP")
-                  << (L.mst_origin_data_block >= 0 ? " mst_origin=" + std::to_string(L.mst_origin_data_block) : "")
-                  << "\n";
-      }
-      std::cout << "[CoRD] Algorithm 2 schedule_steps=" << alg2_result.timeslot_schedule.size();
-      if (alg2_result.center_global_block_id >= 0)
-        std::cout << " center_global_blk=" << alg2_result.center_global_block_id;
-      std::cout << "\n";
-      for (const auto &ts : alg2_result.timeslot_schedule)
-      {
-        std::cout << "  step " << ts.timeslot << ": links=[";
-        for (size_t li = 0; li < ts.link_indices.size(); ++li) {
-          if (li > 0) std::cout << " ";
-          std::cout << ts.link_indices[li];
-        }
-        std::cout << "]  (concurrent transfers within this step)\n";
-      }
-      // 算法三已在 build_algorithm2 内与算法二融合（|N|≥3 成功时）；此处不再单独调用以免重复计算。
-    }
-
+    // 简化策略：跳过 Alg1/Alg2/STAR，每个更新数据块只把 ΔD 传到 g1（block_id=k）所在 proxy。
+    cord_alg2::Algorithm2Result alg2_result; // 空结果：仅复用 encoding enrich（无 collector/xor hints）
     proxy_proto::CordTransferPlan cord_xfer_plan;
     std::string cord_xfer_plan_key;
     {
@@ -2258,9 +2271,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
                            std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(
                                               std::chrono::steady_clock::now().time_since_epoch())
                                               .count());
-      cord_xfer_plan = cord_transfer_plan_from_algorithm2(stripe_id, cord_xfer_plan_key, alg2_result, stripe->k,
-                                                            block_intervals);
-      std::cout << "[CoRD] CordTransferPlan: steps=" << cord_xfer_plan.steps_size()
+      cord_xfer_plan = cord_transfer_plan_to_g1_only(stripe_id, cord_xfer_plan_key, stripe, block_intervals);
+      std::cout << "[CoRD] CordTransferPlan (g1-only): steps=" << cord_xfer_plan.steps_size()
                 << " schedule_steps=" << cord_xfer_plan.total_rounds() << "\n";
       enrich_cord_transfer_plan_delta_segs(block_intervals, stripe->k, &cord_xfer_plan);
       fill_group_xor_hints_from_alg2(alg2_result, block_intervals, &cord_xfer_plan);
@@ -2472,6 +2484,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     reply->set_cord_xfer_timing_present(false);
     reply->set_cord_xfer_pure_sec(0.);
     reply->set_cord_xfer_grpc_sec(0.);
+    reply->set_cord_g1_timing_present(false);
+    reply->set_cord_g1_transfer_sec(0.);
+    reply->set_cord_g1_parity_read_sec(0.);
+    reply->set_cord_g1_compute_sec(0.);
+    reply->set_cord_g1_parity_write_sec(0.);
     const auto handler_t0 = std::chrono::steady_clock::now();
     const std::string &pk = request->plan_key();
     if (pk.empty())
@@ -2494,6 +2511,11 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     int joined_proxies = 0;
     int timing_samples = 0;
     double max_proxy_pure_xfer_sec = 0.;
+    double g1_transfer_sec = 0.;
+    double g1_parity_read_sec = 0.;
+    double g1_compute_sec = 0.;
+    double g1_parity_write_sec = 0.;
+    bool g1_timing_have = false;
     for (int cid : clusters)
     {
       if (cid < 0)
@@ -2524,10 +2546,6 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
         const int64_t em = rep.cord_join_pure_xfer_end_unix_ms();
         const double proxy_wall_span_sec =
             (em >= sm) ? static_cast<double>(em - sm) / 1000. : -1.;
-        // std::cout << "[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=" << pk << " cluster=" << cid
-        //           << " proxy_endpoint=" << pkey << " pure_xfer_sec=" << rep.cord_join_pure_xfer_sec()
-        //           << " wall_start_unix_ms=" << sm << " wall_end_unix_ms=" << em << " proxy_wall_span_sec="
-        //           << proxy_wall_span_sec << std::endl;
         (void)proxy_wall_span_sec;
         (void)pkey;
         max_proxy_pure_xfer_sec = std::max(max_proxy_pure_xfer_sec, rep.cord_join_pure_xfer_sec());
@@ -2545,12 +2563,14 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
           ++timing_samples;
         }
       }
-      // else
-      // {
-      //   std::cout << "[CoRD-PLAN][Coordinator] proxy_pure_xfer plan_key=" << pk << " cluster=" << cid
-      //             << " proxy_endpoint=" << pkey << " timing=n/a (no cord_join_xfer_timing from proxy)"
-      //             << std::endl;
-      // }
+      if (rep.cord_join_g1_timing_present())
+      {
+        g1_timing_have = true;
+        g1_transfer_sec += rep.cord_join_g1_transfer_sec();
+        g1_parity_read_sec += rep.cord_join_g1_parity_read_sec();
+        g1_compute_sec += rep.cord_join_g1_compute_sec();
+        g1_parity_write_sec += rep.cord_join_g1_parity_write_sec();
+      }
       (void)pkey;
     }
     {
@@ -2588,6 +2608,19 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       std::cout << "[CoRD-PLAN][Coordinator] xfer_wait breakdown plan_key=" << pk
                 << " handler_sec=" << handler_sec << " pure_xfer_sec=n/a grpc_sec=" << handler_sec
                 << std::endl;
+    }
+    if (g1_timing_have)
+    {
+      reply->set_cord_g1_timing_present(true);
+      reply->set_cord_g1_transfer_sec(g1_transfer_sec);
+      reply->set_cord_g1_parity_read_sec(g1_parity_read_sec);
+      reply->set_cord_g1_compute_sec(g1_compute_sec);
+      reply->set_cord_g1_parity_write_sec(g1_parity_write_sec);
+      std::cout << "[CoRD-G1][Coordinator] plan_key=" << pk
+                << " transfer_sec=" << g1_transfer_sec
+                << " parity_read_sec=" << g1_parity_read_sec
+                << " compute_sec=" << g1_compute_sec
+                << " parity_write_sec=" << g1_parity_write_sec << std::endl;
     }
     (void)timing_samples;
     reply->set_ifcommit(true);

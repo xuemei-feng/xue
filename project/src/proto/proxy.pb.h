@@ -10989,8 +10989,13 @@ class SetReply final :
     kCordJoinPureXferSecFieldNumber = 3,
     kCordJoinPureXferStartUnixMsFieldNumber = 4,
     kCordJoinPureXferEndUnixMsFieldNumber = 5,
+    kCordJoinG1TransferSecFieldNumber = 7,
+    kCordJoinG1ParityReadSecFieldNumber = 8,
+    kCordJoinG1ComputeSecFieldNumber = 9,
+    kCordJoinG1ParityWriteSecFieldNumber = 10,
     kIfcommitFieldNumber = 1,
     kCordJoinXferTimingPresentFieldNumber = 2,
+    kCordJoinG1TimingPresentFieldNumber = 6,
   };
   // double cord_join_pure_xfer_sec = 3;
   void clear_cord_join_pure_xfer_sec();
@@ -11019,6 +11024,42 @@ class SetReply final :
   void _internal_set_cord_join_pure_xfer_end_unix_ms(int64_t value);
   public:
 
+  // double cord_join_g1_transfer_sec = 7;
+  void clear_cord_join_g1_transfer_sec();
+  double cord_join_g1_transfer_sec() const;
+  void set_cord_join_g1_transfer_sec(double value);
+  private:
+  double _internal_cord_join_g1_transfer_sec() const;
+  void _internal_set_cord_join_g1_transfer_sec(double value);
+  public:
+
+  // double cord_join_g1_parity_read_sec = 8;
+  void clear_cord_join_g1_parity_read_sec();
+  double cord_join_g1_parity_read_sec() const;
+  void set_cord_join_g1_parity_read_sec(double value);
+  private:
+  double _internal_cord_join_g1_parity_read_sec() const;
+  void _internal_set_cord_join_g1_parity_read_sec(double value);
+  public:
+
+  // double cord_join_g1_compute_sec = 9;
+  void clear_cord_join_g1_compute_sec();
+  double cord_join_g1_compute_sec() const;
+  void set_cord_join_g1_compute_sec(double value);
+  private:
+  double _internal_cord_join_g1_compute_sec() const;
+  void _internal_set_cord_join_g1_compute_sec(double value);
+  public:
+
+  // double cord_join_g1_parity_write_sec = 10;
+  void clear_cord_join_g1_parity_write_sec();
+  double cord_join_g1_parity_write_sec() const;
+  void set_cord_join_g1_parity_write_sec(double value);
+  private:
+  double _internal_cord_join_g1_parity_write_sec() const;
+  void _internal_set_cord_join_g1_parity_write_sec(double value);
+  public:
+
   // bool ifcommit = 1;
   void clear_ifcommit();
   bool ifcommit() const;
@@ -11037,6 +11078,15 @@ class SetReply final :
   void _internal_set_cord_join_xfer_timing_present(bool value);
   public:
 
+  // bool cord_join_g1_timing_present = 6;
+  void clear_cord_join_g1_timing_present();
+  bool cord_join_g1_timing_present() const;
+  void set_cord_join_g1_timing_present(bool value);
+  private:
+  bool _internal_cord_join_g1_timing_present() const;
+  void _internal_set_cord_join_g1_timing_present(bool value);
+  public:
+
   // @@protoc_insertion_point(class_scope:proxy_proto.SetReply)
  private:
   class _Internal;
@@ -11048,8 +11098,13 @@ class SetReply final :
     double cord_join_pure_xfer_sec_;
     int64_t cord_join_pure_xfer_start_unix_ms_;
     int64_t cord_join_pure_xfer_end_unix_ms_;
+    double cord_join_g1_transfer_sec_;
+    double cord_join_g1_parity_read_sec_;
+    double cord_join_g1_compute_sec_;
+    double cord_join_g1_parity_write_sec_;
     bool ifcommit_;
     bool cord_join_xfer_timing_present_;
+    bool cord_join_g1_timing_present_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -22067,6 +22122,106 @@ inline void SetReply::_internal_set_cord_join_pure_xfer_end_unix_ms(int64_t valu
 inline void SetReply::set_cord_join_pure_xfer_end_unix_ms(int64_t value) {
   _internal_set_cord_join_pure_xfer_end_unix_ms(value);
   // @@protoc_insertion_point(field_set:proxy_proto.SetReply.cord_join_pure_xfer_end_unix_ms)
+}
+
+// bool cord_join_g1_timing_present = 6;
+inline void SetReply::clear_cord_join_g1_timing_present() {
+  _impl_.cord_join_g1_timing_present_ = false;
+}
+inline bool SetReply::_internal_cord_join_g1_timing_present() const {
+  return _impl_.cord_join_g1_timing_present_;
+}
+inline bool SetReply::cord_join_g1_timing_present() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.SetReply.cord_join_g1_timing_present)
+  return _internal_cord_join_g1_timing_present();
+}
+inline void SetReply::_internal_set_cord_join_g1_timing_present(bool value) {
+  
+  _impl_.cord_join_g1_timing_present_ = value;
+}
+inline void SetReply::set_cord_join_g1_timing_present(bool value) {
+  _internal_set_cord_join_g1_timing_present(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.SetReply.cord_join_g1_timing_present)
+}
+
+// double cord_join_g1_transfer_sec = 7;
+inline void SetReply::clear_cord_join_g1_transfer_sec() {
+  _impl_.cord_join_g1_transfer_sec_ = 0;
+}
+inline double SetReply::_internal_cord_join_g1_transfer_sec() const {
+  return _impl_.cord_join_g1_transfer_sec_;
+}
+inline double SetReply::cord_join_g1_transfer_sec() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.SetReply.cord_join_g1_transfer_sec)
+  return _internal_cord_join_g1_transfer_sec();
+}
+inline void SetReply::_internal_set_cord_join_g1_transfer_sec(double value) {
+  
+  _impl_.cord_join_g1_transfer_sec_ = value;
+}
+inline void SetReply::set_cord_join_g1_transfer_sec(double value) {
+  _internal_set_cord_join_g1_transfer_sec(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.SetReply.cord_join_g1_transfer_sec)
+}
+
+// double cord_join_g1_parity_read_sec = 8;
+inline void SetReply::clear_cord_join_g1_parity_read_sec() {
+  _impl_.cord_join_g1_parity_read_sec_ = 0;
+}
+inline double SetReply::_internal_cord_join_g1_parity_read_sec() const {
+  return _impl_.cord_join_g1_parity_read_sec_;
+}
+inline double SetReply::cord_join_g1_parity_read_sec() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.SetReply.cord_join_g1_parity_read_sec)
+  return _internal_cord_join_g1_parity_read_sec();
+}
+inline void SetReply::_internal_set_cord_join_g1_parity_read_sec(double value) {
+  
+  _impl_.cord_join_g1_parity_read_sec_ = value;
+}
+inline void SetReply::set_cord_join_g1_parity_read_sec(double value) {
+  _internal_set_cord_join_g1_parity_read_sec(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.SetReply.cord_join_g1_parity_read_sec)
+}
+
+// double cord_join_g1_compute_sec = 9;
+inline void SetReply::clear_cord_join_g1_compute_sec() {
+  _impl_.cord_join_g1_compute_sec_ = 0;
+}
+inline double SetReply::_internal_cord_join_g1_compute_sec() const {
+  return _impl_.cord_join_g1_compute_sec_;
+}
+inline double SetReply::cord_join_g1_compute_sec() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.SetReply.cord_join_g1_compute_sec)
+  return _internal_cord_join_g1_compute_sec();
+}
+inline void SetReply::_internal_set_cord_join_g1_compute_sec(double value) {
+  
+  _impl_.cord_join_g1_compute_sec_ = value;
+}
+inline void SetReply::set_cord_join_g1_compute_sec(double value) {
+  _internal_set_cord_join_g1_compute_sec(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.SetReply.cord_join_g1_compute_sec)
+}
+
+// double cord_join_g1_parity_write_sec = 10;
+inline void SetReply::clear_cord_join_g1_parity_write_sec() {
+  _impl_.cord_join_g1_parity_write_sec_ = 0;
+}
+inline double SetReply::_internal_cord_join_g1_parity_write_sec() const {
+  return _impl_.cord_join_g1_parity_write_sec_;
+}
+inline double SetReply::cord_join_g1_parity_write_sec() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.SetReply.cord_join_g1_parity_write_sec)
+  return _internal_cord_join_g1_parity_write_sec();
+}
+inline void SetReply::_internal_set_cord_join_g1_parity_write_sec(double value) {
+  
+  _impl_.cord_join_g1_parity_write_sec_ = value;
+}
+inline void SetReply::set_cord_join_g1_parity_write_sec(double value) {
+  _internal_set_cord_join_g1_parity_write_sec(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.SetReply.cord_join_g1_parity_write_sec)
 }
 
 // -------------------------------------------------------------------

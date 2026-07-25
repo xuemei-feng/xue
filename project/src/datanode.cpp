@@ -833,6 +833,7 @@ namespace ECProject
     std::string readpath = targetdir + block_key;
     const uint64_t xfer_tag = cord_dn_alloc_xfer_tag();
     std::vector<char> data(static_cast<size_t>(range_length), 0);
+    const auto disk_t0 = std::chrono::steady_clock::now();
     if (access(readpath.c_str(), 0) != -1)
     {
       std::ifstream ifs(readpath, std::ios::binary);
@@ -842,6 +843,11 @@ namespace ECProject
         ifs.read(data.data(), range_length);
       }
     }
+    const double disk_io_sec =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - disk_t0).count();
+    // 复用字段：start=0, end=纯磁盘秒数（proxy 侧直接取 end）
+    response->set_disk_io_start_time(0.);
+    response->set_disk_io_end_time(disk_io_sec);
     {
       std::lock_guard<std::mutex> lk(g_cord_dn_pending_mu);
       g_cord_dn_pending_reads[xfer_tag] = CordDnPendingRead{std::move(data), range_length};
@@ -958,19 +964,30 @@ namespace ECProject
         std::vector<char> payload(static_cast<size_t>(range_length));
         asio::error_code ec;
         asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(range_length)), ec);
-        asio::error_code ignore_ec;
-        socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
-        socket.close(ignore_ec);
         if (ec)
+        {
+          asio::error_code ignore_ec;
+          socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+          socket.close(ignore_ec);
           return;
+        }
+        double disk_io_sec = 0.;
         int fd = ::open(pending.writepath.c_str(), O_CREAT | O_RDWR, 0644);
         if (fd >= 0)
         {
+          const auto disk_t0 = std::chrono::steady_clock::now();
           ssize_t w = ::pwrite(fd, payload.data(), range_length, pending.range_offset);
           ::fsync(fd);
           ::close(fd);
+          disk_io_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - disk_t0).count();
           (void)w;
         }
+        // 告知 proxy：纯磁盘耗时（秒），proxy 读完才算写完成
+        asio::error_code ack_ec;
+        asio::write(socket, asio::buffer(&disk_io_sec, sizeof(disk_io_sec)), ack_ec);
+        asio::error_code ignore_ec;
+        socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
+        socket.close(ignore_ec);
       }
       catch (std::exception &e)
       {

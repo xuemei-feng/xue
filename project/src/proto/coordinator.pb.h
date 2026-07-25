@@ -2461,8 +2461,13 @@ class RepIfSuccess final :
   enum : int {
     kCordXferPureSecFieldNumber = 3,
     kCordXferGrpcSecFieldNumber = 4,
+    kCordG1TransferSecFieldNumber = 6,
+    kCordG1ParityReadSecFieldNumber = 7,
+    kCordG1ComputeSecFieldNumber = 8,
+    kCordG1ParityWriteSecFieldNumber = 9,
     kIfcommitFieldNumber = 1,
     kCordXferTimingPresentFieldNumber = 2,
+    kCordG1TimingPresentFieldNumber = 5,
   };
   // double cord_xfer_pure_sec = 3;
   void clear_cord_xfer_pure_sec();
@@ -2480,6 +2485,42 @@ class RepIfSuccess final :
   private:
   double _internal_cord_xfer_grpc_sec() const;
   void _internal_set_cord_xfer_grpc_sec(double value);
+  public:
+
+  // double cord_g1_transfer_sec = 6;
+  void clear_cord_g1_transfer_sec();
+  double cord_g1_transfer_sec() const;
+  void set_cord_g1_transfer_sec(double value);
+  private:
+  double _internal_cord_g1_transfer_sec() const;
+  void _internal_set_cord_g1_transfer_sec(double value);
+  public:
+
+  // double cord_g1_parity_read_sec = 7;
+  void clear_cord_g1_parity_read_sec();
+  double cord_g1_parity_read_sec() const;
+  void set_cord_g1_parity_read_sec(double value);
+  private:
+  double _internal_cord_g1_parity_read_sec() const;
+  void _internal_set_cord_g1_parity_read_sec(double value);
+  public:
+
+  // double cord_g1_compute_sec = 8;
+  void clear_cord_g1_compute_sec();
+  double cord_g1_compute_sec() const;
+  void set_cord_g1_compute_sec(double value);
+  private:
+  double _internal_cord_g1_compute_sec() const;
+  void _internal_set_cord_g1_compute_sec(double value);
+  public:
+
+  // double cord_g1_parity_write_sec = 9;
+  void clear_cord_g1_parity_write_sec();
+  double cord_g1_parity_write_sec() const;
+  void set_cord_g1_parity_write_sec(double value);
+  private:
+  double _internal_cord_g1_parity_write_sec() const;
+  void _internal_set_cord_g1_parity_write_sec(double value);
   public:
 
   // bool ifcommit = 1;
@@ -2500,6 +2541,15 @@ class RepIfSuccess final :
   void _internal_set_cord_xfer_timing_present(bool value);
   public:
 
+  // bool cord_g1_timing_present = 5;
+  void clear_cord_g1_timing_present();
+  bool cord_g1_timing_present() const;
+  void set_cord_g1_timing_present(bool value);
+  private:
+  bool _internal_cord_g1_timing_present() const;
+  void _internal_set_cord_g1_timing_present(bool value);
+  public:
+
   // @@protoc_insertion_point(class_scope:coordinator_proto.RepIfSuccess)
  private:
   class _Internal;
@@ -2510,8 +2560,13 @@ class RepIfSuccess final :
   struct Impl_ {
     double cord_xfer_pure_sec_;
     double cord_xfer_grpc_sec_;
+    double cord_g1_transfer_sec_;
+    double cord_g1_parity_read_sec_;
+    double cord_g1_compute_sec_;
+    double cord_g1_parity_write_sec_;
     bool ifcommit_;
     bool cord_xfer_timing_present_;
+    bool cord_g1_timing_present_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -6430,6 +6485,106 @@ inline void RepIfSuccess::_internal_set_cord_xfer_grpc_sec(double value) {
 inline void RepIfSuccess::set_cord_xfer_grpc_sec(double value) {
   _internal_set_cord_xfer_grpc_sec(value);
   // @@protoc_insertion_point(field_set:coordinator_proto.RepIfSuccess.cord_xfer_grpc_sec)
+}
+
+// bool cord_g1_timing_present = 5;
+inline void RepIfSuccess::clear_cord_g1_timing_present() {
+  _impl_.cord_g1_timing_present_ = false;
+}
+inline bool RepIfSuccess::_internal_cord_g1_timing_present() const {
+  return _impl_.cord_g1_timing_present_;
+}
+inline bool RepIfSuccess::cord_g1_timing_present() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.RepIfSuccess.cord_g1_timing_present)
+  return _internal_cord_g1_timing_present();
+}
+inline void RepIfSuccess::_internal_set_cord_g1_timing_present(bool value) {
+  
+  _impl_.cord_g1_timing_present_ = value;
+}
+inline void RepIfSuccess::set_cord_g1_timing_present(bool value) {
+  _internal_set_cord_g1_timing_present(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.RepIfSuccess.cord_g1_timing_present)
+}
+
+// double cord_g1_transfer_sec = 6;
+inline void RepIfSuccess::clear_cord_g1_transfer_sec() {
+  _impl_.cord_g1_transfer_sec_ = 0;
+}
+inline double RepIfSuccess::_internal_cord_g1_transfer_sec() const {
+  return _impl_.cord_g1_transfer_sec_;
+}
+inline double RepIfSuccess::cord_g1_transfer_sec() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.RepIfSuccess.cord_g1_transfer_sec)
+  return _internal_cord_g1_transfer_sec();
+}
+inline void RepIfSuccess::_internal_set_cord_g1_transfer_sec(double value) {
+  
+  _impl_.cord_g1_transfer_sec_ = value;
+}
+inline void RepIfSuccess::set_cord_g1_transfer_sec(double value) {
+  _internal_set_cord_g1_transfer_sec(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.RepIfSuccess.cord_g1_transfer_sec)
+}
+
+// double cord_g1_parity_read_sec = 7;
+inline void RepIfSuccess::clear_cord_g1_parity_read_sec() {
+  _impl_.cord_g1_parity_read_sec_ = 0;
+}
+inline double RepIfSuccess::_internal_cord_g1_parity_read_sec() const {
+  return _impl_.cord_g1_parity_read_sec_;
+}
+inline double RepIfSuccess::cord_g1_parity_read_sec() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.RepIfSuccess.cord_g1_parity_read_sec)
+  return _internal_cord_g1_parity_read_sec();
+}
+inline void RepIfSuccess::_internal_set_cord_g1_parity_read_sec(double value) {
+  
+  _impl_.cord_g1_parity_read_sec_ = value;
+}
+inline void RepIfSuccess::set_cord_g1_parity_read_sec(double value) {
+  _internal_set_cord_g1_parity_read_sec(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.RepIfSuccess.cord_g1_parity_read_sec)
+}
+
+// double cord_g1_compute_sec = 8;
+inline void RepIfSuccess::clear_cord_g1_compute_sec() {
+  _impl_.cord_g1_compute_sec_ = 0;
+}
+inline double RepIfSuccess::_internal_cord_g1_compute_sec() const {
+  return _impl_.cord_g1_compute_sec_;
+}
+inline double RepIfSuccess::cord_g1_compute_sec() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.RepIfSuccess.cord_g1_compute_sec)
+  return _internal_cord_g1_compute_sec();
+}
+inline void RepIfSuccess::_internal_set_cord_g1_compute_sec(double value) {
+  
+  _impl_.cord_g1_compute_sec_ = value;
+}
+inline void RepIfSuccess::set_cord_g1_compute_sec(double value) {
+  _internal_set_cord_g1_compute_sec(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.RepIfSuccess.cord_g1_compute_sec)
+}
+
+// double cord_g1_parity_write_sec = 9;
+inline void RepIfSuccess::clear_cord_g1_parity_write_sec() {
+  _impl_.cord_g1_parity_write_sec_ = 0;
+}
+inline double RepIfSuccess::_internal_cord_g1_parity_write_sec() const {
+  return _impl_.cord_g1_parity_write_sec_;
+}
+inline double RepIfSuccess::cord_g1_parity_write_sec() const {
+  // @@protoc_insertion_point(field_get:coordinator_proto.RepIfSuccess.cord_g1_parity_write_sec)
+  return _internal_cord_g1_parity_write_sec();
+}
+inline void RepIfSuccess::_internal_set_cord_g1_parity_write_sec(double value) {
+  
+  _impl_.cord_g1_parity_write_sec_ = value;
+}
+inline void RepIfSuccess::set_cord_g1_parity_write_sec(double value) {
+  _internal_set_cord_g1_parity_write_sec(value);
+  // @@protoc_insertion_point(field_set:coordinator_proto.RepIfSuccess.cord_g1_parity_write_sec)
 }
 
 // -------------------------------------------------------------------

@@ -1,5 +1,6 @@
 #include "proxy.h"
 #include "jerasure.h"
+#include "galois.h"
 #include "reed_sol.h"
 #include "tinyxml2.h"
 #include "toolbox.h"
@@ -20,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <condition_variable>
 #include <cstring>
 #include <cstdlib>
 #include <ctime>
@@ -191,6 +193,61 @@ namespace ECProject
   };
   static std::mutex g_cord_join_xfer_timing_mu;
   static std::unordered_map<std::string, CordJoinXferTimingSample> g_cord_join_xfer_timing_by_plan;
+
+  /** g1 简化路径：各步骤 transfer / parity_read / compute / parity_write 累计（秒）。 */
+  struct CordG1TimingAccum {
+    double transfer_sec = 0.;
+    double parity_read_sec = 0.;
+    double compute_sec = 0.;
+    double parity_write_sec = 0.;
+    bool present = false;
+  };
+  static std::mutex g_cord_g1_timing_mu;
+  static std::unordered_map<std::string, CordG1TimingAccum> g_cord_g1_timing_by_plan;
+
+  static void cord_g1_timing_add(const std::string &pk, double transfer_sec, double parity_read_sec,
+                                 double compute_sec, double parity_write_sec)
+  {
+    if (pk.empty())
+      return;
+    std::lock_guard<std::mutex> lk(g_cord_g1_timing_mu);
+    CordG1TimingAccum &a = g_cord_g1_timing_by_plan[pk];
+    a.transfer_sec += transfer_sec;
+    a.parity_read_sec += parity_read_sec;
+    a.compute_sec += compute_sec;
+    a.parity_write_sec += parity_write_sec;
+    a.present = true;
+  }
+
+  /** g1 入站 apply 完成计数（纯接收端 exec 线程需等此计数达标再 join）。 */
+  static std::mutex g_cord_g1_apply_mu;
+  static std::condition_variable g_cord_g1_apply_cv;
+  static std::unordered_map<std::string, int> g_cord_g1_apply_done_count;
+
+  static void cord_g1_apply_done_inc(const std::string &pk)
+  {
+    if (pk.empty())
+      return;
+    {
+      std::lock_guard<std::mutex> lk(g_cord_g1_apply_mu);
+      ++g_cord_g1_apply_done_count[pk];
+    }
+    g_cord_g1_apply_cv.notify_all();
+  }
+
+  static void cord_g1_wait_inbound_applies(const std::string &pk, int expect_count)
+  {
+    if (pk.empty() || expect_count <= 0)
+      return;
+    std::unique_lock<std::mutex> lk(g_cord_g1_apply_mu);
+    const bool ok = g_cord_g1_apply_cv.wait_for(lk, std::chrono::minutes(30), [&]() {
+      return g_cord_g1_apply_done_count[pk] >= expect_count;
+    });
+    if (!ok)
+      std::cout << "[CoRD-G1] wait inbound applies timeout plan=" << pk
+                << " expect=" << expect_count
+                << " got=" << g_cord_g1_apply_done_count[pk] << std::endl;
+  }
 
   static int64_t cord_sys_clock_to_unix_ms(std::chrono::system_clock::time_point tp)
   {
@@ -778,6 +835,34 @@ namespace ECProject
     return true;
   }
 
+  /** 单数据块对单校验行的增量：ΔP = coeff[row, src] ⊙ ΔD，避免对整条带做 full matrix encode。 */
+  static bool cord_parity_delta_from_one_data_strip(int k, int g_m, int l, ECProject::EncodeType et, int strip_size,
+                                                     int src_data_block_id, int parity_row,
+                                                     const char *data_strip, std::vector<uint8_t> *parity_delta_out)
+  {
+    if (k <= 0 || strip_size <= 0 || src_data_block_id < 0 || src_data_block_id >= k || parity_row < 0)
+      return false;
+    const int coding_rows = g_m + l;
+    if (parity_row >= coding_rows || data_strip == nullptr || parity_delta_out == nullptr)
+      return false;
+    std::vector<int> matrix(static_cast<size_t>(coding_rows) * static_cast<size_t>(k), 0);
+    if (!lrc_make_matrix(k, g_m, l, matrix.data(), et))
+      return false;
+    const int coeff = matrix[static_cast<size_t>(parity_row) * static_cast<size_t>(k) +
+                             static_cast<size_t>(src_data_block_id)];
+    parity_delta_out->assign(static_cast<size_t>(strip_size), 0);
+    if (coeff == 0)
+      return true;
+    if (coeff == 1)
+    {
+      std::memcpy(parity_delta_out->data(), data_strip, static_cast<size_t>(strip_size));
+      return true;
+    }
+    std::memcpy(parity_delta_out->data(), data_strip, static_cast<size_t>(strip_size));
+    galois_w08_region_multiply(reinterpret_cast<char *>(parity_delta_out->data()), coeff, strip_size, nullptr, 0);
+    return true;
+  }
+
   static bool cord_matrix_encode_strips(int k, int g_m, int l, ECProject::EncodeType et, int strip_size,
                                         const std::vector<std::vector<char>> &data_strips,
                                         std::vector<std::vector<uint8_t>> *coding_out)
@@ -1103,6 +1188,9 @@ namespace ECProject
       return false;
     const std::string &pk = request.plan_key();
     const uint64_t off = request.chunk_byte_offset();
+    double parity_read_sec = 0.;
+    double compute_sec = 0.;
+    double parity_write_sec = 0.;
     {
       std::lock_guard<std::mutex> lk(g_cord_xfer_mu);
       auto &stream = g_cord_mst_stream[pk];
@@ -1142,22 +1230,22 @@ namespace ECProject
         if (sdesc != nullptr && src_bid >= 0 && src_bid < kblk && ps > 0)
         {
           const int so = sdesc->slice_offset();
-          std::vector<std::vector<char>> strips(static_cast<size_t>(kblk),
-                                                std::vector<char>(static_cast<size_t>(ps), 0));
+          std::vector<char> one_strip(static_cast<size_t>(ps), 0);
           for (size_t i = 0; i < chunk_size; ++i)
           {
             const int x = so + static_cast<int>(off) + static_cast<int>(i);
             if (x >= po && x < po + ps)
-              strips[static_cast<size_t>(src_bid)][static_cast<size_t>(x - po)] = chunk_data[i];
+              one_strip[static_cast<size_t>(x - po)] = chunk_data[i];
           }
-          std::vector<std::vector<uint8_t>> coded;
-          const ECProject::EncodeType et = static_cast<ECProject::EncodeType>(meta.encode_type());
-          if (!cord_matrix_encode_strips(kblk, meta.g_m(), meta.l(), et, ps, strips, &coded))
-            return false;
           const int row = request.dst_block_id() - kblk;
-          if (row < 0 || row >= static_cast<int>(coded.size()))
+          std::vector<uint8_t> pdelta;
+          const ECProject::EncodeType et = static_cast<ECProject::EncodeType>(meta.encode_type());
+          const auto t_enc0 = std::chrono::steady_clock::now();
+          if (!cord_parity_delta_from_one_data_strip(kblk, meta.g_m(), meta.l(), et, ps, src_bid, row,
+                                                     one_strip.data(), &pdelta))
             return false;
-          const auto &pdelta = coded[static_cast<size_t>(row)];
+          const auto t_enc1 = std::chrono::steady_clock::now();
+          compute_sec += std::chrono::duration<double>(t_enc1 - t_enc0).count();
           const auto nz =
               cord_parity_delta_nonzero_span(reinterpret_cast<const char *>(pdelta.data()), pdelta.size());
           if (nz.second > 0)
@@ -1165,24 +1253,31 @@ namespace ECProject
             const int poff = static_cast<int>(nz.first);
             const int plen = static_cast<int>(nz.second);
             std::vector<char> cur(static_cast<size_t>(plen));
+            double disk_read = 0.;
             if (!proxy->CordRangeReadFromDatanode(request.parity_block_key(), request.dst_block_id(), po + poff,
                                                   cur.data(), static_cast<size_t>(plen),
                                                   request.parity_datanode_ip().c_str(),
-                                                  request.parity_datanode_port()))
+                                                  request.parity_datanode_port(), &disk_read))
               return false;
+            parity_read_sec += disk_read;
+            const auto t_xor0 = std::chrono::steady_clock::now();
             for (int u = 0; u < plen; ++u)
               cur[static_cast<size_t>(u)] = static_cast<char>(
                   static_cast<unsigned char>(cur[static_cast<size_t>(u)]) ^
                   static_cast<unsigned char>(pdelta[static_cast<size_t>(poff + u)]));
+            const auto t_xor1 = std::chrono::steady_clock::now();
+            compute_sec += std::chrono::duration<double>(t_xor1 - t_xor0).count();
             cord_pure_xfer_parity_dn_begin(pk);
+            double disk_write = 0.;
             if (!proxy->CordRangeWriteToDatanode(request.parity_block_key(), request.dst_block_id(), po + poff,
                                                  cur.data(), static_cast<size_t>(plen),
                                                  request.parity_datanode_ip().c_str(),
-                                                 request.parity_datanode_port()))
+                                                 request.parity_datanode_port(), &disk_write))
             {
               cord_pure_xfer_parity_dn_abort(pk);
               return false;
             }
+            parity_write_sec += disk_write;
             cord_pure_xfer_parity_dn_done_verified(pk);
           }
           applied_matrix = true;
@@ -1196,42 +1291,63 @@ namespace ECProject
           const int psz = static_cast<int>(nz.second);
           const int slice_off = static_cast<int>(off) + static_cast<int>(nz.first);
           std::vector<char> cur(static_cast<size_t>(psz));
+          double disk_read = 0.;
           if (!proxy->CordRangeReadFromDatanode(request.parity_block_key(), request.dst_block_id(), slice_off,
                                                 cur.data(), static_cast<size_t>(psz),
                                                 request.parity_datanode_ip().c_str(),
-                                                request.parity_datanode_port()))
+                                                request.parity_datanode_port(), &disk_read))
             return false;
+          parity_read_sec += disk_read;
+          const auto t_xor0 = std::chrono::steady_clock::now();
           for (int u = 0; u < psz; ++u)
             cur[static_cast<size_t>(u)] = static_cast<char>(
                 static_cast<unsigned char>(cur[static_cast<size_t>(u)]) ^
                 static_cast<unsigned char>(chunk_data[nz.first + static_cast<size_t>(u)]));
+          const auto t_xor1 = std::chrono::steady_clock::now();
+          compute_sec += std::chrono::duration<double>(t_xor1 - t_xor0).count();
           cord_pure_xfer_parity_dn_begin(pk);
+          double disk_write = 0.;
           if (!proxy->CordRangeWriteToDatanode(request.parity_block_key(), request.dst_block_id(), slice_off,
                                                cur.data(), static_cast<size_t>(psz),
                                                request.parity_datanode_ip().c_str(),
-                                               request.parity_datanode_port()))
+                                               request.parity_datanode_port(), &disk_write))
           {
             cord_pure_xfer_parity_dn_abort(pk);
             return false;
           }
+          parity_write_sec += disk_write;
           cord_pure_xfer_parity_dn_done_verified(pk);
         }
       }
+      if (parity_read_sec > 0. || compute_sec > 0. || parity_write_sec > 0.)
+      {
+        cord_g1_timing_add(pk, 0., parity_read_sec, compute_sec, parity_write_sec);
+        std::cout << "[CoRD-G1] plan=" << pk
+                  << " apply g1 blk" << request.dst_block_id()
+                  << " parity_read_sec=" << parity_read_sec
+                  << " compute_sec=" << compute_sec
+                  << " parity_write_sec=" << parity_write_sec << std::endl;
+      }
+      cord_g1_apply_done_inc(pk);
     }
     return true;
   }
 
+  /** 发送 CRDX；out_transfer_sec 为 connect+写完 payload（不含等 ACK，ACK 含对端 apply）。 */
   static bool cord_tcp_xfer_send(const std::string &dst_ip, int dst_grpc_port, uint32_t kind,
                                  const std::string &meta, const void *payload, size_t payload_len,
-                                 uint64_t xfer_tag = 0)
+                                 uint64_t xfer_tag = 0, double *out_transfer_sec = nullptr)
   {
     if (xfer_tag == 0)
       xfer_tag = g_cord_crdx_next_tag.fetch_add(1, std::memory_order_relaxed);
+    if (out_transfer_sec)
+      *out_transfer_sec = 0.;
     try
     {
       asio::io_context io;
       asio::ip::tcp::socket sock(io);
       const int tcp_port = cord_peer_xfer_tcp_port(dst_grpc_port);
+      const auto t0 = std::chrono::steady_clock::now();
       asio::connect(sock, asio::ip::tcp::resolver(io).resolve(dst_ip, std::to_string(tcp_port)));
       const char magic[4] = {'C', 'R', 'D', 'X'};
       asio::write(sock, asio::buffer(magic, 4));
@@ -1243,6 +1359,8 @@ namespace ECProject
       cord_write_u64_be(sock, static_cast<uint64_t>(payload_len));
       if (payload_len > 0)
         asio::write(sock, asio::buffer(payload, payload_len));
+      if (out_transfer_sec)
+        *out_transfer_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
       uint8_t ack = 0xff;
       asio::read(sock, asio::buffer(&ack, 1));
       return ack == 0;
@@ -1712,6 +1830,7 @@ namespace ECProject
           req.set_parity_datanode_port(pp);
           std::string meta;
           req.SerializeToString(&meta);
+          // g1_transfer 改在接收侧统计（受带宽限速）；发送侧不再累加，避免把内核缓冲写出当作传块时间
           const bool ok_xfer =
               cord_tcp_xfer_send(dst_ip, dst_port, CORD_XFER_TCP_MST_CHUNK, meta, buf.data(), chunk_len);
           const auto t_tcp1 = std::chrono::steady_clock::now();
@@ -1815,10 +1934,27 @@ namespace ECProject
       }
 
 
+      // 纯接收端（如 g1）：本机无发送 step，须等待入站 apply 完成后再 join，否则计时丢失。
+      int expect_inbound_g1 = 0;
+      for (int si = 0; si < plan.steps_size(); ++si)
+      {
+        const auto &st = plan.steps(si);
+        if (st.dst_proxy_cluster_id() == self_cluster_id &&
+            st.link_kind() == proxy_proto::CORD_TRANSFER_MST_FORWARD &&
+            st.dst_block_id() >= k)
+          ++expect_inbound_g1;
+      }
+      if (expect_inbound_g1 > 0 && steps_by_slot.empty())
+        cord_g1_wait_inbound_applies(plan.plan_key(), expect_inbound_g1);
+
       const auto sender_loop_done = std::chrono::steady_clock::now();
       const auto sender_wall_done = std::chrono::system_clock::now();
       cord_pure_xfer_log_after_sender_loop(plan.plan_key(), proxy_tag, sender_loop_done, sender_wall_done);
       cord_xfer_cleanup_xfer_plan(plan.plan_key());
+      {
+        std::lock_guard<std::mutex> lk(g_cord_g1_apply_mu);
+        g_cord_g1_apply_done_count.erase(plan.plan_key());
+      }
       const auto wall_t1 = std::chrono::steady_clock::now();
       const double wall_sec = std::chrono::duration<double>(wall_t1 - wall_t0).count();
       plan_log_both("══════ CordTransferPlan EXECUTION DONE ══════");
@@ -1889,6 +2025,7 @@ namespace ECProject
         return;
       }
       std::vector<char> payload;
+      double recv_transfer_sec = 0.;
       if (payload_len > 0)
       {
         const std::string ctx = "xfer_tag=" + std::to_string(xfer_tag) + " kind=" + std::to_string(kind) +
@@ -1899,9 +2036,13 @@ namespace ECProject
           asio::write(socket, asio::buffer(&ack, 1));
           return;
         }
+        // 接收侧读完 payload：受发送端带宽限制约束，才是真实传块时间
+        const auto t_recv0 = std::chrono::steady_clock::now();
         asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(payload_len)));
+        recv_transfer_sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - t_recv0).count();
       }
       bool ok = false;
+      std::string mst_plan_key;
       switch (kind)
       {
       case CORD_XFER_TCP_COLLECTOR_INGEST:
@@ -1922,7 +2063,13 @@ namespace ECProject
       {
         proxy_proto::CordPlanMstDataDeltaReq req;
         if (req.ParseFromString(meta))
+        {
+          mst_plan_key = req.plan_key();
+          // 先记 transfer，再 apply（apply 末尾 apply_done_inc 会唤醒 join）
+          if (recv_transfer_sec > 0.)
+            cord_g1_timing_add(mst_plan_key, recv_transfer_sec, 0., 0., 0.);
           ok = cord_apply_mst_data_delta(this, req, payload.data(), payload.size());
+        }
         break;
       }
       default:
@@ -2512,10 +2659,12 @@ namespace ECProject
 
 
   bool ProxyImpl::CordRangeReadFromDatanode(const std::string &block_key, int block_id, int range_offset, char *out,
-                                            size_t length, const char *ip, int port)
+                                            size_t length, const char *ip, int port, double *out_disk_io_sec)
   {
     try
     {
+      if (out_disk_io_sec)
+        *out_disk_io_sec = 0.;
       grpc::ClientContext context;
       datanode_proto::CordRangeRWInfo info;
       datanode_proto::RequestResult result;
@@ -2529,6 +2678,8 @@ namespace ECProject
       grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleCordRangeRead(&context, info, &result);
       if (!stat.ok() || !result.message())
     return false;
+      if (out_disk_io_sec)
+        *out_disk_io_sec = std::max(0., result.disk_io_end_time() - result.disk_io_start_time());
       const uint64_t xfer_tag = result.cord_tcp_xfer_tag();
       if (xfer_tag == 0)
         return false;
@@ -2553,10 +2704,12 @@ namespace ECProject
   }
 
   bool ProxyImpl::CordRangeWriteToDatanode(const std::string &block_key, int block_id, int range_offset, const char *data,
-                                           size_t length, const char *ip, int port)
+                                           size_t length, const char *ip, int port, double *out_disk_io_sec)
   {
     try
     {
+      if (out_disk_io_sec)
+        *out_disk_io_sec = 0.;
       grpc::ClientContext context;
       datanode_proto::CordRangeRWInfo info;
       datanode_proto::RequestResult result;
@@ -2581,10 +2734,17 @@ namespace ECProject
       cord_write_u64_be(socket, xfer_tag);
       asio::error_code error;
       asio::write(socket, asio::buffer(data, length), error);
+      if (error)
+        return false;
+      double disk_io_sec = 0.;
+      asio::error_code ack_ec;
+      asio::read(socket, asio::buffer(&disk_io_sec, sizeof(disk_io_sec)), ack_ec);
+      if (out_disk_io_sec && !ack_ec)
+        *out_disk_io_sec = std::max(0., disk_io_sec);
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
-      return !error;
+      return !ack_ec;
     }
     catch (const std::exception &e)
     {
@@ -2882,6 +3042,20 @@ namespace ECProject
         response->set_cord_join_pure_xfer_start_unix_ms(s.wall_start_unix_ms);
         response->set_cord_join_pure_xfer_end_unix_ms(s.wall_end_unix_ms);
         g_cord_join_xfer_timing_by_plan.erase(it);
+      }
+    }
+    {
+      std::lock_guard<std::mutex> lk(g_cord_g1_timing_mu);
+      auto it = g_cord_g1_timing_by_plan.find(pk);
+      if (it != g_cord_g1_timing_by_plan.end() && it->second.present)
+      {
+        const CordG1TimingAccum &a = it->second;
+        response->set_cord_join_g1_timing_present(true);
+        response->set_cord_join_g1_transfer_sec(a.transfer_sec);
+        response->set_cord_join_g1_parity_read_sec(a.parity_read_sec);
+        response->set_cord_join_g1_compute_sec(a.compute_sec);
+        response->set_cord_join_g1_parity_write_sec(a.parity_write_sec);
+        g_cord_g1_timing_by_plan.erase(it);
       }
     }
     response->set_ifcommit(true);
