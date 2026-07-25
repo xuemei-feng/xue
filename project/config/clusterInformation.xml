@@ -50,26 +50,26 @@
 			<datanode uri="172.16.2.152:17631" />
 		</datanodes>
 	</cluster>
-	<cluster id="4" proxy="172.16.2.153:50409">
+	<cluster id="4" proxy="172.16.2.154:50409">
 		<datanodes>
-			<datanode uri="172.16.2.154:17632" />
-			<datanode uri="172.16.2.155:17633" />
-			<datanode uri="172.16.2.156:17634" />
-			<datanode uri="172.16.2.157:17635" />
-			<datanode uri="172.16.2.159:17636" />
-			<datanode uri="172.16.2.161:17637" />
-			<datanode uri="172.16.2.162:17638" />
-			<datanode uri="172.16.2.164:17639" />
+			<datanode uri="172.16.2.155:17632" />
+			<datanode uri="172.16.2.156:17633" />
+			<datanode uri="172.16.2.157:17634" />
+			<datanode uri="172.16.2.159:17635" />
+			<datanode uri="172.16.2.161:17636" />
+			<datanode uri="172.16.2.162:17637" />
+			<datanode uri="172.16.2.164:17638" />
+			<datanode uri="172.16.2.166:17639" />
 		</datanodes>
 	</cluster>
-	<cluster id="5" proxy="172.16.2.166:50410">
+	<cluster id="5" proxy="172.16.2.168:50410">
 		<datanodes>
-			<datanode uri="172.16.2.168:17640" />
-			<datanode uri="172.16.2.170:17641" />
-			<datanode uri="172.16.2.171:17642" />
-			<datanode uri="172.16.2.173:17643" />
-			<datanode uri="172.16.2.174:17644" />
-			<datanode uri="172.16.2.175:17645" />
+			<datanode uri="172.16.2.170:17640" />
+			<datanode uri="172.16.2.171:17641" />
+			<datanode uri="172.16.2.173:17642" />
+			<datanode uri="172.16.2.174:17643" />
+			<datanode uri="172.16.2.175:17644" />
+			<datanode uri="172.16.2.176:17645" />
 			<datanode uri="172.16.2.177:17646" />
 			<datanode uri="172.16.2.178:17647" />
 		</datanodes>

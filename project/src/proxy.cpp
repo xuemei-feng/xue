@@ -3064,7 +3064,6 @@ namespace ECProject
               placement_copy->has_l_last_parity() ? &placement_copy->l_last_parity() : nullptr;
           size_t delta_off = 0;
           const auto fanout_phase_t0 = std::chrono::steady_clock::now();
-          double pure_acc_sec = 0.0;
 
           struct BrFanoutJob
           {
@@ -3072,17 +3071,20 @@ namespace ECProject
             const uint8_t *payload = nullptr;
             size_t payload_len = 0;
             bool after_apply_own_global = false;
+            int slice_off = 0;
+            int slen = 0;
+            int data_bid = -1;
           };
 
-          auto send_parity_job = [&](const BrFanoutJob &job, int slice_off, int slen, double *one_pure_out) -> bool {
+          auto send_parity_job = [&](const BrFanoutJob &job, double *one_pure_out) -> bool {
             proxy_proto::CordPlanApplyParityXorReq req;
             req.set_plan_key(placement_copy->key());
             req.set_dst_block_id(job.target.parity_block_id());
             req.set_block_key(job.target.block_key());
             req.set_datanode_ip(job.target.datanode_ip());
             req.set_datanode_port(job.target.datanode_port());
-            req.set_parity_slice_offset(slice_off);
-            req.set_parity_slice_length(static_cast<int32_t>(slen));
+            req.set_parity_slice_offset(job.slice_off);
+            req.set_parity_slice_length(static_cast<int32_t>(job.slen));
             if (job.after_apply_own_global)
             {
               req.set_after_apply_accum_own_global_delta(true);
@@ -3121,6 +3123,14 @@ namespace ECProject
             return ok;
           };
 
+          // 先编码全部 slice，再跨 slice 并行全局 fanout；全局完成后并行本地 fanout
+          std::vector<std::vector<std::vector<uint8_t>>> all_coded;
+          all_coded.reserve(static_cast<size_t>(slice_num));
+          std::vector<BrFanoutJob> global_jobs;
+          std::vector<BrFanoutJob> local_jobs;
+          global_jobs.reserve(static_cast<size_t>(slice_num) * static_cast<size_t>(std::max(r_enc, 0)));
+          local_jobs.reserve(static_cast<size_t>(slice_num) * 2u);
+
           for (int j = 0; j < slice_num; ++j)
           {
             const size_t slen = sizes[static_cast<size_t>(j)];
@@ -3139,26 +3149,34 @@ namespace ECProject
               std::cout << "[BoundedRandom][Proxy] encode parity deltas failed data_blk=" << data_bid << std::endl;
               return;
             }
-
+            all_coded.push_back(std::move(coded));
+            const auto &coded_ref = all_coded.back();
             const auto &fanout = placement_copy->slice_fanouts(j);
-            std::vector<BrFanoutJob> phase1_jobs;
-            phase1_jobs.reserve(static_cast<size_t>(fanout.targets_size()) + 1);
 
             for (int ti = 0; ti < fanout.targets_size(); ++ti)
             {
               const auto &t = fanout.targets(ti);
               const int pbid = t.parity_block_id();
               const int row = pbid - k_enc;
-              if (row < 0 || row >= static_cast<int>(coded.size()))
+              if (row < 0 || row >= static_cast<int>(coded_ref.size()))
                 continue;
               BrFanoutJob job;
               job.target = t;
-              job.payload = coded[static_cast<size_t>(row)].data();
-              job.payload_len = coded[static_cast<size_t>(row)].size();
+              job.payload = coded_ref[static_cast<size_t>(row)].data();
+              job.payload_len = coded_ref[static_cast<size_t>(row)].size();
+              job.slice_off = slice_off;
+              job.slen = static_cast<int>(slen);
+              job.data_bid = data_bid;
               if (pbid >= k_enc && pbid < k_enc + r_enc)
+              {
                 job.after_apply_own_global = (r_enc > 0 && expect_g_cnt > 0 && !stripe_upd_key.empty() &&
                                              l_last_plan != nullptr);
-              phase1_jobs.push_back(std::move(job));
+                global_jobs.push_back(std::move(job));
+              }
+              else
+              {
+                local_jobs.push_back(std::move(job));
+              }
             }
 
             // L_{z-1} 数据本地贡献（nofold）；全局部分由各全局齐后 r 路直发
@@ -3166,9 +3184,9 @@ namespace ECProject
             {
               const int l_row = l_last_bid - k_enc;
               bool has_data_local = (r_enc <= 0);
-              if (l_row >= 0 && l_row < static_cast<int>(coded.size()))
+              if (l_row >= 0 && l_row < static_cast<int>(coded_ref.size()))
               {
-                const auto &ld = coded[static_cast<size_t>(l_row)];
+                const auto &ld = coded_ref[static_cast<size_t>(l_row)];
                 for (size_t u = 0; u < ld.size(); ++u)
                 {
                   if (ld[u] != 0)
@@ -3183,30 +3201,41 @@ namespace ECProject
                   job.target = *l_last_plan;
                   job.payload = ld.data();
                   job.payload_len = ld.size();
-                  phase1_jobs.push_back(std::move(job));
+                  job.slice_off = slice_off;
+                  job.slen = static_cast<int>(slen);
+                  job.data_bid = data_bid;
+                  local_jobs.push_back(std::move(job));
                 }
               }
             }
+          }
 
+          auto run_fanout_batch = [&](const std::vector<BrFanoutJob> &jobs, double *phase_pure_max) -> bool {
+            if (jobs.empty())
+            {
+              if (phase_pure_max != nullptr)
+                *phase_pure_max = 0.0;
+              return true;
+            }
             std::atomic<bool> fanout_failed{false};
             std::mutex pure_mu;
-            double slice_pure_max = 0.0;
+            double batch_pure_max = 0.0;
             std::vector<std::thread> fanout_workers;
-            fanout_workers.reserve(phase1_jobs.size());
-            for (const auto &job : phase1_jobs)
+            fanout_workers.reserve(jobs.size());
+            for (const auto &job : jobs)
             {
-              fanout_workers.emplace_back([&, job, slice_off, slen]() {
+              fanout_workers.emplace_back([&, job]() {
                 if (fanout_failed.load(std::memory_order_relaxed))
                   return;
                 double one_pure = 0.0;
-                const bool ok = send_parity_job(job, slice_off, static_cast<int>(slen), &one_pure);
+                const bool ok = send_parity_job(job, &one_pure);
                 {
                   std::lock_guard<std::mutex> lk(pure_mu);
-                  slice_pure_max = std::max(slice_pure_max, one_pure);
+                  batch_pure_max = std::max(batch_pure_max, one_pure);
                 }
                 if (!ok)
                 {
-                  std::cout << "[BoundedRandom][Proxy] parity fanout failed data_blk=" << data_bid
+                  std::cout << "[BoundedRandom][Proxy] parity fanout failed data_blk=" << job.data_bid
                             << " parity_blk=" << job.target.parity_block_id()
                             << " dst_c=" << job.target.proxy_cluster_id()
                             << " own_g=" << job.after_apply_own_global << std::endl;
@@ -3216,16 +3245,25 @@ namespace ECProject
             }
             for (auto &th : fanout_workers)
               th.join();
-            if (fanout_failed.load(std::memory_order_relaxed))
-              return;
+            if (phase_pure_max != nullptr)
+              *phase_pure_max = batch_pure_max;
+            return !fanout_failed.load(std::memory_order_relaxed);
+          };
 
-            pure_acc_sec += slice_pure_max;
-          }
+          double global_pure_max = 0.0;
+          if (!run_fanout_batch(global_jobs, &global_pure_max))
+            return;
+          double local_pure_max = 0.0;
+          if (!run_fanout_batch(local_jobs, &local_pure_max))
+            return;
+
+          // 全局与本地串行；阶段内跨 slice 并行，纯时间取阶段 max 后相加
           fanout_wait_sec =
               std::chrono::duration<double>(std::chrono::steady_clock::now() - fanout_phase_t0).count();
-          fanout_pure_sec = pure_acc_sec;
+          fanout_pure_sec = global_pure_max + local_pure_max;
           std::cout << "[BoundedRandom][Proxy] direct fanout done key=" << placement_copy->key()
                     << " slices=" << slice_num << " stripe_id=" << stripe_id
+                    << " global_jobs=" << global_jobs.size() << " local_jobs=" << local_jobs.size()
                     << " fanout_wait_sec=" << fanout_wait_sec << " fanout_pure_sec=" << fanout_pure_sec
                     << std::endl;
         }
