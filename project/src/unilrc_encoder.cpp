@@ -444,6 +444,51 @@ void ECProject::encode_uniform_lrc_nofold(int k, int r, int z, unsigned char **d
     delete[] g_tbls;
 }
 
+void ECProject::encode_uniform_lrc_nofold_one(int k, int r, int z, int data_block_id, unsigned char *data_ptr,
+                                             unsigned char **parity_ptrs, int block_size)
+{
+    if (k <= 0 || r < 0 || z <= 0 || data_block_id < 0 || data_block_id >= k || data_ptr == nullptr ||
+        parity_ptrs == nullptr || block_size <= 0)
+        return;
+
+    for (int i = 0; i < r + z; i++)
+        memset(parity_ptrs[i], 0, static_cast<size_t>(block_size));
+
+    // 按 (k,r,z) 缓存每列 g_tbls，避免每次重建 Cauchy 矩阵 / init tables
+    struct NofoldOneCache
+    {
+        int k = -1;
+        int r = -1;
+        int z = -1;
+        std::vector<std::vector<unsigned char>> col_g_tbls;
+    };
+    static thread_local NofoldOneCache cache;
+    if (cache.k != k || cache.r != r || cache.z != z ||
+        static_cast<int>(cache.col_g_tbls.size()) != k)
+    {
+        const int m = k + r;
+        std::vector<unsigned char> encode_matrix(static_cast<size_t>((m + z) * k));
+        gen_uniform_lrc_matrix_nofold(encode_matrix.data(), k, r, z);
+        cache.col_g_tbls.assign(static_cast<size_t>(k), std::vector<unsigned char>());
+        std::vector<unsigned char> sub_matrix(static_cast<size_t>(r + z));
+        for (int col = 0; col < k; ++col)
+        {
+            for (int row = 0; row < r + z; ++row)
+                sub_matrix[static_cast<size_t>(row)] =
+                    encode_matrix[static_cast<size_t>((k + row) * k + col)];
+            cache.col_g_tbls[static_cast<size_t>(col)].assign(static_cast<size_t>((r + z) * 32), 0);
+            ec_init_tables(1, r + z, sub_matrix.data(), cache.col_g_tbls[static_cast<size_t>(col)].data());
+        }
+        cache.k = k;
+        cache.r = r;
+        cache.z = z;
+    }
+
+    unsigned char *data_ptrs[1] = {data_ptr};
+    ec_encode_data_avx2(block_size, 1, r + z, cache.col_g_tbls[static_cast<size_t>(data_block_id)].data(),
+                        data_ptrs, parity_ptrs);
+}
+
 
 void ECProject::decode_unilrc(const int k, const int r, const int z, const int block_num,
                               const std::vector<int> *block_indexes, unsigned char **block_ptrs, unsigned char *res_ptr, int block_size)

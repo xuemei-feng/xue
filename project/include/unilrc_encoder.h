@@ -72,6 +72,9 @@ namespace ECProject
     /** 与 gen_uniform_lrc_matrix 相同分组，但本地行不 fold 全局行（供更新路径用 ΣΔG 单独补偿 L_{z-1}）。 */
     void gen_uniform_lrc_matrix_nofold(unsigned char *encode_matrix, int k, int r, int z);
     void encode_uniform_lrc_nofold(int k, int r, int z, unsigned char **data_ptrs, unsigned char **parity_ptrs, int block_size);
+    /** 单数据块列稀疏编码：只对 data_block_id 一列做 GF 乘加，避免构造 k 条零 strip。 */
+    void encode_uniform_lrc_nofold_one(int k, int r, int z, int data_block_id, unsigned char *data_ptr,
+                                      unsigned char **parity_ptrs, int block_size);
 
     void decode_unilrc(const int k, const int r, const int z, const int block_num,
                        const std::vector<int> *block_indexes, unsigned char **block_ptrs, unsigned char *res_ptr, int block_size);

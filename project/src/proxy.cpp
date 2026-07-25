@@ -1012,7 +1012,8 @@ namespace ECProject
   // =========================================================================
   // CoRD proxy↔proxy delta TCP side channel (payload); gRPC reserved for control/metadata.
   // Frame: magic "CRDX" | xfer_tag u64 BE | kind u32 BE | meta_len u32 BE | meta bytes | payload_len u64 BE | payload | ack u8
-  // 每连接一帧；xfer_tag 用于并发连接日志关联与调试（meta 内 plan_key/step 仍作业务校验）。
+  // 每连接可多帧（连接复用）；xfer_tag 用于并发连接日志关联与调试（meta 内 plan_key/step 仍作业务校验）。
+  // CORD_XFER_CONN_REUSE=0 关闭发送端连接池（仍兼容多帧接收）。
   static std::atomic<uint64_t> g_cord_crdx_next_tag{1};
   // =========================================================================
   enum CordXferTcpKind : uint32_t
@@ -1025,6 +1026,14 @@ namespace ECProject
   static int cord_peer_xfer_tcp_port(int grpc_proxy_port)
   {
     return grpc_proxy_port + ECProject::PROXY_PORT_SHIFT + ECProject::PROXY_XFER_PORT_SUB_OFFSET;
+  }
+
+  static bool cord_xfer_conn_reuse_enabled()
+  {
+    const char *env = std::getenv("CORD_XFER_CONN_REUSE");
+    if (env == nullptr || env[0] == '\0')
+      return true;
+    return std::strcmp(env, "0") != 0 && std::strcmp(env, "false") != 0 && std::strcmp(env, "FALSE") != 0;
   }
 
   static void cord_write_u32_be(asio::ip::tcp::socket &sock, uint32_t v)
@@ -1172,6 +1181,7 @@ namespace ECProject
   /**
    * BoundedRandom Uniform：用 nofold 矩阵从单数据块 ΔD 生成校验增量。
    * 本地行不含全局 fold；L_{z-1} 的全局贡献由终态 ΣΔG 单独补偿（与 SET 的 fold 版等价）。
+   * 稀疏单列编码：不分配 k 条零 strip，直接对 data_block_id 一列做 GF 乘加。
    */
   static bool bounded_random_encode_parity_deltas(int k, int r, int z, int data_block_id, const char *delta,
                                                    size_t delta_len, std::vector<std::vector<uint8_t>> *coded_out)
@@ -1179,22 +1189,13 @@ namespace ECProject
     if (k <= 0 || r < 0 || z <= 0 || data_block_id < 0 || data_block_id >= k || delta == nullptr || delta_len == 0 ||
         coded_out == nullptr)
       return false;
-    std::vector<std::vector<char>> data_strips(static_cast<size_t>(k),
-                                               std::vector<char>(delta_len, 0));
-    std::memcpy(data_strips[static_cast<size_t>(data_block_id)].data(), delta, delta_len);
-    std::vector<std::vector<char>> parity(static_cast<size_t>(r + z), std::vector<char>(delta_len, 0));
-    std::vector<unsigned char *> dptrs(static_cast<size_t>(k));
+    coded_out->assign(static_cast<size_t>(r + z), std::vector<uint8_t>(delta_len));
     std::vector<unsigned char *> pptrs(static_cast<size_t>(r + z));
-    for (int i = 0; i < k; ++i)
-      dptrs[static_cast<size_t>(i)] =
-          reinterpret_cast<unsigned char *>(data_strips[static_cast<size_t>(i)].data());
     for (int j = 0; j < r + z; ++j)
-      pptrs[static_cast<size_t>(j)] = reinterpret_cast<unsigned char *>(parity[static_cast<size_t>(j)].data());
-    ECProject::encode_uniform_lrc_nofold(k, r, z, dptrs.data(), pptrs.data(), static_cast<int>(delta_len));
-    coded_out->resize(static_cast<size_t>(r + z));
-    for (int j = 0; j < r + z; ++j)
-      (*coded_out)[static_cast<size_t>(j)].assign(parity[static_cast<size_t>(j)].begin(),
-                                                   parity[static_cast<size_t>(j)].end());
+      pptrs[static_cast<size_t>(j)] = (*coded_out)[static_cast<size_t>(j)].data();
+    ECProject::encode_uniform_lrc_nofold_one(
+        k, r, z, data_block_id, reinterpret_cast<unsigned char *>(const_cast<char *>(delta)), pptrs.data(),
+        static_cast<int>(delta_len));
     return true;
   }
 
@@ -1323,36 +1324,178 @@ namespace ECProject
     return true;
   }
 
+  struct CordXferPooledConn
+  {
+    std::mutex mu;
+    std::unique_ptr<asio::io_context> io;
+    std::unique_ptr<asio::ip::tcp::socket> sock;
+    bool connected = false;
+  };
+
+  static std::mutex g_cord_xfer_pool_mu;
+  static std::unordered_map<std::string, std::shared_ptr<CordXferPooledConn>> g_cord_xfer_pool;
+
+  static std::string cord_xfer_peer_key(const std::string &ip, int grpc_port)
+  {
+    return ip + ":" + std::to_string(grpc_port);
+  }
+
+  static void cord_tcp_xfer_close_conn(CordXferPooledConn &c)
+  {
+    if (c.sock)
+    {
+      asio::error_code ec;
+      c.sock->shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+      c.sock->close(ec);
+    }
+    c.sock.reset();
+    c.io.reset();
+    c.connected = false;
+  }
+
+  static bool cord_tcp_xfer_open_conn(CordXferPooledConn &c, const std::string &dst_ip, int dst_grpc_port)
+  {
+    cord_tcp_xfer_close_conn(c);
+    c.io = std::make_unique<asio::io_context>();
+    c.sock = std::make_unique<asio::ip::tcp::socket>(*c.io);
+    const int tcp_port = cord_peer_xfer_tcp_port(dst_grpc_port);
+    asio::connect(*c.sock, asio::ip::tcp::resolver(*c.io).resolve(dst_ip, std::to_string(tcp_port)));
+    c.sock->set_option(asio::ip::tcp::no_delay(true));
+    cord_apply_datanode_tcp_timeout(*c.sock, 120);
+    c.connected = true;
+    return true;
+  }
+
+  static bool cord_tcp_xfer_write_frame(asio::ip::tcp::socket &sock, uint64_t xfer_tag, uint32_t kind,
+                                       const std::string &meta, const void *payload, size_t payload_len)
+  {
+    const char magic[4] = {'C', 'R', 'D', 'X'};
+    asio::write(sock, asio::buffer(magic, 4));
+    cord_write_u64_be(sock, xfer_tag);
+    cord_write_u32_be(sock, kind);
+    cord_write_u32_be(sock, static_cast<uint32_t>(meta.size()));
+    if (!meta.empty())
+      asio::write(sock, asio::buffer(meta.data(), meta.size()));
+    cord_write_u64_be(sock, static_cast<uint64_t>(payload_len));
+    if (payload_len > 0)
+      asio::write(sock, asio::buffer(payload, payload_len));
+    uint8_t ack = 0xff;
+    asio::read(sock, asio::buffer(&ack, 1));
+    return ack == 0;
+  }
+
+  struct CordXferSendItem
+  {
+    uint32_t kind = 0;
+    std::string meta;
+    const void *payload = nullptr;
+    size_t payload_len = 0;
+    uint64_t xfer_tag = 0;
+  };
+
+  /** 在同一 peer 连接上连续发送多帧（合并发送）；连接复用关闭时退化为每帧一连接。 */
+  static bool cord_tcp_xfer_send_many(const std::string &dst_ip, int dst_grpc_port,
+                                     const std::vector<CordXferSendItem> &items)
+  {
+    if (items.empty())
+      return true;
+
+    auto fill_tag = [](CordXferSendItem item) {
+      if (item.xfer_tag == 0)
+        item.xfer_tag = g_cord_crdx_next_tag.fetch_add(1, std::memory_order_relaxed);
+      return item;
+    };
+
+    if (!cord_xfer_conn_reuse_enabled())
+    {
+      for (const auto &raw : items)
+      {
+        const CordXferSendItem item = fill_tag(raw);
+        try
+        {
+          asio::io_context io;
+          asio::ip::tcp::socket sock(io);
+          const int tcp_port = cord_peer_xfer_tcp_port(dst_grpc_port);
+          asio::connect(sock, asio::ip::tcp::resolver(io).resolve(dst_ip, std::to_string(tcp_port)));
+          sock.set_option(asio::ip::tcp::no_delay(true));
+          cord_apply_datanode_tcp_timeout(sock, 120);
+          if (!cord_tcp_xfer_write_frame(sock, item.xfer_tag, item.kind, item.meta, item.payload, item.payload_len))
+            return false;
+        }
+        catch (...)
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    const std::string key = cord_xfer_peer_key(dst_ip, dst_grpc_port);
+    std::shared_ptr<CordXferPooledConn> conn;
+    {
+      std::lock_guard<std::mutex> lk(g_cord_xfer_pool_mu);
+      auto &slot = g_cord_xfer_pool[key];
+      if (!slot)
+        slot = std::make_shared<CordXferPooledConn>();
+      conn = slot;
+    }
+
+    std::lock_guard<std::mutex> conn_lk(conn->mu);
+    auto ensure_conn = [&](bool force_reconnect) -> bool {
+      if (!force_reconnect && conn->connected)
+        return true;
+      try
+      {
+        return cord_tcp_xfer_open_conn(*conn, dst_ip, dst_grpc_port);
+      }
+      catch (...)
+      {
+        cord_tcp_xfer_close_conn(*conn);
+        return false;
+      }
+    };
+
+    size_t next = 0;
+    bool io_retried = false;
+    while (next < items.size())
+    {
+      if (!ensure_conn(false))
+      {
+        if (io_retried || !ensure_conn(true))
+          return false;
+        io_retried = true;
+      }
+      const CordXferSendItem item = fill_tag(items[next]);
+      try
+      {
+        if (!cord_tcp_xfer_write_frame(*conn->sock, item.xfer_tag, item.kind, item.meta, item.payload,
+                                      item.payload_len))
+          return false;
+        ++next;
+        io_retried = false;
+      }
+      catch (...)
+      {
+        cord_tcp_xfer_close_conn(*conn);
+        if (io_retried)
+          return false;
+        io_retried = true;
+      }
+    }
+    return true;
+  }
+
   static bool cord_tcp_xfer_send(const std::string &dst_ip, int dst_grpc_port, uint32_t kind,
                                  const std::string &meta, const void *payload, size_t payload_len,
                                  uint64_t xfer_tag = 0)
   {
-    if (xfer_tag == 0)
-      xfer_tag = g_cord_crdx_next_tag.fetch_add(1, std::memory_order_relaxed);
-    try
-    {
-      asio::io_context io;
-      asio::ip::tcp::socket sock(io);
-      const int tcp_port = cord_peer_xfer_tcp_port(dst_grpc_port);
-      asio::connect(sock, asio::ip::tcp::resolver(io).resolve(dst_ip, std::to_string(tcp_port)));
-      const char magic[4] = {'C', 'R', 'D', 'X'};
-      asio::write(sock, asio::buffer(magic, 4));
-      cord_write_u64_be(sock, xfer_tag);
-      cord_write_u32_be(sock, kind);
-      cord_write_u32_be(sock, static_cast<uint32_t>(meta.size()));
-      if (!meta.empty())
-        asio::write(sock, asio::buffer(meta.data(), meta.size()));
-      cord_write_u64_be(sock, static_cast<uint64_t>(payload_len));
-      if (payload_len > 0)
-        asio::write(sock, asio::buffer(payload, payload_len));
-      uint8_t ack = 0xff;
-      asio::read(sock, asio::buffer(&ack, 1));
-      return ack == 0;
-    }
-    catch (...)
-    {
-      return false;
-    }
+    CordXferSendItem item;
+    item.kind = kind;
+    item.meta = meta;
+    item.payload = payload;
+    item.payload_len = payload_len;
+    item.xfer_tag = xfer_tag;
+    return cord_tcp_xfer_send_many(dst_ip, dst_grpc_port, {item});
   }
 
   /** BoundedRandom：每全局累加 ΔG 齐后自发 L_{z-1}；L 侧合并 r 份后一次 RMW；兼容旧 relay */
@@ -2128,103 +2271,123 @@ namespace ECProject
 
   void ProxyImpl::cord_handle_xfer_tcp_connection(asio::ip::tcp::socket socket)
   {
-    uint8_t ack = 1;
     try
     {
-      char magic[4];
-      asio::read(socket, asio::buffer(magic, 4));
-      if (magic[0] != 'C' || magic[1] != 'R' || magic[2] != 'D' || magic[3] != 'X')
+      socket.set_option(asio::ip::tcp::no_delay(true));
+    }
+    catch (...)
+    {
+    }
+    // 多帧复用：对端可在同一连接上连续发送多帧；EOF 正常结束。
+    for (;;)
+    {
+      uint8_t ack = 1;
+      try
       {
-        asio::write(socket, asio::buffer(&ack, 1));
-        return;
-      }
-      const uint64_t xfer_tag = cord_read_u64_be(socket);
-      const uint32_t kind = cord_read_u32_be(socket);
-      const uint32_t meta_len = cord_read_u32_be(socket);
-      constexpr uint32_t kMaxMeta = 4u * 1024u * 1024u;
-      if (meta_len > kMaxMeta)
-      {
-        asio::write(socket, asio::buffer(&ack, 1));
-        return;
-      }
-      std::string meta;
-      if (meta_len > 0)
-      {
-        meta.resize(meta_len);
-        asio::read(socket, asio::buffer(meta.data(), meta_len));
-      }
-      const uint64_t payload_len = cord_read_u64_be(socket);
-      constexpr uint64_t kMaxPayload = 256ull * 1024ull * 1024ull;
-      if (payload_len > kMaxPayload)
-      {
-        asio::write(socket, asio::buffer(&ack, 1));
-        return;
-      }
-      std::vector<char> payload;
-      if (payload_len > 0)
-      {
-        const std::string ctx = "xfer_tag=" + std::to_string(xfer_tag) + " kind=" + std::to_string(kind) +
-                                " meta_len=" + std::to_string(meta_len) + " payload_len=" +
-                                std::to_string(payload_len);
-        if (!cord_xfer_safe_resize(payload, static_cast<size_t>(payload_len), "crdx_tcp_payload", ctx))
+        char magic[4];
+        {
+          asio::error_code ec;
+          const size_t n = asio::read(socket, asio::buffer(magic, 4), ec);
+          if (ec == asio::error::eof || ec == asio::error::connection_reset || n == 0)
+            return;
+          if (ec || n != 4)
+            return;
+        }
+        if (magic[0] != 'C' || magic[1] != 'R' || magic[2] != 'D' || magic[3] != 'X')
         {
           asio::write(socket, asio::buffer(&ack, 1));
           return;
         }
-        asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(payload_len)));
-      }
-      bool ok = false;
-      switch (kind)
-      {
-      case CORD_XFER_TCP_COLLECTOR_INGEST:
-      {
-        proxy_proto::CordPlanCollectorIngestReq req;
-        if (req.ParseFromString(meta))
-          ok = cord_apply_collector_ingest(this, req, payload.data(), payload.size());
-        break;
-      }
-      case CORD_XFER_TCP_PARITY_XOR:
-      {
-        proxy_proto::CordPlanApplyParityXorReq req;
-        if (req.ParseFromString(meta))
-          ok = cord_handle_parity_xor_req(this, std::move(req), payload.data(), payload.size());
-        break;
-      }
-      case CORD_XFER_TCP_MST_CHUNK:
-      {
-        proxy_proto::CordPlanMstDataDeltaReq req;
-        if (req.ParseFromString(meta))
-          ok = cord_apply_mst_data_delta(this, req, payload.data(), payload.size());
-        break;
-      }
-      default:
-        (void)xfer_tag;
-        break;
-      }
-      ack = ok ? 0 : 1;
-      asio::write(socket, asio::buffer(&ack, 1));
-    }
-    catch (const std::bad_alloc &e)
-    {
-      std::cerr << "[CoRD-PLAN][BAD_ALLOC] cord_handle_xfer_tcp_connection err=" << e.what() << std::endl;
-      try
-      {
-        ack = 1;
+        const uint64_t xfer_tag = cord_read_u64_be(socket);
+        const uint32_t kind = cord_read_u32_be(socket);
+        const uint32_t meta_len = cord_read_u32_be(socket);
+        constexpr uint32_t kMaxMeta = 4u * 1024u * 1024u;
+        if (meta_len > kMaxMeta)
+        {
+          asio::write(socket, asio::buffer(&ack, 1));
+          return;
+        }
+        std::string meta;
+        if (meta_len > 0)
+        {
+          meta.resize(meta_len);
+          asio::read(socket, asio::buffer(meta.data(), meta_len));
+        }
+        const uint64_t payload_len = cord_read_u64_be(socket);
+        constexpr uint64_t kMaxPayload = 256ull * 1024ull * 1024ull;
+        if (payload_len > kMaxPayload)
+        {
+          asio::write(socket, asio::buffer(&ack, 1));
+          return;
+        }
+        std::vector<char> payload;
+        if (payload_len > 0)
+        {
+          const std::string ctx = "xfer_tag=" + std::to_string(xfer_tag) + " kind=" + std::to_string(kind) +
+                                  " meta_len=" + std::to_string(meta_len) + " payload_len=" +
+                                  std::to_string(payload_len);
+          if (!cord_xfer_safe_resize(payload, static_cast<size_t>(payload_len), "crdx_tcp_payload", ctx))
+          {
+            asio::write(socket, asio::buffer(&ack, 1));
+            return;
+          }
+          asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(payload_len)));
+        }
+        bool ok = false;
+        switch (kind)
+        {
+        case CORD_XFER_TCP_COLLECTOR_INGEST:
+        {
+          proxy_proto::CordPlanCollectorIngestReq req;
+          if (req.ParseFromString(meta))
+            ok = cord_apply_collector_ingest(this, req, payload.data(), payload.size());
+          break;
+        }
+        case CORD_XFER_TCP_PARITY_XOR:
+        {
+          proxy_proto::CordPlanApplyParityXorReq req;
+          if (req.ParseFromString(meta))
+            ok = cord_handle_parity_xor_req(this, std::move(req), payload.data(), payload.size());
+          break;
+        }
+        case CORD_XFER_TCP_MST_CHUNK:
+        {
+          proxy_proto::CordPlanMstDataDeltaReq req;
+          if (req.ParseFromString(meta))
+            ok = cord_apply_mst_data_delta(this, req, payload.data(), payload.size());
+          break;
+        }
+        default:
+          (void)xfer_tag;
+          break;
+        }
+        ack = ok ? 0 : 1;
         asio::write(socket, asio::buffer(&ack, 1));
+      }
+      catch (const std::bad_alloc &e)
+      {
+        std::cerr << "[CoRD-PLAN][BAD_ALLOC] cord_handle_xfer_tcp_connection err=" << e.what() << std::endl;
+        try
+        {
+          ack = 1;
+          asio::write(socket, asio::buffer(&ack, 1));
+        }
+        catch (...)
+        {
+        }
+        return;
       }
       catch (...)
       {
-      }
-    }
-    catch (...)
-    {
-      try
-      {
-        ack = 1;
-        asio::write(socket, asio::buffer(&ack, 1));
-      }
-      catch (...)
-      {
+        try
+        {
+          ack = 1;
+          asio::write(socket, asio::buffer(&ack, 1));
+        }
+        catch (...)
+        {
+        }
+        return;
       }
     }
   }
@@ -3210,6 +3373,83 @@ namespace ECProject
             }
           }
 
+          // 同目标（同 block_key/offset/len）且无全局累加副作用的 job 可 XOR 合并；
+          // after_apply_own_global 不可合并（L_{z-1} 计数依赖每 slice 一次）。
+          std::vector<std::vector<uint8_t>> fanout_owned_payloads;
+          auto coalesce_fanout_jobs = [&](std::vector<BrFanoutJob> in) -> std::vector<BrFanoutJob> {
+            std::vector<BrFanoutJob> out;
+            out.reserve(in.size());
+            std::unordered_map<std::string, size_t> merge_idx;
+            std::vector<int> owned_at;
+            owned_at.reserve(in.size());
+            for (auto &job : in)
+            {
+              if (job.after_apply_own_global || job.payload == nullptr || job.payload_len == 0)
+              {
+                out.push_back(std::move(job));
+                owned_at.push_back(-1);
+                continue;
+              }
+              const std::string mk = job.target.block_key() + "|" +
+                                    std::to_string(job.target.parity_block_id()) + "|" +
+                                    std::to_string(job.slice_off) + "|" + std::to_string(job.slen);
+              const auto it = merge_idx.find(mk);
+              if (it == merge_idx.end())
+              {
+                merge_idx.emplace(mk, out.size());
+                out.push_back(std::move(job));
+                owned_at.push_back(-1);
+                continue;
+              }
+              const size_t di = it->second;
+              if (owned_at[di] < 0)
+              {
+                owned_at[di] = static_cast<int>(fanout_owned_payloads.size());
+                fanout_owned_payloads.emplace_back(
+                    reinterpret_cast<const uint8_t *>(out[di].payload),
+                    reinterpret_cast<const uint8_t *>(out[di].payload) + out[di].payload_len);
+                out[di].payload = fanout_owned_payloads.back().data();
+                out[di].payload_len = fanout_owned_payloads.back().size();
+              }
+              auto &buf = fanout_owned_payloads[static_cast<size_t>(owned_at[di])];
+              const size_t n = std::min(buf.size(), job.payload_len);
+              for (size_t u = 0; u < n; ++u)
+                buf[u] = static_cast<uint8_t>(buf[u] ^ job.payload[u]);
+              out[di].payload = buf.data();
+              out[di].payload_len = buf.size();
+            }
+            return out;
+          };
+
+          auto build_parity_xor_req = [&](const BrFanoutJob &job) {
+            proxy_proto::CordPlanApplyParityXorReq req;
+            req.set_plan_key(placement_copy->key());
+            req.set_dst_block_id(job.target.parity_block_id());
+            req.set_block_key(job.target.block_key());
+            req.set_datanode_ip(job.target.datanode_ip());
+            req.set_datanode_port(job.target.datanode_port());
+            req.set_parity_slice_offset(job.slice_off);
+            req.set_parity_slice_length(static_cast<int32_t>(job.slen));
+            if (job.after_apply_own_global)
+            {
+              req.set_after_apply_accum_own_global_delta(true);
+              req.set_stripe_update_key(stripe_upd_key);
+              req.set_expected_global_delta_count(expect_g_cnt);
+              req.set_expected_l1_partials(r_enc);
+              if (l_last_plan != nullptr)
+              {
+                req.set_l1_block_id(l_last_plan->parity_block_id());
+                req.set_l1_block_key(l_last_plan->block_key());
+                req.set_l1_datanode_ip(l_last_plan->datanode_ip());
+                req.set_l1_datanode_port(l_last_plan->datanode_port());
+                req.set_l1_proxy_cluster_id(l_last_plan->proxy_cluster_id());
+                req.set_l1_proxy_ip(l_last_plan->proxy_ip());
+                req.set_l1_proxy_port(l_last_plan->proxy_port());
+              }
+            }
+            return req;
+          };
+
           auto run_fanout_batch = [&](const std::vector<BrFanoutJob> &jobs, double *phase_pure_max) -> bool {
             if (jobs.empty())
             {
@@ -3217,12 +3457,32 @@ namespace ECProject
                 *phase_pure_max = 0.0;
               return true;
             }
+
+            std::vector<BrFanoutJob> local_only;
+            std::map<std::string, std::vector<BrFanoutJob>> remote_by_peer;
+            local_only.reserve(jobs.size());
+            for (const auto &job : jobs)
+            {
+              if (job.target.proxy_cluster_id() == self_cid)
+                local_only.push_back(job);
+              else
+              {
+                const std::string pk =
+                    cord_xfer_peer_key(job.target.proxy_ip(), job.target.proxy_port());
+                remote_by_peer[pk].push_back(job);
+              }
+            }
+            local_only = coalesce_fanout_jobs(std::move(local_only));
+            for (auto &kv : remote_by_peer)
+              kv.second = coalesce_fanout_jobs(std::move(kv.second));
+
             std::atomic<bool> fanout_failed{false};
             std::mutex pure_mu;
             double batch_pure_max = 0.0;
             std::vector<std::thread> fanout_workers;
-            fanout_workers.reserve(jobs.size());
-            for (const auto &job : jobs)
+            fanout_workers.reserve(local_only.size() + remote_by_peer.size());
+
+            for (const auto &job : local_only)
             {
               fanout_workers.emplace_back([&, job]() {
                 if (fanout_failed.load(std::memory_order_relaxed))
@@ -3243,6 +3503,42 @@ namespace ECProject
                 }
               });
             }
+
+            for (auto &peer_entry : remote_by_peer)
+            {
+              fanout_workers.emplace_back([&, peer_jobs = std::move(peer_entry.second)]() mutable {
+                if (peer_jobs.empty() || fanout_failed.load(std::memory_order_relaxed))
+                  return;
+                const std::string dst_ip = peer_jobs.front().target.proxy_ip();
+                const int dst_port = peer_jobs.front().target.proxy_port();
+                std::vector<CordXferSendItem> items;
+                items.reserve(peer_jobs.size());
+                for (const auto &job : peer_jobs)
+                {
+                  CordXferSendItem item;
+                  item.kind = CORD_XFER_TCP_PARITY_XOR;
+                  build_parity_xor_req(job).SerializeToString(&item.meta);
+                  item.payload = job.payload;
+                  item.payload_len = job.payload_len;
+                  items.push_back(std::move(item));
+                }
+                const auto t_pure0 = std::chrono::steady_clock::now();
+                const bool ok = cord_tcp_xfer_send_many(dst_ip, dst_port, items);
+                const double one_pure =
+                    std::chrono::duration<double>(std::chrono::steady_clock::now() - t_pure0).count();
+                {
+                  std::lock_guard<std::mutex> lk(pure_mu);
+                  batch_pure_max = std::max(batch_pure_max, one_pure);
+                }
+                if (!ok)
+                {
+                  std::cout << "[BoundedRandom][Proxy] parity fanout peer-batch failed dst=" << dst_ip
+                            << ":" << dst_port << " jobs=" << peer_jobs.size() << std::endl;
+                  fanout_failed.store(true, std::memory_order_relaxed);
+                }
+              });
+            }
+
             for (auto &th : fanout_workers)
               th.join();
             if (phase_pure_max != nullptr)
