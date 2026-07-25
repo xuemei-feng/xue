@@ -41,8 +41,8 @@ CLUSTER_IPS=(
   "172.16.2.110"   # 1: MEL  cluster 1 proxy
   "172.16.2.128"   # 2: SG  cluster 2 proxy
   "172.16.2.140"   # 3: SEO  cluster 3 proxy
-  "172.16.2.153"   # 4: JAK  cluster 4 proxy
-  "172.16.2.166"   # 5: HK  cluster 5 proxy
+  "172.16.2.154"   # 4: JAK  cluster 4 proxy
+  "172.16.2.168"   # 5: HK  cluster 5 proxy
 )
 
 detect_iface() {
