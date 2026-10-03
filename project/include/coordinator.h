@@ -50,6 +50,10 @@ namespace ECProject
         grpc::ServerContext *context,
         const coordinator_proto::RequestProxyIPPort *keyValueSize,
         coordinator_proto::ReplyProxyIPPort *proxyIPPort) override;
+    grpc::Status uploadInitialRangeSet(
+        grpc::ServerContext *context,
+        const coordinator_proto::InitialRangeSetRequest *request,
+        coordinator_proto::InitialRangeSetReply *reply) override;
     grpc::Status reportCommitAbort(
         grpc::ServerContext *context,
         const coordinator_proto::CommitAbortKey *commit_abortkey,
@@ -231,6 +235,7 @@ namespace ECProject
     int m_cur_stripe_id = 0;
     std::unordered_map<std::string, ObjectInfo> m_object_commit_table;
     std::unordered_map<std::string, ObjectInfo> m_object_updating_table;
+    std::unordered_set<std::string> m_object_abort_table;
     std::map<int, Cluster> m_cluster_table;
     std::map<int, Node> m_node_table;
     std::map<int, Stripe> m_stripe_table;
@@ -240,7 +245,9 @@ namespace ECProject
     std::vector<int> get_data_block_num_per_group(int k, int r, int z, std::string code_type);
 
   private:
+    bool initialize_stripe_placement_for_code(Stripe *stripe, std::string *error);
     std::mutex m_mutex;
+    std::mutex m_stripe_create_mutex;
     struct CordAutoBeginSession
     {
       std::unordered_set<std::string> pending_delta_keys;
@@ -292,6 +299,7 @@ namespace ECProject
       m_coordinatorImpl.m_cur_stripe_id = 0;
       m_coordinatorImpl.m_object_commit_table.clear();
       m_coordinatorImpl.m_object_updating_table.clear();
+      m_coordinatorImpl.m_object_abort_table.clear();
       for (auto it = m_coordinatorImpl.m_cluster_table.begin(); it != m_coordinatorImpl.m_cluster_table.end(); it++)
       {
         Cluster &t_cluster = it->second;

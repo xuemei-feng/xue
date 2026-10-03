@@ -7,6 +7,10 @@
 #include <memory>
 #include <mutex>
 #include <functional>
+#include <algorithm>
+#include <limits>
+#include <map>
+#include <tuple>
 #include <assert.h>
 #include <chrono>
 #include <iomanip>
@@ -35,6 +39,16 @@ namespace ECProject
     bool is_azure_like_code(const std::string &code_type)
     {
       return code_type == "AzureLRC" || code_type == "RandomLRC" || code_type == "SplitParityLRC" || code_type == "CordXueLRC";
+    }
+
+    bool initial_write_u64_be(asio::ip::tcp::socket &socket, uint64_t value)
+    {
+      uint8_t bytes[8];
+      for (int i = 0; i < 8; ++i)
+        bytes[7 - i] = static_cast<uint8_t>((value >> (8 * i)) & 0xffu);
+      asio::error_code error;
+      const size_t written = asio::write(socket, asio::buffer(bytes, sizeof(bytes)), error);
+      return !error && written == sizeof(bytes);
     }
 
     using CordClock = std::chrono::steady_clock;
@@ -950,6 +964,277 @@ namespace ECProject
 
     std::cout << "[SET441] Client " << m_clientID << " set failed!" << std::endl;
     return false;
+  }
+
+  bool Client::initial_range_set(
+      int stripe_id,
+      const std::vector<std::pair<uint64_t, uint64_t>> &local_ranges,
+      const char *payload, size_t payload_bytes,
+      InitialRangeWriteStats *stats)
+  {
+    using Clock = std::chrono::steady_clock;
+    const auto wall_t0 = Clock::now();
+    InitialRangeWriteStats result;
+    auto finish = [&](bool ok) {
+      result.wall_sec = std::chrono::duration<double>(Clock::now() - wall_t0).count();
+      if (stats != nullptr)
+        *stats = result;
+      return ok;
+    };
+
+    if (stripe_id < 0 || m_sys_config == nullptr || m_sys_config->BlockSize <= 0 ||
+        m_sys_config->k <= 0 || m_sys_config->r < 0 || m_sys_config->z <= 0 ||
+        m_sys_config->n != m_sys_config->k + m_sys_config->r + m_sys_config->z ||
+        local_ranges.empty())
+      return finish(false);
+
+    const uint64_t block_size = static_cast<uint64_t>(m_sys_config->BlockSize);
+    if (block_size > std::numeric_limits<uint64_t>::max() / static_cast<uint64_t>(m_sys_config->k))
+      return finish(false);
+    const uint64_t stripe_size = block_size * static_cast<uint64_t>(m_sys_config->k);
+
+    std::vector<std::pair<uint64_t, uint64_t>> ranges = local_ranges;
+    for (const auto &range : ranges)
+      if (range.first >= range.second || range.second > stripe_size)
+        return finish(false);
+    std::sort(ranges.begin(), ranges.end());
+    std::vector<std::pair<uint64_t, uint64_t>> merged;
+    for (const auto &range : ranges)
+    {
+      if (merged.empty() || range.first > merged.back().second)
+        merged.push_back(range);
+      else
+        merged.back().second = std::max(merged.back().second, range.second);
+    }
+
+    uint64_t logical_bytes = 0;
+    for (const auto &range : merged)
+    {
+      const uint64_t length = range.second - range.first;
+      if (logical_bytes > std::numeric_limits<uint64_t>::max() - length)
+        return finish(false);
+      logical_bytes += length;
+    }
+    if (logical_bytes > std::numeric_limits<size_t>::max())
+      return finish(false);
+    result.logical_bytes = logical_bytes;
+
+    std::vector<char> generated_payload;
+    const char *logical_payload = payload;
+    if (payload == nullptr)
+    {
+      if (payload_bytes != 0)
+        return finish(false);
+      generated_payload.resize(static_cast<size_t>(logical_bytes));
+      size_t compact = 0;
+      for (const auto &range : merged)
+        for (uint64_t pos = range.first; pos < range.second; ++pos)
+          generated_payload[compact++] = static_cast<char>(
+              (static_cast<uint64_t>(stripe_id) * 1315423911ULL + pos * 2654435761ULL) & 0xffULL);
+      logical_payload = generated_payload.data();
+    }
+    else if (payload_bytes != static_cast<size_t>(logical_bytes))
+    {
+      return finish(false);
+    }
+
+    coordinator_proto::InitialRangeSetRequest request;
+    request.set_client_id(m_clientID);
+    request.set_stripe_id(stripe_id);
+    for (const auto &range : merged)
+    {
+      auto *out = request.add_ranges();
+      out->set_logical_offset_start(range.first);
+      out->set_logical_offset_end(range.second);
+    }
+    coordinator_proto::InitialRangeSetReply reply;
+    grpc::ClientContext context;
+    const auto plan_t0 = Clock::now();
+    grpc::Status plan_status = m_coordinator_ptr->uploadInitialRangeSet(&context, request, &reply);
+    result.plan_sec = std::chrono::duration<double>(Clock::now() - plan_t0).count();
+    if (!plan_status.ok() || reply.logical_data_bytes() != logical_bytes)
+      return finish(false);
+    result.data_slice_bytes = reply.data_slice_bytes();
+    result.parity_slice_bytes = reply.parity_slice_bytes();
+    if (result.data_slice_bytes > std::numeric_limits<uint64_t>::max() - result.parity_slice_bytes)
+      return finish(false);
+    result.upload_bytes = result.data_slice_bytes + result.parity_slice_bytes;
+
+    const int k = m_sys_config->k;
+    const int r = m_sys_config->r;
+    const int z = m_sys_config->z;
+    std::vector<unsigned char> matrix(static_cast<size_t>(k + r + z) * static_cast<size_t>(k), 0);
+    if (m_sys_config->CodeType == "UniLRC")
+      gen_unilrc_matrix(matrix.data(), k, r, z);
+    else if (m_sys_config->CodeType == "OptimalLRC")
+      gen_optimal_lrc_matrix(matrix.data(), k, r, z);
+    else if (m_sys_config->CodeType == "UniformLRC")
+      gen_uniform_lrc_matrix(matrix.data(), k, r, z);
+    else if (is_azure_like_code(m_sys_config->CodeType))
+      gen_azure_lrc_matrix(matrix.data(), k, r, z);
+    else
+      return finish(false);
+
+    std::vector<uint64_t> compact_starts;
+    compact_starts.reserve(merged.size());
+    uint64_t compact_total = 0;
+    for (const auto &range : merged)
+    {
+      compact_starts.push_back(compact_total);
+      compact_total += range.second - range.first;
+    }
+    auto copy_logical = [&](uint64_t logical_offset, uint64_t length, char *destination) {
+      uint64_t copied = 0;
+      for (size_t i = 0; i < merged.size() && copied < length; ++i)
+      {
+        const uint64_t lo = std::max(logical_offset, merged[i].first);
+        const uint64_t hi = std::min(logical_offset + length, merged[i].second);
+        if (lo >= hi)
+          continue;
+        const uint64_t count = hi - lo;
+        std::memcpy(destination + static_cast<size_t>(lo - logical_offset),
+                    logical_payload + static_cast<size_t>(compact_starts[i] + lo - merged[i].first),
+                    static_cast<size_t>(count));
+        copied += count;
+      }
+      return copied;
+    };
+
+    const auto encode_t0 = Clock::now();
+    using CacheKey = std::pair<uint64_t, uint64_t>;
+    std::map<CacheKey, std::vector<std::vector<char>>> parity_cache;
+    std::vector<std::vector<char>> cluster_payloads;
+    cluster_payloads.reserve(static_cast<size_t>(reply.cluster_plans_size()));
+    uint64_t planned_upload_bytes = 0;
+    std::map<uint64_t, bool> transfer_tags;
+    for (const auto &plan : reply.cluster_plans())
+    {
+      if (plan.transfer_tag() == 0 || !transfer_tags.emplace(plan.transfer_tag(), true).second)
+        return finish(false);
+      if (plan.payload_size() > std::numeric_limits<size_t>::max() ||
+          planned_upload_bytes > std::numeric_limits<uint64_t>::max() - plan.payload_size())
+        return finish(false);
+      planned_upload_bytes += plan.payload_size();
+      cluster_payloads.emplace_back(static_cast<size_t>(plan.payload_size()), 0);
+      auto &cluster_payload = cluster_payloads.back();
+      for (const auto &slice : plan.slices())
+      {
+        if (slice.length() > std::numeric_limits<size_t>::max() ||
+            slice.length() > static_cast<uint64_t>(std::numeric_limits<int>::max()) ||
+            slice.payload_offset() > plan.payload_size() ||
+            slice.length() > plan.payload_size() - slice.payload_offset() ||
+            slice.offset() > block_size || slice.length() > block_size - slice.offset())
+          return finish(false);
+        char *destination = cluster_payload.data() + static_cast<size_t>(slice.payload_offset());
+        if (slice.type() == coordinator_proto::DATA)
+        {
+          if (slice.block_id() < 0 || slice.block_id() >= k ||
+              copy_logical(static_cast<uint64_t>(slice.block_id()) * block_size + slice.offset(),
+                           slice.length(), destination) != slice.length())
+            return finish(false);
+          continue;
+        }
+        if (slice.block_id() < k || slice.block_id() >= k + r + z)
+          return finish(false);
+
+        const CacheKey cache_key{slice.offset(), slice.length()};
+        auto cached = parity_cache.find(cache_key);
+        if (cached == parity_cache.end())
+        {
+          const size_t length = static_cast<size_t>(slice.length());
+          std::vector<std::vector<char>> sources(static_cast<size_t>(k), std::vector<char>(length, 0));
+          std::vector<std::vector<char>> parity(static_cast<size_t>(r + z), std::vector<char>(length, 0));
+          std::vector<unsigned char *> source_ptrs(static_cast<size_t>(k));
+          std::vector<unsigned char *> parity_ptrs(static_cast<size_t>(r + z));
+          for (int block_id = 0; block_id < k; ++block_id)
+          {
+            copy_logical(static_cast<uint64_t>(block_id) * block_size + slice.offset(),
+                         slice.length(), sources[static_cast<size_t>(block_id)].data());
+            source_ptrs[static_cast<size_t>(block_id)] =
+                reinterpret_cast<unsigned char *>(sources[static_cast<size_t>(block_id)].data());
+          }
+          for (int parity_id = 0; parity_id < r + z; ++parity_id)
+            parity_ptrs[static_cast<size_t>(parity_id)] =
+                reinterpret_cast<unsigned char *>(parity[static_cast<size_t>(parity_id)].data());
+          std::vector<unsigned char> tables(static_cast<size_t>(k) * static_cast<size_t>(r + z) * 32U);
+          ec_init_tables(k, r + z, matrix.data() + static_cast<size_t>(k) * static_cast<size_t>(k), tables.data());
+          ec_encode_data_avx2(static_cast<int>(slice.length()), k, r + z, tables.data(),
+                              source_ptrs.data(), parity_ptrs.data());
+          cached = parity_cache.emplace(cache_key, std::move(parity)).first;
+        }
+        const auto &encoded = cached->second[static_cast<size_t>(slice.block_id() - k)];
+        std::memcpy(destination, encoded.data(), static_cast<size_t>(slice.length()));
+      }
+    }
+    result.encode_sec = std::chrono::duration<double>(Clock::now() - encode_t0).count();
+    if (planned_upload_bytes != result.upload_bytes)
+      return finish(false);
+
+    const auto upload_t0 = Clock::now();
+    const int plan_count = reply.cluster_plans_size();
+    std::vector<unsigned char> sent(static_cast<size_t>(plan_count), 0);
+    std::vector<std::thread> send_threads;
+    send_threads.reserve(static_cast<size_t>(plan_count));
+    for (int i = 0; i < plan_count; ++i)
+    {
+      send_threads.emplace_back([&, i]() {
+        try
+        {
+          const auto &plan = reply.cluster_plans(i);
+          asio::io_context send_context;
+          asio::ip::tcp::resolver resolver(send_context);
+          asio::ip::tcp::socket socket(send_context);
+          asio::error_code error;
+          auto endpoints = resolver.resolve(plan.proxy_ip(), std::to_string(plan.proxy_data_port()), error);
+          if (error)
+            return;
+          asio::connect(socket, endpoints, error);
+          if (error || !initial_write_u64_be(socket, plan.transfer_tag()))
+            return;
+          const auto &cluster_payload = cluster_payloads[static_cast<size_t>(i)];
+          const size_t written = asio::write(socket, asio::buffer(cluster_payload), error);
+          if (error || written != cluster_payload.size())
+            return;
+          asio::error_code ignored;
+          socket.shutdown(asio::ip::tcp::socket::shutdown_send, ignored);
+          socket.close(ignored);
+          sent[static_cast<size_t>(i)] = 1;
+        }
+        catch (const std::exception &)
+        {
+        }
+      });
+    }
+    for (auto &thread : send_threads)
+      thread.join();
+    if (!std::all_of(sent.begin(), sent.end(), [](unsigned char value) { return value != 0; }))
+    {
+      result.upload_sec = std::chrono::duration<double>(Clock::now() - upload_t0).count();
+      return finish(false);
+    }
+
+    std::vector<unsigned char> committed(static_cast<size_t>(plan_count), 0);
+    std::vector<std::thread> commit_threads;
+    commit_threads.reserve(static_cast<size_t>(plan_count));
+    for (int i = 0; i < plan_count; ++i)
+    {
+      commit_threads.emplace_back([&, i]() {
+        grpc::ClientContext check_context;
+        coordinator_proto::AskIfSuccess check_request;
+        check_request.set_key(reply.cluster_plans(i).key());
+        check_request.set_opp(APPEND);
+        coordinator_proto::RepIfSuccess check_reply;
+        grpc::Status status = m_coordinator_ptr->checkCommitAbort(
+            &check_context, check_request, &check_reply);
+        if (status.ok() && check_reply.ifcommit())
+          committed[static_cast<size_t>(i)] = 1;
+      });
+    }
+    for (auto &thread : commit_threads)
+      thread.join();
+    result.upload_sec = std::chrono::duration<double>(Clock::now() - upload_t0).count();
+    return finish(std::all_of(committed.begin(), committed.end(),
+                              [](unsigned char value) { return value != 0; }));
   }
 
   bool Client::sub_set(int block_num)

@@ -1347,6 +1347,7 @@ class CordRangeRWInfo final :
     kRangeOffsetFieldNumber = 3,
     kRangeLengthFieldNumber = 4,
     kProxyPortFieldNumber = 6,
+    kLogicalBlockSizeFieldNumber = 7,
   };
   // string block_key = 1;
   void clear_block_key();
@@ -1412,6 +1413,15 @@ class CordRangeRWInfo final :
   void _internal_set_proxy_port(int32_t value);
   public:
 
+  // uint64 logical_block_size = 7;
+  void clear_logical_block_size();
+  uint64_t logical_block_size() const;
+  void set_logical_block_size(uint64_t value);
+  private:
+  uint64_t _internal_logical_block_size() const;
+  void _internal_set_logical_block_size(uint64_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:datanode_proto.CordRangeRWInfo)
  private:
   class _Internal;
@@ -1426,6 +1436,7 @@ class CordRangeRWInfo final :
     int32_t range_offset_;
     int32_t range_length_;
     int32_t proxy_port_;
+    uint64_t logical_block_size_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -2698,6 +2709,26 @@ inline void CordRangeRWInfo::_internal_set_proxy_port(int32_t value) {
 inline void CordRangeRWInfo::set_proxy_port(int32_t value) {
   _internal_set_proxy_port(value);
   // @@protoc_insertion_point(field_set:datanode_proto.CordRangeRWInfo.proxy_port)
+}
+
+// uint64 logical_block_size = 7;
+inline void CordRangeRWInfo::clear_logical_block_size() {
+  _impl_.logical_block_size_ = uint64_t{0u};
+}
+inline uint64_t CordRangeRWInfo::_internal_logical_block_size() const {
+  return _impl_.logical_block_size_;
+}
+inline uint64_t CordRangeRWInfo::logical_block_size() const {
+  // @@protoc_insertion_point(field_get:datanode_proto.CordRangeRWInfo.logical_block_size)
+  return _internal_logical_block_size();
+}
+inline void CordRangeRWInfo::_internal_set_logical_block_size(uint64_t value) {
+  
+  _impl_.logical_block_size_ = value;
+}
+inline void CordRangeRWInfo::set_logical_block_size(uint64_t value) {
+  _internal_set_logical_block_size(value);
+  // @@protoc_insertion_point(field_set:datanode_proto.CordRangeRWInfo.logical_block_size)
 }
 
 // -------------------------------------------------------------------

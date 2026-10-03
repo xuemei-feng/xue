@@ -6,8 +6,8 @@
 #include "proxy.grpc.pb.h"
 
 #include <functional>
-#include <grpcpp/support/async_stream.h>
-#include <grpcpp/support/async_unary_call.h>
+#include <grpcpp/impl/codegen/async_stream.h>
+#include <grpcpp/impl/codegen/async_unary_call.h>
 #include <grpcpp/impl/codegen/channel_interface.h>
 #include <grpcpp/impl/codegen/client_unary_call.h>
 #include <grpcpp/impl/codegen/client_callback.h>
@@ -36,6 +36,7 @@ static const char* proxyService_method_names[] = {
   "/proxy_proto.proxyService/multipleRecovery",
   "/proxy_proto.proxyService/deleteBlock",
   "/proxy_proto.proxyService/scheduleAppend2Datanode",
+  "/proxy_proto.proxyService/scheduleInitialRangeWrite",
   "/proxy_proto.proxyService/scheduleCordDataUpdate",
   "/proxy_proto.proxyService/scheduleCordLocalParityApply",
   "/proxy_proto.proxyService/cordLpHubSessionBegin",
@@ -53,668 +54,832 @@ static const char* proxyService_method_names[] = {
 
 std::unique_ptr< proxyService::Stub> proxyService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
   (void)options;
-  std::unique_ptr< proxyService::Stub> stub(new proxyService::Stub(channel, options));
+  std::unique_ptr< proxyService::Stub> stub(new proxyService::Stub(channel));
   return stub;
 }
 
-proxyService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
-  : channel_(channel), rpcmethod_checkalive_(proxyService_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_encodeAndSetObject_(proxyService_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_decodeAndGetObject_(proxyService_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_degradedRead_(proxyService_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_degradedRead2Client_(proxyService_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_degradedReadBreakdown_(proxyService_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_degradedRead2ClientBreakdown_(proxyService_method_names[6], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_degradedReadWithBlockStripeID_(proxyService_method_names[7], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_partialDecoding_(proxyService_method_names[8], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_recovery_(proxyService_method_names[9], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_recoveryBreakdown_(proxyService_method_names[10], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_multipleRecovery_(proxyService_method_names[11], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_deleteBlock_(proxyService_method_names[12], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_scheduleAppend2Datanode_(proxyService_method_names[13], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_scheduleCordDataUpdate_(proxyService_method_names[14], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_scheduleCordLocalParityApply_(proxyService_method_names[15], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_cordLpHubSessionBegin_(proxyService_method_names[16], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_cordLpHubPartialPush_(proxyService_method_names[17], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_cordLpComputePartialAndPush_(proxyService_method_names[18], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_cordLpApplyParityDelta_(proxyService_method_names[19], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_scheduleCordTransferPlan_(proxyService_method_names[20], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_cordPlanStartExecution_(proxyService_method_names[21], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_cordPlanJoinExecution_(proxyService_method_names[22], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_cordPlanCollectorIngestDataDelta_(proxyService_method_names[23], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_cordPlanApplyParityXorDelta_(proxyService_method_names[24], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_cordPlanMstDataDeltaChunk_(proxyService_method_names[25], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_getBlocks_(proxyService_method_names[26], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+proxyService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
+  : channel_(channel), rpcmethod_checkalive_(proxyService_method_names[0], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_encodeAndSetObject_(proxyService_method_names[1], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_decodeAndGetObject_(proxyService_method_names[2], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_degradedRead_(proxyService_method_names[3], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_degradedRead2Client_(proxyService_method_names[4], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_degradedReadBreakdown_(proxyService_method_names[5], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_degradedRead2ClientBreakdown_(proxyService_method_names[6], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_degradedReadWithBlockStripeID_(proxyService_method_names[7], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_partialDecoding_(proxyService_method_names[8], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_recovery_(proxyService_method_names[9], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_recoveryBreakdown_(proxyService_method_names[10], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_multipleRecovery_(proxyService_method_names[11], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_deleteBlock_(proxyService_method_names[12], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_scheduleAppend2Datanode_(proxyService_method_names[13], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_scheduleInitialRangeWrite_(proxyService_method_names[14], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_scheduleCordDataUpdate_(proxyService_method_names[15], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_scheduleCordLocalParityApply_(proxyService_method_names[16], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_cordLpHubSessionBegin_(proxyService_method_names[17], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_cordLpHubPartialPush_(proxyService_method_names[18], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_cordLpComputePartialAndPush_(proxyService_method_names[19], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_cordLpApplyParityDelta_(proxyService_method_names[20], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_scheduleCordTransferPlan_(proxyService_method_names[21], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_cordPlanStartExecution_(proxyService_method_names[22], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_cordPlanJoinExecution_(proxyService_method_names[23], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_cordPlanCollectorIngestDataDelta_(proxyService_method_names[24], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_cordPlanApplyParityXorDelta_(proxyService_method_names[25], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_cordPlanMstDataDeltaChunk_(proxyService_method_names[26], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_getBlocks_(proxyService_method_names[27], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status proxyService::Stub::checkalive(::grpc::ClientContext* context, const ::proxy_proto::CheckaliveCMD& request, ::proxy_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::CheckaliveCMD, ::proxy_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_checkalive_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_checkalive_, context, request, response);
 }
 
-void proxyService::Stub::async::checkalive(::grpc::ClientContext* context, const ::proxy_proto::CheckaliveCMD* request, ::proxy_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::CheckaliveCMD, ::proxy_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_checkalive_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::checkalive(::grpc::ClientContext* context, const ::proxy_proto::CheckaliveCMD* request, ::proxy_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_checkalive_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::checkalive(::grpc::ClientContext* context, const ::proxy_proto::CheckaliveCMD* request, ::proxy_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_checkalive_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::checkalive(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_checkalive_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::RequestResult>* proxyService::Stub::PrepareAsynccheckaliveRaw(::grpc::ClientContext* context, const ::proxy_proto::CheckaliveCMD& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::RequestResult, ::proxy_proto::CheckaliveCMD, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_checkalive_, context, request);
+void proxyService::Stub::experimental_async::checkalive(::grpc::ClientContext* context, const ::proxy_proto::CheckaliveCMD* request, ::proxy_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_checkalive_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::checkalive(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_checkalive_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::RequestResult>* proxyService::Stub::AsynccheckaliveRaw(::grpc::ClientContext* context, const ::proxy_proto::CheckaliveCMD& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynccheckaliveRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_checkalive_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::RequestResult>* proxyService::Stub::PrepareAsynccheckaliveRaw(::grpc::ClientContext* context, const ::proxy_proto::CheckaliveCMD& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_checkalive_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::encodeAndSetObject(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::ObjectAndPlacement, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_encodeAndSetObject_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_encodeAndSetObject_, context, request, response);
 }
 
-void proxyService::Stub::async::encodeAndSetObject(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::ObjectAndPlacement, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_encodeAndSetObject_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::encodeAndSetObject(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_encodeAndSetObject_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::encodeAndSetObject(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_encodeAndSetObject_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::encodeAndSetObject(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_encodeAndSetObject_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncencodeAndSetObjectRaw(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::ObjectAndPlacement, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_encodeAndSetObject_, context, request);
+void proxyService::Stub::experimental_async::encodeAndSetObject(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_encodeAndSetObject_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::encodeAndSetObject(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_encodeAndSetObject_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsyncencodeAndSetObjectRaw(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncencodeAndSetObjectRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_encodeAndSetObject_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncencodeAndSetObjectRaw(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_encodeAndSetObject_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::decodeAndGetObject(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement& request, ::proxy_proto::GetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::ObjectAndPlacement, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_decodeAndGetObject_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_decodeAndGetObject_, context, request, response);
 }
 
-void proxyService::Stub::async::decodeAndGetObject(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::ObjectAndPlacement, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_decodeAndGetObject_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::decodeAndGetObject(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_decodeAndGetObject_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::decodeAndGetObject(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement* request, ::proxy_proto::GetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_decodeAndGetObject_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::decodeAndGetObject(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_decodeAndGetObject_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* proxyService::Stub::PrepareAsyncdecodeAndGetObjectRaw(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::GetReply, ::proxy_proto::ObjectAndPlacement, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_decodeAndGetObject_, context, request);
+void proxyService::Stub::experimental_async::decodeAndGetObject(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement* request, ::proxy_proto::GetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_decodeAndGetObject_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::decodeAndGetObject(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::GetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_decodeAndGetObject_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* proxyService::Stub::AsyncdecodeAndGetObjectRaw(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncdecodeAndGetObjectRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::GetReply>::Create(channel_.get(), cq, rpcmethod_decodeAndGetObject_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* proxyService::Stub::PrepareAsyncdecodeAndGetObjectRaw(::grpc::ClientContext* context, const ::proxy_proto::ObjectAndPlacement& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::GetReply>::Create(channel_.get(), cq, rpcmethod_decodeAndGetObject_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::degradedRead(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest& request, ::proxy_proto::DegradedReadReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::DegradedReadRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_degradedRead_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_degradedRead_, context, request, response);
 }
 
-void proxyService::Stub::async::degradedRead(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::DegradedReadRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_degradedRead_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::degradedRead(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_degradedRead_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::degradedRead(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest* request, ::proxy_proto::DegradedReadReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_degradedRead_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::degradedRead(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_degradedRead_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::PrepareAsyncdegradedReadRaw(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::DegradedReadReply, ::proxy_proto::DegradedReadRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_degradedRead_, context, request);
+void proxyService::Stub::experimental_async::degradedRead(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest* request, ::proxy_proto::DegradedReadReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_degradedRead_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::degradedRead(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::DegradedReadReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_degradedRead_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::AsyncdegradedReadRaw(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncdegradedReadRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::DegradedReadReply>::Create(channel_.get(), cq, rpcmethod_degradedRead_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::PrepareAsyncdegradedReadRaw(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::DegradedReadReply>::Create(channel_.get(), cq, rpcmethod_degradedRead_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::degradedRead2Client(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::proxy_proto::DegradedReadReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::RecoveryRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_degradedRead2Client_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_degradedRead2Client_, context, request, response);
 }
 
-void proxyService::Stub::async::degradedRead2Client(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::RecoveryRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_degradedRead2Client_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::degradedRead2Client(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_degradedRead2Client_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::degradedRead2Client(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::DegradedReadReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_degradedRead2Client_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::degradedRead2Client(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_degradedRead2Client_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::PrepareAsyncdegradedRead2ClientRaw(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::DegradedReadReply, ::proxy_proto::RecoveryRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_degradedRead2Client_, context, request);
+void proxyService::Stub::experimental_async::degradedRead2Client(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::DegradedReadReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_degradedRead2Client_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::degradedRead2Client(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::DegradedReadReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_degradedRead2Client_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::AsyncdegradedRead2ClientRaw(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncdegradedRead2ClientRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::DegradedReadReply>::Create(channel_.get(), cq, rpcmethod_degradedRead2Client_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::PrepareAsyncdegradedRead2ClientRaw(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::DegradedReadReply>::Create(channel_.get(), cq, rpcmethod_degradedRead2Client_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::degradedReadBreakdown(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest& request, ::proxy_proto::DegradedReadReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::DegradedReadRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_degradedReadBreakdown_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_degradedReadBreakdown_, context, request, response);
 }
 
-void proxyService::Stub::async::degradedReadBreakdown(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::DegradedReadRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_degradedReadBreakdown_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::degradedReadBreakdown(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_degradedReadBreakdown_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::degradedReadBreakdown(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest* request, ::proxy_proto::DegradedReadReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_degradedReadBreakdown_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::degradedReadBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_degradedReadBreakdown_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::PrepareAsyncdegradedReadBreakdownRaw(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::DegradedReadReply, ::proxy_proto::DegradedReadRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_degradedReadBreakdown_, context, request);
+void proxyService::Stub::experimental_async::degradedReadBreakdown(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest* request, ::proxy_proto::DegradedReadReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_degradedReadBreakdown_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::degradedReadBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::DegradedReadReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_degradedReadBreakdown_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::AsyncdegradedReadBreakdownRaw(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncdegradedReadBreakdownRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::DegradedReadReply>::Create(channel_.get(), cq, rpcmethod_degradedReadBreakdown_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::PrepareAsyncdegradedReadBreakdownRaw(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::DegradedReadReply>::Create(channel_.get(), cq, rpcmethod_degradedReadBreakdown_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::degradedRead2ClientBreakdown(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::proxy_proto::DegradedReadReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::RecoveryRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_degradedRead2ClientBreakdown_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_degradedRead2ClientBreakdown_, context, request, response);
 }
 
-void proxyService::Stub::async::degradedRead2ClientBreakdown(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::RecoveryRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_degradedRead2ClientBreakdown_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::degradedRead2ClientBreakdown(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_degradedRead2ClientBreakdown_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::degradedRead2ClientBreakdown(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::DegradedReadReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_degradedRead2ClientBreakdown_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::degradedRead2ClientBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_degradedRead2ClientBreakdown_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::PrepareAsyncdegradedRead2ClientBreakdownRaw(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::DegradedReadReply, ::proxy_proto::RecoveryRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_degradedRead2ClientBreakdown_, context, request);
+void proxyService::Stub::experimental_async::degradedRead2ClientBreakdown(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::DegradedReadReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_degradedRead2ClientBreakdown_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::degradedRead2ClientBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::DegradedReadReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_degradedRead2ClientBreakdown_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::AsyncdegradedRead2ClientBreakdownRaw(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncdegradedRead2ClientBreakdownRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::DegradedReadReply>::Create(channel_.get(), cq, rpcmethod_degradedRead2ClientBreakdown_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::PrepareAsyncdegradedRead2ClientBreakdownRaw(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::DegradedReadReply>::Create(channel_.get(), cq, rpcmethod_degradedRead2ClientBreakdown_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::degradedReadWithBlockStripeID(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest& request, ::proxy_proto::GetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::DegradedReadRequest, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_degradedReadWithBlockStripeID_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_degradedReadWithBlockStripeID_, context, request, response);
 }
 
-void proxyService::Stub::async::degradedReadWithBlockStripeID(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::DegradedReadRequest, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_degradedReadWithBlockStripeID_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::degradedReadWithBlockStripeID(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_degradedReadWithBlockStripeID_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::degradedReadWithBlockStripeID(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest* request, ::proxy_proto::GetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_degradedReadWithBlockStripeID_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::degradedReadWithBlockStripeID(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_degradedReadWithBlockStripeID_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* proxyService::Stub::PrepareAsyncdegradedReadWithBlockStripeIDRaw(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::GetReply, ::proxy_proto::DegradedReadRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_degradedReadWithBlockStripeID_, context, request);
+void proxyService::Stub::experimental_async::degradedReadWithBlockStripeID(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest* request, ::proxy_proto::GetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_degradedReadWithBlockStripeID_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::degradedReadWithBlockStripeID(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::GetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_degradedReadWithBlockStripeID_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* proxyService::Stub::AsyncdegradedReadWithBlockStripeIDRaw(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncdegradedReadWithBlockStripeIDRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::GetReply>::Create(channel_.get(), cq, rpcmethod_degradedReadWithBlockStripeID_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* proxyService::Stub::PrepareAsyncdegradedReadWithBlockStripeIDRaw(::grpc::ClientContext* context, const ::proxy_proto::DegradedReadRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::GetReply>::Create(channel_.get(), cq, rpcmethod_degradedReadWithBlockStripeID_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::partialDecoding(::grpc::ClientContext* context, const ::proxy_proto::PartialDecodingRequest& request, ::proxy_proto::DegradedReadReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::PartialDecodingRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_partialDecoding_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_partialDecoding_, context, request, response);
 }
 
-void proxyService::Stub::async::partialDecoding(::grpc::ClientContext* context, const ::proxy_proto::PartialDecodingRequest* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::PartialDecodingRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_partialDecoding_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::partialDecoding(::grpc::ClientContext* context, const ::proxy_proto::PartialDecodingRequest* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_partialDecoding_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::partialDecoding(::grpc::ClientContext* context, const ::proxy_proto::PartialDecodingRequest* request, ::proxy_proto::DegradedReadReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_partialDecoding_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::partialDecoding(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::DegradedReadReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_partialDecoding_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::PrepareAsyncpartialDecodingRaw(::grpc::ClientContext* context, const ::proxy_proto::PartialDecodingRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::DegradedReadReply, ::proxy_proto::PartialDecodingRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_partialDecoding_, context, request);
+void proxyService::Stub::experimental_async::partialDecoding(::grpc::ClientContext* context, const ::proxy_proto::PartialDecodingRequest* request, ::proxy_proto::DegradedReadReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_partialDecoding_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::partialDecoding(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::DegradedReadReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_partialDecoding_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::AsyncpartialDecodingRaw(::grpc::ClientContext* context, const ::proxy_proto::PartialDecodingRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncpartialDecodingRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::DegradedReadReply>::Create(channel_.get(), cq, rpcmethod_partialDecoding_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::DegradedReadReply>* proxyService::Stub::PrepareAsyncpartialDecodingRaw(::grpc::ClientContext* context, const ::proxy_proto::PartialDecodingRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::DegradedReadReply>::Create(channel_.get(), cq, rpcmethod_partialDecoding_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::recovery(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::proxy_proto::RecoveryReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::RecoveryRequest, ::proxy_proto::RecoveryReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_recovery_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_recovery_, context, request, response);
 }
 
-void proxyService::Stub::async::recovery(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::RecoveryReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::RecoveryRequest, ::proxy_proto::RecoveryReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_recovery_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::recovery(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::RecoveryReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_recovery_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::recovery(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::RecoveryReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_recovery_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::recovery(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::RecoveryReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_recovery_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::RecoveryReply>* proxyService::Stub::PrepareAsyncrecoveryRaw(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::RecoveryReply, ::proxy_proto::RecoveryRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_recovery_, context, request);
+void proxyService::Stub::experimental_async::recovery(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::RecoveryReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_recovery_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::recovery(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::RecoveryReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_recovery_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::RecoveryReply>* proxyService::Stub::AsyncrecoveryRaw(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncrecoveryRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::RecoveryReply>::Create(channel_.get(), cq, rpcmethod_recovery_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::RecoveryReply>* proxyService::Stub::PrepareAsyncrecoveryRaw(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::RecoveryReply>::Create(channel_.get(), cq, rpcmethod_recovery_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::recoveryBreakdown(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::proxy_proto::RecoveryReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::RecoveryRequest, ::proxy_proto::RecoveryReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_recoveryBreakdown_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_recoveryBreakdown_, context, request, response);
 }
 
-void proxyService::Stub::async::recoveryBreakdown(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::RecoveryReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::RecoveryRequest, ::proxy_proto::RecoveryReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_recoveryBreakdown_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::recoveryBreakdown(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::RecoveryReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_recoveryBreakdown_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::recoveryBreakdown(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::RecoveryReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_recoveryBreakdown_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::recoveryBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::RecoveryReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_recoveryBreakdown_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::RecoveryReply>* proxyService::Stub::PrepareAsyncrecoveryBreakdownRaw(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::RecoveryReply, ::proxy_proto::RecoveryRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_recoveryBreakdown_, context, request);
+void proxyService::Stub::experimental_async::recoveryBreakdown(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest* request, ::proxy_proto::RecoveryReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_recoveryBreakdown_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::recoveryBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::RecoveryReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_recoveryBreakdown_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::RecoveryReply>* proxyService::Stub::AsyncrecoveryBreakdownRaw(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncrecoveryBreakdownRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::RecoveryReply>::Create(channel_.get(), cq, rpcmethod_recoveryBreakdown_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::RecoveryReply>* proxyService::Stub::PrepareAsyncrecoveryBreakdownRaw(::grpc::ClientContext* context, const ::proxy_proto::RecoveryRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::RecoveryReply>::Create(channel_.get(), cq, rpcmethod_recoveryBreakdown_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::multipleRecovery(::grpc::ClientContext* context, const ::proxy_proto::MultipleRecoveryRequest& request, ::proxy_proto::GetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::MultipleRecoveryRequest, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_multipleRecovery_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_multipleRecovery_, context, request, response);
 }
 
-void proxyService::Stub::async::multipleRecovery(::grpc::ClientContext* context, const ::proxy_proto::MultipleRecoveryRequest* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::MultipleRecoveryRequest, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_multipleRecovery_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::multipleRecovery(::grpc::ClientContext* context, const ::proxy_proto::MultipleRecoveryRequest* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_multipleRecovery_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::multipleRecovery(::grpc::ClientContext* context, const ::proxy_proto::MultipleRecoveryRequest* request, ::proxy_proto::GetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_multipleRecovery_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::multipleRecovery(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_multipleRecovery_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* proxyService::Stub::PrepareAsyncmultipleRecoveryRaw(::grpc::ClientContext* context, const ::proxy_proto::MultipleRecoveryRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::GetReply, ::proxy_proto::MultipleRecoveryRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_multipleRecovery_, context, request);
+void proxyService::Stub::experimental_async::multipleRecovery(::grpc::ClientContext* context, const ::proxy_proto::MultipleRecoveryRequest* request, ::proxy_proto::GetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_multipleRecovery_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::multipleRecovery(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::GetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_multipleRecovery_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* proxyService::Stub::AsyncmultipleRecoveryRaw(::grpc::ClientContext* context, const ::proxy_proto::MultipleRecoveryRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncmultipleRecoveryRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::GetReply>::Create(channel_.get(), cq, rpcmethod_multipleRecovery_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* proxyService::Stub::PrepareAsyncmultipleRecoveryRaw(::grpc::ClientContext* context, const ::proxy_proto::MultipleRecoveryRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::GetReply>::Create(channel_.get(), cq, rpcmethod_multipleRecovery_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::deleteBlock(::grpc::ClientContext* context, const ::proxy_proto::NodeAndBlock& request, ::proxy_proto::DelReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::NodeAndBlock, ::proxy_proto::DelReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_deleteBlock_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_deleteBlock_, context, request, response);
 }
 
-void proxyService::Stub::async::deleteBlock(::grpc::ClientContext* context, const ::proxy_proto::NodeAndBlock* request, ::proxy_proto::DelReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::NodeAndBlock, ::proxy_proto::DelReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_deleteBlock_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::deleteBlock(::grpc::ClientContext* context, const ::proxy_proto::NodeAndBlock* request, ::proxy_proto::DelReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_deleteBlock_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::deleteBlock(::grpc::ClientContext* context, const ::proxy_proto::NodeAndBlock* request, ::proxy_proto::DelReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_deleteBlock_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::deleteBlock(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::DelReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_deleteBlock_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::DelReply>* proxyService::Stub::PrepareAsyncdeleteBlockRaw(::grpc::ClientContext* context, const ::proxy_proto::NodeAndBlock& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::DelReply, ::proxy_proto::NodeAndBlock, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_deleteBlock_, context, request);
+void proxyService::Stub::experimental_async::deleteBlock(::grpc::ClientContext* context, const ::proxy_proto::NodeAndBlock* request, ::proxy_proto::DelReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_deleteBlock_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::deleteBlock(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::DelReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_deleteBlock_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::DelReply>* proxyService::Stub::AsyncdeleteBlockRaw(::grpc::ClientContext* context, const ::proxy_proto::NodeAndBlock& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncdeleteBlockRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::DelReply>::Create(channel_.get(), cq, rpcmethod_deleteBlock_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::DelReply>* proxyService::Stub::PrepareAsyncdeleteBlockRaw(::grpc::ClientContext* context, const ::proxy_proto::NodeAndBlock& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::DelReply>::Create(channel_.get(), cq, rpcmethod_deleteBlock_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::scheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::AppendStripeDataPlacement, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_scheduleAppend2Datanode_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_scheduleAppend2Datanode_, context, request, response);
 }
 
-void proxyService::Stub::async::scheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::AppendStripeDataPlacement, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_scheduleAppend2Datanode_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::scheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_scheduleAppend2Datanode_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::scheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_scheduleAppend2Datanode_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::scheduleAppend2Datanode(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_scheduleAppend2Datanode_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncscheduleAppend2DatanodeRaw(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::AppendStripeDataPlacement, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_scheduleAppend2Datanode_, context, request);
+void proxyService::Stub::experimental_async::scheduleAppend2Datanode(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_scheduleAppend2Datanode_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::scheduleAppend2Datanode(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_scheduleAppend2Datanode_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsyncscheduleAppend2DatanodeRaw(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncscheduleAppend2DatanodeRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_scheduleAppend2Datanode_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncscheduleAppend2DatanodeRaw(::grpc::ClientContext* context, const ::proxy_proto::AppendStripeDataPlacement& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_scheduleAppend2Datanode_, context, request, false);
+}
+
+::grpc::Status proxyService::Stub::scheduleInitialRangeWrite(::grpc::ClientContext* context, const ::proxy_proto::InitialRangeWritePlacement& request, ::proxy_proto::SetReply* response) {
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_scheduleInitialRangeWrite_, context, request, response);
+}
+
+void proxyService::Stub::experimental_async::scheduleInitialRangeWrite(::grpc::ClientContext* context, const ::proxy_proto::InitialRangeWritePlacement* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_scheduleInitialRangeWrite_, context, request, response, std::move(f));
+}
+
+void proxyService::Stub::experimental_async::scheduleInitialRangeWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_scheduleInitialRangeWrite_, context, request, response, std::move(f));
+}
+
+void proxyService::Stub::experimental_async::scheduleInitialRangeWrite(::grpc::ClientContext* context, const ::proxy_proto::InitialRangeWritePlacement* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_scheduleInitialRangeWrite_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::scheduleInitialRangeWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_scheduleInitialRangeWrite_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsyncscheduleInitialRangeWriteRaw(::grpc::ClientContext* context, const ::proxy_proto::InitialRangeWritePlacement& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_scheduleInitialRangeWrite_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncscheduleInitialRangeWriteRaw(::grpc::ClientContext* context, const ::proxy_proto::InitialRangeWritePlacement& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_scheduleInitialRangeWrite_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::scheduleCordDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::CordDataUpdatePlacement& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::CordDataUpdatePlacement, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_scheduleCordDataUpdate_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_scheduleCordDataUpdate_, context, request, response);
 }
 
-void proxyService::Stub::async::scheduleCordDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::CordDataUpdatePlacement* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::CordDataUpdatePlacement, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_scheduleCordDataUpdate_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::scheduleCordDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::CordDataUpdatePlacement* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_scheduleCordDataUpdate_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::scheduleCordDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::CordDataUpdatePlacement* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_scheduleCordDataUpdate_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::scheduleCordDataUpdate(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_scheduleCordDataUpdate_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncscheduleCordDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::CordDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::CordDataUpdatePlacement, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_scheduleCordDataUpdate_, context, request);
+void proxyService::Stub::experimental_async::scheduleCordDataUpdate(::grpc::ClientContext* context, const ::proxy_proto::CordDataUpdatePlacement* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_scheduleCordDataUpdate_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::scheduleCordDataUpdate(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_scheduleCordDataUpdate_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsyncscheduleCordDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::CordDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncscheduleCordDataUpdateRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_scheduleCordDataUpdate_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncscheduleCordDataUpdateRaw(::grpc::ClientContext* context, const ::proxy_proto::CordDataUpdatePlacement& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_scheduleCordDataUpdate_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::scheduleCordLocalParityApply(::grpc::ClientContext* context, const ::proxy_proto::CordLocalParityBundle& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::CordLocalParityBundle, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_scheduleCordLocalParityApply_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_scheduleCordLocalParityApply_, context, request, response);
 }
 
-void proxyService::Stub::async::scheduleCordLocalParityApply(::grpc::ClientContext* context, const ::proxy_proto::CordLocalParityBundle* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::CordLocalParityBundle, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_scheduleCordLocalParityApply_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::scheduleCordLocalParityApply(::grpc::ClientContext* context, const ::proxy_proto::CordLocalParityBundle* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_scheduleCordLocalParityApply_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::scheduleCordLocalParityApply(::grpc::ClientContext* context, const ::proxy_proto::CordLocalParityBundle* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_scheduleCordLocalParityApply_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::scheduleCordLocalParityApply(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_scheduleCordLocalParityApply_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncscheduleCordLocalParityApplyRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLocalParityBundle& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::CordLocalParityBundle, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_scheduleCordLocalParityApply_, context, request);
+void proxyService::Stub::experimental_async::scheduleCordLocalParityApply(::grpc::ClientContext* context, const ::proxy_proto::CordLocalParityBundle* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_scheduleCordLocalParityApply_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::scheduleCordLocalParityApply(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_scheduleCordLocalParityApply_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsyncscheduleCordLocalParityApplyRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLocalParityBundle& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncscheduleCordLocalParityApplyRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_scheduleCordLocalParityApply_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncscheduleCordLocalParityApplyRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLocalParityBundle& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_scheduleCordLocalParityApply_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::cordLpHubSessionBegin(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubSessionBegin& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::CordLpHubSessionBegin, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_cordLpHubSessionBegin_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_cordLpHubSessionBegin_, context, request, response);
 }
 
-void proxyService::Stub::async::cordLpHubSessionBegin(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubSessionBegin* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::CordLpHubSessionBegin, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordLpHubSessionBegin_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::cordLpHubSessionBegin(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubSessionBegin* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordLpHubSessionBegin_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::cordLpHubSessionBegin(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubSessionBegin* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordLpHubSessionBegin_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::cordLpHubSessionBegin(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordLpHubSessionBegin_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordLpHubSessionBeginRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubSessionBegin& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::CordLpHubSessionBegin, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_cordLpHubSessionBegin_, context, request);
+void proxyService::Stub::experimental_async::cordLpHubSessionBegin(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubSessionBegin* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordLpHubSessionBegin_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::cordLpHubSessionBegin(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordLpHubSessionBegin_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsynccordLpHubSessionBeginRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubSessionBegin& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynccordLpHubSessionBeginRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordLpHubSessionBegin_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordLpHubSessionBeginRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubSessionBegin& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordLpHubSessionBegin_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::cordLpHubPartialPush(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubPartialPush& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::CordLpHubPartialPush, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_cordLpHubPartialPush_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_cordLpHubPartialPush_, context, request, response);
 }
 
-void proxyService::Stub::async::cordLpHubPartialPush(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubPartialPush* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::CordLpHubPartialPush, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordLpHubPartialPush_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::cordLpHubPartialPush(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubPartialPush* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordLpHubPartialPush_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::cordLpHubPartialPush(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubPartialPush* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordLpHubPartialPush_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::cordLpHubPartialPush(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordLpHubPartialPush_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordLpHubPartialPushRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubPartialPush& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::CordLpHubPartialPush, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_cordLpHubPartialPush_, context, request);
+void proxyService::Stub::experimental_async::cordLpHubPartialPush(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubPartialPush* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordLpHubPartialPush_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::cordLpHubPartialPush(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordLpHubPartialPush_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsynccordLpHubPartialPushRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubPartialPush& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynccordLpHubPartialPushRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordLpHubPartialPush_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordLpHubPartialPushRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLpHubPartialPush& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordLpHubPartialPush_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::cordLpComputePartialAndPush(::grpc::ClientContext* context, const ::proxy_proto::CordLpComputePartialAndPush& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::CordLpComputePartialAndPush, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_cordLpComputePartialAndPush_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_cordLpComputePartialAndPush_, context, request, response);
 }
 
-void proxyService::Stub::async::cordLpComputePartialAndPush(::grpc::ClientContext* context, const ::proxy_proto::CordLpComputePartialAndPush* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::CordLpComputePartialAndPush, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordLpComputePartialAndPush_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::cordLpComputePartialAndPush(::grpc::ClientContext* context, const ::proxy_proto::CordLpComputePartialAndPush* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordLpComputePartialAndPush_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::cordLpComputePartialAndPush(::grpc::ClientContext* context, const ::proxy_proto::CordLpComputePartialAndPush* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordLpComputePartialAndPush_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::cordLpComputePartialAndPush(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordLpComputePartialAndPush_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordLpComputePartialAndPushRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLpComputePartialAndPush& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::CordLpComputePartialAndPush, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_cordLpComputePartialAndPush_, context, request);
+void proxyService::Stub::experimental_async::cordLpComputePartialAndPush(::grpc::ClientContext* context, const ::proxy_proto::CordLpComputePartialAndPush* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordLpComputePartialAndPush_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::cordLpComputePartialAndPush(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordLpComputePartialAndPush_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsynccordLpComputePartialAndPushRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLpComputePartialAndPush& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynccordLpComputePartialAndPushRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordLpComputePartialAndPush_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordLpComputePartialAndPushRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLpComputePartialAndPush& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordLpComputePartialAndPush_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::cordLpApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::CordLpParityApplyDelta& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::CordLpParityApplyDelta, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_cordLpApplyParityDelta_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_cordLpApplyParityDelta_, context, request, response);
 }
 
-void proxyService::Stub::async::cordLpApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::CordLpParityApplyDelta* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::CordLpParityApplyDelta, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordLpApplyParityDelta_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::cordLpApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::CordLpParityApplyDelta* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordLpApplyParityDelta_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::cordLpApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::CordLpParityApplyDelta* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordLpApplyParityDelta_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::cordLpApplyParityDelta(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordLpApplyParityDelta_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordLpApplyParityDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLpParityApplyDelta& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::CordLpParityApplyDelta, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_cordLpApplyParityDelta_, context, request);
+void proxyService::Stub::experimental_async::cordLpApplyParityDelta(::grpc::ClientContext* context, const ::proxy_proto::CordLpParityApplyDelta* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordLpApplyParityDelta_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::cordLpApplyParityDelta(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordLpApplyParityDelta_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsynccordLpApplyParityDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLpParityApplyDelta& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynccordLpApplyParityDeltaRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordLpApplyParityDelta_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordLpApplyParityDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::CordLpParityApplyDelta& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordLpApplyParityDelta_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::scheduleCordTransferPlan(::grpc::ClientContext* context, const ::proxy_proto::CordTransferPlan& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::CordTransferPlan, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_scheduleCordTransferPlan_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_scheduleCordTransferPlan_, context, request, response);
 }
 
-void proxyService::Stub::async::scheduleCordTransferPlan(::grpc::ClientContext* context, const ::proxy_proto::CordTransferPlan* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::CordTransferPlan, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_scheduleCordTransferPlan_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::scheduleCordTransferPlan(::grpc::ClientContext* context, const ::proxy_proto::CordTransferPlan* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_scheduleCordTransferPlan_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::scheduleCordTransferPlan(::grpc::ClientContext* context, const ::proxy_proto::CordTransferPlan* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_scheduleCordTransferPlan_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::scheduleCordTransferPlan(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_scheduleCordTransferPlan_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncscheduleCordTransferPlanRaw(::grpc::ClientContext* context, const ::proxy_proto::CordTransferPlan& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::CordTransferPlan, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_scheduleCordTransferPlan_, context, request);
+void proxyService::Stub::experimental_async::scheduleCordTransferPlan(::grpc::ClientContext* context, const ::proxy_proto::CordTransferPlan* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_scheduleCordTransferPlan_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::scheduleCordTransferPlan(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_scheduleCordTransferPlan_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsyncscheduleCordTransferPlanRaw(::grpc::ClientContext* context, const ::proxy_proto::CordTransferPlan& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncscheduleCordTransferPlanRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_scheduleCordTransferPlan_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsyncscheduleCordTransferPlanRaw(::grpc::ClientContext* context, const ::proxy_proto::CordTransferPlan& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_scheduleCordTransferPlan_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::cordPlanStartExecution(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::CordPlanKeyMsg, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_cordPlanStartExecution_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_cordPlanStartExecution_, context, request, response);
 }
 
-void proxyService::Stub::async::cordPlanStartExecution(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::CordPlanKeyMsg, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordPlanStartExecution_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::cordPlanStartExecution(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordPlanStartExecution_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::cordPlanStartExecution(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordPlanStartExecution_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::cordPlanStartExecution(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordPlanStartExecution_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordPlanStartExecutionRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::CordPlanKeyMsg, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_cordPlanStartExecution_, context, request);
+void proxyService::Stub::experimental_async::cordPlanStartExecution(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordPlanStartExecution_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::cordPlanStartExecution(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordPlanStartExecution_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsynccordPlanStartExecutionRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynccordPlanStartExecutionRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordPlanStartExecution_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordPlanStartExecutionRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordPlanStartExecution_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::cordPlanJoinExecution(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::CordPlanKeyMsg, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_cordPlanJoinExecution_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_cordPlanJoinExecution_, context, request, response);
 }
 
-void proxyService::Stub::async::cordPlanJoinExecution(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::CordPlanKeyMsg, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordPlanJoinExecution_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::cordPlanJoinExecution(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordPlanJoinExecution_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::cordPlanJoinExecution(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordPlanJoinExecution_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::cordPlanJoinExecution(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordPlanJoinExecution_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordPlanJoinExecutionRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::CordPlanKeyMsg, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_cordPlanJoinExecution_, context, request);
+void proxyService::Stub::experimental_async::cordPlanJoinExecution(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordPlanJoinExecution_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::cordPlanJoinExecution(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordPlanJoinExecution_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsynccordPlanJoinExecutionRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynccordPlanJoinExecutionRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordPlanJoinExecution_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordPlanJoinExecutionRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanKeyMsg& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordPlanJoinExecution_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::cordPlanCollectorIngestDataDelta(::grpc::ClientContext* context, const ::proxy_proto::CordPlanCollectorIngestReq& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::CordPlanCollectorIngestReq, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_cordPlanCollectorIngestDataDelta_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_cordPlanCollectorIngestDataDelta_, context, request, response);
 }
 
-void proxyService::Stub::async::cordPlanCollectorIngestDataDelta(::grpc::ClientContext* context, const ::proxy_proto::CordPlanCollectorIngestReq* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::CordPlanCollectorIngestReq, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordPlanCollectorIngestDataDelta_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::cordPlanCollectorIngestDataDelta(::grpc::ClientContext* context, const ::proxy_proto::CordPlanCollectorIngestReq* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordPlanCollectorIngestDataDelta_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::cordPlanCollectorIngestDataDelta(::grpc::ClientContext* context, const ::proxy_proto::CordPlanCollectorIngestReq* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordPlanCollectorIngestDataDelta_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::cordPlanCollectorIngestDataDelta(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordPlanCollectorIngestDataDelta_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordPlanCollectorIngestDataDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanCollectorIngestReq& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::CordPlanCollectorIngestReq, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_cordPlanCollectorIngestDataDelta_, context, request);
+void proxyService::Stub::experimental_async::cordPlanCollectorIngestDataDelta(::grpc::ClientContext* context, const ::proxy_proto::CordPlanCollectorIngestReq* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordPlanCollectorIngestDataDelta_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::cordPlanCollectorIngestDataDelta(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordPlanCollectorIngestDataDelta_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsynccordPlanCollectorIngestDataDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanCollectorIngestReq& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynccordPlanCollectorIngestDataDeltaRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordPlanCollectorIngestDataDelta_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordPlanCollectorIngestDataDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanCollectorIngestReq& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordPlanCollectorIngestDataDelta_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::cordPlanApplyParityXorDelta(::grpc::ClientContext* context, const ::proxy_proto::CordPlanApplyParityXorReq& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::CordPlanApplyParityXorReq, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_cordPlanApplyParityXorDelta_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_cordPlanApplyParityXorDelta_, context, request, response);
 }
 
-void proxyService::Stub::async::cordPlanApplyParityXorDelta(::grpc::ClientContext* context, const ::proxy_proto::CordPlanApplyParityXorReq* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::CordPlanApplyParityXorReq, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordPlanApplyParityXorDelta_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::cordPlanApplyParityXorDelta(::grpc::ClientContext* context, const ::proxy_proto::CordPlanApplyParityXorReq* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordPlanApplyParityXorDelta_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::cordPlanApplyParityXorDelta(::grpc::ClientContext* context, const ::proxy_proto::CordPlanApplyParityXorReq* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordPlanApplyParityXorDelta_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::cordPlanApplyParityXorDelta(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordPlanApplyParityXorDelta_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordPlanApplyParityXorDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanApplyParityXorReq& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::CordPlanApplyParityXorReq, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_cordPlanApplyParityXorDelta_, context, request);
+void proxyService::Stub::experimental_async::cordPlanApplyParityXorDelta(::grpc::ClientContext* context, const ::proxy_proto::CordPlanApplyParityXorReq* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordPlanApplyParityXorDelta_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::cordPlanApplyParityXorDelta(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordPlanApplyParityXorDelta_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsynccordPlanApplyParityXorDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanApplyParityXorReq& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynccordPlanApplyParityXorDeltaRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordPlanApplyParityXorDelta_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordPlanApplyParityXorDeltaRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanApplyParityXorReq& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordPlanApplyParityXorDelta_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::cordPlanMstDataDeltaChunk(::grpc::ClientContext* context, const ::proxy_proto::CordPlanMstDataDeltaReq& request, ::proxy_proto::SetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::CordPlanMstDataDeltaReq, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_cordPlanMstDataDeltaChunk_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_cordPlanMstDataDeltaChunk_, context, request, response);
 }
 
-void proxyService::Stub::async::cordPlanMstDataDeltaChunk(::grpc::ClientContext* context, const ::proxy_proto::CordPlanMstDataDeltaReq* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::CordPlanMstDataDeltaReq, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordPlanMstDataDeltaChunk_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::cordPlanMstDataDeltaChunk(::grpc::ClientContext* context, const ::proxy_proto::CordPlanMstDataDeltaReq* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordPlanMstDataDeltaChunk_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::cordPlanMstDataDeltaChunk(::grpc::ClientContext* context, const ::proxy_proto::CordPlanMstDataDeltaReq* request, ::proxy_proto::SetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_cordPlanMstDataDeltaChunk_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::cordPlanMstDataDeltaChunk(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_cordPlanMstDataDeltaChunk_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordPlanMstDataDeltaChunkRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanMstDataDeltaReq& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::SetReply, ::proxy_proto::CordPlanMstDataDeltaReq, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_cordPlanMstDataDeltaChunk_, context, request);
+void proxyService::Stub::experimental_async::cordPlanMstDataDeltaChunk(::grpc::ClientContext* context, const ::proxy_proto::CordPlanMstDataDeltaReq* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordPlanMstDataDeltaChunk_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::cordPlanMstDataDeltaChunk(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::SetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_cordPlanMstDataDeltaChunk_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::AsynccordPlanMstDataDeltaChunkRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanMstDataDeltaReq& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynccordPlanMstDataDeltaChunkRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordPlanMstDataDeltaChunk_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::SetReply>* proxyService::Stub::PrepareAsynccordPlanMstDataDeltaChunkRaw(::grpc::ClientContext* context, const ::proxy_proto::CordPlanMstDataDeltaReq& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::SetReply>::Create(channel_.get(), cq, rpcmethod_cordPlanMstDataDeltaChunk_, context, request, false);
 }
 
 ::grpc::Status proxyService::Stub::getBlocks(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs& request, ::proxy_proto::GetReply* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_getBlocks_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_getBlocks_, context, request, response);
 }
 
-void proxyService::Stub::async::getBlocks(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_getBlocks_, context, request, response, std::move(f));
+void proxyService::Stub::experimental_async::getBlocks(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_getBlocks_, context, request, response, std::move(f));
 }
 
-void proxyService::Stub::async::getBlocks(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_getBlocks_, context, request, response, reactor);
+void proxyService::Stub::experimental_async::getBlocks(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::GetReply* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_getBlocks_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* proxyService::Stub::PrepareAsyncgetBlocksRaw(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::proxy_proto::GetReply, ::proxy_proto::StripeAndBlockIDs, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_getBlocks_, context, request);
+void proxyService::Stub::experimental_async::getBlocks(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs* request, ::proxy_proto::GetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_getBlocks_, context, request, response, reactor);
+}
+
+void proxyService::Stub::experimental_async::getBlocks(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::proxy_proto::GetReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_getBlocks_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* proxyService::Stub::AsyncgetBlocksRaw(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncgetBlocksRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::GetReply>::Create(channel_.get(), cq, rpcmethod_getBlocks_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::proxy_proto::GetReply>* proxyService::Stub::PrepareAsyncgetBlocksRaw(::grpc::ClientContext* context, const ::proxy_proto::StripeAndBlockIDs& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::proxy_proto::GetReply>::Create(channel_.get(), cq, rpcmethod_getBlocks_, context, request, false);
 }
 
 proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CheckaliveCMD, ::proxy_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CheckaliveCMD, ::proxy_proto::RequestResult>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::CheckaliveCMD* req,
              ::proxy_proto::RequestResult* resp) {
                return service->checkalive(ctx, req, resp);
@@ -722,9 +887,9 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[1],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::ObjectAndPlacement, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::ObjectAndPlacement, ::proxy_proto::SetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::ObjectAndPlacement* req,
              ::proxy_proto::SetReply* resp) {
                return service->encodeAndSetObject(ctx, req, resp);
@@ -732,9 +897,9 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[2],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::ObjectAndPlacement, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::ObjectAndPlacement, ::proxy_proto::GetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::ObjectAndPlacement* req,
              ::proxy_proto::GetReply* resp) {
                return service->decodeAndGetObject(ctx, req, resp);
@@ -742,9 +907,9 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[3],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::DegradedReadRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::DegradedReadRequest, ::proxy_proto::DegradedReadReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::DegradedReadRequest* req,
              ::proxy_proto::DegradedReadReply* resp) {
                return service->degradedRead(ctx, req, resp);
@@ -752,9 +917,9 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[4],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::RecoveryRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::RecoveryRequest, ::proxy_proto::DegradedReadReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::RecoveryRequest* req,
              ::proxy_proto::DegradedReadReply* resp) {
                return service->degradedRead2Client(ctx, req, resp);
@@ -762,9 +927,9 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[5],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::DegradedReadRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::DegradedReadRequest, ::proxy_proto::DegradedReadReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::DegradedReadRequest* req,
              ::proxy_proto::DegradedReadReply* resp) {
                return service->degradedReadBreakdown(ctx, req, resp);
@@ -772,9 +937,9 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[6],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::RecoveryRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::RecoveryRequest, ::proxy_proto::DegradedReadReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::RecoveryRequest* req,
              ::proxy_proto::DegradedReadReply* resp) {
                return service->degradedRead2ClientBreakdown(ctx, req, resp);
@@ -782,9 +947,9 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[7],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::DegradedReadRequest, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::DegradedReadRequest, ::proxy_proto::GetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::DegradedReadRequest* req,
              ::proxy_proto::GetReply* resp) {
                return service->degradedReadWithBlockStripeID(ctx, req, resp);
@@ -792,9 +957,9 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[8],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::PartialDecodingRequest, ::proxy_proto::DegradedReadReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::PartialDecodingRequest, ::proxy_proto::DegradedReadReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::PartialDecodingRequest* req,
              ::proxy_proto::DegradedReadReply* resp) {
                return service->partialDecoding(ctx, req, resp);
@@ -802,9 +967,9 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[9],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::RecoveryRequest, ::proxy_proto::RecoveryReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::RecoveryRequest, ::proxy_proto::RecoveryReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::RecoveryRequest* req,
              ::proxy_proto::RecoveryReply* resp) {
                return service->recovery(ctx, req, resp);
@@ -812,9 +977,9 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[10],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::RecoveryRequest, ::proxy_proto::RecoveryReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::RecoveryRequest, ::proxy_proto::RecoveryReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::RecoveryRequest* req,
              ::proxy_proto::RecoveryReply* resp) {
                return service->recoveryBreakdown(ctx, req, resp);
@@ -822,9 +987,9 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[11],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::MultipleRecoveryRequest, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::MultipleRecoveryRequest, ::proxy_proto::GetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::MultipleRecoveryRequest* req,
              ::proxy_proto::GetReply* resp) {
                return service->multipleRecovery(ctx, req, resp);
@@ -832,9 +997,9 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[12],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::NodeAndBlock, ::proxy_proto::DelReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::NodeAndBlock, ::proxy_proto::DelReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::NodeAndBlock* req,
              ::proxy_proto::DelReply* resp) {
                return service->deleteBlock(ctx, req, resp);
@@ -842,9 +1007,9 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[13],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::AppendStripeDataPlacement, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::AppendStripeDataPlacement, ::proxy_proto::SetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::AppendStripeDataPlacement* req,
              ::proxy_proto::SetReply* resp) {
                return service->scheduleAppend2Datanode(ctx, req, resp);
@@ -852,129 +1017,139 @@ proxyService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       proxyService_method_names[14],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordDataUpdatePlacement, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::InitialRangeWritePlacement, ::proxy_proto::SetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
+             const ::proxy_proto::InitialRangeWritePlacement* req,
+             ::proxy_proto::SetReply* resp) {
+               return service->scheduleInitialRangeWrite(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      proxyService_method_names[15],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordDataUpdatePlacement, ::proxy_proto::SetReply>(
+          [](proxyService::Service* service,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::CordDataUpdatePlacement* req,
              ::proxy_proto::SetReply* resp) {
                return service->scheduleCordDataUpdate(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[15],
+      proxyService_method_names[16],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordLocalParityBundle, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordLocalParityBundle, ::proxy_proto::SetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::CordLocalParityBundle* req,
              ::proxy_proto::SetReply* resp) {
                return service->scheduleCordLocalParityApply(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[16],
+      proxyService_method_names[17],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordLpHubSessionBegin, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordLpHubSessionBegin, ::proxy_proto::SetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::CordLpHubSessionBegin* req,
              ::proxy_proto::SetReply* resp) {
                return service->cordLpHubSessionBegin(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[17],
+      proxyService_method_names[18],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordLpHubPartialPush, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordLpHubPartialPush, ::proxy_proto::SetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::CordLpHubPartialPush* req,
              ::proxy_proto::SetReply* resp) {
                return service->cordLpHubPartialPush(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[18],
+      proxyService_method_names[19],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordLpComputePartialAndPush, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordLpComputePartialAndPush, ::proxy_proto::SetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::CordLpComputePartialAndPush* req,
              ::proxy_proto::SetReply* resp) {
                return service->cordLpComputePartialAndPush(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[19],
+      proxyService_method_names[20],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordLpParityApplyDelta, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordLpParityApplyDelta, ::proxy_proto::SetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::CordLpParityApplyDelta* req,
              ::proxy_proto::SetReply* resp) {
                return service->cordLpApplyParityDelta(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[20],
+      proxyService_method_names[21],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordTransferPlan, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordTransferPlan, ::proxy_proto::SetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::CordTransferPlan* req,
              ::proxy_proto::SetReply* resp) {
                return service->scheduleCordTransferPlan(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[21],
+      proxyService_method_names[22],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordPlanKeyMsg, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordPlanKeyMsg, ::proxy_proto::SetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::CordPlanKeyMsg* req,
              ::proxy_proto::SetReply* resp) {
                return service->cordPlanStartExecution(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[22],
+      proxyService_method_names[23],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordPlanKeyMsg, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordPlanKeyMsg, ::proxy_proto::SetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::CordPlanKeyMsg* req,
              ::proxy_proto::SetReply* resp) {
                return service->cordPlanJoinExecution(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[23],
+      proxyService_method_names[24],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordPlanCollectorIngestReq, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordPlanCollectorIngestReq, ::proxy_proto::SetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::CordPlanCollectorIngestReq* req,
              ::proxy_proto::SetReply* resp) {
                return service->cordPlanCollectorIngestDataDelta(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[24],
+      proxyService_method_names[25],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordPlanApplyParityXorReq, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordPlanApplyParityXorReq, ::proxy_proto::SetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::CordPlanApplyParityXorReq* req,
              ::proxy_proto::SetReply* resp) {
                return service->cordPlanApplyParityXorDelta(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[25],
+      proxyService_method_names[26],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordPlanMstDataDeltaReq, ::proxy_proto::SetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::CordPlanMstDataDeltaReq, ::proxy_proto::SetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::CordPlanMstDataDeltaReq* req,
              ::proxy_proto::SetReply* resp) {
                return service->cordPlanMstDataDeltaChunk(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      proxyService_method_names[26],
+      proxyService_method_names[27],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< proxyService::Service, ::proxy_proto::StripeAndBlockIDs, ::proxy_proto::GetReply>(
           [](proxyService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::proxy_proto::StripeAndBlockIDs* req,
              ::proxy_proto::GetReply* resp) {
                return service->getBlocks(ctx, req, resp);
@@ -1076,6 +1251,13 @@ proxyService::Service::~Service() {
 }
 
 ::grpc::Status proxyService::Service::scheduleAppend2Datanode(::grpc::ServerContext* context, const ::proxy_proto::AppendStripeDataPlacement* request, ::proxy_proto::SetReply* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status proxyService::Service::scheduleInitialRangeWrite(::grpc::ServerContext* context, const ::proxy_proto::InitialRangeWritePlacement* request, ::proxy_proto::SetReply* response) {
   (void) context;
   (void) request;
   (void) response;
