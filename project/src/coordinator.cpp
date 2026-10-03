@@ -1380,39 +1380,43 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
   void CoordinatorImpl::initialize_cord_xue_lrc_stripe_placement(Stripe *stripe)
   {
-    // Azure-style placement (cluster = rack):
-    // 1) all global parity -> global_cluster
-    // 2) per local group: local parity + min(r,h) data blocks -> dedicated cluster (round-robin, skip global)
-    // 3) one data block per group -> global_cluster
-    // 4) remaining data per group in batches of (r+1) -> round-robin clusters (skip global)
-    // 5) equal per-group remainder m>0: pack theta groups' remainders per cluster (theta=floor(r/(m-1)), m=1 -> r+1)
+    // Rack layout:
+    // 1) all global parity blocks are placed in one rack;
+    // 2) all local parity blocks are placed in a second rack;
+    // 3) data blocks use the minimum number of remaining racks, with at most r+1 blocks per rack.
     Block *blocks_info = new Block[stripe->n];
     assert(stripe->object_keys.size() == 1);
 
-    const int cluster_num = m_sys_config->ClusterNum;
-    if (cluster_num < 3)
+    if (stripe->r <= 0 || stripe->z <= 0)
     {
-      throw std::runtime_error("ClusterNum must be >= 3 for CordXueLRC placement");
+      delete[] blocks_info;
+      throw std::runtime_error("CordXueLRC requires positive r and z");
     }
     if (stripe->k % stripe->z != 0)
     {
+      delete[] blocks_info;
       throw std::runtime_error("CordXueLRC requires k divisible by z");
     }
 
-    const int h = stripe->k / stripe->z;
-    const int global_cluster = stripe->stripe_id % cluster_num;
-    int cluster_cursor = global_cluster + 1;
+    const int data_rack_capacity = stripe->r + 1;
+    const int data_rack_count = (stripe->k + data_rack_capacity - 1) / data_rack_capacity;
+    const int required_rack_count = data_rack_count + 2;
+    const int cluster_num = m_sys_config->ClusterNum;
+    if (cluster_num < required_rack_count)
+    {
+      delete[] blocks_info;
+      throw std::runtime_error("CordXueLRC placement requires at least 2+ceil(k/(r+1)) clusters");
+    }
 
-    auto next_non_global_cluster = [&]() -> int {
-      int cid = cluster_cursor % cluster_num;
-      cluster_cursor++;
-      while (cid == global_cluster)
-      {
-        cid = cluster_cursor % cluster_num;
-        cluster_cursor++;
-      }
-      return cid;
-    };
+    const int base_cluster = stripe->stripe_id % cluster_num;
+    const int global_cluster = base_cluster;
+    const int local_cluster = (base_cluster + 1) % cluster_num;
+    std::vector<int> data_clusters;
+    data_clusters.reserve(data_rack_count);
+    for (int rack = 0; rack < data_rack_count; ++rack)
+    {
+      data_clusters.push_back((base_cluster + 2 + rack) % cluster_num);
+    }
 
     std::mt19937 gen;
     const std::uint64_t placement_seed = m_sys_config->PlacementRandomSeed;
@@ -1426,177 +1430,59 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       gen.seed(rd());
     }
 
+    const int h = stripe->k / stripe->z;
     const int global_parity_group_id = stripe->z;
-    for (int i = 0; i < stripe->n; i++)
+    std::vector<int> assigned_cluster(stripe->n, -1);
+    std::map<int, int> blocks_per_cluster;
+
+    for (int i = 0; i < stripe->n; ++i)
     {
       blocks_info[i].block_size = m_sys_config->BlockSize;
       blocks_info[i].map2stripe = stripe->stripe_id;
       blocks_info[i].map2key = stripe->object_keys[0];
+
       if (i < stripe->k)
       {
-        std::string tmp = "_D";
-        if (i < 10)
-          tmp = "_D0";
+        std::string tmp = i < 10 ? "_D0" : "_D";
         blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'D';
-        blocks_info[i].map2group = int(i / h);
+        blocks_info[i].map2group = i / h;
+        assigned_cluster[i] = data_clusters[i / data_rack_capacity];
       }
       else if (i < stripe->k + stripe->r)
       {
-        std::string tmp = "_G";
-        if (i - stripe->k < 10)
-          tmp = "_G0";
-        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i - stripe->k);
+        const int parity_index = i - stripe->k;
+        std::string tmp = parity_index < 10 ? "_G0" : "_G";
+        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(parity_index);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'G';
         blocks_info[i].map2group = global_parity_group_id;
+        assigned_cluster[i] = global_cluster;
       }
       else
       {
-        std::string tmp = "_L";
-        if (i - stripe->k - stripe->r < 10)
-          tmp = "_L0";
-        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(i - stripe->k - stripe->r);
+        const int parity_index = i - stripe->k - stripe->r;
+        std::string tmp = parity_index < 10 ? "_L0" : "_L";
+        blocks_info[i].block_key = std::to_string(stripe->stripe_id) + tmp + std::to_string(parity_index);
         blocks_info[i].block_id = i;
         blocks_info[i].block_type = 'L';
-        blocks_info[i].map2group = i - stripe->k - stripe->r;
+        blocks_info[i].map2group = parity_index;
+        assigned_cluster[i] = local_cluster;
       }
+      blocks_per_cluster[assigned_cluster[i]]++;
     }
 
-    std::vector<int> assigned_cluster(stripe->n, -1);
-
-    // Step 1: global parity blocks
-    for (int i = stripe->k; i < stripe->k + stripe->r; ++i)
+    for (const auto &entry : blocks_per_cluster)
     {
-      assigned_cluster[i] = global_cluster;
-    }
-
-    const int n_primary_data = std::min(stripe->r, h);
-    std::vector<std::vector<int>> group_remainder_blocks(stripe->z);
-
-    for (int g = 0; g < stripe->z; ++g)
-    {
-      const int base = g * h;
-      const int local_parity_id = stripe->k + stripe->r + g;
-
-      // Step 2: local parity + min(r,h) data blocks
-      const int primary_cluster = next_non_global_cluster();
-      for (int j = 0; j < n_primary_data; ++j)
+      if (static_cast<int>(m_cluster_table[entry.first].nodes.size()) < entry.second)
       {
-        assigned_cluster[base + j] = primary_cluster;
-      }
-      assigned_cluster[local_parity_id] = primary_cluster;
-
-      int next_idx = base + n_primary_data;
-
-      // Step 3: one data block to global cluster
-      if (next_idx < base + h)
-      {
-        assigned_cluster[next_idx] = global_cluster;
-        next_idx++;
-      }
-
-      // Step 4: batches of (r+1) data blocks
-      const int batch_size = stripe->r + 1;
-      while (next_idx + batch_size <= base + h)
-      {
-        const int batch_cluster = next_non_global_cluster();
-        for (int j = 0; j < batch_size; ++j)
-        {
-          assigned_cluster[next_idx] = batch_cluster;
-          next_idx++;
-        }
-      }
-
-      // Step 5 leftovers for this group (m blocks when equal across groups)
-      while (next_idx < base + h)
-      {
-        group_remainder_blocks[g].push_back(next_idx);
-        next_idx++;
-      }
-    }
-
-    // Step 5: merge theta local groups' remainders into one cluster when m is equal
-    int m = -1;
-    bool equal_m = true;
-    for (int g = 0; g < stripe->z; ++g)
-    {
-      const int gm = static_cast<int>(group_remainder_blocks[g].size());
-      if (m < 0)
-      {
-        m = gm;
-      }
-      else if (gm != m)
-      {
-        equal_m = false;
-        break;
-      }
-    }
-
-    if (m > 0)
-    {
-      if (equal_m)
-      {
-        int theta = 1;
-        if (m == 1)
-        {
-          theta = stripe->r + 1;
-        }
-        else
-        {
-          theta = stripe->r / (m - 1);
-          if (theta < 1)
-          {
-            theta = 1;
-          }
-        }
-        // (k,r,z)=(10,2,2): 原 theta=2 会把两组剩余数据 D3D4+D8D9 打进同一机架；
-        // 改为 theta=1，使 D3D4 与 D8D9 分到相邻的两个非全局机架（如 stripe0: c3 与 c4）。
-        if (stripe->k == 10 && stripe->r == 2 && stripe->z == 2)
-        {
-          theta = 1;
-        }
-
-        for (int g = 0; g < stripe->z; g += theta)
-        {
-          const int batch_groups = std::min(theta, stripe->z - g);
-          const int remainder_cluster = next_non_global_cluster();
-          for (int gi = 0; gi < batch_groups; ++gi)
-          {
-            for (int block_idx : group_remainder_blocks[g + gi])
-            {
-              assigned_cluster[block_idx] = remainder_cluster;
-            }
-          }
-        }
-      }
-      else
-      {
-        for (int g = 0; g < stripe->z; ++g)
-        {
-          if (group_remainder_blocks[g].empty())
-          {
-            continue;
-          }
-          const int remainder_cluster = next_non_global_cluster();
-          for (int block_idx : group_remainder_blocks[g])
-          {
-            assigned_cluster[block_idx] = remainder_cluster;
-          }
-        }
+        delete[] blocks_info;
+        throw std::runtime_error("CordXueLRC placement requires at least one datanode per block in each selected cluster");
       }
     }
 
     for (int i = 0; i < stripe->n; ++i)
-    {
-      if (assigned_cluster[i] < 0)
-      {
-        throw std::runtime_error("CordXueLRC placement failed: unassigned block");
-      }
-    }
-
-    for (int i = 0; i < stripe->n; i++)
     {
       blocks_info[i].map2cluster = assigned_cluster[i];
       int t_node_id = randomly_select_a_node(blocks_info[i].map2cluster, stripe->stripe_id, gen);

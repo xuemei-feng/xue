@@ -40,9 +40,10 @@ namespace ECProject
     }
     if (CodeType == "CordXueLRC")
     {
+      assert(r > 0 && z > 0 && "Error: CordXueLRC requires positive r and z");
       assert(k % z == 0 && "Error: CordXueLRC requires k divisible by z");
-      assert(DatanodeNumPerCluster > k / z + 1 && "Error: DatanodeNumPerCluster must be greater than k / z + 1");
-      assert(ClusterNum > z + 1 && "Error: CordXueLRC requires ClusterNum > z + 1");
+      assert(DatanodeNumPerCluster >= std::max(z, r + 1) && "Error: CordXueLRC requires enough datanodes for the largest rack");
+      assert(ClusterNum >= 2 + std::ceil(1.0 * k / (r + 1)) && "Error: CordXueLRC requires at least 2+ceil(k/(r+1)) clusters");
     }
     if (CodeType == "OptimalLRC")
     {
