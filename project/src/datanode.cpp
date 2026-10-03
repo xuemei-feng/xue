@@ -12,6 +12,9 @@
 #include <vector>
 #include <cstring>
 #include <arpa/inet.h>
+#include <cerrno>
+#include <limits>
+#include <stdexcept>
 
 namespace
 {
@@ -208,29 +211,66 @@ namespace ECProject
   void DatanodeImpl::dn_run_cord_write_worker(asio::ip::tcp::socket socket, uint64_t wire_tag, CordDnPendingWrite pending)
   {
     (void)wire_tag;
+    uint8_t ack = 0;
     try
     {
-      const int range_length = pending.range_length;
-      std::vector<char> payload(static_cast<size_t>(range_length));
-      asio::error_code ec;
-      asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(range_length)), ec);
+      std::vector<char> payload(static_cast<size_t>(pending.range_length));
+      asio::error_code read_ec;
+      const size_t received = asio::read(socket, asio::buffer(payload), read_ec);
+      if (read_ec || received != payload.size())
+        throw std::runtime_error("incomplete cord range write payload");
+
+      const auto file_mu = cord_dn_file_mu_for(pending.writepath);
+      std::lock_guard<std::mutex> file_lk(*file_mu);
+      const int fd = ::open(pending.writepath.c_str(), O_CREAT | O_RDWR, 0644);
+      if (fd < 0)
+        throw std::runtime_error("open failed: " + std::string(std::strerror(errno)));
+
+      bool file_ok = true;
+      size_t written = 0;
+      while (written < payload.size())
+      {
+        const ssize_t n = ::pwrite(fd, payload.data() + written, payload.size() - written,
+                                   static_cast<off_t>(pending.range_offset) + static_cast<off_t>(written));
+        if (n < 0)
+        {
+          if (errno == EINTR)
+            continue;
+          file_ok = false;
+          break;
+        }
+        if (n == 0)
+        {
+          file_ok = false;
+          break;
+        }
+        written += static_cast<size_t>(n);
+      }
+      if (file_ok && pending.logical_block_size > 0 &&
+          ::ftruncate(fd, static_cast<off_t>(pending.logical_block_size)) != 0)
+        file_ok = false;
+      if (file_ok && ::fsync(fd) != 0)
+        file_ok = false;
+      if (::close(fd) != 0)
+        file_ok = false;
+      if (!file_ok)
+        throw std::runtime_error("failed to persist cord range write");
+      ack = 1;
+    }
+    catch (const std::exception &e)
+    {
+      std::cout << "handleCordRangeWrite tcp exception: " << e.what() << std::endl;
+    }
+
+    if (socket.is_open())
+    {
+      asio::error_code write_ec;
+      const size_t sent = asio::write(socket, asio::buffer(&ack, 1), write_ec);
+      if (write_ec || sent != 1)
+        std::cout << "handleCordRangeWrite ACK failed: " << write_ec.message() << std::endl;
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
-      if (ec)
-        return;
-      int fd = ::open(pending.writepath.c_str(), O_CREAT | O_RDWR, 0644);
-      if (fd >= 0)
-      {
-        ssize_t w = ::pwrite(fd, payload.data(), range_length, pending.range_offset);
-        ::fsync(fd);
-        ::close(fd);
-        (void)w;
-      }
-    }
-    catch (std::exception &e)
-    {
-      std::cout << "handleCordRangeWrite tcp exception: " << e.what() << std::endl;
     }
   }
 
@@ -1198,18 +1238,27 @@ namespace ECProject
       datanode_proto::RequestResult *response)
   {
     (void)context;
-    std::string block_key = info->block_key();
-    int range_offset = info->range_offset();
-    int range_length = info->range_length();
-    std::string targetdir = "./storage/" + std::to_string(m_port) + "/";
-    std::string writepath = targetdir + block_key;
-    if (access(targetdir.c_str(), 0) == -1)
-      createDirectories(targetdir);
+    const std::string block_key = info->block_key();
+    const int range_offset = info->range_offset();
+    const int range_length = info->range_length();
+    const uint64_t logical_block_size = info->logical_block_size();
+    if (range_offset < 0 || range_length < 0)
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "negative range offset or length");
+    const uint64_t range_end = static_cast<uint64_t>(range_offset) + static_cast<uint64_t>(range_length);
+    if (logical_block_size > 0 && range_end > logical_block_size)
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "range exceeds logical block size");
+    if (logical_block_size > static_cast<uint64_t>(std::numeric_limits<off_t>::max()))
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "logical block size exceeds filesystem limits");
+
+    const std::string targetdir = "./storage/" + std::to_string(m_port) + "/";
+    const std::string writepath = targetdir + block_key;
+    if (access(targetdir.c_str(), F_OK) == -1 && !createDirectories(targetdir))
+      return grpc::Status(grpc::StatusCode::INTERNAL, "failed to create storage directory");
 
     const uint64_t xfer_tag = cord_dn_alloc_xfer_tag();
     {
       std::lock_guard<std::mutex> lk(m_cord_pending_mu);
-      m_cord_pending_writes[xfer_tag] = CordDnPendingWrite{writepath, range_offset, range_length};
+      m_cord_pending_writes[xfer_tag] = CordDnPendingWrite{writepath, range_offset, range_length, logical_block_size};
     }
     response->set_message(true);
     response->set_cord_tcp_xfer_tag(xfer_tag);

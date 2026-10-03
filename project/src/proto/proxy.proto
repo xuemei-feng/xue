@@ -40,6 +40,7 @@ service proxyService {
   rpc deleteBlock(NodeAndBlock) returns (DelReply);
   // append
   rpc scheduleAppend2Datanode(AppendStripeDataPlacement) returns (SetReply);
+  rpc scheduleInitialRangeWrite(InitialRangeWritePlacement) returns (SetReply);
   // CoRD：客户端下发新数据；proxy 读旧、异或得 Δ、写新数据，Δ 暂存于本 cluster 的 datanode
   rpc scheduleCordDataUpdate(CordDataUpdatePlacement) returns (SetReply);
   rpc scheduleCordLocalParityApply(CordLocalParityBundle) returns (SetReply);
@@ -273,6 +274,34 @@ message AppendStripeDataPlacement{
   repeated string forward_proxy_ips = 15;
   repeated int32 forward_proxy_ports = 16;
   repeated int32 forward_cluster_ids = 17;  // 仅用于日志/调试
+}
+
+enum InitialRangeSliceType {
+  DATA = 0;
+  GLOBAL_PARITY = 1;
+  LOCAL_PARITY = 2;
+}
+
+message InitialRangeWriteSlice {
+  int32 block_id = 1;
+  string block_key = 2;
+  string datanode_ip = 3;
+  int32 datanode_port = 4;
+  uint64 offset = 5;
+  uint64 length = 6;
+  uint64 payload_offset = 7;
+  InitialRangeSliceType type = 8;
+}
+
+message InitialRangeWritePlacement {
+  string key = 1;
+  int32 cluster_id = 2;
+  string proxy_ip = 3;
+  int32 proxy_data_port = 4;
+  uint64 payload_size = 5;
+  repeated InitialRangeWriteSlice slices = 6;
+  int32 stripe_id = 7;
+  uint64 transfer_tag = 8;
 }
 
 // 算法二链路类型，与 cord_alg2::TrainLinkKind 一致

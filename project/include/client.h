@@ -15,6 +15,7 @@
 #include "devcommon.h"
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -24,6 +25,18 @@
 #define IF_DEBUG false
 namespace ECProject
 {
+  struct InitialRangeWriteStats
+  {
+    uint64_t logical_bytes = 0;
+    uint64_t data_slice_bytes = 0;
+    uint64_t parity_slice_bytes = 0;
+    uint64_t upload_bytes = 0;
+    double plan_sec = 0.0;
+    double encode_sec = 0.0;
+    double upload_sec = 0.0;
+    double wall_sec = 0.0;
+  };
+
   /** CoRD 单次 cord_update 各阶段耗时（秒），由 cord_update 填充。 */
   struct CordUpdateTiming
   {
@@ -102,6 +115,10 @@ namespace ECProject
     bool sub_append(int append_size);
     bool sub_append_in_rep_mode(int append_size);
     bool set();
+    bool initial_range_set(int stripe_id,
+                           const std::vector<std::pair<uint64_t, uint64_t>> &local_ranges,
+                           const char *payload, size_t payload_bytes,
+                           InitialRangeWriteStats *stats = nullptr);
     bool sub_set(int block_num);
     /** 同一条带内多个不连续逻辑区间 [start, end] */
     bool xue_update(int stripe_id, const std::vector<std::pair<int, int>> &logical_ranges);

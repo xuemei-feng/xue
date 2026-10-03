@@ -126,6 +126,7 @@ PROTOBUF_CONSTEXPR CordRangeRWInfo::CordRangeRWInfo(
   , /*decltype(_impl_.range_offset_)*/0
   , /*decltype(_impl_.range_length_)*/0
   , /*decltype(_impl_.proxy_port_)*/0
+  , /*decltype(_impl_.logical_block_size_)*/uint64_t{0u}
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct CordRangeRWInfoDefaultTypeInternal {
   PROTOBUF_CONSTEXPR CordRangeRWInfoDefaultTypeInternal()
@@ -244,6 +245,7 @@ const uint32_t TableStruct_datanode_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE
   PROTOBUF_FIELD_OFFSET(::datanode_proto::CordRangeRWInfo, _impl_.range_length_),
   PROTOBUF_FIELD_OFFSET(::datanode_proto::CordRangeRWInfo, _impl_.proxy_ip_),
   PROTOBUF_FIELD_OFFSET(::datanode_proto::CordRangeRWInfo, _impl_.proxy_port_),
+  PROTOBUF_FIELD_OFFSET(::datanode_proto::CordRangeRWInfo, _impl_.logical_block_size_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::datanode_proto::CordDeltaBlobInfo, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -270,8 +272,8 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 42, -1, -1, sizeof(::datanode_proto::MergeParityInfo)},
   { 50, -1, -1, sizeof(::datanode_proto::GetInfo)},
   { 61, -1, -1, sizeof(::datanode_proto::CordRangeRWInfo)},
-  { 73, -1, -1, sizeof(::datanode_proto::CordDeltaBlobInfo)},
-  { 83, -1, -1, sizeof(::datanode_proto::DelInfo)},
+  { 74, -1, -1, sizeof(::datanode_proto::CordDeltaBlobInfo)},
+  { 84, -1, -1, sizeof(::datanode_proto::DelInfo)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -302,47 +304,48 @@ const char descriptor_table_protodef_datanode_2eproto[] PROTOBUF_SECTION_VARIABL
   "ityInfo\022\021\n\tblock_key\030\001 \001(\t\022\020\n\010block_id\030\002"
   " \001(\005\"h\n\007GetInfo\022\021\n\tblock_key\030\001 \001(\t\022\022\n\nbl"
   "ock_size\030\002 \001(\005\022\020\n\010block_id\030\003 \001(\005\022\020\n\010prox"
-  "y_ip\030\004 \001(\t\022\022\n\nproxy_port\030\005 \001(\005\"\210\001\n\017CordR"
+  "y_ip\030\004 \001(\t\022\022\n\nproxy_port\030\005 \001(\005\"\244\001\n\017CordR"
   "angeRWInfo\022\021\n\tblock_key\030\001 \001(\t\022\020\n\010block_i"
   "d\030\002 \001(\005\022\024\n\014range_offset\030\003 \001(\005\022\024\n\014range_l"
   "ength\030\004 \001(\005\022\020\n\010proxy_ip\030\005 \001(\t\022\022\n\nproxy_p"
-  "ort\030\006 \001(\005\"`\n\021CordDeltaBlobInfo\022\020\n\010blob_k"
-  "ey\030\001 \001(\t\022\023\n\013byte_length\030\002 \001(\005\022\020\n\010proxy_i"
-  "p\030\003 \001(\t\022\022\n\nproxy_port\030\004 \001(\005\"\034\n\007DelInfo\022\021"
-  "\n\tblock_key\030\001 \001(\t2\211\t\n\017datanodeService\022J\n"
-  "\ncheckalive\022\035.datanode_proto.CheckaliveC"
-  "MD\032\035.datanode_proto.RequestResult\022C\n\than"
-  "dleSet\022\027.datanode_proto.SetInfo\032\035.datano"
-  "de_proto.RequestResult\022I\n\014handleAppend\022\032"
-  ".datanode_proto.AppendInfo\032\035.datanode_pr"
-  "oto.RequestResult\022S\n\021handleMergeParity\022\037"
+  "ort\030\006 \001(\005\022\032\n\022logical_block_size\030\007 \001(\004\"`\n"
+  "\021CordDeltaBlobInfo\022\020\n\010blob_key\030\001 \001(\t\022\023\n\013"
+  "byte_length\030\002 \001(\005\022\020\n\010proxy_ip\030\003 \001(\t\022\022\n\np"
+  "roxy_port\030\004 \001(\005\"\034\n\007DelInfo\022\021\n\tblock_key\030"
+  "\001 \001(\t2\211\t\n\017datanodeService\022J\n\ncheckalive\022"
+  "\035.datanode_proto.CheckaliveCMD\032\035.datanod"
+  "e_proto.RequestResult\022C\n\thandleSet\022\027.dat"
+  "anode_proto.SetInfo\032\035.datanode_proto.Req"
+  "uestResult\022I\n\014handleAppend\022\032.datanode_pr"
+  "oto.AppendInfo\032\035.datanode_proto.RequestR"
+  "esult\022S\n\021handleMergeParity\022\037.datanode_pr"
+  "oto.MergeParityInfo\032\035.datanode_proto.Req"
+  "uestResult\022Z\n\030handleMergeParityWithRep\022\037"
   ".datanode_proto.MergeParityInfo\032\035.datano"
-  "de_proto.RequestResult\022Z\n\030handleMergePar"
-  "ityWithRep\022\037.datanode_proto.MergeParityI"
-  "nfo\032\035.datanode_proto.RequestResult\022P\n\016ha"
-  "ndleRecovery\022\037.datanode_proto.MergeParit"
-  "yInfo\032\035.datanode_proto.RequestResult\022Y\n\027"
-  "handleRecoveryBreakdown\022\037.datanode_proto"
-  ".MergeParityInfo\032\035.datanode_proto.Reques"
-  "tResult\022C\n\thandleGet\022\027.datanode_proto.Ge"
-  "tInfo\032\035.datanode_proto.RequestResult\022L\n\022"
-  "handleGetBreakdown\022\027.datanode_proto.GetI"
-  "nfo\032\035.datanode_proto.RequestResult\022U\n\023ha"
-  "ndleCordRangeRead\022\037.datanode_proto.CordR"
-  "angeRWInfo\032\035.datanode_proto.RequestResul"
-  "t\022V\n\024handleCordRangeWrite\022\037.datanode_pro"
-  "to.CordRangeRWInfo\032\035.datanode_proto.Requ"
-  "estResult\022Y\n\027handleCordRangeXorWrite\022\037.d"
-  "atanode_proto.CordRangeRWInfo\032\035.datanode"
-  "_proto.RequestResult\022W\n\023handleCordDeltaB"
-  "lob\022!.datanode_proto.CordDeltaBlobInfo\032\035"
-  ".datanode_proto.RequestResult\022F\n\014handleD"
-  "elete\022\027.datanode_proto.DelInfo\032\035.datanod"
-  "e_proto.RequestResultb\006proto3"
+  "de_proto.RequestResult\022P\n\016handleRecovery"
+  "\022\037.datanode_proto.MergeParityInfo\032\035.data"
+  "node_proto.RequestResult\022Y\n\027handleRecove"
+  "ryBreakdown\022\037.datanode_proto.MergeParity"
+  "Info\032\035.datanode_proto.RequestResult\022C\n\th"
+  "andleGet\022\027.datanode_proto.GetInfo\032\035.data"
+  "node_proto.RequestResult\022L\n\022handleGetBre"
+  "akdown\022\027.datanode_proto.GetInfo\032\035.datano"
+  "de_proto.RequestResult\022U\n\023handleCordRang"
+  "eRead\022\037.datanode_proto.CordRangeRWInfo\032\035"
+  ".datanode_proto.RequestResult\022V\n\024handleC"
+  "ordRangeWrite\022\037.datanode_proto.CordRange"
+  "RWInfo\032\035.datanode_proto.RequestResult\022Y\n"
+  "\027handleCordRangeXorWrite\022\037.datanode_prot"
+  "o.CordRangeRWInfo\032\035.datanode_proto.Reque"
+  "stResult\022W\n\023handleCordDeltaBlob\022!.datano"
+  "de_proto.CordDeltaBlobInfo\032\035.datanode_pr"
+  "oto.RequestResult\022F\n\014handleDelete\022\027.data"
+  "node_proto.DelInfo\032\035.datanode_proto.Requ"
+  "estResultb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_datanode_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_datanode_2eproto = {
-    false, false, 2069, descriptor_table_protodef_datanode_2eproto,
+    false, false, 2097, descriptor_table_protodef_datanode_2eproto,
     "datanode.proto",
     &descriptor_table_datanode_2eproto_once, nullptr, 0, 9,
     schemas, file_default_instances, TableStruct_datanode_2eproto::offsets,
@@ -2164,6 +2167,7 @@ CordRangeRWInfo::CordRangeRWInfo(const CordRangeRWInfo& from)
     , decltype(_impl_.range_offset_){}
     , decltype(_impl_.range_length_){}
     , decltype(_impl_.proxy_port_){}
+    , decltype(_impl_.logical_block_size_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -2184,8 +2188,8 @@ CordRangeRWInfo::CordRangeRWInfo(const CordRangeRWInfo& from)
       _this->GetArenaForAllocation());
   }
   ::memcpy(&_impl_.block_id_, &from._impl_.block_id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.proxy_port_) -
-    reinterpret_cast<char*>(&_impl_.block_id_)) + sizeof(_impl_.proxy_port_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.logical_block_size_) -
+    reinterpret_cast<char*>(&_impl_.block_id_)) + sizeof(_impl_.logical_block_size_));
   // @@protoc_insertion_point(copy_constructor:datanode_proto.CordRangeRWInfo)
 }
 
@@ -2200,6 +2204,7 @@ inline void CordRangeRWInfo::SharedCtor(
     , decltype(_impl_.range_offset_){0}
     , decltype(_impl_.range_length_){0}
     , decltype(_impl_.proxy_port_){0}
+    , decltype(_impl_.logical_block_size_){uint64_t{0u}}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.block_key_.InitDefault();
@@ -2240,8 +2245,8 @@ void CordRangeRWInfo::Clear() {
   _impl_.block_key_.ClearToEmpty();
   _impl_.proxy_ip_.ClearToEmpty();
   ::memset(&_impl_.block_id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.proxy_port_) -
-      reinterpret_cast<char*>(&_impl_.block_id_)) + sizeof(_impl_.proxy_port_));
+      reinterpret_cast<char*>(&_impl_.logical_block_size_) -
+      reinterpret_cast<char*>(&_impl_.block_id_)) + sizeof(_impl_.logical_block_size_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -2299,6 +2304,14 @@ const char* CordRangeRWInfo::_InternalParse(const char* ptr, ::_pbi::ParseContex
       case 6:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
           _impl_.proxy_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 logical_block_size = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
+          _impl_.logical_block_size_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -2376,6 +2389,12 @@ uint8_t* CordRangeRWInfo::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(6, this->_internal_proxy_port(), target);
   }
 
+  // uint64 logical_block_size = 7;
+  if (this->_internal_logical_block_size() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(7, this->_internal_logical_block_size(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -2426,6 +2445,11 @@ size_t CordRangeRWInfo::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_proxy_port());
   }
 
+  // uint64 logical_block_size = 7;
+  if (this->_internal_logical_block_size() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_logical_block_size());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -2462,6 +2486,9 @@ void CordRangeRWInfo::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const 
   if (from._internal_proxy_port() != 0) {
     _this->_internal_set_proxy_port(from._internal_proxy_port());
   }
+  if (from._internal_logical_block_size() != 0) {
+    _this->_internal_set_logical_block_size(from._internal_logical_block_size());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -2490,8 +2517,8 @@ void CordRangeRWInfo::InternalSwap(CordRangeRWInfo* other) {
       &other->_impl_.proxy_ip_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(CordRangeRWInfo, _impl_.proxy_port_)
-      + sizeof(CordRangeRWInfo::_impl_.proxy_port_)
+      PROTOBUF_FIELD_OFFSET(CordRangeRWInfo, _impl_.logical_block_size_)
+      + sizeof(CordRangeRWInfo::_impl_.logical_block_size_)
       - PROTOBUF_FIELD_OFFSET(CordRangeRWInfo, _impl_.block_id_)>(
           reinterpret_cast<char*>(&_impl_.block_id_),
           reinterpret_cast<char*>(&other->_impl_.block_id_));

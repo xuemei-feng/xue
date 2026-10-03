@@ -22,9 +22,10 @@
 #include "datanode.pb.h"
 
 #include <functional>
-#include <grpcpp/generic/async_generic_service.h>
-#include <grpcpp/support/async_stream.h>
-#include <grpcpp/support/async_unary_call.h>
+#include <grpc/impl/codegen/port_platform.h>
+#include <grpcpp/impl/codegen/async_generic_service.h>
+#include <grpcpp/impl/codegen/async_stream.h>
+#include <grpcpp/impl/codegen/async_unary_call.h>
 #include <grpcpp/impl/codegen/client_callback.h>
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/completion_queue.h>
@@ -159,52 +160,196 @@ class datanodeService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>> PrepareAsynchandleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>>(PrepareAsynchandleDeleteRaw(context, request, cq));
     }
-    class async_interface {
+    class experimental_async_interface {
      public:
-      virtual ~async_interface() {}
+      virtual ~experimental_async_interface() {}
       // Sends a greeting
       virtual void checkalive(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void checkalive(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       virtual void checkalive(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void checkalive(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void checkalive(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void checkalive(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       // set
       virtual void handleSet(::grpc::ClientContext* context, const ::datanode_proto::SetInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleSet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       virtual void handleSet(::grpc::ClientContext* context, const ::datanode_proto::SetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleSet(::grpc::ClientContext* context, const ::datanode_proto::SetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void handleSet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleSet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       // append
       virtual void handleAppend(::grpc::ClientContext* context, const ::datanode_proto::AppendInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleAppend(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       virtual void handleAppend(::grpc::ClientContext* context, const ::datanode_proto::AppendInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleAppend(::grpc::ClientContext* context, const ::datanode_proto::AppendInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void handleAppend(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleAppend(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       // merge parity
       virtual void handleMergeParity(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleMergeParity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       virtual void handleMergeParity(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleMergeParity(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void handleMergeParity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleMergeParity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       // merge parity with rep
       virtual void handleMergeParityWithRep(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleMergeParityWithRep(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       virtual void handleMergeParityWithRep(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleMergeParityWithRep(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void handleMergeParityWithRep(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleMergeParityWithRep(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       // recovery
       virtual void handleRecovery(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleRecovery(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       virtual void handleRecovery(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleRecovery(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void handleRecovery(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleRecovery(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       virtual void handleRecoveryBreakdown(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleRecoveryBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       virtual void handleRecoveryBreakdown(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleRecoveryBreakdown(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void handleRecoveryBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleRecoveryBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       // get
       virtual void handleGet(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleGet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       virtual void handleGet(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleGet(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void handleGet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleGet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       virtual void handleGetBreakdown(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleGetBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       virtual void handleGetBreakdown(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleGetBreakdown(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void handleGetBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleGetBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       // CoRD：块内区间读/写；Δ 暂存文件
       virtual void handleCordRangeRead(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleCordRangeRead(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       virtual void handleCordRangeRead(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleCordRangeRead(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void handleCordRangeRead(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleCordRangeRead(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       virtual void handleCordRangeWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleCordRangeWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       virtual void handleCordRangeWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleCordRangeWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void handleCordRangeWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleCordRangeWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       // CoRD：parity ΔP 直接下推 datanode 本地 read-xor-write，省掉读回 proxy 的整条往返
       virtual void handleCordRangeXorWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleCordRangeXorWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       virtual void handleCordRangeXorWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleCordRangeXorWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void handleCordRangeXorWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleCordRangeXorWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       virtual void handleCordDeltaBlob(::grpc::ClientContext* context, const ::datanode_proto::CordDeltaBlobInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleCordDeltaBlob(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       virtual void handleCordDeltaBlob(::grpc::ClientContext* context, const ::datanode_proto::CordDeltaBlobInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleCordDeltaBlob(::grpc::ClientContext* context, const ::datanode_proto::CordDeltaBlobInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void handleCordDeltaBlob(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleCordDeltaBlob(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       // delete
       virtual void handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void handleDelete(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       virtual void handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void handleDelete(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void handleDelete(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
     };
-    typedef class async_interface experimental_async_interface;
-    virtual class async_interface* async() { return nullptr; }
-    class async_interface* experimental_async() { return async(); }
-   private:
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    typedef class experimental_async_interface async_interface;
+    #endif
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    async_interface* async() { return experimental_async(); }
+    #endif
+    virtual class experimental_async_interface* experimental_async() { return nullptr; }
+  private:
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* AsynccheckaliveRaw(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* PrepareAsynccheckaliveRaw(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::datanode_proto::RequestResult>* AsynchandleSetRaw(::grpc::ClientContext* context, const ::datanode_proto::SetInfo& request, ::grpc::CompletionQueue* cq) = 0;
@@ -236,7 +381,7 @@ class datanodeService final {
   };
   class Stub final : public StubInterface {
    public:
-    Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
+    Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel);
     ::grpc::Status checkalive(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD& request, ::datanode_proto::RequestResult* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>> Asynccheckalive(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>>(AsynccheckaliveRaw(context, request, cq));
@@ -335,48 +480,188 @@ class datanodeService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>> PrepareAsynchandleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>>(PrepareAsynchandleDeleteRaw(context, request, cq));
     }
-    class async final :
-      public StubInterface::async_interface {
+    class experimental_async final :
+      public StubInterface::experimental_async_interface {
      public:
       void checkalive(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void checkalive(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       void checkalive(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void checkalive(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void checkalive(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void checkalive(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void handleSet(::grpc::ClientContext* context, const ::datanode_proto::SetInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleSet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       void handleSet(::grpc::ClientContext* context, const ::datanode_proto::SetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleSet(::grpc::ClientContext* context, const ::datanode_proto::SetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void handleSet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleSet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void handleAppend(::grpc::ClientContext* context, const ::datanode_proto::AppendInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleAppend(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       void handleAppend(::grpc::ClientContext* context, const ::datanode_proto::AppendInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleAppend(::grpc::ClientContext* context, const ::datanode_proto::AppendInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void handleAppend(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleAppend(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void handleMergeParity(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleMergeParity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       void handleMergeParity(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleMergeParity(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void handleMergeParity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleMergeParity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void handleMergeParityWithRep(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleMergeParityWithRep(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       void handleMergeParityWithRep(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleMergeParityWithRep(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void handleMergeParityWithRep(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleMergeParityWithRep(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void handleRecovery(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleRecovery(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       void handleRecovery(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleRecovery(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void handleRecovery(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleRecovery(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void handleRecoveryBreakdown(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleRecoveryBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       void handleRecoveryBreakdown(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleRecoveryBreakdown(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void handleRecoveryBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleRecoveryBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void handleGet(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleGet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       void handleGet(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleGet(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void handleGet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleGet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void handleGetBreakdown(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleGetBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       void handleGetBreakdown(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleGetBreakdown(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void handleGetBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleGetBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void handleCordRangeRead(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleCordRangeRead(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       void handleCordRangeRead(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleCordRangeRead(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void handleCordRangeRead(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleCordRangeRead(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void handleCordRangeWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleCordRangeWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       void handleCordRangeWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleCordRangeWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void handleCordRangeWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleCordRangeWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void handleCordRangeXorWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleCordRangeXorWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       void handleCordRangeXorWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleCordRangeXorWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void handleCordRangeXorWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleCordRangeXorWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void handleCordDeltaBlob(::grpc::ClientContext* context, const ::datanode_proto::CordDeltaBlobInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleCordDeltaBlob(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       void handleCordDeltaBlob(::grpc::ClientContext* context, const ::datanode_proto::CordDeltaBlobInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleCordDeltaBlob(::grpc::ClientContext* context, const ::datanode_proto::CordDeltaBlobInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void handleCordDeltaBlob(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleCordDeltaBlob(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      void handleDelete(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       void handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void handleDelete(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void handleDelete(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
      private:
       friend class Stub;
-      explicit async(Stub* stub): stub_(stub) { }
+      explicit experimental_async(Stub* stub): stub_(stub) { }
       Stub* stub() { return stub_; }
       Stub* stub_;
     };
-    class async* async() override { return &async_stub_; }
+    class experimental_async_interface* experimental_async() override { return &async_stub_; }
 
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
-    class async async_stub_{this};
+    class experimental_async async_stub_{this};
     ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* AsynccheckaliveRaw(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* PrepareAsynccheckaliveRaw(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* AsynchandleSetRaw(::grpc::ClientContext* context, const ::datanode_proto::SetInfo& request, ::grpc::CompletionQueue* cq) override;
@@ -733,22 +1018,36 @@ class datanodeService final {
   };
   typedef WithAsyncMethod_checkalive<WithAsyncMethod_handleSet<WithAsyncMethod_handleAppend<WithAsyncMethod_handleMergeParity<WithAsyncMethod_handleMergeParityWithRep<WithAsyncMethod_handleRecovery<WithAsyncMethod_handleRecoveryBreakdown<WithAsyncMethod_handleGet<WithAsyncMethod_handleGetBreakdown<WithAsyncMethod_handleCordRangeRead<WithAsyncMethod_handleCordRangeWrite<WithAsyncMethod_handleCordRangeXorWrite<WithAsyncMethod_handleCordDeltaBlob<WithAsyncMethod_handleDelete<Service > > > > > > > > > > > > > > AsyncService;
   template <class BaseClass>
-  class WithCallbackMethod_checkalive : public BaseClass {
+  class ExperimentalWithCallbackMethod_checkalive : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_checkalive() {
-      ::grpc::Service::MarkMethodCallback(0,
-          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::CheckaliveCMD, ::datanode_proto::RequestResult>(
+    ExperimentalWithCallbackMethod_checkalive() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(0,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::CheckaliveCMD, ::datanode_proto::RequestResult>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::datanode_proto::CheckaliveCMD* request, ::datanode_proto::RequestResult* response) { return this->checkalive(context, request, response); }));}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::datanode_proto::CheckaliveCMD* request, ::datanode_proto::RequestResult* response) { return this->checkalive(context, request, response); }));}
     void SetMessageAllocatorFor_checkalive(
-        ::grpc::MessageAllocator< ::datanode_proto::CheckaliveCMD, ::datanode_proto::RequestResult>* allocator) {
+        ::grpc::experimental::MessageAllocator< ::datanode_proto::CheckaliveCMD, ::datanode_proto::RequestResult>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(0);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::CheckaliveCMD, ::datanode_proto::RequestResult>*>(handler)
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(0);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::CheckaliveCMD, ::datanode_proto::RequestResult>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_checkalive() override {
+    ~ExperimentalWithCallbackMethod_checkalive() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -756,26 +1055,46 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* checkalive(
-      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::CheckaliveCMD* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::CheckaliveCMD* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* checkalive(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::datanode_proto::CheckaliveCMD* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_handleSet : public BaseClass {
+  class ExperimentalWithCallbackMethod_handleSet : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_handleSet() {
-      ::grpc::Service::MarkMethodCallback(1,
-          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::SetInfo, ::datanode_proto::RequestResult>(
+    ExperimentalWithCallbackMethod_handleSet() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(1,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::SetInfo, ::datanode_proto::RequestResult>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::datanode_proto::SetInfo* request, ::datanode_proto::RequestResult* response) { return this->handleSet(context, request, response); }));}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::datanode_proto::SetInfo* request, ::datanode_proto::RequestResult* response) { return this->handleSet(context, request, response); }));}
     void SetMessageAllocatorFor_handleSet(
-        ::grpc::MessageAllocator< ::datanode_proto::SetInfo, ::datanode_proto::RequestResult>* allocator) {
+        ::grpc::experimental::MessageAllocator< ::datanode_proto::SetInfo, ::datanode_proto::RequestResult>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(1);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::SetInfo, ::datanode_proto::RequestResult>*>(handler)
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(1);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::SetInfo, ::datanode_proto::RequestResult>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_handleSet() override {
+    ~ExperimentalWithCallbackMethod_handleSet() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -783,26 +1102,46 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleSet(
-      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::SetInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::SetInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleSet(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::datanode_proto::SetInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_handleAppend : public BaseClass {
+  class ExperimentalWithCallbackMethod_handleAppend : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_handleAppend() {
-      ::grpc::Service::MarkMethodCallback(2,
-          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::AppendInfo, ::datanode_proto::RequestResult>(
+    ExperimentalWithCallbackMethod_handleAppend() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(2,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::AppendInfo, ::datanode_proto::RequestResult>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::datanode_proto::AppendInfo* request, ::datanode_proto::RequestResult* response) { return this->handleAppend(context, request, response); }));}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::datanode_proto::AppendInfo* request, ::datanode_proto::RequestResult* response) { return this->handleAppend(context, request, response); }));}
     void SetMessageAllocatorFor_handleAppend(
-        ::grpc::MessageAllocator< ::datanode_proto::AppendInfo, ::datanode_proto::RequestResult>* allocator) {
+        ::grpc::experimental::MessageAllocator< ::datanode_proto::AppendInfo, ::datanode_proto::RequestResult>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(2);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::AppendInfo, ::datanode_proto::RequestResult>*>(handler)
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(2);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::AppendInfo, ::datanode_proto::RequestResult>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_handleAppend() override {
+    ~ExperimentalWithCallbackMethod_handleAppend() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -810,26 +1149,46 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleAppend(
-      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::AppendInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::AppendInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleAppend(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::datanode_proto::AppendInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_handleMergeParity : public BaseClass {
+  class ExperimentalWithCallbackMethod_handleMergeParity : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_handleMergeParity() {
-      ::grpc::Service::MarkMethodCallback(3,
-          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
+    ExperimentalWithCallbackMethod_handleMergeParity() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(3,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response) { return this->handleMergeParity(context, request, response); }));}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response) { return this->handleMergeParity(context, request, response); }));}
     void SetMessageAllocatorFor_handleMergeParity(
-        ::grpc::MessageAllocator< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>* allocator) {
+        ::grpc::experimental::MessageAllocator< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(3);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>*>(handler)
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(3);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_handleMergeParity() override {
+    ~ExperimentalWithCallbackMethod_handleMergeParity() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -837,26 +1196,46 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleMergeParity(
-      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::MergeParityInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::MergeParityInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleMergeParity(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::datanode_proto::MergeParityInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_handleMergeParityWithRep : public BaseClass {
+  class ExperimentalWithCallbackMethod_handleMergeParityWithRep : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_handleMergeParityWithRep() {
-      ::grpc::Service::MarkMethodCallback(4,
-          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
+    ExperimentalWithCallbackMethod_handleMergeParityWithRep() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(4,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response) { return this->handleMergeParityWithRep(context, request, response); }));}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response) { return this->handleMergeParityWithRep(context, request, response); }));}
     void SetMessageAllocatorFor_handleMergeParityWithRep(
-        ::grpc::MessageAllocator< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>* allocator) {
+        ::grpc::experimental::MessageAllocator< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(4);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>*>(handler)
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(4);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_handleMergeParityWithRep() override {
+    ~ExperimentalWithCallbackMethod_handleMergeParityWithRep() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -864,26 +1243,46 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleMergeParityWithRep(
-      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::MergeParityInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::MergeParityInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleMergeParityWithRep(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::datanode_proto::MergeParityInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_handleRecovery : public BaseClass {
+  class ExperimentalWithCallbackMethod_handleRecovery : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_handleRecovery() {
-      ::grpc::Service::MarkMethodCallback(5,
-          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
+    ExperimentalWithCallbackMethod_handleRecovery() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(5,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response) { return this->handleRecovery(context, request, response); }));}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response) { return this->handleRecovery(context, request, response); }));}
     void SetMessageAllocatorFor_handleRecovery(
-        ::grpc::MessageAllocator< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>* allocator) {
+        ::grpc::experimental::MessageAllocator< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(5);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>*>(handler)
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(5);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_handleRecovery() override {
+    ~ExperimentalWithCallbackMethod_handleRecovery() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -891,26 +1290,46 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleRecovery(
-      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::MergeParityInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::MergeParityInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleRecovery(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::datanode_proto::MergeParityInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_handleRecoveryBreakdown : public BaseClass {
+  class ExperimentalWithCallbackMethod_handleRecoveryBreakdown : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_handleRecoveryBreakdown() {
-      ::grpc::Service::MarkMethodCallback(6,
-          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
+    ExperimentalWithCallbackMethod_handleRecoveryBreakdown() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(6,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response) { return this->handleRecoveryBreakdown(context, request, response); }));}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response) { return this->handleRecoveryBreakdown(context, request, response); }));}
     void SetMessageAllocatorFor_handleRecoveryBreakdown(
-        ::grpc::MessageAllocator< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>* allocator) {
+        ::grpc::experimental::MessageAllocator< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(6);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>*>(handler)
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(6);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_handleRecoveryBreakdown() override {
+    ~ExperimentalWithCallbackMethod_handleRecoveryBreakdown() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -918,26 +1337,46 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleRecoveryBreakdown(
-      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::MergeParityInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::MergeParityInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleRecoveryBreakdown(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::datanode_proto::MergeParityInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_handleGet : public BaseClass {
+  class ExperimentalWithCallbackMethod_handleGet : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_handleGet() {
-      ::grpc::Service::MarkMethodCallback(7,
-          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>(
+    ExperimentalWithCallbackMethod_handleGet() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(7,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response) { return this->handleGet(context, request, response); }));}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response) { return this->handleGet(context, request, response); }));}
     void SetMessageAllocatorFor_handleGet(
-        ::grpc::MessageAllocator< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>* allocator) {
+        ::grpc::experimental::MessageAllocator< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(7);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>*>(handler)
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(7);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_handleGet() override {
+    ~ExperimentalWithCallbackMethod_handleGet() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -945,26 +1384,46 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleGet(
-      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::GetInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::GetInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleGet(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::datanode_proto::GetInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_handleGetBreakdown : public BaseClass {
+  class ExperimentalWithCallbackMethod_handleGetBreakdown : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_handleGetBreakdown() {
-      ::grpc::Service::MarkMethodCallback(8,
-          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>(
+    ExperimentalWithCallbackMethod_handleGetBreakdown() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(8,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response) { return this->handleGetBreakdown(context, request, response); }));}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response) { return this->handleGetBreakdown(context, request, response); }));}
     void SetMessageAllocatorFor_handleGetBreakdown(
-        ::grpc::MessageAllocator< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>* allocator) {
+        ::grpc::experimental::MessageAllocator< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(8);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>*>(handler)
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(8);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_handleGetBreakdown() override {
+    ~ExperimentalWithCallbackMethod_handleGetBreakdown() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -972,26 +1431,46 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleGetBreakdown(
-      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::GetInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::GetInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleGetBreakdown(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::datanode_proto::GetInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_handleCordRangeRead : public BaseClass {
+  class ExperimentalWithCallbackMethod_handleCordRangeRead : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_handleCordRangeRead() {
-      ::grpc::Service::MarkMethodCallback(9,
-          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>(
+    ExperimentalWithCallbackMethod_handleCordRangeRead() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(9,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response) { return this->handleCordRangeRead(context, request, response); }));}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response) { return this->handleCordRangeRead(context, request, response); }));}
     void SetMessageAllocatorFor_handleCordRangeRead(
-        ::grpc::MessageAllocator< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>* allocator) {
+        ::grpc::experimental::MessageAllocator< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(9);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>*>(handler)
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(9);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_handleCordRangeRead() override {
+    ~ExperimentalWithCallbackMethod_handleCordRangeRead() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -999,26 +1478,46 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleCordRangeRead(
-      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::CordRangeRWInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::CordRangeRWInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleCordRangeRead(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::datanode_proto::CordRangeRWInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_handleCordRangeWrite : public BaseClass {
+  class ExperimentalWithCallbackMethod_handleCordRangeWrite : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_handleCordRangeWrite() {
-      ::grpc::Service::MarkMethodCallback(10,
-          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>(
+    ExperimentalWithCallbackMethod_handleCordRangeWrite() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(10,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response) { return this->handleCordRangeWrite(context, request, response); }));}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response) { return this->handleCordRangeWrite(context, request, response); }));}
     void SetMessageAllocatorFor_handleCordRangeWrite(
-        ::grpc::MessageAllocator< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>* allocator) {
+        ::grpc::experimental::MessageAllocator< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(10);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>*>(handler)
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(10);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_handleCordRangeWrite() override {
+    ~ExperimentalWithCallbackMethod_handleCordRangeWrite() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1026,26 +1525,46 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleCordRangeWrite(
-      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::CordRangeRWInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::CordRangeRWInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleCordRangeWrite(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::datanode_proto::CordRangeRWInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_handleCordRangeXorWrite : public BaseClass {
+  class ExperimentalWithCallbackMethod_handleCordRangeXorWrite : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_handleCordRangeXorWrite() {
-      ::grpc::Service::MarkMethodCallback(11,
-          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>(
+    ExperimentalWithCallbackMethod_handleCordRangeXorWrite() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(11,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response) { return this->handleCordRangeXorWrite(context, request, response); }));}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response) { return this->handleCordRangeXorWrite(context, request, response); }));}
     void SetMessageAllocatorFor_handleCordRangeXorWrite(
-        ::grpc::MessageAllocator< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>* allocator) {
+        ::grpc::experimental::MessageAllocator< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(11);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>*>(handler)
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(11);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_handleCordRangeXorWrite() override {
+    ~ExperimentalWithCallbackMethod_handleCordRangeXorWrite() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1053,26 +1572,46 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleCordRangeXorWrite(
-      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::CordRangeRWInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::CordRangeRWInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleCordRangeXorWrite(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::datanode_proto::CordRangeRWInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_handleCordDeltaBlob : public BaseClass {
+  class ExperimentalWithCallbackMethod_handleCordDeltaBlob : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_handleCordDeltaBlob() {
-      ::grpc::Service::MarkMethodCallback(12,
-          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::CordDeltaBlobInfo, ::datanode_proto::RequestResult>(
+    ExperimentalWithCallbackMethod_handleCordDeltaBlob() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(12,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::CordDeltaBlobInfo, ::datanode_proto::RequestResult>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::datanode_proto::CordDeltaBlobInfo* request, ::datanode_proto::RequestResult* response) { return this->handleCordDeltaBlob(context, request, response); }));}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::datanode_proto::CordDeltaBlobInfo* request, ::datanode_proto::RequestResult* response) { return this->handleCordDeltaBlob(context, request, response); }));}
     void SetMessageAllocatorFor_handleCordDeltaBlob(
-        ::grpc::MessageAllocator< ::datanode_proto::CordDeltaBlobInfo, ::datanode_proto::RequestResult>* allocator) {
+        ::grpc::experimental::MessageAllocator< ::datanode_proto::CordDeltaBlobInfo, ::datanode_proto::RequestResult>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(12);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::CordDeltaBlobInfo, ::datanode_proto::RequestResult>*>(handler)
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(12);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::CordDeltaBlobInfo, ::datanode_proto::RequestResult>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_handleCordDeltaBlob() override {
+    ~ExperimentalWithCallbackMethod_handleCordDeltaBlob() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1080,26 +1619,46 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleCordDeltaBlob(
-      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::CordDeltaBlobInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::CordDeltaBlobInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleCordDeltaBlob(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::datanode_proto::CordDeltaBlobInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_handleDelete : public BaseClass {
+  class ExperimentalWithCallbackMethod_handleDelete : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_handleDelete() {
-      ::grpc::Service::MarkMethodCallback(13,
-          new ::grpc::internal::CallbackUnaryHandler< ::datanode_proto::DelInfo, ::datanode_proto::RequestResult>(
+    ExperimentalWithCallbackMethod_handleDelete() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(13,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::DelInfo, ::datanode_proto::RequestResult>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response) { return this->handleDelete(context, request, response); }));}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response) { return this->handleDelete(context, request, response); }));}
     void SetMessageAllocatorFor_handleDelete(
-        ::grpc::MessageAllocator< ::datanode_proto::DelInfo, ::datanode_proto::RequestResult>* allocator) {
+        ::grpc::experimental::MessageAllocator< ::datanode_proto::DelInfo, ::datanode_proto::RequestResult>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(13);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::datanode_proto::DelInfo, ::datanode_proto::RequestResult>*>(handler)
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(13);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::datanode_proto::DelInfo, ::datanode_proto::RequestResult>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_handleDelete() override {
+    ~ExperimentalWithCallbackMethod_handleDelete() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1107,11 +1666,20 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleDelete(
-      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::DelInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::datanode_proto::DelInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleDelete(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::datanode_proto::DelInfo* /*request*/, ::datanode_proto::RequestResult* /*response*/)
+    #endif
+      { return nullptr; }
   };
-  typedef WithCallbackMethod_checkalive<WithCallbackMethod_handleSet<WithCallbackMethod_handleAppend<WithCallbackMethod_handleMergeParity<WithCallbackMethod_handleMergeParityWithRep<WithCallbackMethod_handleRecovery<WithCallbackMethod_handleRecoveryBreakdown<WithCallbackMethod_handleGet<WithCallbackMethod_handleGetBreakdown<WithCallbackMethod_handleCordRangeRead<WithCallbackMethod_handleCordRangeWrite<WithCallbackMethod_handleCordRangeXorWrite<WithCallbackMethod_handleCordDeltaBlob<WithCallbackMethod_handleDelete<Service > > > > > > > > > > > > > > CallbackService;
-  typedef CallbackService ExperimentalCallbackService;
+  #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+  typedef ExperimentalWithCallbackMethod_checkalive<ExperimentalWithCallbackMethod_handleSet<ExperimentalWithCallbackMethod_handleAppend<ExperimentalWithCallbackMethod_handleMergeParity<ExperimentalWithCallbackMethod_handleMergeParityWithRep<ExperimentalWithCallbackMethod_handleRecovery<ExperimentalWithCallbackMethod_handleRecoveryBreakdown<ExperimentalWithCallbackMethod_handleGet<ExperimentalWithCallbackMethod_handleGetBreakdown<ExperimentalWithCallbackMethod_handleCordRangeRead<ExperimentalWithCallbackMethod_handleCordRangeWrite<ExperimentalWithCallbackMethod_handleCordRangeXorWrite<ExperimentalWithCallbackMethod_handleCordDeltaBlob<ExperimentalWithCallbackMethod_handleDelete<Service > > > > > > > > > > > > > > CallbackService;
+  #endif
+
+  typedef ExperimentalWithCallbackMethod_checkalive<ExperimentalWithCallbackMethod_handleSet<ExperimentalWithCallbackMethod_handleAppend<ExperimentalWithCallbackMethod_handleMergeParity<ExperimentalWithCallbackMethod_handleMergeParityWithRep<ExperimentalWithCallbackMethod_handleRecovery<ExperimentalWithCallbackMethod_handleRecoveryBreakdown<ExperimentalWithCallbackMethod_handleGet<ExperimentalWithCallbackMethod_handleGetBreakdown<ExperimentalWithCallbackMethod_handleCordRangeRead<ExperimentalWithCallbackMethod_handleCordRangeWrite<ExperimentalWithCallbackMethod_handleCordRangeXorWrite<ExperimentalWithCallbackMethod_handleCordDeltaBlob<ExperimentalWithCallbackMethod_handleDelete<Service > > > > > > > > > > > > > > ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_checkalive : public BaseClass {
    private:
@@ -1631,17 +2199,27 @@ class datanodeService final {
     }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_checkalive : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_checkalive : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_checkalive() {
-      ::grpc::Service::MarkMethodRawCallback(0,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    ExperimentalWithRawCallbackMethod_checkalive() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(0,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->checkalive(context, request, response); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->checkalive(context, request, response); }));
     }
-    ~WithRawCallbackMethod_checkalive() override {
+    ~ExperimentalWithRawCallbackMethod_checkalive() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1649,21 +2227,37 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* checkalive(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* checkalive(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_handleSet : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_handleSet : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_handleSet() {
-      ::grpc::Service::MarkMethodRawCallback(1,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    ExperimentalWithRawCallbackMethod_handleSet() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(1,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleSet(context, request, response); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleSet(context, request, response); }));
     }
-    ~WithRawCallbackMethod_handleSet() override {
+    ~ExperimentalWithRawCallbackMethod_handleSet() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1671,21 +2265,37 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleSet(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleSet(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_handleAppend : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_handleAppend : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_handleAppend() {
-      ::grpc::Service::MarkMethodRawCallback(2,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    ExperimentalWithRawCallbackMethod_handleAppend() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(2,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleAppend(context, request, response); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleAppend(context, request, response); }));
     }
-    ~WithRawCallbackMethod_handleAppend() override {
+    ~ExperimentalWithRawCallbackMethod_handleAppend() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1693,21 +2303,37 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleAppend(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleAppend(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_handleMergeParity : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_handleMergeParity : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_handleMergeParity() {
-      ::grpc::Service::MarkMethodRawCallback(3,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    ExperimentalWithRawCallbackMethod_handleMergeParity() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(3,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleMergeParity(context, request, response); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleMergeParity(context, request, response); }));
     }
-    ~WithRawCallbackMethod_handleMergeParity() override {
+    ~ExperimentalWithRawCallbackMethod_handleMergeParity() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1715,21 +2341,37 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleMergeParity(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleMergeParity(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_handleMergeParityWithRep : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_handleMergeParityWithRep : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_handleMergeParityWithRep() {
-      ::grpc::Service::MarkMethodRawCallback(4,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    ExperimentalWithRawCallbackMethod_handleMergeParityWithRep() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(4,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleMergeParityWithRep(context, request, response); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleMergeParityWithRep(context, request, response); }));
     }
-    ~WithRawCallbackMethod_handleMergeParityWithRep() override {
+    ~ExperimentalWithRawCallbackMethod_handleMergeParityWithRep() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1737,21 +2379,37 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleMergeParityWithRep(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleMergeParityWithRep(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_handleRecovery : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_handleRecovery : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_handleRecovery() {
-      ::grpc::Service::MarkMethodRawCallback(5,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    ExperimentalWithRawCallbackMethod_handleRecovery() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(5,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleRecovery(context, request, response); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleRecovery(context, request, response); }));
     }
-    ~WithRawCallbackMethod_handleRecovery() override {
+    ~ExperimentalWithRawCallbackMethod_handleRecovery() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1759,21 +2417,37 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleRecovery(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleRecovery(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_handleRecoveryBreakdown : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_handleRecoveryBreakdown : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_handleRecoveryBreakdown() {
-      ::grpc::Service::MarkMethodRawCallback(6,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    ExperimentalWithRawCallbackMethod_handleRecoveryBreakdown() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(6,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleRecoveryBreakdown(context, request, response); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleRecoveryBreakdown(context, request, response); }));
     }
-    ~WithRawCallbackMethod_handleRecoveryBreakdown() override {
+    ~ExperimentalWithRawCallbackMethod_handleRecoveryBreakdown() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1781,21 +2455,37 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleRecoveryBreakdown(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleRecoveryBreakdown(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_handleGet : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_handleGet : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_handleGet() {
-      ::grpc::Service::MarkMethodRawCallback(7,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    ExperimentalWithRawCallbackMethod_handleGet() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(7,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleGet(context, request, response); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleGet(context, request, response); }));
     }
-    ~WithRawCallbackMethod_handleGet() override {
+    ~ExperimentalWithRawCallbackMethod_handleGet() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1803,21 +2493,37 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleGet(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleGet(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_handleGetBreakdown : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_handleGetBreakdown : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_handleGetBreakdown() {
-      ::grpc::Service::MarkMethodRawCallback(8,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    ExperimentalWithRawCallbackMethod_handleGetBreakdown() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(8,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleGetBreakdown(context, request, response); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleGetBreakdown(context, request, response); }));
     }
-    ~WithRawCallbackMethod_handleGetBreakdown() override {
+    ~ExperimentalWithRawCallbackMethod_handleGetBreakdown() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1825,21 +2531,37 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleGetBreakdown(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleGetBreakdown(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_handleCordRangeRead : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_handleCordRangeRead : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_handleCordRangeRead() {
-      ::grpc::Service::MarkMethodRawCallback(9,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    ExperimentalWithRawCallbackMethod_handleCordRangeRead() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(9,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleCordRangeRead(context, request, response); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleCordRangeRead(context, request, response); }));
     }
-    ~WithRawCallbackMethod_handleCordRangeRead() override {
+    ~ExperimentalWithRawCallbackMethod_handleCordRangeRead() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1847,21 +2569,37 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleCordRangeRead(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleCordRangeRead(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_handleCordRangeWrite : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_handleCordRangeWrite : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_handleCordRangeWrite() {
-      ::grpc::Service::MarkMethodRawCallback(10,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    ExperimentalWithRawCallbackMethod_handleCordRangeWrite() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(10,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleCordRangeWrite(context, request, response); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleCordRangeWrite(context, request, response); }));
     }
-    ~WithRawCallbackMethod_handleCordRangeWrite() override {
+    ~ExperimentalWithRawCallbackMethod_handleCordRangeWrite() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1869,21 +2607,37 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleCordRangeWrite(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleCordRangeWrite(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_handleCordRangeXorWrite : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_handleCordRangeXorWrite : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_handleCordRangeXorWrite() {
-      ::grpc::Service::MarkMethodRawCallback(11,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    ExperimentalWithRawCallbackMethod_handleCordRangeXorWrite() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(11,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleCordRangeXorWrite(context, request, response); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleCordRangeXorWrite(context, request, response); }));
     }
-    ~WithRawCallbackMethod_handleCordRangeXorWrite() override {
+    ~ExperimentalWithRawCallbackMethod_handleCordRangeXorWrite() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1891,21 +2645,37 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleCordRangeXorWrite(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleCordRangeXorWrite(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_handleCordDeltaBlob : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_handleCordDeltaBlob : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_handleCordDeltaBlob() {
-      ::grpc::Service::MarkMethodRawCallback(12,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    ExperimentalWithRawCallbackMethod_handleCordDeltaBlob() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(12,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleCordDeltaBlob(context, request, response); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleCordDeltaBlob(context, request, response); }));
     }
-    ~WithRawCallbackMethod_handleCordDeltaBlob() override {
+    ~ExperimentalWithRawCallbackMethod_handleCordDeltaBlob() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1913,21 +2683,37 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleCordDeltaBlob(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleCordDeltaBlob(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_handleDelete : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_handleDelete : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_handleDelete() {
-      ::grpc::Service::MarkMethodRawCallback(13,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    ExperimentalWithRawCallbackMethod_handleDelete() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(13,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleDelete(context, request, response); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->handleDelete(context, request, response); }));
     }
-    ~WithRawCallbackMethod_handleDelete() override {
+    ~ExperimentalWithRawCallbackMethod_handleDelete() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
@@ -1935,8 +2721,14 @@ class datanodeService final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     virtual ::grpc::ServerUnaryReactor* handleDelete(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* handleDelete(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class WithStreamedUnaryMethod_checkalive : public BaseClass {
@@ -1947,8 +2739,8 @@ class datanodeService final {
       ::grpc::Service::MarkMethodStreamed(0,
         new ::grpc::internal::StreamedUnaryHandler<
           ::datanode_proto::CheckaliveCMD, ::datanode_proto::RequestResult>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
                      ::datanode_proto::CheckaliveCMD, ::datanode_proto::RequestResult>* streamer) {
                        return this->Streamedcheckalive(context,
                          streamer);
@@ -1974,8 +2766,8 @@ class datanodeService final {
       ::grpc::Service::MarkMethodStreamed(1,
         new ::grpc::internal::StreamedUnaryHandler<
           ::datanode_proto::SetInfo, ::datanode_proto::RequestResult>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
                      ::datanode_proto::SetInfo, ::datanode_proto::RequestResult>* streamer) {
                        return this->StreamedhandleSet(context,
                          streamer);
@@ -2001,8 +2793,8 @@ class datanodeService final {
       ::grpc::Service::MarkMethodStreamed(2,
         new ::grpc::internal::StreamedUnaryHandler<
           ::datanode_proto::AppendInfo, ::datanode_proto::RequestResult>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
                      ::datanode_proto::AppendInfo, ::datanode_proto::RequestResult>* streamer) {
                        return this->StreamedhandleAppend(context,
                          streamer);
@@ -2028,8 +2820,8 @@ class datanodeService final {
       ::grpc::Service::MarkMethodStreamed(3,
         new ::grpc::internal::StreamedUnaryHandler<
           ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
                      ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>* streamer) {
                        return this->StreamedhandleMergeParity(context,
                          streamer);
@@ -2055,8 +2847,8 @@ class datanodeService final {
       ::grpc::Service::MarkMethodStreamed(4,
         new ::grpc::internal::StreamedUnaryHandler<
           ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
                      ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>* streamer) {
                        return this->StreamedhandleMergeParityWithRep(context,
                          streamer);
@@ -2082,8 +2874,8 @@ class datanodeService final {
       ::grpc::Service::MarkMethodStreamed(5,
         new ::grpc::internal::StreamedUnaryHandler<
           ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
                      ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>* streamer) {
                        return this->StreamedhandleRecovery(context,
                          streamer);
@@ -2109,8 +2901,8 @@ class datanodeService final {
       ::grpc::Service::MarkMethodStreamed(6,
         new ::grpc::internal::StreamedUnaryHandler<
           ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
                      ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>* streamer) {
                        return this->StreamedhandleRecoveryBreakdown(context,
                          streamer);
@@ -2136,8 +2928,8 @@ class datanodeService final {
       ::grpc::Service::MarkMethodStreamed(7,
         new ::grpc::internal::StreamedUnaryHandler<
           ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
                      ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>* streamer) {
                        return this->StreamedhandleGet(context,
                          streamer);
@@ -2163,8 +2955,8 @@ class datanodeService final {
       ::grpc::Service::MarkMethodStreamed(8,
         new ::grpc::internal::StreamedUnaryHandler<
           ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
                      ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>* streamer) {
                        return this->StreamedhandleGetBreakdown(context,
                          streamer);
@@ -2190,8 +2982,8 @@ class datanodeService final {
       ::grpc::Service::MarkMethodStreamed(9,
         new ::grpc::internal::StreamedUnaryHandler<
           ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
                      ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>* streamer) {
                        return this->StreamedhandleCordRangeRead(context,
                          streamer);
@@ -2217,8 +3009,8 @@ class datanodeService final {
       ::grpc::Service::MarkMethodStreamed(10,
         new ::grpc::internal::StreamedUnaryHandler<
           ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
                      ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>* streamer) {
                        return this->StreamedhandleCordRangeWrite(context,
                          streamer);
@@ -2244,8 +3036,8 @@ class datanodeService final {
       ::grpc::Service::MarkMethodStreamed(11,
         new ::grpc::internal::StreamedUnaryHandler<
           ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
                      ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>* streamer) {
                        return this->StreamedhandleCordRangeXorWrite(context,
                          streamer);
@@ -2271,8 +3063,8 @@ class datanodeService final {
       ::grpc::Service::MarkMethodStreamed(12,
         new ::grpc::internal::StreamedUnaryHandler<
           ::datanode_proto::CordDeltaBlobInfo, ::datanode_proto::RequestResult>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
                      ::datanode_proto::CordDeltaBlobInfo, ::datanode_proto::RequestResult>* streamer) {
                        return this->StreamedhandleCordDeltaBlob(context,
                          streamer);
@@ -2298,8 +3090,8 @@ class datanodeService final {
       ::grpc::Service::MarkMethodStreamed(13,
         new ::grpc::internal::StreamedUnaryHandler<
           ::datanode_proto::DelInfo, ::datanode_proto::RequestResult>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
                      ::datanode_proto::DelInfo, ::datanode_proto::RequestResult>* streamer) {
                        return this->StreamedhandleDelete(context,
                          streamer);

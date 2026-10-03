@@ -6,8 +6,8 @@
 #include "datanode.grpc.pb.h"
 
 #include <functional>
-#include <grpcpp/support/async_stream.h>
-#include <grpcpp/support/async_unary_call.h>
+#include <grpcpp/impl/codegen/async_stream.h>
+#include <grpcpp/impl/codegen/async_unary_call.h>
 #include <grpcpp/impl/codegen/channel_interface.h>
 #include <grpcpp/impl/codegen/client_unary_call.h>
 #include <grpcpp/impl/codegen/client_callback.h>
@@ -40,356 +40,426 @@ static const char* datanodeService_method_names[] = {
 
 std::unique_ptr< datanodeService::Stub> datanodeService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
   (void)options;
-  std::unique_ptr< datanodeService::Stub> stub(new datanodeService::Stub(channel, options));
+  std::unique_ptr< datanodeService::Stub> stub(new datanodeService::Stub(channel));
   return stub;
 }
 
-datanodeService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
-  : channel_(channel), rpcmethod_checkalive_(datanodeService_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_handleSet_(datanodeService_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_handleAppend_(datanodeService_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_handleMergeParity_(datanodeService_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_handleMergeParityWithRep_(datanodeService_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_handleRecovery_(datanodeService_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_handleRecoveryBreakdown_(datanodeService_method_names[6], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_handleGet_(datanodeService_method_names[7], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_handleGetBreakdown_(datanodeService_method_names[8], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_handleCordRangeRead_(datanodeService_method_names[9], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_handleCordRangeWrite_(datanodeService_method_names[10], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_handleCordRangeXorWrite_(datanodeService_method_names[11], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_handleCordDeltaBlob_(datanodeService_method_names[12], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_handleDelete_(datanodeService_method_names[13], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+datanodeService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
+  : channel_(channel), rpcmethod_checkalive_(datanodeService_method_names[0], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_handleSet_(datanodeService_method_names[1], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_handleAppend_(datanodeService_method_names[2], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_handleMergeParity_(datanodeService_method_names[3], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_handleMergeParityWithRep_(datanodeService_method_names[4], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_handleRecovery_(datanodeService_method_names[5], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_handleRecoveryBreakdown_(datanodeService_method_names[6], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_handleGet_(datanodeService_method_names[7], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_handleGetBreakdown_(datanodeService_method_names[8], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_handleCordRangeRead_(datanodeService_method_names[9], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_handleCordRangeWrite_(datanodeService_method_names[10], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_handleCordRangeXorWrite_(datanodeService_method_names[11], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_handleCordDeltaBlob_(datanodeService_method_names[12], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_handleDelete_(datanodeService_method_names[13], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status datanodeService::Stub::checkalive(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD& request, ::datanode_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::CheckaliveCMD, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_checkalive_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_checkalive_, context, request, response);
 }
 
-void datanodeService::Stub::async::checkalive(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::CheckaliveCMD, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_checkalive_, context, request, response, std::move(f));
+void datanodeService::Stub::experimental_async::checkalive(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_checkalive_, context, request, response, std::move(f));
 }
 
-void datanodeService::Stub::async::checkalive(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_checkalive_, context, request, response, reactor);
+void datanodeService::Stub::experimental_async::checkalive(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_checkalive_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynccheckaliveRaw(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::CheckaliveCMD, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_checkalive_, context, request);
+void datanodeService::Stub::experimental_async::checkalive(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_checkalive_, context, request, response, reactor);
+}
+
+void datanodeService::Stub::experimental_async::checkalive(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_checkalive_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynccheckaliveRaw(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynccheckaliveRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_checkalive_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynccheckaliveRaw(::grpc::ClientContext* context, const ::datanode_proto::CheckaliveCMD& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_checkalive_, context, request, false);
 }
 
 ::grpc::Status datanodeService::Stub::handleSet(::grpc::ClientContext* context, const ::datanode_proto::SetInfo& request, ::datanode_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::SetInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_handleSet_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_handleSet_, context, request, response);
 }
 
-void datanodeService::Stub::async::handleSet(::grpc::ClientContext* context, const ::datanode_proto::SetInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::SetInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleSet_, context, request, response, std::move(f));
+void datanodeService::Stub::experimental_async::handleSet(::grpc::ClientContext* context, const ::datanode_proto::SetInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleSet_, context, request, response, std::move(f));
 }
 
-void datanodeService::Stub::async::handleSet(::grpc::ClientContext* context, const ::datanode_proto::SetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleSet_, context, request, response, reactor);
+void datanodeService::Stub::experimental_async::handleSet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleSet_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleSetRaw(::grpc::ClientContext* context, const ::datanode_proto::SetInfo& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::SetInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_handleSet_, context, request);
+void datanodeService::Stub::experimental_async::handleSet(::grpc::ClientContext* context, const ::datanode_proto::SetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleSet_, context, request, response, reactor);
+}
+
+void datanodeService::Stub::experimental_async::handleSet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleSet_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynchandleSetRaw(::grpc::ClientContext* context, const ::datanode_proto::SetInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynchandleSetRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleSet_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleSetRaw(::grpc::ClientContext* context, const ::datanode_proto::SetInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleSet_, context, request, false);
 }
 
 ::grpc::Status datanodeService::Stub::handleAppend(::grpc::ClientContext* context, const ::datanode_proto::AppendInfo& request, ::datanode_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::AppendInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_handleAppend_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_handleAppend_, context, request, response);
 }
 
-void datanodeService::Stub::async::handleAppend(::grpc::ClientContext* context, const ::datanode_proto::AppendInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::AppendInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleAppend_, context, request, response, std::move(f));
+void datanodeService::Stub::experimental_async::handleAppend(::grpc::ClientContext* context, const ::datanode_proto::AppendInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleAppend_, context, request, response, std::move(f));
 }
 
-void datanodeService::Stub::async::handleAppend(::grpc::ClientContext* context, const ::datanode_proto::AppendInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleAppend_, context, request, response, reactor);
+void datanodeService::Stub::experimental_async::handleAppend(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleAppend_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleAppendRaw(::grpc::ClientContext* context, const ::datanode_proto::AppendInfo& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::AppendInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_handleAppend_, context, request);
+void datanodeService::Stub::experimental_async::handleAppend(::grpc::ClientContext* context, const ::datanode_proto::AppendInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleAppend_, context, request, response, reactor);
+}
+
+void datanodeService::Stub::experimental_async::handleAppend(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleAppend_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynchandleAppendRaw(::grpc::ClientContext* context, const ::datanode_proto::AppendInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynchandleAppendRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleAppend_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleAppendRaw(::grpc::ClientContext* context, const ::datanode_proto::AppendInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleAppend_, context, request, false);
 }
 
 ::grpc::Status datanodeService::Stub::handleMergeParity(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::datanode_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_handleMergeParity_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_handleMergeParity_, context, request, response);
 }
 
-void datanodeService::Stub::async::handleMergeParity(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleMergeParity_, context, request, response, std::move(f));
+void datanodeService::Stub::experimental_async::handleMergeParity(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleMergeParity_, context, request, response, std::move(f));
 }
 
-void datanodeService::Stub::async::handleMergeParity(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleMergeParity_, context, request, response, reactor);
+void datanodeService::Stub::experimental_async::handleMergeParity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleMergeParity_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleMergeParityRaw(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::MergeParityInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_handleMergeParity_, context, request);
+void datanodeService::Stub::experimental_async::handleMergeParity(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleMergeParity_, context, request, response, reactor);
+}
+
+void datanodeService::Stub::experimental_async::handleMergeParity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleMergeParity_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynchandleMergeParityRaw(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynchandleMergeParityRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleMergeParity_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleMergeParityRaw(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleMergeParity_, context, request, false);
 }
 
 ::grpc::Status datanodeService::Stub::handleMergeParityWithRep(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::datanode_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_handleMergeParityWithRep_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_handleMergeParityWithRep_, context, request, response);
 }
 
-void datanodeService::Stub::async::handleMergeParityWithRep(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleMergeParityWithRep_, context, request, response, std::move(f));
+void datanodeService::Stub::experimental_async::handleMergeParityWithRep(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleMergeParityWithRep_, context, request, response, std::move(f));
 }
 
-void datanodeService::Stub::async::handleMergeParityWithRep(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleMergeParityWithRep_, context, request, response, reactor);
+void datanodeService::Stub::experimental_async::handleMergeParityWithRep(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleMergeParityWithRep_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleMergeParityWithRepRaw(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::MergeParityInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_handleMergeParityWithRep_, context, request);
+void datanodeService::Stub::experimental_async::handleMergeParityWithRep(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleMergeParityWithRep_, context, request, response, reactor);
+}
+
+void datanodeService::Stub::experimental_async::handleMergeParityWithRep(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleMergeParityWithRep_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynchandleMergeParityWithRepRaw(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynchandleMergeParityWithRepRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleMergeParityWithRep_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleMergeParityWithRepRaw(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleMergeParityWithRep_, context, request, false);
 }
 
 ::grpc::Status datanodeService::Stub::handleRecovery(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::datanode_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_handleRecovery_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_handleRecovery_, context, request, response);
 }
 
-void datanodeService::Stub::async::handleRecovery(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleRecovery_, context, request, response, std::move(f));
+void datanodeService::Stub::experimental_async::handleRecovery(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleRecovery_, context, request, response, std::move(f));
 }
 
-void datanodeService::Stub::async::handleRecovery(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleRecovery_, context, request, response, reactor);
+void datanodeService::Stub::experimental_async::handleRecovery(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleRecovery_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleRecoveryRaw(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::MergeParityInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_handleRecovery_, context, request);
+void datanodeService::Stub::experimental_async::handleRecovery(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleRecovery_, context, request, response, reactor);
+}
+
+void datanodeService::Stub::experimental_async::handleRecovery(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleRecovery_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynchandleRecoveryRaw(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynchandleRecoveryRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleRecovery_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleRecoveryRaw(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleRecovery_, context, request, false);
 }
 
 ::grpc::Status datanodeService::Stub::handleRecoveryBreakdown(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::datanode_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_handleRecoveryBreakdown_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_handleRecoveryBreakdown_, context, request, response);
 }
 
-void datanodeService::Stub::async::handleRecoveryBreakdown(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleRecoveryBreakdown_, context, request, response, std::move(f));
+void datanodeService::Stub::experimental_async::handleRecoveryBreakdown(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleRecoveryBreakdown_, context, request, response, std::move(f));
 }
 
-void datanodeService::Stub::async::handleRecoveryBreakdown(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleRecoveryBreakdown_, context, request, response, reactor);
+void datanodeService::Stub::experimental_async::handleRecoveryBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleRecoveryBreakdown_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleRecoveryBreakdownRaw(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::MergeParityInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_handleRecoveryBreakdown_, context, request);
+void datanodeService::Stub::experimental_async::handleRecoveryBreakdown(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleRecoveryBreakdown_, context, request, response, reactor);
+}
+
+void datanodeService::Stub::experimental_async::handleRecoveryBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleRecoveryBreakdown_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynchandleRecoveryBreakdownRaw(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynchandleRecoveryBreakdownRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleRecoveryBreakdown_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleRecoveryBreakdownRaw(::grpc::ClientContext* context, const ::datanode_proto::MergeParityInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleRecoveryBreakdown_, context, request, false);
 }
 
 ::grpc::Status datanodeService::Stub::handleGet(::grpc::ClientContext* context, const ::datanode_proto::GetInfo& request, ::datanode_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_handleGet_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_handleGet_, context, request, response);
 }
 
-void datanodeService::Stub::async::handleGet(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleGet_, context, request, response, std::move(f));
+void datanodeService::Stub::experimental_async::handleGet(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleGet_, context, request, response, std::move(f));
 }
 
-void datanodeService::Stub::async::handleGet(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleGet_, context, request, response, reactor);
+void datanodeService::Stub::experimental_async::handleGet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleGet_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleGetRaw(::grpc::ClientContext* context, const ::datanode_proto::GetInfo& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::GetInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_handleGet_, context, request);
+void datanodeService::Stub::experimental_async::handleGet(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleGet_, context, request, response, reactor);
+}
+
+void datanodeService::Stub::experimental_async::handleGet(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleGet_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynchandleGetRaw(::grpc::ClientContext* context, const ::datanode_proto::GetInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynchandleGetRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleGet_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleGetRaw(::grpc::ClientContext* context, const ::datanode_proto::GetInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleGet_, context, request, false);
 }
 
 ::grpc::Status datanodeService::Stub::handleGetBreakdown(::grpc::ClientContext* context, const ::datanode_proto::GetInfo& request, ::datanode_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_handleGetBreakdown_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_handleGetBreakdown_, context, request, response);
 }
 
-void datanodeService::Stub::async::handleGetBreakdown(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::GetInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleGetBreakdown_, context, request, response, std::move(f));
+void datanodeService::Stub::experimental_async::handleGetBreakdown(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleGetBreakdown_, context, request, response, std::move(f));
 }
 
-void datanodeService::Stub::async::handleGetBreakdown(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleGetBreakdown_, context, request, response, reactor);
+void datanodeService::Stub::experimental_async::handleGetBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleGetBreakdown_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleGetBreakdownRaw(::grpc::ClientContext* context, const ::datanode_proto::GetInfo& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::GetInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_handleGetBreakdown_, context, request);
+void datanodeService::Stub::experimental_async::handleGetBreakdown(::grpc::ClientContext* context, const ::datanode_proto::GetInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleGetBreakdown_, context, request, response, reactor);
+}
+
+void datanodeService::Stub::experimental_async::handleGetBreakdown(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleGetBreakdown_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynchandleGetBreakdownRaw(::grpc::ClientContext* context, const ::datanode_proto::GetInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynchandleGetBreakdownRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleGetBreakdown_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleGetBreakdownRaw(::grpc::ClientContext* context, const ::datanode_proto::GetInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleGetBreakdown_, context, request, false);
 }
 
 ::grpc::Status datanodeService::Stub::handleCordRangeRead(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo& request, ::datanode_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_handleCordRangeRead_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_handleCordRangeRead_, context, request, response);
 }
 
-void datanodeService::Stub::async::handleCordRangeRead(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeRead_, context, request, response, std::move(f));
+void datanodeService::Stub::experimental_async::handleCordRangeRead(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeRead_, context, request, response, std::move(f));
 }
 
-void datanodeService::Stub::async::handleCordRangeRead(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeRead_, context, request, response, reactor);
+void datanodeService::Stub::experimental_async::handleCordRangeRead(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeRead_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleCordRangeReadRaw(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::CordRangeRWInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_handleCordRangeRead_, context, request);
+void datanodeService::Stub::experimental_async::handleCordRangeRead(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeRead_, context, request, response, reactor);
+}
+
+void datanodeService::Stub::experimental_async::handleCordRangeRead(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeRead_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynchandleCordRangeReadRaw(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynchandleCordRangeReadRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleCordRangeRead_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleCordRangeReadRaw(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleCordRangeRead_, context, request, false);
 }
 
 ::grpc::Status datanodeService::Stub::handleCordRangeWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo& request, ::datanode_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_handleCordRangeWrite_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_handleCordRangeWrite_, context, request, response);
 }
 
-void datanodeService::Stub::async::handleCordRangeWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeWrite_, context, request, response, std::move(f));
+void datanodeService::Stub::experimental_async::handleCordRangeWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeWrite_, context, request, response, std::move(f));
 }
 
-void datanodeService::Stub::async::handleCordRangeWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeWrite_, context, request, response, reactor);
+void datanodeService::Stub::experimental_async::handleCordRangeWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeWrite_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleCordRangeWriteRaw(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::CordRangeRWInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_handleCordRangeWrite_, context, request);
+void datanodeService::Stub::experimental_async::handleCordRangeWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeWrite_, context, request, response, reactor);
+}
+
+void datanodeService::Stub::experimental_async::handleCordRangeWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeWrite_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynchandleCordRangeWriteRaw(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynchandleCordRangeWriteRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleCordRangeWrite_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleCordRangeWriteRaw(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleCordRangeWrite_, context, request, false);
 }
 
 ::grpc::Status datanodeService::Stub::handleCordRangeXorWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo& request, ::datanode_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_handleCordRangeXorWrite_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_handleCordRangeXorWrite_, context, request, response);
 }
 
-void datanodeService::Stub::async::handleCordRangeXorWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeXorWrite_, context, request, response, std::move(f));
+void datanodeService::Stub::experimental_async::handleCordRangeXorWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeXorWrite_, context, request, response, std::move(f));
 }
 
-void datanodeService::Stub::async::handleCordRangeXorWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeXorWrite_, context, request, response, reactor);
+void datanodeService::Stub::experimental_async::handleCordRangeXorWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeXorWrite_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleCordRangeXorWriteRaw(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::CordRangeRWInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_handleCordRangeXorWrite_, context, request);
+void datanodeService::Stub::experimental_async::handleCordRangeXorWrite(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeXorWrite_, context, request, response, reactor);
+}
+
+void datanodeService::Stub::experimental_async::handleCordRangeXorWrite(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleCordRangeXorWrite_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynchandleCordRangeXorWriteRaw(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynchandleCordRangeXorWriteRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleCordRangeXorWrite_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleCordRangeXorWriteRaw(::grpc::ClientContext* context, const ::datanode_proto::CordRangeRWInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleCordRangeXorWrite_, context, request, false);
 }
 
 ::grpc::Status datanodeService::Stub::handleCordDeltaBlob(::grpc::ClientContext* context, const ::datanode_proto::CordDeltaBlobInfo& request, ::datanode_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::CordDeltaBlobInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_handleCordDeltaBlob_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_handleCordDeltaBlob_, context, request, response);
 }
 
-void datanodeService::Stub::async::handleCordDeltaBlob(::grpc::ClientContext* context, const ::datanode_proto::CordDeltaBlobInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::CordDeltaBlobInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleCordDeltaBlob_, context, request, response, std::move(f));
+void datanodeService::Stub::experimental_async::handleCordDeltaBlob(::grpc::ClientContext* context, const ::datanode_proto::CordDeltaBlobInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleCordDeltaBlob_, context, request, response, std::move(f));
 }
 
-void datanodeService::Stub::async::handleCordDeltaBlob(::grpc::ClientContext* context, const ::datanode_proto::CordDeltaBlobInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleCordDeltaBlob_, context, request, response, reactor);
+void datanodeService::Stub::experimental_async::handleCordDeltaBlob(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleCordDeltaBlob_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleCordDeltaBlobRaw(::grpc::ClientContext* context, const ::datanode_proto::CordDeltaBlobInfo& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::CordDeltaBlobInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_handleCordDeltaBlob_, context, request);
+void datanodeService::Stub::experimental_async::handleCordDeltaBlob(::grpc::ClientContext* context, const ::datanode_proto::CordDeltaBlobInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleCordDeltaBlob_, context, request, response, reactor);
+}
+
+void datanodeService::Stub::experimental_async::handleCordDeltaBlob(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleCordDeltaBlob_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynchandleCordDeltaBlobRaw(::grpc::ClientContext* context, const ::datanode_proto::CordDeltaBlobInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynchandleCordDeltaBlobRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleCordDeltaBlob_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleCordDeltaBlobRaw(::grpc::ClientContext* context, const ::datanode_proto::CordDeltaBlobInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleCordDeltaBlob_, context, request, false);
 }
 
 ::grpc::Status datanodeService::Stub::handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo& request, ::datanode_proto::RequestResult* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::datanode_proto::DelInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_handleDelete_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_handleDelete_, context, request, response);
 }
 
-void datanodeService::Stub::async::handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::datanode_proto::DelInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleDelete_, context, request, response, std::move(f));
+void datanodeService::Stub::experimental_async::handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleDelete_, context, request, response, std::move(f));
 }
 
-void datanodeService::Stub::async::handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_handleDelete_, context, request, response, reactor);
+void datanodeService::Stub::experimental_async::handleDelete(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, std::function<void(::grpc::Status)> f) {
+  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_handleDelete_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleDeleteRaw(::grpc::ClientContext* context, const ::datanode_proto::DelInfo& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::datanode_proto::RequestResult, ::datanode_proto::DelInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_handleDelete_, context, request);
+void datanodeService::Stub::experimental_async::handleDelete(::grpc::ClientContext* context, const ::datanode_proto::DelInfo* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleDelete_, context, request, response, reactor);
+}
+
+void datanodeService::Stub::experimental_async::handleDelete(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::datanode_proto::RequestResult* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_handleDelete_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::AsynchandleDeleteRaw(::grpc::ClientContext* context, const ::datanode_proto::DelInfo& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsynchandleDeleteRaw(context, request, cq);
-  result->StartCall();
-  return result;
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleDelete_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::datanode_proto::RequestResult>* datanodeService::Stub::PrepareAsynchandleDeleteRaw(::grpc::ClientContext* context, const ::datanode_proto::DelInfo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::datanode_proto::RequestResult>::Create(channel_.get(), cq, rpcmethod_handleDelete_, context, request, false);
 }
 
 datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::CheckaliveCMD, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::CheckaliveCMD, ::datanode_proto::RequestResult>(
           [](datanodeService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::datanode_proto::CheckaliveCMD* req,
              ::datanode_proto::RequestResult* resp) {
                return service->checkalive(ctx, req, resp);
@@ -397,9 +467,9 @@ datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[1],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::SetInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::SetInfo, ::datanode_proto::RequestResult>(
           [](datanodeService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::datanode_proto::SetInfo* req,
              ::datanode_proto::RequestResult* resp) {
                return service->handleSet(ctx, req, resp);
@@ -407,9 +477,9 @@ datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[2],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::AppendInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::AppendInfo, ::datanode_proto::RequestResult>(
           [](datanodeService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::datanode_proto::AppendInfo* req,
              ::datanode_proto::RequestResult* resp) {
                return service->handleAppend(ctx, req, resp);
@@ -417,9 +487,9 @@ datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[3],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
           [](datanodeService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::datanode_proto::MergeParityInfo* req,
              ::datanode_proto::RequestResult* resp) {
                return service->handleMergeParity(ctx, req, resp);
@@ -427,9 +497,9 @@ datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[4],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
           [](datanodeService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::datanode_proto::MergeParityInfo* req,
              ::datanode_proto::RequestResult* resp) {
                return service->handleMergeParityWithRep(ctx, req, resp);
@@ -437,9 +507,9 @@ datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[5],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
           [](datanodeService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::datanode_proto::MergeParityInfo* req,
              ::datanode_proto::RequestResult* resp) {
                return service->handleRecovery(ctx, req, resp);
@@ -447,9 +517,9 @@ datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[6],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::MergeParityInfo, ::datanode_proto::RequestResult>(
           [](datanodeService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::datanode_proto::MergeParityInfo* req,
              ::datanode_proto::RequestResult* resp) {
                return service->handleRecoveryBreakdown(ctx, req, resp);
@@ -457,9 +527,9 @@ datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[7],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::GetInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>(
           [](datanodeService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::datanode_proto::GetInfo* req,
              ::datanode_proto::RequestResult* resp) {
                return service->handleGet(ctx, req, resp);
@@ -467,9 +537,9 @@ datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[8],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::GetInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::GetInfo, ::datanode_proto::RequestResult>(
           [](datanodeService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::datanode_proto::GetInfo* req,
              ::datanode_proto::RequestResult* resp) {
                return service->handleGetBreakdown(ctx, req, resp);
@@ -477,9 +547,9 @@ datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[9],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>(
           [](datanodeService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::datanode_proto::CordRangeRWInfo* req,
              ::datanode_proto::RequestResult* resp) {
                return service->handleCordRangeRead(ctx, req, resp);
@@ -487,9 +557,9 @@ datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[10],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>(
           [](datanodeService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::datanode_proto::CordRangeRWInfo* req,
              ::datanode_proto::RequestResult* resp) {
                return service->handleCordRangeWrite(ctx, req, resp);
@@ -497,9 +567,9 @@ datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[11],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::CordRangeRWInfo, ::datanode_proto::RequestResult>(
           [](datanodeService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::datanode_proto::CordRangeRWInfo* req,
              ::datanode_proto::RequestResult* resp) {
                return service->handleCordRangeXorWrite(ctx, req, resp);
@@ -507,9 +577,9 @@ datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[12],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::CordDeltaBlobInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::CordDeltaBlobInfo, ::datanode_proto::RequestResult>(
           [](datanodeService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::datanode_proto::CordDeltaBlobInfo* req,
              ::datanode_proto::RequestResult* resp) {
                return service->handleCordDeltaBlob(ctx, req, resp);
@@ -517,9 +587,9 @@ datanodeService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       datanodeService_method_names[13],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::DelInfo, ::datanode_proto::RequestResult, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< datanodeService::Service, ::datanode_proto::DelInfo, ::datanode_proto::RequestResult>(
           [](datanodeService::Service* service,
-             ::grpc::ServerContext* ctx,
+             ::grpc_impl::ServerContext* ctx,
              const ::datanode_proto::DelInfo* req,
              ::datanode_proto::RequestResult* resp) {
                return service->handleDelete(ctx, req, resp);

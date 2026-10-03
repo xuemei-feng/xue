@@ -19,6 +19,7 @@
 #include <memory>
 #include <deque>
 #include <unordered_map>
+#include <unordered_set>
 #include <condition_variable>
 #include <functional>
 #include <cstdlib>
@@ -26,6 +27,11 @@
 #include <ifaddrs.h>
 #include <arpa/inet.h>
 #include <climits>
+#include <cerrno>
+#include <cmath>
+#include <cstdint>
+#include <limits>
+#include <numeric>
 #include "unilrc_encoder.h"
 
 namespace
@@ -36,6 +42,9 @@ namespace
     std::string config_path;
     std::string client_ip;
     int client_port = 77777;
+    bool initial_range_benchmark = false;
+    bool dry_run = false;
+    int threads = 0;
   };
 
   std::string default_config_path(const char *argv0)
@@ -114,12 +123,36 @@ namespace
       {
         opts.config_path = argv[++i];
       }
+      else if (arg == "--initial-range-benchmark")
+      {
+        opts.initial_range_benchmark = true;
+      }
+      else if (arg == "--dry-run")
+      {
+        opts.dry_run = true;
+      }
+      else if (arg == "--threads" && i + 1 < argc)
+      {
+        char *end = nullptr;
+        const long value = std::strtol(argv[++i], &end, 10);
+        if (end == argv[i] || *end != '\0' || value < 1 || value > 64)
+        {
+          std::cerr << "--threads must be an integer in [1,64]" << std::endl;
+          return false;
+        }
+        opts.threads = static_cast<int>(value);
+      }
       else if (arg == "--help" || arg == "-h")
       {
         return false;
       }
       else if (!arg.empty() && arg[0] != '-')
       {
+        if (!opts.batch_file.empty())
+        {
+          std::cerr << "Multiple trace files specified" << std::endl;
+          return false;
+        }
         opts.batch_file = arg;
       }
       else
@@ -128,13 +161,27 @@ namespace
         return false;
       }
     }
+    if (opts.initial_range_benchmark && opts.batch_file.empty())
+    {
+      std::cerr << "--initial-range-benchmark requires a trace file" << std::endl;
+      return false;
+    }
+    if (opts.dry_run && !opts.initial_range_benchmark)
+    {
+      std::cerr << "--dry-run requires --initial-range-benchmark" << std::endl;
+      return false;
+    }
     return true;
   }
 
   void print_client_usage(const char *argv0)
   {
     std::cout << "Usage: " << argv0
-              << " [--ip CLIENT_IP] [--port PORT] [--config PATH] <cord_update_trace_file>"
+              << " [--ip CLIENT_IP] [--port PORT] [--config PATH]"
+                 " [--initial-range-benchmark] [--dry-run] [--threads N] [trace_file]"
+              << std::endl;
+    std::cout << "Default mode keeps the existing RW/interactive CoRD flow. "
+                 "Initial mode requires trace_file; --threads defaults to CORD_BATCH_THREADS or 1 (max 64)."
               << std::endl;
     std::cout << "Environment: CORD_CLIENT_IP overrides auto-detected cluster client IP." << std::endl;
   }
@@ -318,6 +365,288 @@ namespace
     g.cv.notify_all();
   }
 
+  struct InitialRangeTask
+  {
+    int line_no = 0;
+    int stripe_id = 0;
+    uint64_t logical_bytes = 0;
+    std::vector<std::pair<uint64_t, uint64_t>> local_ranges;
+  };
+
+  struct InitialRangeResult
+  {
+    int line_no = 0;
+    bool ok = false;
+    ECProject::InitialRangeWriteStats stats;
+  };
+
+  double nearest_rank_percentile(std::vector<double> values, double percentile)
+  {
+    if (values.empty())
+      return 0.0;
+    std::sort(values.begin(), values.end());
+    const size_t rank = static_cast<size_t>(std::ceil(percentile * static_cast<double>(values.size())));
+    return values[std::max<size_t>(1, rank) - 1];
+  }
+
+  double nearest_rank_percentile_u64(std::vector<uint64_t> values, double percentile)
+  {
+    if (values.empty())
+      return 0.0;
+    std::sort(values.begin(), values.end());
+    const size_t rank = static_cast<size_t>(std::ceil(percentile * static_cast<double>(values.size())));
+    return static_cast<double>(values[std::max<size_t>(1, rank) - 1]);
+  }
+
+  bool parse_uint64_token(const std::string &token, uint64_t &value)
+  {
+    if (token.empty() || token[0] == '-')
+      return false;
+    char *end = nullptr;
+    errno = 0;
+    const unsigned long long parsed = std::strtoull(token.c_str(), &end, 10);
+    if (errno == ERANGE || end == token.c_str() || *end != '\0')
+      return false;
+    value = static_cast<uint64_t>(parsed);
+    return true;
+  }
+
+  bool load_initial_range_trace(const std::string &path, uint64_t stripe_data_bytes,
+                                std::vector<InitialRangeTask> &tasks, int &max_stripe)
+  {
+    std::ifstream input(path);
+    if (!input.is_open())
+    {
+      std::cerr << "Failed to open trace file: " << path << std::endl;
+      return false;
+    }
+    std::unordered_set<int> stripe_ids;
+    std::string line;
+    int line_no = 0;
+    max_stripe = -1;
+    while (std::getline(input, line))
+    {
+      ++line_no;
+      if (is_blank_or_comment_line(line))
+        continue;
+      std::istringstream iss(line);
+      int64_t stripe_id_signed = -1;
+      int64_t range_count_signed = -1;
+      if (!(iss >> stripe_id_signed >> range_count_signed) || stripe_id_signed < 0 ||
+          stripe_id_signed > std::numeric_limits<int>::max() || range_count_signed <= 0)
+      {
+        std::cerr << "Initial trace line " << line_no
+                  << ": expected non-negative stripe_id and positive range_count" << std::endl;
+        return false;
+      }
+      const int stripe_id = static_cast<int>(stripe_id_signed);
+      if (!stripe_ids.insert(stripe_id).second)
+      {
+        std::cerr << "Initial trace line " << line_no << ": duplicate stripe_id=" << stripe_id << std::endl;
+        return false;
+      }
+      if (stripe_data_bytes != 0 && static_cast<uint64_t>(stripe_id) >
+                                        std::numeric_limits<uint64_t>::max() / stripe_data_bytes)
+      {
+        std::cerr << "Initial trace line " << line_no << ": stripe base offset overflow" << std::endl;
+        return false;
+      }
+      const uint64_t stripe_base = static_cast<uint64_t>(stripe_id) * stripe_data_bytes;
+      InitialRangeTask task;
+      task.line_no = line_no;
+      task.stripe_id = stripe_id;
+      task.local_ranges.reserve(static_cast<size_t>(range_count_signed));
+      for (int64_t i = 0; i < range_count_signed; ++i)
+      {
+        std::string start_token;
+        std::string end_token;
+        uint64_t global_start = 0;
+        uint64_t global_end = 0;
+        if (!(iss >> start_token >> end_token) ||
+            !parse_uint64_token(start_token, global_start) ||
+            !parse_uint64_token(end_token, global_end) || global_start >= global_end)
+        {
+          std::cerr << "Initial trace line " << line_no << ": invalid half-open range at index " << i << std::endl;
+          return false;
+        }
+        if (global_start < stripe_base || global_end < stripe_base)
+        {
+          std::cerr << "Initial trace line " << line_no << ": range precedes stripe base" << std::endl;
+          return false;
+        }
+        const uint64_t local_start = global_start - stripe_base;
+        const uint64_t local_end = global_end - stripe_base;
+        if (local_start > stripe_data_bytes || local_end > stripe_data_bytes || local_start >= local_end)
+        {
+          std::cerr << "Initial trace line " << line_no << ": range is outside stripe " << stripe_id << std::endl;
+          return false;
+        }
+        task.local_ranges.emplace_back(local_start, local_end);
+      }
+      std::string extra;
+      if (iss >> extra)
+      {
+        std::cerr << "Initial trace line " << line_no << ": trailing tokens" << std::endl;
+        return false;
+      }
+      std::sort(task.local_ranges.begin(), task.local_ranges.end());
+      std::vector<std::pair<uint64_t, uint64_t>> merged;
+      for (const auto &range : task.local_ranges)
+      {
+        if (merged.empty() || range.first > merged.back().second)
+          merged.push_back(range);
+        else
+          merged.back().second = std::max(merged.back().second, range.second);
+      }
+      for (const auto &range : merged)
+      {
+        const uint64_t length = range.second - range.first;
+        if (task.logical_bytes > std::numeric_limits<uint64_t>::max() - length)
+        {
+          std::cerr << "Initial trace line " << line_no << ": logical byte count overflow" << std::endl;
+          return false;
+        }
+        task.logical_bytes += length;
+      }
+      task.local_ranges = std::move(merged);
+      max_stripe = std::max(max_stripe, stripe_id);
+      tasks.push_back(std::move(task));
+    }
+    return true;
+  }
+
+  int run_initial_range_benchmark(const ClientRunOptions &opts, ECProject::Client &main_client,
+                                  const ECProject::Config *config, const std::string &client_ip,
+                                  int client_port, const std::string &config_path,
+                                  int k, int block_size)
+  {
+    if (k <= 0 || block_size <= 0 ||
+        static_cast<uint64_t>(block_size) > std::numeric_limits<uint64_t>::max() / static_cast<uint64_t>(k))
+    {
+      std::cerr << "Invalid k/BlockSize for initial range benchmark" << std::endl;
+      return 1;
+    }
+    const uint64_t stripe_data_bytes = static_cast<uint64_t>(k) * static_cast<uint64_t>(block_size);
+    std::vector<InitialRangeTask> tasks;
+    int max_stripe = -1;
+    if (!load_initial_range_trace(opts.batch_file, stripe_data_bytes, tasks, max_stripe))
+      return 1;
+
+    uint64_t trace_logical_bytes = 0;
+    std::vector<uint64_t> request_sizes;
+    request_sizes.reserve(tasks.size());
+    for (const auto &task : tasks)
+    {
+      if (trace_logical_bytes > std::numeric_limits<uint64_t>::max() - task.logical_bytes)
+      {
+        std::cerr << "Trace logical byte count overflow" << std::endl;
+        return 1;
+      }
+      trace_logical_bytes += task.logical_bytes;
+      request_sizes.push_back(task.logical_bytes);
+    }
+    const double request_avg = request_sizes.empty() ? 0.0 :
+        static_cast<double>(trace_logical_bytes) / static_cast<double>(request_sizes.size());
+    std::cout << std::fixed << std::setprecision(6);
+    std::cout << "initial_trace records=" << tasks.size()
+              << " max_stripe=" << max_stripe
+              << " logical_bytes=" << trace_logical_bytes
+              << " logical_mib=" << static_cast<double>(trace_logical_bytes) / 1048576.0 << std::endl;
+    std::cout << "request_size_bytes avg=" << request_avg
+              << " p50=" << nearest_rank_percentile_u64(request_sizes, 0.50)
+              << " p95=" << nearest_rank_percentile_u64(request_sizes, 0.95)
+              << " p99=" << nearest_rank_percentile_u64(request_sizes, 0.99)
+              << " max=" << (request_sizes.empty() ? 0 : *std::max_element(request_sizes.begin(), request_sizes.end()))
+              << " percentile_method=nearest_rank" << std::endl;
+    if (opts.dry_run)
+      return 0;
+
+    const int worker_count = opts.threads > 0 ? opts.threads : parse_cord_batch_threads();
+    const std::string coordinator = config->CoordinatorIP + ":" + std::to_string(config->CoordinatorPort);
+    std::vector<std::unique_ptr<ECProject::Client>> additional_clients;
+    additional_clients.reserve(static_cast<size_t>(worker_count - 1));
+    for (int worker_id = 1; worker_id < worker_count; ++worker_id)
+      additional_clients.push_back(std::make_unique<ECProject::Client>(
+          client_ip, client_port + worker_id, coordinator, config_path));
+
+    std::atomic<size_t> next_task{0};
+    std::atomic<size_t> completed{0};
+    std::mutex result_mu;
+    std::vector<InitialRangeResult> results;
+    results.reserve(tasks.size());
+    const auto batch_start = std::chrono::steady_clock::now();
+    auto worker = [&](int worker_id) {
+      ECProject::Client &client = worker_id == 0 ? main_client : *additional_clients[static_cast<size_t>(worker_id - 1)];
+      for (;;)
+      {
+        const size_t index = next_task.fetch_add(1);
+        if (index >= tasks.size())
+          break;
+        const InitialRangeTask &task = tasks[index];
+        ECProject::InitialRangeWriteStats stats;
+        const bool ok = client.initial_range_set(task.stripe_id, task.local_ranges, nullptr, 0, &stats);
+        {
+          std::lock_guard<std::mutex> lock(result_mu);
+          results.push_back(InitialRangeResult{task.line_no, ok, stats});
+        }
+        const size_t done = completed.fetch_add(1) + 1;
+        if (done % 1000 == 0 || done == tasks.size())
+          std::cout << "initial_progress completed=" << done << " total=" << tasks.size() << std::endl;
+      }
+    };
+    std::vector<std::thread> workers;
+    workers.reserve(static_cast<size_t>(worker_count));
+    for (int worker_id = 0; worker_id < worker_count; ++worker_id)
+      workers.emplace_back(worker, worker_id);
+    for (auto &thread : workers)
+      thread.join();
+    const double batch_wall_sec = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - batch_start).count();
+
+    size_t success = 0;
+    uint64_t logical_bytes = 0, data_bytes = 0, parity_bytes = 0, upload_bytes = 0;
+    double plan_total = 0.0, encode_total = 0.0, upload_total = 0.0;
+    std::vector<double> latencies;
+    for (const auto &result : results)
+    {
+      latencies.push_back(result.stats.wall_sec);
+      if (!result.ok)
+        continue;
+      ++success;
+      logical_bytes += result.stats.logical_bytes;
+      data_bytes += result.stats.data_slice_bytes;
+      parity_bytes += result.stats.parity_slice_bytes;
+      upload_bytes += result.stats.upload_bytes;
+      plan_total += result.stats.plan_sec;
+      encode_total += result.stats.encode_sec;
+      upload_total += result.stats.upload_sec;
+    }
+    const size_t failures = tasks.size() - success;
+    const double logical_mib = static_cast<double>(logical_bytes) / 1048576.0;
+    const double amplification = logical_bytes == 0 ? 0.0 :
+        static_cast<double>(data_bytes + parity_bytes) / static_cast<double>(logical_bytes);
+    const double latency_avg = latencies.empty() ? 0.0 :
+        std::accumulate(latencies.begin(), latencies.end(), 0.0) / static_cast<double>(latencies.size());
+    std::cout << "initial_summary requests=" << tasks.size() << " success=" << success
+              << " failures=" << failures << " logical_bytes=" << logical_bytes
+              << " logical_mib=" << logical_mib << " data_slice_bytes=" << data_bytes
+              << " parity_slice_bytes=" << parity_bytes << " upload_bytes=" << upload_bytes
+              << " write_amplification=" << amplification << " batch_wall_sec=" << batch_wall_sec
+              << " logical_mib_s=" << (batch_wall_sec > 0.0 ? logical_mib / batch_wall_sec : 0.0)
+              << " ops_s=" << (batch_wall_sec > 0.0 ? static_cast<double>(success) / batch_wall_sec : 0.0)
+              << std::endl;
+    std::cout << "latency_wall_sec avg=" << latency_avg
+              << " p50=" << nearest_rank_percentile(latencies, 0.50)
+              << " p95=" << nearest_rank_percentile(latencies, 0.95)
+              << " p99=" << nearest_rank_percentile(latencies, 0.99)
+              << " max=" << (latencies.empty() ? 0.0 : *std::max_element(latencies.begin(), latencies.end()))
+              << " percentile_method=nearest_rank" << std::endl;
+    std::cout << "stage_avg_sec plan=" << (success ? plan_total / success : 0.0)
+              << " encode=" << (success ? encode_total / success : 0.0)
+              << " upload=" << (success ? upload_total / success : 0.0) << std::endl;
+    return failures == 0 ? 0 : 1;
+  }
+
   struct CordPipelineSlot
   {
     ECProject::CordUpdatePending pending;
@@ -335,19 +664,32 @@ int main(int argc, char **argv)
     }
 
     const std::string sys_config_path = opts.config_path;
-    std::cout << "Config path: " << sys_config_path << std::endl;
+    if (!(opts.initial_range_benchmark && opts.dry_run))
+      std::cout << "Config path: " << sys_config_path << std::endl;
 
     const ECProject::Config *config = ECProject::Config::getInstance(sys_config_path);
     std::string client_ip = opts.client_ip.empty() ? resolve_client_ip(config) : opts.client_ip;
     const int client_port = opts.client_port;
-    std::cout << "Client bind/advertise: " << client_ip << ":" << client_port << std::endl;
+    if (!(opts.initial_range_benchmark && opts.dry_run))
+      std::cout << "Client bind/advertise: " << client_ip << ":" << client_port << std::endl;
     ECProject::Client client(client_ip, client_port, config->CoordinatorIP + ":" + std::to_string(config->CoordinatorPort), sys_config_path);
-    std::cout << client.sayHelloToCoordinatorByGrpc("Client ID: " + client_ip + ":" + std::to_string(client_port)) << std::endl;
+    if (opts.initial_range_benchmark && opts.dry_run)
+      return run_initial_range_benchmark(opts, client, config, client_ip, client_port,
+                                         sys_config_path, config->k, config->BlockSize);
 
+    std::cout << client.sayHelloToCoordinatorByGrpc("Client ID: " + client_ip + ":" + std::to_string(client_port)) << std::endl;
     std::vector<int> parameters = client.get_parameters();
+    if (parameters.size() < 5)
+    {
+      std::cerr << "Coordinator returned incomplete parameters" << std::endl;
+      return 1;
+    }
     int k = parameters[0];
     int r = parameters[1];
     int z = parameters[2];
+    if (opts.initial_range_benchmark)
+      return run_initial_range_benchmark(opts, client, config, client_ip, client_port,
+                                         sys_config_path, k, parameters[3]);
     std::string code_type;
     if(parameters[4] == 0){
         code_type = "AzureLRC";

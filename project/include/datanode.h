@@ -115,6 +115,7 @@ namespace ECProject
             std::string writepath;
             int range_offset = 0;
             int range_length = 0;
+            uint64_t logical_block_size = 0;
         };
         struct CordDnPendingBlob
         {

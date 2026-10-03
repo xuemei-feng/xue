@@ -31,6 +31,7 @@
 #include <limits>
 #include <iomanip>
 #include <sstream>
+#include <stdexcept>
 template <typename T>
 inline T ceil(T const &A, T const &B)
 {
@@ -2792,7 +2793,7 @@ namespace ECProject
   }
 
   bool ProxyImpl::CordRangeWriteToDatanode(const std::string &block_key, int block_id, int range_offset, const char *data,
-                                           size_t length, const char *ip, int port)
+                                           size_t length, const char *ip, int port, size_t logical_block_size)
   {
     try
     {
@@ -2805,6 +2806,7 @@ namespace ECProject
       info.set_range_length(static_cast<int>(length));
       info.set_proxy_ip(m_ip);
       info.set_proxy_port(m_port);
+      info.set_logical_block_size(static_cast<uint64_t>(logical_block_size));
       std::string node_ip_port = std::string(ip) + ":" + std::to_string(port);
       grpc::Status stat = m_datanode_ptrs[node_ip_port]->handleCordRangeWrite(&context, info, &result);
       if (!stat.ok() || !result.message())
@@ -2819,11 +2821,19 @@ namespace ECProject
       cord_apply_datanode_tcp_timeout(socket, m_sys_config->CordRequestTimeoutSec);
       cord_write_u64_be(socket, xfer_tag);
       asio::error_code error;
-      asio::write(socket, asio::buffer(data, length), error);
+      const size_t bytes_written = asio::write(socket, asio::buffer(data, length), error);
+      if (error || bytes_written != length)
+      {
+        asio::error_code ignore_ec;
+        socket.close(ignore_ec);
+        return false;
+      }
+      uint8_t ack = 0;
+      const size_t ack_bytes = asio::read(socket, asio::buffer(&ack, 1), error);
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
-      return !error;
+      return !error && ack_bytes == 1 && ack == 1;
     }
     catch (const std::exception &e)
     {
@@ -3681,6 +3691,147 @@ namespace ECProject
     {
       // std::cout << "[CoRD-LP-GH][" << proxy_ip_port << "] AFTER blk=" << request->local_block_id()
       //           << " disk_hex=" << cord_dbg_hex_preview(ghv.data(), ghv.size()) << std::endl;
+    }
+    response->set_ifcommit(true);
+    return grpc::Status::OK;
+  }
+
+
+  grpc::Status ProxyImpl::scheduleInitialRangeWrite(
+      grpc::ServerContext *context,
+      const proxy_proto::InitialRangeWritePlacement *placement,
+      proxy_proto::SetReply *response)
+  {
+    (void)context;
+    response->set_ifcommit(false);
+    auto report_result = [this](const proxy_proto::InitialRangeWritePlacement &target, bool committed)
+    {
+      coordinator_proto::CommitAbortKey commit_abort_key;
+      coordinator_proto::ReplyFromCoordinator result;
+      grpc::ClientContext report_context;
+      commit_abort_key.set_opp(ECProject::APPEND);
+      commit_abort_key.set_key(target.key());
+      commit_abort_key.set_stripe_id(target.stripe_id());
+      commit_abort_key.set_ifcommitmetadata(committed);
+      grpc::Status report_status = m_coordinator_ptr->reportCommitAbort(&report_context, commit_abort_key, &result);
+      if (!report_status.ok())
+        std::cerr << "scheduleInitialRangeWrite reportCommitAbort failed: "
+                  << report_status.error_message() << std::endl;
+    };
+    auto abort_with_status = [report_result, placement](grpc::StatusCode code, const std::string &message)
+    {
+      report_result(*placement, false);
+      return grpc::Status(code, message);
+    };
+    if (m_sys_config == nullptr || m_sys_config->BlockSize <= 0)
+      return abort_with_status(grpc::StatusCode::FAILED_PRECONDITION, "invalid block size configuration");
+    if (placement->transfer_tag() == 0)
+      return abort_with_status(grpc::StatusCode::INVALID_ARGUMENT, "transfer_tag must be nonzero");
+
+    const uint64_t payload_size = placement->payload_size();
+    const uint64_t block_size = static_cast<uint64_t>(m_sys_config->BlockSize);
+    if (payload_size > static_cast<uint64_t>(std::numeric_limits<size_t>::max()))
+      return abort_with_status(grpc::StatusCode::INVALID_ARGUMENT, "payload_size is too large");
+    for (const auto &slice : placement->slices())
+    {
+      if (slice.payload_offset() > payload_size || slice.length() > payload_size - slice.payload_offset())
+        return abort_with_status(grpc::StatusCode::INVALID_ARGUMENT, "slice payload range exceeds payload_size");
+      if (slice.offset() > block_size || slice.length() > block_size - slice.offset())
+        return abort_with_status(grpc::StatusCode::INVALID_ARGUMENT, "slice block range exceeds BlockSize");
+      if (slice.offset() > static_cast<uint64_t>(std::numeric_limits<int>::max()) ||
+          slice.length() > static_cast<uint64_t>(std::numeric_limits<int>::max()))
+        return abort_with_status(grpc::StatusCode::INVALID_ARGUMENT, "slice range exceeds DataNode RPC limits");
+    }
+
+    auto placement_copy = std::make_shared<proxy_proto::InitialRangeWritePlacement>(*placement);
+    {
+      std::lock_guard<std::mutex> lock(m_initial_pending_mutex);
+      if (!m_initial_pending.emplace(placement_copy->transfer_tag(), placement_copy).second)
+        return grpc::Status(grpc::StatusCode::ALREADY_EXISTS, "duplicate transfer_tag");
+    }
+
+    auto initial_write = [this, placement_copy, block_size, report_result]()
+    {
+      std::shared_ptr<proxy_proto::InitialRangeWritePlacement> matched_placement;
+      asio::ip::tcp::socket socket_data(io_context);
+      while (!matched_placement)
+      {
+        try
+        {
+          std::lock_guard<std::mutex> accept_lock(m_initial_accept_mutex);
+          acceptor.accept(socket_data);
+          const uint64_t received_tag = cord_read_u64_be(socket_data);
+          {
+            std::lock_guard<std::mutex> pending_lock(m_initial_pending_mutex);
+            auto pending = m_initial_pending.find(received_tag);
+            if (pending != m_initial_pending.end())
+            {
+              matched_placement = pending->second;
+              m_initial_pending.erase(pending);
+            }
+          }
+          if (!matched_placement)
+            std::cerr << "scheduleInitialRangeWrite rejected unknown transfer_tag="
+                      << received_tag << std::endl;
+        }
+        catch (const std::exception &e)
+        {
+          std::cerr << "scheduleInitialRangeWrite accept/tag read failed: " << e.what() << std::endl;
+        }
+        if (!matched_placement)
+        {
+          asio::error_code ignore_ec;
+          socket_data.close(ignore_ec);
+          socket_data = asio::ip::tcp::socket(io_context);
+        }
+      }
+
+      bool committed = false;
+      try
+      {
+        const uint64_t matched_payload_size = matched_placement->payload_size();
+        std::vector<char> payload(static_cast<size_t>(matched_payload_size));
+        asio::error_code ec;
+        const size_t received = asio::read(socket_data, asio::buffer(payload.data(), payload.size()), ec);
+        asio::error_code ignore_ec;
+        socket_data.shutdown(asio::ip::tcp::socket::shutdown_receive, ignore_ec);
+        socket_data.close(ignore_ec);
+        if (ec || received != payload.size())
+          throw std::runtime_error("failed to receive complete initial range payload");
+
+        committed = true;
+        for (const auto &slice : matched_placement->slices())
+        {
+          if (!CordRangeWriteToDatanode(slice.block_key(), slice.block_id(), static_cast<int>(slice.offset()),
+                                        payload.data() + static_cast<size_t>(slice.payload_offset()),
+                                        static_cast<size_t>(slice.length()), slice.datanode_ip().c_str(),
+                                        slice.datanode_port(), static_cast<size_t>(block_size)))
+          {
+            committed = false;
+            break;
+          }
+        }
+      }
+      catch (const std::exception &e)
+      {
+        std::cerr << "scheduleInitialRangeWrite worker failed: " << e.what() << std::endl;
+      }
+      report_result(*matched_placement, committed);
+    };
+
+    try
+    {
+      std::thread(initial_write).detach();
+    }
+    catch (const std::exception &e)
+    {
+      {
+        std::lock_guard<std::mutex> lock(m_initial_pending_mutex);
+        auto pending = m_initial_pending.find(placement_copy->transfer_tag());
+        if (pending != m_initial_pending.end() && pending->second == placement_copy)
+          m_initial_pending.erase(pending);
+      }
+      return abort_with_status(grpc::StatusCode::INTERNAL, e.what());
     }
     response->set_ifcommit(true);
     return grpc::Status::OK;
