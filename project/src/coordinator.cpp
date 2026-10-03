@@ -1736,23 +1736,17 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       }
     };
 
-    std::vector<std::thread> notify_threads;
-    notify_threads.reserve(cluster_list.size());
     for (int cid : cluster_list)
     {
-      notify_threads.emplace_back([this, &plan, cid, &notify_one_cluster]() {
-        notify_one_cluster(cid, [&](auto *stub, grpc::ClientContext *ctx, proxy_proto::SetReply *rep) {
-          return stub->scheduleCordTransferPlan(ctx, plan, rep);
-        });
+      notify_one_cluster(cid, [&](auto *stub, grpc::ClientContext *ctx, proxy_proto::SetReply *rep) {
+        return stub->scheduleCordTransferPlan(ctx, plan, rep);
       });
     }
-    for (auto &th : notify_threads)
-      th.join();
 
   // Phase 2: start execution on all proxies (all plan_key registrations are visible).
     proxy_proto::CordPlanKeyMsg start_msg;
     start_msg.set_plan_key(plan.plan_key());
-    notify_threads.clear();
+    std::vector<std::thread> notify_threads;
     notify_threads.reserve(cluster_list.size());
     for (int cid : cluster_list)
     {
