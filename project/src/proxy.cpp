@@ -2797,10 +2797,15 @@ namespace ECProject
       cord_write_u64_be(socket, xfer_tag);
       asio::error_code error;
       asio::write(socket, asio::buffer(data, length), error);
+      asio::error_code shutdown_ec;
+      socket.shutdown(asio::ip::tcp::socket::shutdown_send, shutdown_ec);
+      uint8_t ack = 0xff;
+      asio::error_code ack_ec;
+      asio::read(socket, asio::buffer(&ack, 1), ack_ec);
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
-      return !error;
+      return !error && !shutdown_ec && !ack_ec && ack == 0;
     }
     catch (const std::exception &e)
     {

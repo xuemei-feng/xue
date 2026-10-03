@@ -184,19 +184,23 @@ namespace ECProject
       std::vector<char> payload(static_cast<size_t>(range_length));
       asio::error_code ec;
       asio::read(socket, asio::buffer(payload.data(), static_cast<size_t>(range_length)), ec);
+      uint8_t ack = 1;
+      if (!ec)
+      {
+        int fd = ::open(pending.writepath.c_str(), O_CREAT | O_RDWR, 0644);
+        if (fd >= 0)
+        {
+          const ssize_t written = ::pwrite(fd, payload.data(), range_length, pending.range_offset);
+          if (written == static_cast<ssize_t>(range_length) && ::fsync(fd) == 0)
+            ack = 0;
+          ::close(fd);
+        }
+      }
+      asio::error_code ack_ec;
+      asio::write(socket, asio::buffer(&ack, 1), ack_ec);
       asio::error_code ignore_ec;
       socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignore_ec);
       socket.close(ignore_ec);
-      if (ec)
-        return;
-      int fd = ::open(pending.writepath.c_str(), O_CREAT | O_RDWR, 0644);
-      if (fd >= 0)
-      {
-        ssize_t w = ::pwrite(fd, payload.data(), range_length, pending.range_offset);
-        ::fsync(fd);
-        ::close(fd);
-        (void)w;
-      }
     }
     catch (std::exception &e)
     {

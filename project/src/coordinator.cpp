@@ -2395,16 +2395,10 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       notify_jobs.push_back(std::move(job));
     }
 
-    std::vector<std::thread> notify_threads;
-    notify_threads.reserve(notify_jobs.size());
     for (auto &job : notify_jobs)
     {
-      notify_threads.emplace_back([this, &job]() {
-        job.ok = notify_proxies_cord_ready(job.plan);
-      });
+      job.ok = notify_proxies_cord_ready(job.plan);
     }
-    for (auto &th : notify_threads)
-      th.join();
 
     std::vector<std::string> cord_delta_append_keys;
     cord_delta_append_keys.reserve(notify_jobs.size());
