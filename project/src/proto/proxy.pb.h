@@ -139,6 +139,12 @@ extern DelReplyDefaultTypeInternal _DelReply_default_instance_;
 class GetReply;
 struct GetReplyDefaultTypeInternal;
 extern GetReplyDefaultTypeInternal _GetReply_default_instance_;
+class InitialRangeWritePlacement;
+struct InitialRangeWritePlacementDefaultTypeInternal;
+extern InitialRangeWritePlacementDefaultTypeInternal _InitialRangeWritePlacement_default_instance_;
+class InitialRangeWriteSlice;
+struct InitialRangeWriteSliceDefaultTypeInternal;
+extern InitialRangeWriteSliceDefaultTypeInternal _InitialRangeWriteSlice_default_instance_;
 class MultipleRecoveryRequest;
 struct MultipleRecoveryRequestDefaultTypeInternal;
 extern MultipleRecoveryRequestDefaultTypeInternal _MultipleRecoveryRequest_default_instance_;
@@ -220,6 +226,8 @@ template<> ::proxy_proto::DegradedReadReply* Arena::CreateMaybeMessage<::proxy_p
 template<> ::proxy_proto::DegradedReadRequest* Arena::CreateMaybeMessage<::proxy_proto::DegradedReadRequest>(Arena*);
 template<> ::proxy_proto::DelReply* Arena::CreateMaybeMessage<::proxy_proto::DelReply>(Arena*);
 template<> ::proxy_proto::GetReply* Arena::CreateMaybeMessage<::proxy_proto::GetReply>(Arena*);
+template<> ::proxy_proto::InitialRangeWritePlacement* Arena::CreateMaybeMessage<::proxy_proto::InitialRangeWritePlacement>(Arena*);
+template<> ::proxy_proto::InitialRangeWriteSlice* Arena::CreateMaybeMessage<::proxy_proto::InitialRangeWriteSlice>(Arena*);
 template<> ::proxy_proto::MultipleRecoveryRequest* Arena::CreateMaybeMessage<::proxy_proto::MultipleRecoveryRequest>(Arena*);
 template<> ::proxy_proto::NodeAndBlock* Arena::CreateMaybeMessage<::proxy_proto::NodeAndBlock>(Arena*);
 template<> ::proxy_proto::ObjectAndPlacement* Arena::CreateMaybeMessage<::proxy_proto::ObjectAndPlacement>(Arena*);
@@ -239,6 +247,32 @@ template<> ::proxy_proto::mainRecalPlan* Arena::CreateMaybeMessage<::proxy_proto
 PROTOBUF_NAMESPACE_CLOSE
 namespace proxy_proto {
 
+enum InitialRangeSliceType : int {
+  DATA = 0,
+  GLOBAL_PARITY = 1,
+  LOCAL_PARITY = 2,
+  InitialRangeSliceType_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  InitialRangeSliceType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool InitialRangeSliceType_IsValid(int value);
+constexpr InitialRangeSliceType InitialRangeSliceType_MIN = DATA;
+constexpr InitialRangeSliceType InitialRangeSliceType_MAX = LOCAL_PARITY;
+constexpr int InitialRangeSliceType_ARRAYSIZE = InitialRangeSliceType_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* InitialRangeSliceType_descriptor();
+template<typename T>
+inline const std::string& InitialRangeSliceType_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, InitialRangeSliceType>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function InitialRangeSliceType_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    InitialRangeSliceType_descriptor(), enum_t_value);
+}
+inline bool InitialRangeSliceType_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, InitialRangeSliceType* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<InitialRangeSliceType>(
+    InitialRangeSliceType_descriptor(), name, value);
+}
 enum CordTransferLinkKind : int {
   CORD_TRANSFER_STAR_DATA_TO_CENTER = 0,
   CORD_TRANSFER_STAR_CENTER_TO_GLOBAL = 1,
@@ -5372,6 +5406,485 @@ class AppendStripeDataPlacement final :
 };
 // -------------------------------------------------------------------
 
+class InitialRangeWriteSlice final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.InitialRangeWriteSlice) */ {
+ public:
+  inline InitialRangeWriteSlice() : InitialRangeWriteSlice(nullptr) {}
+  ~InitialRangeWriteSlice() override;
+  explicit PROTOBUF_CONSTEXPR InitialRangeWriteSlice(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  InitialRangeWriteSlice(const InitialRangeWriteSlice& from);
+  InitialRangeWriteSlice(InitialRangeWriteSlice&& from) noexcept
+    : InitialRangeWriteSlice() {
+    *this = ::std::move(from);
+  }
+
+  inline InitialRangeWriteSlice& operator=(const InitialRangeWriteSlice& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline InitialRangeWriteSlice& operator=(InitialRangeWriteSlice&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const InitialRangeWriteSlice& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const InitialRangeWriteSlice* internal_default_instance() {
+    return reinterpret_cast<const InitialRangeWriteSlice*>(
+               &_InitialRangeWriteSlice_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    20;
+
+  friend void swap(InitialRangeWriteSlice& a, InitialRangeWriteSlice& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(InitialRangeWriteSlice* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(InitialRangeWriteSlice* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  InitialRangeWriteSlice* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<InitialRangeWriteSlice>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const InitialRangeWriteSlice& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const InitialRangeWriteSlice& from) {
+    InitialRangeWriteSlice::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(InitialRangeWriteSlice* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.InitialRangeWriteSlice";
+  }
+  protected:
+  explicit InitialRangeWriteSlice(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kBlockKeyFieldNumber = 2,
+    kDatanodeIpFieldNumber = 3,
+    kBlockIdFieldNumber = 1,
+    kDatanodePortFieldNumber = 4,
+    kOffsetFieldNumber = 5,
+    kLengthFieldNumber = 6,
+    kPayloadOffsetFieldNumber = 7,
+    kTypeFieldNumber = 8,
+  };
+  // string block_key = 2;
+  void clear_block_key();
+  const std::string& block_key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_block_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_block_key();
+  PROTOBUF_NODISCARD std::string* release_block_key();
+  void set_allocated_block_key(std::string* block_key);
+  private:
+  const std::string& _internal_block_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_block_key(const std::string& value);
+  std::string* _internal_mutable_block_key();
+  public:
+
+  // string datanode_ip = 3;
+  void clear_datanode_ip();
+  const std::string& datanode_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_datanode_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_datanode_ip();
+  PROTOBUF_NODISCARD std::string* release_datanode_ip();
+  void set_allocated_datanode_ip(std::string* datanode_ip);
+  private:
+  const std::string& _internal_datanode_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_datanode_ip(const std::string& value);
+  std::string* _internal_mutable_datanode_ip();
+  public:
+
+  // int32 block_id = 1;
+  void clear_block_id();
+  int32_t block_id() const;
+  void set_block_id(int32_t value);
+  private:
+  int32_t _internal_block_id() const;
+  void _internal_set_block_id(int32_t value);
+  public:
+
+  // int32 datanode_port = 4;
+  void clear_datanode_port();
+  int32_t datanode_port() const;
+  void set_datanode_port(int32_t value);
+  private:
+  int32_t _internal_datanode_port() const;
+  void _internal_set_datanode_port(int32_t value);
+  public:
+
+  // uint64 offset = 5;
+  void clear_offset();
+  uint64_t offset() const;
+  void set_offset(uint64_t value);
+  private:
+  uint64_t _internal_offset() const;
+  void _internal_set_offset(uint64_t value);
+  public:
+
+  // uint64 length = 6;
+  void clear_length();
+  uint64_t length() const;
+  void set_length(uint64_t value);
+  private:
+  uint64_t _internal_length() const;
+  void _internal_set_length(uint64_t value);
+  public:
+
+  // uint64 payload_offset = 7;
+  void clear_payload_offset();
+  uint64_t payload_offset() const;
+  void set_payload_offset(uint64_t value);
+  private:
+  uint64_t _internal_payload_offset() const;
+  void _internal_set_payload_offset(uint64_t value);
+  public:
+
+  // .proxy_proto.InitialRangeSliceType type = 8;
+  void clear_type();
+  ::proxy_proto::InitialRangeSliceType type() const;
+  void set_type(::proxy_proto::InitialRangeSliceType value);
+  private:
+  ::proxy_proto::InitialRangeSliceType _internal_type() const;
+  void _internal_set_type(::proxy_proto::InitialRangeSliceType value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.InitialRangeWriteSlice)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr block_key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr datanode_ip_;
+    int32_t block_id_;
+    int32_t datanode_port_;
+    uint64_t offset_;
+    uint64_t length_;
+    uint64_t payload_offset_;
+    int type_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
+class InitialRangeWritePlacement final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.InitialRangeWritePlacement) */ {
+ public:
+  inline InitialRangeWritePlacement() : InitialRangeWritePlacement(nullptr) {}
+  ~InitialRangeWritePlacement() override;
+  explicit PROTOBUF_CONSTEXPR InitialRangeWritePlacement(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  InitialRangeWritePlacement(const InitialRangeWritePlacement& from);
+  InitialRangeWritePlacement(InitialRangeWritePlacement&& from) noexcept
+    : InitialRangeWritePlacement() {
+    *this = ::std::move(from);
+  }
+
+  inline InitialRangeWritePlacement& operator=(const InitialRangeWritePlacement& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline InitialRangeWritePlacement& operator=(InitialRangeWritePlacement&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const InitialRangeWritePlacement& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const InitialRangeWritePlacement* internal_default_instance() {
+    return reinterpret_cast<const InitialRangeWritePlacement*>(
+               &_InitialRangeWritePlacement_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    21;
+
+  friend void swap(InitialRangeWritePlacement& a, InitialRangeWritePlacement& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(InitialRangeWritePlacement* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(InitialRangeWritePlacement* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  InitialRangeWritePlacement* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<InitialRangeWritePlacement>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const InitialRangeWritePlacement& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const InitialRangeWritePlacement& from) {
+    InitialRangeWritePlacement::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(InitialRangeWritePlacement* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proxy_proto.InitialRangeWritePlacement";
+  }
+  protected:
+  explicit InitialRangeWritePlacement(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kSlicesFieldNumber = 6,
+    kKeyFieldNumber = 1,
+    kProxyIpFieldNumber = 3,
+    kClusterIdFieldNumber = 2,
+    kProxyDataPortFieldNumber = 4,
+    kPayloadSizeFieldNumber = 5,
+    kTransferTagFieldNumber = 8,
+    kStripeIdFieldNumber = 7,
+  };
+  // repeated .proxy_proto.InitialRangeWriteSlice slices = 6;
+  int slices_size() const;
+  private:
+  int _internal_slices_size() const;
+  public:
+  void clear_slices();
+  ::proxy_proto::InitialRangeWriteSlice* mutable_slices(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::InitialRangeWriteSlice >*
+      mutable_slices();
+  private:
+  const ::proxy_proto::InitialRangeWriteSlice& _internal_slices(int index) const;
+  ::proxy_proto::InitialRangeWriteSlice* _internal_add_slices();
+  public:
+  const ::proxy_proto::InitialRangeWriteSlice& slices(int index) const;
+  ::proxy_proto::InitialRangeWriteSlice* add_slices();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::InitialRangeWriteSlice >&
+      slices() const;
+
+  // string key = 1;
+  void clear_key();
+  const std::string& key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_key();
+  PROTOBUF_NODISCARD std::string* release_key();
+  void set_allocated_key(std::string* key);
+  private:
+  const std::string& _internal_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_key(const std::string& value);
+  std::string* _internal_mutable_key();
+  public:
+
+  // string proxy_ip = 3;
+  void clear_proxy_ip();
+  const std::string& proxy_ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_proxy_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_proxy_ip();
+  PROTOBUF_NODISCARD std::string* release_proxy_ip();
+  void set_allocated_proxy_ip(std::string* proxy_ip);
+  private:
+  const std::string& _internal_proxy_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_proxy_ip(const std::string& value);
+  std::string* _internal_mutable_proxy_ip();
+  public:
+
+  // int32 cluster_id = 2;
+  void clear_cluster_id();
+  int32_t cluster_id() const;
+  void set_cluster_id(int32_t value);
+  private:
+  int32_t _internal_cluster_id() const;
+  void _internal_set_cluster_id(int32_t value);
+  public:
+
+  // int32 proxy_data_port = 4;
+  void clear_proxy_data_port();
+  int32_t proxy_data_port() const;
+  void set_proxy_data_port(int32_t value);
+  private:
+  int32_t _internal_proxy_data_port() const;
+  void _internal_set_proxy_data_port(int32_t value);
+  public:
+
+  // uint64 payload_size = 5;
+  void clear_payload_size();
+  uint64_t payload_size() const;
+  void set_payload_size(uint64_t value);
+  private:
+  uint64_t _internal_payload_size() const;
+  void _internal_set_payload_size(uint64_t value);
+  public:
+
+  // uint64 transfer_tag = 8;
+  void clear_transfer_tag();
+  uint64_t transfer_tag() const;
+  void set_transfer_tag(uint64_t value);
+  private:
+  uint64_t _internal_transfer_tag() const;
+  void _internal_set_transfer_tag(uint64_t value);
+  public:
+
+  // int32 stripe_id = 7;
+  void clear_stripe_id();
+  int32_t stripe_id() const;
+  void set_stripe_id(int32_t value);
+  private:
+  int32_t _internal_stripe_id() const;
+  void _internal_set_stripe_id(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proxy_proto.InitialRangeWritePlacement)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::InitialRangeWriteSlice > slices_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr proxy_ip_;
+    int32_t cluster_id_;
+    int32_t proxy_data_port_;
+    uint64_t payload_size_;
+    uint64_t transfer_tag_;
+    int32_t stripe_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_proxy_2eproto;
+};
+// -------------------------------------------------------------------
+
 class CordTransferClusterEndpoint final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proxy_proto.CordTransferClusterEndpoint) */ {
  public:
@@ -5420,7 +5933,7 @@ class CordTransferClusterEndpoint final :
                &_CordTransferClusterEndpoint_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    22;
 
   friend void swap(CordTransferClusterEndpoint& a, CordTransferClusterEndpoint& b) {
     a.Swap(&b);
@@ -5595,7 +6108,7 @@ class CordTransferBlockPlacement final :
                &_CordTransferBlockPlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    23;
 
   friend void swap(CordTransferBlockPlacement& a, CordTransferBlockPlacement& b) {
     a.Swap(&b);
@@ -5786,7 +6299,7 @@ class CordTransferDeltaBlobRef final :
                &_CordTransferDeltaBlobRef_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    24;
 
   friend void swap(CordTransferDeltaBlobRef& a, CordTransferDeltaBlobRef& b) {
     a.Swap(&b);
@@ -5993,7 +6506,7 @@ class CordTransferGroupXorHint final :
                &_CordTransferGroupXorHint_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    25;
 
   friend void swap(CordTransferGroupXorHint& a, CordTransferGroupXorHint& b) {
     a.Swap(&b);
@@ -6152,7 +6665,7 @@ class CordTransferClusterDeltaLayout final :
                &_CordTransferClusterDeltaLayout_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    24;
+    26;
 
   friend void swap(CordTransferClusterDeltaLayout& a, CordTransferClusterDeltaLayout& b) {
     a.Swap(&b);
@@ -6375,7 +6888,7 @@ class CordTransferStep final :
                &_CordTransferStep_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    25;
+    27;
 
   friend void swap(CordTransferStep& a, CordTransferStep& b) {
     a.Swap(&b);
@@ -6722,7 +7235,7 @@ class CordBlockStripeGroup final :
                &_CordBlockStripeGroup_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    26;
+    28;
 
   friend void swap(CordBlockStripeGroup& a, CordBlockStripeGroup& b) {
     a.Swap(&b);
@@ -6881,7 +7394,7 @@ class CordBlockHalfOpenSeg final :
                &_CordBlockHalfOpenSeg_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    27;
+    29;
 
   friend void swap(CordBlockHalfOpenSeg& a, CordBlockHalfOpenSeg& b) {
     a.Swap(&b);
@@ -7051,7 +7564,7 @@ class CordTransferEncodeMeta final :
                &_CordTransferEncodeMeta_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    28;
+    30;
 
   friend void swap(CordTransferEncodeMeta& a, CordTransferEncodeMeta& b) {
     a.Swap(&b);
@@ -7254,7 +7767,7 @@ class CordCollectorIngressExpect final :
                &_CordCollectorIngressExpect_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    29;
+    31;
 
   friend void swap(CordCollectorIngressExpect& a, CordCollectorIngressExpect& b) {
     a.Swap(&b);
@@ -7463,7 +7976,7 @@ class CordDataStripDesc final :
                &_CordDataStripDesc_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    30;
+    32;
 
   friend void swap(CordDataStripDesc& a, CordDataStripDesc& b) {
     a.Swap(&b);
@@ -7633,7 +8146,7 @@ class CordPlanKeyMsg final :
                &_CordPlanKeyMsg_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    31;
+    33;
 
   friend void swap(CordPlanKeyMsg& a, CordPlanKeyMsg& b) {
     a.Swap(&b);
@@ -7786,7 +8299,7 @@ class CordTransferPlan final :
                &_CordTransferPlan_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    32;
+    34;
 
   friend void swap(CordTransferPlan& a, CordTransferPlan& b) {
     a.Swap(&b);
@@ -8203,7 +8716,7 @@ class CordPlanCollectorIngestReq final :
                &_CordPlanCollectorIngestReq_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    33;
+    35;
 
   friend void swap(CordPlanCollectorIngestReq& a, CordPlanCollectorIngestReq& b) {
     a.Swap(&b);
@@ -8427,7 +8940,7 @@ class CordPlanApplyParityXorReq final :
                &_CordPlanApplyParityXorReq_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    34;
+    36;
 
   friend void swap(CordPlanApplyParityXorReq& a, CordPlanApplyParityXorReq& b) {
     a.Swap(&b);
@@ -8672,7 +9185,7 @@ class CordPlanMstDataDeltaReq final :
                &_CordPlanMstDataDeltaReq_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    35;
+    37;
 
   friend void swap(CordPlanMstDataDeltaReq& a, CordPlanMstDataDeltaReq& b) {
     a.Swap(&b);
@@ -8950,7 +9463,7 @@ class CordDataUpdatePlacement final :
                &_CordDataUpdatePlacement_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    36;
+    38;
 
   friend void swap(CordDataUpdatePlacement& a, CordDataUpdatePlacement& b) {
     a.Swap(&b);
@@ -9331,7 +9844,7 @@ class CordLpDeltaFetch final :
                &_CordLpDeltaFetch_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    37;
+    39;
 
   friend void swap(CordLpDeltaFetch& a, CordLpDeltaFetch& b) {
     a.Swap(&b);
@@ -9544,7 +10057,7 @@ class CordLpWorkItem final :
                &_CordLpWorkItem_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    38;
+    40;
 
   friend void swap(CordLpWorkItem& a, CordLpWorkItem& b) {
     a.Swap(&b);
@@ -9777,7 +10290,7 @@ class CordLocalParityBundle final :
                &_CordLocalParityBundle_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    39;
+    41;
 
   friend void swap(CordLocalParityBundle& a, CordLocalParityBundle& b) {
     a.Swap(&b);
@@ -9961,7 +10474,7 @@ class CordLpHubSessionBegin final :
                &_CordLpHubSessionBegin_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    40;
+    42;
 
   friend void swap(CordLpHubSessionBegin& a, CordLpHubSessionBegin& b) {
     a.Swap(&b);
@@ -10250,7 +10763,7 @@ class CordLpHubPartialPush final :
                &_CordLpHubPartialPush_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    41;
+    43;
 
   friend void swap(CordLpHubPartialPush& a, CordLpHubPartialPush& b) {
     a.Swap(&b);
@@ -10419,7 +10932,7 @@ class CordLpComputePartialAndPush final :
                &_CordLpComputePartialAndPush_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    42;
+    44;
 
   friend void swap(CordLpComputePartialAndPush& a, CordLpComputePartialAndPush& b) {
     a.Swap(&b);
@@ -10673,7 +11186,7 @@ class CordLpParityApplyDelta final :
                &_CordLpParityApplyDelta_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    43;
+    45;
 
   friend void swap(CordLpParityApplyDelta& a, CordLpParityApplyDelta& b) {
     a.Swap(&b);
@@ -10913,7 +11426,7 @@ class SetReply final :
                &_SetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    44;
+    46;
 
   friend void swap(SetReply& a, SetReply& b) {
     a.Swap(&b);
@@ -11105,7 +11618,7 @@ class GetReply final :
                &_GetReply_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    45;
+    47;
 
   friend void swap(GetReply& a, GetReply& b) {
     a.Swap(&b);
@@ -11253,7 +11766,7 @@ class StripeAndBlockIDs final :
                &_StripeAndBlockIDs_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    46;
+    48;
 
   friend void swap(StripeAndBlockIDs& a, StripeAndBlockIDs& b) {
     a.Swap(&b);
@@ -16871,6 +17384,474 @@ inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
 AppendStripeDataPlacement::mutable_forward_cluster_ids() {
   // @@protoc_insertion_point(field_mutable_list:proxy_proto.AppendStripeDataPlacement.forward_cluster_ids)
   return _internal_mutable_forward_cluster_ids();
+}
+
+// -------------------------------------------------------------------
+
+// InitialRangeWriteSlice
+
+// int32 block_id = 1;
+inline void InitialRangeWriteSlice::clear_block_id() {
+  _impl_.block_id_ = 0;
+}
+inline int32_t InitialRangeWriteSlice::_internal_block_id() const {
+  return _impl_.block_id_;
+}
+inline int32_t InitialRangeWriteSlice::block_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWriteSlice.block_id)
+  return _internal_block_id();
+}
+inline void InitialRangeWriteSlice::_internal_set_block_id(int32_t value) {
+  
+  _impl_.block_id_ = value;
+}
+inline void InitialRangeWriteSlice::set_block_id(int32_t value) {
+  _internal_set_block_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWriteSlice.block_id)
+}
+
+// string block_key = 2;
+inline void InitialRangeWriteSlice::clear_block_key() {
+  _impl_.block_key_.ClearToEmpty();
+}
+inline const std::string& InitialRangeWriteSlice::block_key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWriteSlice.block_key)
+  return _internal_block_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void InitialRangeWriteSlice::set_block_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.block_key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWriteSlice.block_key)
+}
+inline std::string* InitialRangeWriteSlice::mutable_block_key() {
+  std::string* _s = _internal_mutable_block_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.InitialRangeWriteSlice.block_key)
+  return _s;
+}
+inline const std::string& InitialRangeWriteSlice::_internal_block_key() const {
+  return _impl_.block_key_.Get();
+}
+inline void InitialRangeWriteSlice::_internal_set_block_key(const std::string& value) {
+  
+  _impl_.block_key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* InitialRangeWriteSlice::_internal_mutable_block_key() {
+  
+  return _impl_.block_key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* InitialRangeWriteSlice::release_block_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.InitialRangeWriteSlice.block_key)
+  return _impl_.block_key_.Release();
+}
+inline void InitialRangeWriteSlice::set_allocated_block_key(std::string* block_key) {
+  if (block_key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.block_key_.SetAllocated(block_key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.block_key_.IsDefault()) {
+    _impl_.block_key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.InitialRangeWriteSlice.block_key)
+}
+
+// string datanode_ip = 3;
+inline void InitialRangeWriteSlice::clear_datanode_ip() {
+  _impl_.datanode_ip_.ClearToEmpty();
+}
+inline const std::string& InitialRangeWriteSlice::datanode_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWriteSlice.datanode_ip)
+  return _internal_datanode_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void InitialRangeWriteSlice::set_datanode_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.datanode_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWriteSlice.datanode_ip)
+}
+inline std::string* InitialRangeWriteSlice::mutable_datanode_ip() {
+  std::string* _s = _internal_mutable_datanode_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.InitialRangeWriteSlice.datanode_ip)
+  return _s;
+}
+inline const std::string& InitialRangeWriteSlice::_internal_datanode_ip() const {
+  return _impl_.datanode_ip_.Get();
+}
+inline void InitialRangeWriteSlice::_internal_set_datanode_ip(const std::string& value) {
+  
+  _impl_.datanode_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* InitialRangeWriteSlice::_internal_mutable_datanode_ip() {
+  
+  return _impl_.datanode_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* InitialRangeWriteSlice::release_datanode_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.InitialRangeWriteSlice.datanode_ip)
+  return _impl_.datanode_ip_.Release();
+}
+inline void InitialRangeWriteSlice::set_allocated_datanode_ip(std::string* datanode_ip) {
+  if (datanode_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.datanode_ip_.SetAllocated(datanode_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.datanode_ip_.IsDefault()) {
+    _impl_.datanode_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.InitialRangeWriteSlice.datanode_ip)
+}
+
+// int32 datanode_port = 4;
+inline void InitialRangeWriteSlice::clear_datanode_port() {
+  _impl_.datanode_port_ = 0;
+}
+inline int32_t InitialRangeWriteSlice::_internal_datanode_port() const {
+  return _impl_.datanode_port_;
+}
+inline int32_t InitialRangeWriteSlice::datanode_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWriteSlice.datanode_port)
+  return _internal_datanode_port();
+}
+inline void InitialRangeWriteSlice::_internal_set_datanode_port(int32_t value) {
+  
+  _impl_.datanode_port_ = value;
+}
+inline void InitialRangeWriteSlice::set_datanode_port(int32_t value) {
+  _internal_set_datanode_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWriteSlice.datanode_port)
+}
+
+// uint64 offset = 5;
+inline void InitialRangeWriteSlice::clear_offset() {
+  _impl_.offset_ = uint64_t{0u};
+}
+inline uint64_t InitialRangeWriteSlice::_internal_offset() const {
+  return _impl_.offset_;
+}
+inline uint64_t InitialRangeWriteSlice::offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWriteSlice.offset)
+  return _internal_offset();
+}
+inline void InitialRangeWriteSlice::_internal_set_offset(uint64_t value) {
+  
+  _impl_.offset_ = value;
+}
+inline void InitialRangeWriteSlice::set_offset(uint64_t value) {
+  _internal_set_offset(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWriteSlice.offset)
+}
+
+// uint64 length = 6;
+inline void InitialRangeWriteSlice::clear_length() {
+  _impl_.length_ = uint64_t{0u};
+}
+inline uint64_t InitialRangeWriteSlice::_internal_length() const {
+  return _impl_.length_;
+}
+inline uint64_t InitialRangeWriteSlice::length() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWriteSlice.length)
+  return _internal_length();
+}
+inline void InitialRangeWriteSlice::_internal_set_length(uint64_t value) {
+  
+  _impl_.length_ = value;
+}
+inline void InitialRangeWriteSlice::set_length(uint64_t value) {
+  _internal_set_length(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWriteSlice.length)
+}
+
+// uint64 payload_offset = 7;
+inline void InitialRangeWriteSlice::clear_payload_offset() {
+  _impl_.payload_offset_ = uint64_t{0u};
+}
+inline uint64_t InitialRangeWriteSlice::_internal_payload_offset() const {
+  return _impl_.payload_offset_;
+}
+inline uint64_t InitialRangeWriteSlice::payload_offset() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWriteSlice.payload_offset)
+  return _internal_payload_offset();
+}
+inline void InitialRangeWriteSlice::_internal_set_payload_offset(uint64_t value) {
+  
+  _impl_.payload_offset_ = value;
+}
+inline void InitialRangeWriteSlice::set_payload_offset(uint64_t value) {
+  _internal_set_payload_offset(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWriteSlice.payload_offset)
+}
+
+// .proxy_proto.InitialRangeSliceType type = 8;
+inline void InitialRangeWriteSlice::clear_type() {
+  _impl_.type_ = 0;
+}
+inline ::proxy_proto::InitialRangeSliceType InitialRangeWriteSlice::_internal_type() const {
+  return static_cast< ::proxy_proto::InitialRangeSliceType >(_impl_.type_);
+}
+inline ::proxy_proto::InitialRangeSliceType InitialRangeWriteSlice::type() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWriteSlice.type)
+  return _internal_type();
+}
+inline void InitialRangeWriteSlice::_internal_set_type(::proxy_proto::InitialRangeSliceType value) {
+  
+  _impl_.type_ = value;
+}
+inline void InitialRangeWriteSlice::set_type(::proxy_proto::InitialRangeSliceType value) {
+  _internal_set_type(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWriteSlice.type)
+}
+
+// -------------------------------------------------------------------
+
+// InitialRangeWritePlacement
+
+// string key = 1;
+inline void InitialRangeWritePlacement::clear_key() {
+  _impl_.key_.ClearToEmpty();
+}
+inline const std::string& InitialRangeWritePlacement::key() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWritePlacement.key)
+  return _internal_key();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void InitialRangeWritePlacement::set_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWritePlacement.key)
+}
+inline std::string* InitialRangeWritePlacement::mutable_key() {
+  std::string* _s = _internal_mutable_key();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.InitialRangeWritePlacement.key)
+  return _s;
+}
+inline const std::string& InitialRangeWritePlacement::_internal_key() const {
+  return _impl_.key_.Get();
+}
+inline void InitialRangeWritePlacement::_internal_set_key(const std::string& value) {
+  
+  _impl_.key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* InitialRangeWritePlacement::_internal_mutable_key() {
+  
+  return _impl_.key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* InitialRangeWritePlacement::release_key() {
+  // @@protoc_insertion_point(field_release:proxy_proto.InitialRangeWritePlacement.key)
+  return _impl_.key_.Release();
+}
+inline void InitialRangeWritePlacement::set_allocated_key(std::string* key) {
+  if (key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.key_.SetAllocated(key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.key_.IsDefault()) {
+    _impl_.key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.InitialRangeWritePlacement.key)
+}
+
+// int32 cluster_id = 2;
+inline void InitialRangeWritePlacement::clear_cluster_id() {
+  _impl_.cluster_id_ = 0;
+}
+inline int32_t InitialRangeWritePlacement::_internal_cluster_id() const {
+  return _impl_.cluster_id_;
+}
+inline int32_t InitialRangeWritePlacement::cluster_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWritePlacement.cluster_id)
+  return _internal_cluster_id();
+}
+inline void InitialRangeWritePlacement::_internal_set_cluster_id(int32_t value) {
+  
+  _impl_.cluster_id_ = value;
+}
+inline void InitialRangeWritePlacement::set_cluster_id(int32_t value) {
+  _internal_set_cluster_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWritePlacement.cluster_id)
+}
+
+// string proxy_ip = 3;
+inline void InitialRangeWritePlacement::clear_proxy_ip() {
+  _impl_.proxy_ip_.ClearToEmpty();
+}
+inline const std::string& InitialRangeWritePlacement::proxy_ip() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWritePlacement.proxy_ip)
+  return _internal_proxy_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void InitialRangeWritePlacement::set_proxy_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.proxy_ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWritePlacement.proxy_ip)
+}
+inline std::string* InitialRangeWritePlacement::mutable_proxy_ip() {
+  std::string* _s = _internal_mutable_proxy_ip();
+  // @@protoc_insertion_point(field_mutable:proxy_proto.InitialRangeWritePlacement.proxy_ip)
+  return _s;
+}
+inline const std::string& InitialRangeWritePlacement::_internal_proxy_ip() const {
+  return _impl_.proxy_ip_.Get();
+}
+inline void InitialRangeWritePlacement::_internal_set_proxy_ip(const std::string& value) {
+  
+  _impl_.proxy_ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* InitialRangeWritePlacement::_internal_mutable_proxy_ip() {
+  
+  return _impl_.proxy_ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* InitialRangeWritePlacement::release_proxy_ip() {
+  // @@protoc_insertion_point(field_release:proxy_proto.InitialRangeWritePlacement.proxy_ip)
+  return _impl_.proxy_ip_.Release();
+}
+inline void InitialRangeWritePlacement::set_allocated_proxy_ip(std::string* proxy_ip) {
+  if (proxy_ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.proxy_ip_.SetAllocated(proxy_ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.proxy_ip_.IsDefault()) {
+    _impl_.proxy_ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proxy_proto.InitialRangeWritePlacement.proxy_ip)
+}
+
+// int32 proxy_data_port = 4;
+inline void InitialRangeWritePlacement::clear_proxy_data_port() {
+  _impl_.proxy_data_port_ = 0;
+}
+inline int32_t InitialRangeWritePlacement::_internal_proxy_data_port() const {
+  return _impl_.proxy_data_port_;
+}
+inline int32_t InitialRangeWritePlacement::proxy_data_port() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWritePlacement.proxy_data_port)
+  return _internal_proxy_data_port();
+}
+inline void InitialRangeWritePlacement::_internal_set_proxy_data_port(int32_t value) {
+  
+  _impl_.proxy_data_port_ = value;
+}
+inline void InitialRangeWritePlacement::set_proxy_data_port(int32_t value) {
+  _internal_set_proxy_data_port(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWritePlacement.proxy_data_port)
+}
+
+// uint64 payload_size = 5;
+inline void InitialRangeWritePlacement::clear_payload_size() {
+  _impl_.payload_size_ = uint64_t{0u};
+}
+inline uint64_t InitialRangeWritePlacement::_internal_payload_size() const {
+  return _impl_.payload_size_;
+}
+inline uint64_t InitialRangeWritePlacement::payload_size() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWritePlacement.payload_size)
+  return _internal_payload_size();
+}
+inline void InitialRangeWritePlacement::_internal_set_payload_size(uint64_t value) {
+  
+  _impl_.payload_size_ = value;
+}
+inline void InitialRangeWritePlacement::set_payload_size(uint64_t value) {
+  _internal_set_payload_size(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWritePlacement.payload_size)
+}
+
+// repeated .proxy_proto.InitialRangeWriteSlice slices = 6;
+inline int InitialRangeWritePlacement::_internal_slices_size() const {
+  return _impl_.slices_.size();
+}
+inline int InitialRangeWritePlacement::slices_size() const {
+  return _internal_slices_size();
+}
+inline void InitialRangeWritePlacement::clear_slices() {
+  _impl_.slices_.Clear();
+}
+inline ::proxy_proto::InitialRangeWriteSlice* InitialRangeWritePlacement::mutable_slices(int index) {
+  // @@protoc_insertion_point(field_mutable:proxy_proto.InitialRangeWritePlacement.slices)
+  return _impl_.slices_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::InitialRangeWriteSlice >*
+InitialRangeWritePlacement::mutable_slices() {
+  // @@protoc_insertion_point(field_mutable_list:proxy_proto.InitialRangeWritePlacement.slices)
+  return &_impl_.slices_;
+}
+inline const ::proxy_proto::InitialRangeWriteSlice& InitialRangeWritePlacement::_internal_slices(int index) const {
+  return _impl_.slices_.Get(index);
+}
+inline const ::proxy_proto::InitialRangeWriteSlice& InitialRangeWritePlacement::slices(int index) const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWritePlacement.slices)
+  return _internal_slices(index);
+}
+inline ::proxy_proto::InitialRangeWriteSlice* InitialRangeWritePlacement::_internal_add_slices() {
+  return _impl_.slices_.Add();
+}
+inline ::proxy_proto::InitialRangeWriteSlice* InitialRangeWritePlacement::add_slices() {
+  ::proxy_proto::InitialRangeWriteSlice* _add = _internal_add_slices();
+  // @@protoc_insertion_point(field_add:proxy_proto.InitialRangeWritePlacement.slices)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::proxy_proto::InitialRangeWriteSlice >&
+InitialRangeWritePlacement::slices() const {
+  // @@protoc_insertion_point(field_list:proxy_proto.InitialRangeWritePlacement.slices)
+  return _impl_.slices_;
+}
+
+// int32 stripe_id = 7;
+inline void InitialRangeWritePlacement::clear_stripe_id() {
+  _impl_.stripe_id_ = 0;
+}
+inline int32_t InitialRangeWritePlacement::_internal_stripe_id() const {
+  return _impl_.stripe_id_;
+}
+inline int32_t InitialRangeWritePlacement::stripe_id() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWritePlacement.stripe_id)
+  return _internal_stripe_id();
+}
+inline void InitialRangeWritePlacement::_internal_set_stripe_id(int32_t value) {
+  
+  _impl_.stripe_id_ = value;
+}
+inline void InitialRangeWritePlacement::set_stripe_id(int32_t value) {
+  _internal_set_stripe_id(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWritePlacement.stripe_id)
+}
+
+// uint64 transfer_tag = 8;
+inline void InitialRangeWritePlacement::clear_transfer_tag() {
+  _impl_.transfer_tag_ = uint64_t{0u};
+}
+inline uint64_t InitialRangeWritePlacement::_internal_transfer_tag() const {
+  return _impl_.transfer_tag_;
+}
+inline uint64_t InitialRangeWritePlacement::transfer_tag() const {
+  // @@protoc_insertion_point(field_get:proxy_proto.InitialRangeWritePlacement.transfer_tag)
+  return _internal_transfer_tag();
+}
+inline void InitialRangeWritePlacement::_internal_set_transfer_tag(uint64_t value) {
+  
+  _impl_.transfer_tag_ = value;
+}
+inline void InitialRangeWritePlacement::set_transfer_tag(uint64_t value) {
+  _internal_set_transfer_tag(value);
+  // @@protoc_insertion_point(field_set:proxy_proto.InitialRangeWritePlacement.transfer_tag)
 }
 
 // -------------------------------------------------------------------
@@ -22546,6 +23527,10 @@ StripeAndBlockIDs::mutable_datanodeports() {
 
 // -------------------------------------------------------------------
 
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -22553,6 +23538,11 @@ StripeAndBlockIDs::mutable_datanodeports() {
 
 PROTOBUF_NAMESPACE_OPEN
 
+template <> struct is_proto_enum< ::proxy_proto::InitialRangeSliceType> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::proxy_proto::InitialRangeSliceType>() {
+  return ::proxy_proto::InitialRangeSliceType_descriptor();
+}
 template <> struct is_proto_enum< ::proxy_proto::CordTransferLinkKind> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::proxy_proto::CordTransferLinkKind>() {

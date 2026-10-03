@@ -95,6 +95,7 @@ message CordRangeRWInfo {
     int32 range_length = 4;
     string proxy_ip = 5;
     int32 proxy_port = 6;
+    uint64 logical_block_size = 7;
 }
 
 message CordDeltaBlobInfo {

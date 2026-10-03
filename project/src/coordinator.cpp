@@ -768,8 +768,12 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     setParameterReply->set_ifsetparameter(true);
     m_cur_cluster_id = 0;
     m_cur_stripe_id = 0;
-    m_object_commit_table.clear();
-    m_object_updating_table.clear();
+    {
+      std::lock_guard<std::mutex> lock(m_mutex);
+      m_object_commit_table.clear();
+      m_object_updating_table.clear();
+      m_object_abort_table.clear();
+    }
     m_stripe_deleting_table.clear();
     for (auto it = m_cluster_table.begin(); it != m_cluster_table.end(); it++)
     {
@@ -810,6 +814,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     std::string key = keyValueSize->key();
     m_mutex.lock();
     m_object_commit_table.erase(key);
+    m_object_abort_table.erase(key);
     m_mutex.unlock();
     int valuesizebytes = keyValueSize->valuesizebytes();
 
@@ -1758,6 +1763,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     if (status.ok())
     {
       m_mutex.lock();
+      m_object_abort_table.erase(plan.key());
       m_object_updating_table[plan.key()] =
           ObjectInfo(static_cast<int>(plan.update_payload_size()), plan.stripe_id());
       m_mutex.unlock();
@@ -2004,6 +2010,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     if (status.ok())
     {
       m_mutex.lock();
+      m_object_abort_table.erase(plan.key());
       m_object_updating_table[plan.key()] = ObjectInfo(plan.append_size(), plan.stripe_id());
       m_mutex.unlock();
     }
@@ -2097,6 +2104,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       m_mutex.lock();
       m_object_commit_table.erase(plan.key());
+      m_object_abort_table.erase(plan.key());
       m_mutex.unlock();
     }
 
@@ -2415,6 +2423,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
 
       m_mutex.lock();
       m_object_commit_table.erase(plan.key());
+      m_object_abort_table.erase(plan.key());
       m_mutex.unlock();
 
       notify_jobs.push_back(std::move(job));
@@ -3185,6 +3194,282 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     }
   }
 
+  bool CoordinatorImpl::initialize_stripe_placement_for_code(Stripe *stripe, std::string *error)
+  {
+    try
+    {
+      const std::string &code_type = m_sys_config->CodeType;
+      if (code_type == "UniLRC" || code_type == "AzureLRC")
+        initialize_unilrc_and_azurelrc_stripe_placement(stripe);
+      else if (code_type == "OptimalLRC")
+        initialize_optimal_lrc_stripe_placement(stripe);
+      else if (code_type == "UniformLRC")
+        initialize_uniform_lrc_stripe_placement(stripe);
+      else if (code_type == "RandomLRC")
+        initialize_random_lrc_stripe_placement(stripe);
+      else if (code_type == "SplitParityLRC")
+        initialize_split_parity_lrc_stripe_placement(stripe);
+      else if (code_type == "CordXueLRC")
+        initialize_cord_xue_lrc_stripe_placement(stripe);
+      else
+      {
+        if (error)
+          *error = "unsupported code type: " + code_type;
+        return false;
+      }
+    }
+    catch (const std::exception &e)
+    {
+      if (error)
+        *error = e.what();
+      return false;
+    }
+    return true;
+  }
+
+  grpc::Status CoordinatorImpl::uploadInitialRangeSet(
+      grpc::ServerContext *context,
+      const coordinator_proto::InitialRangeSetRequest *request,
+      coordinator_proto::InitialRangeSetReply *reply)
+  {
+    (void)context;
+    reply->Clear();
+    if (request == nullptr || request->stripe_id() < 0)
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "stripe_id must be explicitly specified and non-negative");
+    if (request->ranges_size() == 0)
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "ranges must not be empty");
+    if (m_sys_config == nullptr || m_sys_config->BlockSize <= 0 || m_sys_config->k <= 0 ||
+        m_sys_config->r < 0 || m_sys_config->z <= 0 ||
+        m_sys_config->n != m_sys_config->k + m_sys_config->r + m_sys_config->z)
+      return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, "invalid coordinator configuration");
+
+    using Interval = std::pair<uint64_t, uint64_t>;
+    const uint64_t block_size = static_cast<uint64_t>(m_sys_config->BlockSize);
+    const uint64_t stripe_size = block_size * static_cast<uint64_t>(m_sys_config->k);
+    std::vector<Interval> logical;
+    logical.reserve(static_cast<size_t>(request->ranges_size()));
+    for (const auto &range : request->ranges())
+    {
+      const uint64_t lo = range.logical_offset_start();
+      const uint64_t hi = range.logical_offset_end();
+      if (lo >= hi || hi > stripe_size)
+        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "each range must be a non-empty half-open interval within the stripe");
+      logical.emplace_back(lo, hi);
+    }
+    std::sort(logical.begin(), logical.end());
+    std::vector<Interval> merged_logical;
+    for (const Interval &seg : logical)
+    {
+      if (merged_logical.empty() || seg.first > merged_logical.back().second)
+        merged_logical.push_back(seg);
+      else
+        merged_logical.back().second = std::max(merged_logical.back().second, seg.second);
+    }
+
+    std::map<int, std::vector<Interval>> data_intervals;
+    uint64_t logical_data_bytes = 0;
+    for (const Interval &seg : merged_logical)
+    {
+      logical_data_bytes += seg.second - seg.first;
+      uint64_t pos = seg.first;
+      while (pos < seg.second)
+      {
+        const int block_id = static_cast<int>(pos / block_size);
+        const uint64_t offset = pos % block_size;
+        const uint64_t length = std::min(seg.second - pos, block_size - offset);
+        data_intervals[block_id].emplace_back(offset, offset + length);
+        pos += length;
+      }
+    }
+    auto merge_intervals = [](std::vector<Interval> intervals) {
+      std::sort(intervals.begin(), intervals.end());
+      std::vector<Interval> result;
+      for (const Interval &seg : intervals)
+      {
+        if (result.empty() || seg.first > result.back().second)
+          result.push_back(seg);
+        else
+          result.back().second = std::max(result.back().second, seg.second);
+      }
+      return result;
+    };
+    for (auto &entry : data_intervals)
+      entry.second = merge_intervals(std::move(entry.second));
+
+    std::vector<Interval> projection;
+    for (const auto &entry : data_intervals)
+      projection.insert(projection.end(), entry.second.begin(), entry.second.end());
+    projection = merge_intervals(std::move(projection));
+
+    const int stripe_id = request->stripe_id();
+    Stripe stripe;
+    std::map<int, std::vector<proxy_proto::InitialRangeWriteSlice>> cluster_slices;
+    {
+      std::lock_guard<std::mutex> create_lock(m_stripe_create_mutex);
+      if (m_stripe_table.find(stripe_id) != m_stripe_table.end())
+        return grpc::Status(grpc::StatusCode::ALREADY_EXISTS, "stripe_id already exists");
+
+      stripe.stripe_id = stripe_id;
+      stripe.n = m_sys_config->n;
+      stripe.k = m_sys_config->k;
+      stripe.r = m_sys_config->r;
+      stripe.z = m_sys_config->z;
+      stripe.g_m = m_sys_config->r;
+      stripe.l = m_sys_config->z;
+      stripe.object_keys.push_back(std::to_string(stripe_id));
+      std::string placement_error;
+      if (!initialize_stripe_placement_for_code(&stripe, &placement_error))
+        return grpc::Status(grpc::StatusCode::INTERNAL, "stripe placement failed: " + placement_error);
+
+      std::vector<unsigned char> matrix(static_cast<size_t>(stripe.n) * static_cast<size_t>(stripe.k), 0);
+      const std::string &code_type = m_sys_config->CodeType;
+      if (code_type == "UniLRC")
+        gen_unilrc_matrix(matrix.data(), stripe.k, stripe.r, stripe.z);
+      else if (code_type == "OptimalLRC")
+        gen_optimal_lrc_matrix(matrix.data(), stripe.k, stripe.r, stripe.z);
+      else if (code_type == "UniformLRC")
+        gen_uniform_lrc_matrix(matrix.data(), stripe.k, stripe.r, stripe.z);
+      else
+        gen_azure_lrc_matrix(matrix.data(), stripe.k, stripe.r, stripe.z);
+
+      auto add_slice = [&](int block_id, const Interval &seg, proxy_proto::InitialRangeSliceType proxy_type) {
+        Block *block = stripe.blocks.at(static_cast<size_t>(block_id));
+        const Node &node = m_node_table.at(block->map2node);
+        proxy_proto::InitialRangeWriteSlice slice;
+        slice.set_block_id(block_id);
+        slice.set_block_key(block->block_key);
+        slice.set_datanode_ip(node.node_ip);
+        slice.set_datanode_port(node.node_port);
+        slice.set_offset(seg.first);
+        slice.set_length(seg.second - seg.first);
+        slice.set_type(proxy_type);
+        cluster_slices[block->map2cluster].push_back(std::move(slice));
+      };
+
+      for (const auto &entry : data_intervals)
+        for (const Interval &seg : entry.second)
+          add_slice(entry.first, seg, proxy_proto::DATA);
+      for (const Interval &q : projection)
+      {
+        for (int parity = 0; parity < stripe.r; ++parity)
+          add_slice(stripe.k + parity, q, proxy_proto::GLOBAL_PARITY);
+        for (int local = 0; local < stripe.z; ++local)
+        {
+          bool affected = false;
+          const int matrix_row = stripe.k + stripe.r + local;
+          for (const auto &entry : data_intervals)
+          {
+            if (matrix[static_cast<size_t>(matrix_row) * stripe.k + entry.first] == 0)
+              continue;
+            for (const Interval &data_seg : entry.second)
+              if (std::max(q.first, data_seg.first) < std::min(q.second, data_seg.second))
+              {
+                affected = true;
+                break;
+              }
+            if (affected)
+              break;
+          }
+          if (affected)
+            add_slice(matrix_row, q, proxy_proto::LOCAL_PARITY);
+        }
+      }
+
+      m_cur_stripe_id = std::max(m_cur_stripe_id, stripe_id + 1);
+      m_stripe_table[stripe_id] = stripe;
+    }
+
+    std::vector<proxy_proto::InitialRangeWritePlacement> proxy_plans;
+    uint64_t data_slice_bytes = 0;
+    uint64_t parity_slice_bytes = 0;
+    for (auto &cluster_entry : cluster_slices)
+    {
+      const int cluster_id = cluster_entry.first;
+      auto &slices = cluster_entry.second;
+      std::stable_sort(slices.begin(), slices.end(), [](const auto &a, const auto &b) {
+        return std::make_tuple(a.block_id(), a.offset()) < std::make_tuple(b.block_id(), b.offset());
+      });
+      proxy_proto::InitialRangeWritePlacement proxy_plan;
+      const Cluster &cluster = m_cluster_table.at(cluster_id);
+      const std::string plan_key = std::to_string(stripe_id) + "_initial_" + std::to_string(cluster_id);
+      proxy_plan.set_key(plan_key);
+      proxy_plan.set_cluster_id(cluster_id);
+      proxy_plan.set_proxy_ip(cluster.proxy_ip);
+      proxy_plan.set_proxy_data_port(cluster.proxy_port + ECProject::PROXY_PORT_SHIFT);
+      proxy_plan.set_stripe_id(stripe_id);
+      const uint64_t transfer_tag =
+          (static_cast<uint64_t>(static_cast<uint32_t>(stripe_id)) << 32) |
+          (static_cast<uint64_t>(static_cast<uint32_t>(cluster_id)) + 1ULL);
+      if (transfer_tag == 0)
+        return grpc::Status(grpc::StatusCode::INTERNAL, "failed to allocate nonzero transfer tag");
+      proxy_plan.set_transfer_tag(transfer_tag);
+      uint64_t payload_offset = 0;
+      for (auto &slice : slices)
+      {
+        slice.set_payload_offset(payload_offset);
+        payload_offset += slice.length();
+        if (slice.type() == proxy_proto::DATA)
+          data_slice_bytes += slice.length();
+        else
+          parity_slice_bytes += slice.length();
+        *proxy_plan.add_slices() = slice;
+      }
+      proxy_plan.set_payload_size(payload_offset);
+      proxy_plans.push_back(proxy_plan);
+
+      auto *reply_plan = reply->add_cluster_plans();
+      reply_plan->set_key(plan_key);
+      reply_plan->set_cluster_id(cluster_id);
+      reply_plan->set_proxy_ip(cluster.proxy_ip);
+      reply_plan->set_proxy_data_port(cluster.proxy_port + ECProject::PROXY_PORT_SHIFT);
+      reply_plan->set_payload_size(payload_offset);
+      reply_plan->set_transfer_tag(transfer_tag);
+      for (const auto &slice : slices)
+      {
+        auto *out = reply_plan->add_slices();
+        out->set_block_id(slice.block_id());
+        out->set_block_key(slice.block_key());
+        out->set_datanode_ip(slice.datanode_ip());
+        out->set_datanode_port(slice.datanode_port());
+        out->set_offset(slice.offset());
+        out->set_length(slice.length());
+        out->set_payload_offset(slice.payload_offset());
+        out->set_type(static_cast<coordinator_proto::InitialRangeSliceType>(slice.type()));
+      }
+    }
+    reply->set_logical_data_bytes(logical_data_bytes);
+    reply->set_data_slice_bytes(data_slice_bytes);
+    reply->set_parity_slice_bytes(parity_slice_bytes);
+
+    {
+      std::lock_guard<std::mutex> lock(m_mutex);
+      for (const auto &plan : proxy_plans)
+      {
+        m_object_commit_table.erase(plan.key());
+        m_object_abort_table.erase(plan.key());
+        m_object_updating_table[plan.key()] = ObjectInfo(static_cast<int>(plan.payload_size()), stripe_id);
+      }
+    }
+
+    for (const auto &plan : proxy_plans)
+    {
+      const Cluster &cluster = m_cluster_table.at(plan.cluster_id());
+      const std::string proxy_address = cluster.proxy_ip + ":" + std::to_string(cluster.proxy_port);
+      auto stub = m_proxy_ptrs.find(proxy_address);
+      if (stub == m_proxy_ptrs.end() || !stub->second)
+        return grpc::Status(grpc::StatusCode::UNAVAILABLE, "proxy stub not found for cluster " + std::to_string(plan.cluster_id()));
+      grpc::ClientContext proxy_context;
+      proxy_proto::SetReply proxy_reply;
+      grpc::Status status = stub->second->scheduleInitialRangeWrite(&proxy_context, plan, &proxy_reply);
+      if (!status.ok() || !proxy_reply.ifcommit())
+      {
+        const std::string message = status.ok() ? "proxy rejected initial range write" : status.error_message();
+        return grpc::Status(grpc::StatusCode::UNAVAILABLE, "scheduleInitialRangeWrite failed: " + message);
+      }
+    }
+    return grpc::Status::OK;
+  }
+
   // set only the full block stripe
   grpc::Status CoordinatorImpl::uploadSetValue(
       grpc::ServerContext *context,
@@ -3238,6 +3523,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       m_mutex.lock();
       m_object_commit_table.erase(plan.key());
+      m_object_abort_table.erase(plan.key());
       m_mutex.unlock();
     }
 
@@ -3267,7 +3553,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       proxyIPPort->add_cluster_slice_sizes(plan.append_size());
       for (int j = 0; j < plan.blockids_size(); ++j)
       {
-        proxyIPPort->add_blockids(plan.blockids(j));
+        proxyIPPort->add_slice_block_ids(plan.blockids(j));
       }
       sum_append_size += plan.append_size();
     }
@@ -3330,6 +3616,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     {
       m_mutex.lock();
       m_object_commit_table.erase(plan.key());
+      m_object_abort_table.erase(plan.key());
       m_mutex.unlock();
     }
 
@@ -3359,7 +3646,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       proxyIPPort->add_cluster_slice_sizes(plan.append_size());
       for (int j = 0; j < plan.blockids_size(); ++j)
       {
-        proxyIPPort->add_blockids(plan.blockids(j));
+        proxyIPPort->add_slice_block_ids(plan.blockids(j));
       }
       sum_append_size += plan.append_size();
     }
@@ -5370,6 +5657,7 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       {
         if (opp == SET || opp == APPEND || opp == CORD_UPDATE)
         {
+          m_object_abort_table.erase(key);
           m_object_commit_table[key] = m_object_updating_table[key];
           cv.notify_all();
           m_object_updating_table.erase(key);
@@ -5501,6 +5789,8 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
       else
       {
         m_object_updating_table.erase(key);
+        m_object_abort_table.insert(key);
+        cv.notify_all();
       }
     }
     catch (std::exception &e)
@@ -5522,9 +5812,15 @@ namespace ECProject  //定义一个名为 ECProject 的命名空间，防止命�
     int stripe_id = key_opp->stripe_id();
     if (opp == SET || opp == APPEND || opp == CORD_UPDATE)
     {
-      while (m_object_commit_table.find(key) == m_object_commit_table.end())
+      while (m_object_commit_table.find(key) == m_object_commit_table.end() &&
+             m_object_abort_table.find(key) == m_object_abort_table.end())
       {
         cv.wait(lck);
+      }
+      if (m_object_abort_table.erase(key) > 0)
+      {
+        reply->set_ifcommit(false);
+        return grpc::Status::OK;
       }
     }
     else if (opp == DEL)

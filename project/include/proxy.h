@@ -66,6 +66,10 @@ namespace ECProject
         grpc::ServerContext *context,
         const proxy_proto::AppendStripeDataPlacement *append_stripe_data_placement,
         proxy_proto::SetReply *response) override;
+    grpc::Status scheduleInitialRangeWrite(
+        grpc::ServerContext *context,
+        const proxy_proto::InitialRangeWritePlacement *placement,
+        proxy_proto::SetReply *response) override;
     grpc::Status scheduleCordDataUpdate(
         grpc::ServerContext *context,
         const proxy_proto::CordDataUpdatePlacement *placement,
@@ -185,7 +189,7 @@ namespace ECProject
     bool GetFromDatanode(const std::string &key, char *value, const size_t value_length, const char *ip, const int port, 
       double *disk_io_start_time, double *disk_io_end_time, double *network_start_time, double *network_end_time, double *grpc_notify_time, double *grpc_start_time);
     bool CordRangeReadFromDatanode(const std::string &block_key, int block_id, int range_offset, char *out, size_t length, const char *ip, int port);
-    bool CordRangeWriteToDatanode(const std::string &block_key, int block_id, int range_offset, const char *data, size_t length, const char *ip, int port);
+    bool CordRangeWriteToDatanode(const std::string &block_key, int block_id, int range_offset, const char *data, size_t length, const char *ip, int port, size_t logical_block_size = 0);
     bool CordDeltaBlobToDatanode(const std::string &blob_key, const char *data, size_t length, const char *ip, int port);
     /** CoRD：与其它 proxy（ip:port）之间的长连接池，跨 RPC 调用复用 HTTP/2 channel。 */
     proxy_proto::proxyService::Stub *stub_for_peer_proxy(const std::string &endpoint);
@@ -205,6 +209,9 @@ namespace ECProject
     std::map<std::string, std::unique_ptr<PeerProxyGrpcEntry>> m_peer_proxy_stub_pool;
 
     std::mutex m_mutex;
+    std::mutex m_initial_accept_mutex;
+    std::mutex m_initial_pending_mutex;
+    std::map<uint64_t, std::shared_ptr<proxy_proto::InitialRangeWritePlacement>> m_initial_pending;
     std::condition_variable cv;
     bool init_coordinator();
     bool init_datanodes(std::string datanodeinfo_path);
